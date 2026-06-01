@@ -50,7 +50,11 @@ function login($code_panel, $verify = true)
     update("marzban_panel", "datelogin", $data, 'name_panel', $panel['name_panel']);
     if (!is_string($response))
         return array('success' => false);
-    return json_decode($response, true);
+    $decoded = json_decode($response, true);
+    if ($decoded === null) {
+        return array('success' => false, 'msg' => 'Invalid panel response');
+    }
+    return $decoded;
 }
 
 function get_clinets($username, $namepanel)

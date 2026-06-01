@@ -33,7 +33,11 @@ function request_MHSanaei($url, $method, $token, $data = null) {
         return array('success' => false, 'msg' => $error);
     }
     
-    return json_decode($response, true);
+    $decoded = json_decode($response, true);
+    if ($decoded === null) {
+        return array('success' => false, 'msg' => 'Invalid panel response');
+    }
+    return $decoded;
 }
 
 function get_client_MHSanaei($email, $namepanel) {
@@ -245,10 +249,13 @@ function MHSanaei_router($methodName, $args) {
             if (!isset($user_data_res['obj'])) return array('status' => false, 'msg' => 'User not found');
             $user_data = $user_data_res['obj'];
             if (isset($config['settings'])) {
-                $sets = json_decode($config['settings'], true)['clients'][0];
-                if (isset($sets['enable'])) $user_data['enable'] = $sets['enable'];
-                if (isset($sets['totalGB'])) $user_data['totalGB'] = $sets['totalGB'];
-                if (isset($sets['expiryTime'])) $user_data['expiryTime'] = $sets['expiryTime'];
+                $sets_decoded = json_decode($config['settings'], true);
+                if (isset($sets_decoded['clients'][0])) {
+                    $sets = $sets_decoded['clients'][0];
+                    if (isset($sets['enable'])) $user_data['enable'] = $sets['enable'];
+                    if (isset($sets['totalGB'])) $user_data['totalGB'] = $sets['totalGB'];
+                    if (isset($sets['expiryTime'])) $user_data['expiryTime'] = $sets['expiryTime'];
+                }
             }
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
             $url = $panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username);
