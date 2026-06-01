@@ -818,22 +818,9 @@ function DirectPayment($order_id, $image = 'images.jpg')
                 ]
             ]
         ]);
-        $output_config_link = "";
-        $config = "";
-        if ($marzban_list_get['config'] == "onconfig" && is_array($dataoutput['configs'])) {
-            foreach ($dataoutput['configs'] as $link) {
-                $config .= "\n" . $link;
-            }
-        }
-        $output_config_link = "";
-    if ($marzban_list_get['sublink'] == "onsublink") {
-        $output_config_link = $dataoutput['subscription_url'];
-    } elseif ($marzban_list_get['sublink'] == "bothsubandconfig") {
-        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
-        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
-            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
-        }
-    }
+        $service_links = formatServiceDeliveryLinks($marzban_list_get, $dataoutput);
+        $output_config_link = $service_links['main'];
+        $config = $service_links['extra'];
         $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "Manualsale" ? $textbotlang['textbot']['manual'] : $textbotlang['textbot']['afterPay'];
         $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "WGDashboard" ? $textbotlang['textbot']['wgDashboard'] : $textbotlang['textbot']['afterPay'];
         $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "ibsng" || $marzban_list_get['type'] == "mikrotik" ? $textbotlang['textbot']['afterPayIbsng'] : $textbotlang['textbot']['afterPay'];
@@ -1754,21 +1741,50 @@ function isBase64($string)
     }
     return false;
 }
+function formatServiceDeliveryLinks($panel_info, $dataoutput)
+{
+    $configs = array();
+    if (isset($dataoutput['configs']) && is_array($dataoutput['configs'])) {
+        foreach ($dataoutput['configs'] as $link) {
+            $link = trim((string)$link);
+            if ($link !== '') {
+                $configs[] = $link;
+            }
+        }
+    }
+
+    $subscription_url = trim((string)($dataoutput['subscription_url'] ?? ''));
+    $sublink_mode = $panel_info['sublink'] ?? '';
+    $config_mode = $panel_info['config'] ?? '';
+    $has_subscription = in_array($sublink_mode, array('onsublink', 'bothsubandconfig'), true) && $subscription_url !== '';
+
+    if ($has_subscription) {
+        return array('main' => $subscription_url, 'extra' => '', 'configs' => $configs);
+    }
+
+    if ($config_mode == 'onconfig' && !empty($configs)) {
+        return array('main' => implode("\n\n", $configs), 'extra' => '', 'configs' => $configs);
+    }
+
+    return array('main' => '', 'extra' => '', 'configs' => $configs);
+}
 function sendMessageService($panel_info, $config, $sub_link, $username_service, $reply_markup, $caption, $invoice_id, $user_id = null, $image = 'images.jpg')
 {
     global $setting, $from_id, $textbotlang;
     if (!check_active_btn($setting['keyboardmain'], "text_help"))
         $reply_markup = null;
     $user_id = $user_id == null ? $from_id : $user_id;
-    $STATUS_SEND_MESSAGE_PHOTO = $panel_info['config'] == "onconfig" && count($config) != 1 ? false : true;
+    $config = is_array($config) ? $config : array();
+    $has_delivery_subscription = in_array($panel_info['sublink'], array("onsublink", "bothsubandconfig"), true) && trim((string)$sub_link) !== "";
+    $STATUS_SEND_MESSAGE_PHOTO = $has_delivery_subscription || $panel_info['config'] != "onconfig" || count($config) == 1;
     $out_put_qrcode = "";
     if ($panel_info['type'] == "Manualsale" || $panel_info['type'] == "ibsng" || $panel_info['type'] == "mikrotik") {
     }
-    if ($panel_info['sublink'] == "onsublink" && $panel_info['config']) {
+    if ($has_delivery_subscription) {
         $out_put_qrcode = $sub_link;
     } elseif ($panel_info['sublink'] == "onsublink") {
         $out_put_qrcode = $sub_link;
-    } elseif ($panel_info['config'] == "onconfig") {
+    } elseif ($panel_info['config'] == "onconfig" && !empty($config)) {
         $out_put_qrcode = $config[0];
     }
     if ($STATUS_SEND_MESSAGE_PHOTO) {

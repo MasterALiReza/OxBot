@@ -2306,17 +2306,8 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         }
         $remove = $ManagePanel->RemoveUser($nameloc['Service_location'], $nameloc['username']);
     }
-    $output_config_link = "";
-    if ($marzban_list_get_new['sublink'] == "onsublink") {
-        $output_config_link = $dataoutput['subscription_url'];
-    }
-    if ($marzban_list_get_new['config'] == "onconfig") {
-        if (is_array($dataoutput['configs'])) {
-            foreach ($dataoutput['configs'] as $configs) {
-                $output_config_link .= "\n" . $configs;
-            }
-        }
-    }
+    $service_links = formatServiceDeliveryLinks($marzban_list_get_new, $dataoutput);
+    $output_config_link = $service_links['main'];
     $limitnew = $user['limitchangeloc'] + 1;
     update("user", "limitchangeloc", $limitnew, "id", $from_id);
     $textchangeloc = sprintf($textbotlang['hardcoded']['changeLocationSuccess'], $marzban_list_get_new['name_panel'], $nameloc['username'], $RemainingVolume, $expirationDate, $day, $output_config_link);
@@ -2971,22 +2962,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         update("invoice", "Status", "Unsuccessful", "id_invoice", $randomString);
         return;
     }
-    $output_config_link = "";
-    $config = "";
-    $output_config_link = "";
-    if ($marzban_list_get['sublink'] == "onsublink") {
-        $output_config_link = $dataoutput['subscription_url'];
-    } elseif ($marzban_list_get['sublink'] == "bothsubandconfig") {
-        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
-        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
-            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
-        }
-    }
-    if ($marzban_list_get['config'] == "onconfig" && is_array($dataoutput['configs'])) {
-        for ($i = 0; $i < count($dataoutput['configs']); ++$i) {
-            $output_config_link .= "\n" . $dataoutput['configs'][$i];
-        }
-    }
+    $service_links = formatServiceDeliveryLinks($marzban_list_get, $dataoutput);
+    $output_config_link = $service_links['main'];
+    $config = $service_links['extra'];
 
     $usertestinfo = json_encode([
         'inline_keyboard' => [
@@ -3942,22 +3920,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         return;
     }
     update("invoice", "Status", "active", "username", $username_ac);
-    $output_config_link = "";
-    $config = "";
-    $output_config_link = "";
-    if ($marzban_list_get['sublink'] == "onsublink") {
-        $output_config_link = $dataoutput['subscription_url'];
-    } elseif ($marzban_list_get['sublink'] == "bothsubandconfig") {
-        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
-        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
-            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
-        }
-    }
-    if ($marzban_list_get['config'] == "onconfig" && is_array($dataoutput['configs'])) {
-        foreach ($dataoutput['configs'] as $link) {
-            $config .= "\n" . $link;
-        }
-    }
+    $service_links = formatServiceDeliveryLinks($marzban_list_get, $dataoutput);
+    $output_config_link = $service_links['main'];
+    $config = $service_links['extra'];
     $Shoppinginfo = json_encode($Shoppinginfo);
     $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "Manualsale" ? $textbotlang['textbot']['manual'] : $textbotlang['textbot']['afterPay'];
     $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "WGDashboard" ? $textbotlang['textbot']['wgDashboard'] : $textbotlang['textbot']['afterPay'];
@@ -4487,23 +4452,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $stmt->bind_param("sssssssssss", $from_id, $randomString, $username_acc, $date, $user['Processing_value'], $info_product['name_product'], $info_product['price_product'], $info_product['Volume_constraint'], $info_product['Service_time'], $Status, $notifctions);
         $stmt->execute();
         $stmt->close();
-        $config = "";
-        $output_config_link = "";
-    if ($marzban_list_get['sublink'] == "onsublink") {
-        $output_config_link = $dataoutput['subscription_url'];
-    } elseif ($marzban_list_get['sublink'] == "bothsubandconfig") {
-        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
-        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
-            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
-        }
-    }
-        if ($marzban_list_get['config'] == "onconfig") {
-            if (is_array($dataoutput['configs'])) {
-                foreach ($dataoutput['configs'] as $configs) {
-                    $config .= $configs;
-                }
-            }
-        }
+        $service_links = formatServiceDeliveryLinks($marzban_list_get, $dataoutput);
+        $output_config_link = $service_links['main'];
+        $config = $service_links['extra'];
         $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "Manualsale" ? $textbotlang['textbot']['manual'] : $textbotlang['textbot']['afterPay'];
         if ($marzban_list_get['type'] == "WGDashboard") {
             $textbotlang['textbot']['afterPay'] = $textbotlang['hardcoded']['serviceCreatedSuccess2'];

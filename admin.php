@@ -6146,21 +6146,9 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     $stmt->bindParam(':Status', $Status, PDO::PARAM_STR);
     $stmt->bindParam(':notifctions', $notifctions, PDO::PARAM_STR);
     $stmt->execute();
-    $output_config_link = "";
-    if ($marzban_list_get['sublink'] == "onsublink") {
-        $output_config_link = $DataUserOut['subscription_url'];
-    } elseif ($marzban_list_get['sublink'] == "bothsubandconfig") {
-        $output_config_link = $DataUserOut['subscription_url'] . "\n\n";
-        for ($i = 0; $i < count($DataUserOut['configs']); $i++) {
-            $output_config_link .= $DataUserOut['configs'][$i] . "\n\n";
-        }
-    }
-    $config = "";
-    if ($marzban_list_get['config'] == "onconfig" && is_array($DataUserOut['configs'])) {
-        foreach ($DataUserOut['configs'] as $link) {
-            $config .= "\n" . $link;
-        }
-    }
+    $service_links = formatServiceDeliveryLinks($marzban_list_get, $DataUserOut);
+    $output_config_link = $service_links['main'];
+    $config = $service_links['extra'];
     $Shoppinginfo = json_encode([
         'inline_keyboard' => [
             [
@@ -6557,21 +6545,9 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
             return;
         }
         $randomString = bin2hex(random_bytes(5));
-        $output_config_link = "";
-    if ($panel['sublink'] == "onsublink") {
-        $output_config_link = $dataoutput['subscription_url'];
-    } elseif ($panel['sublink'] == "bothsubandconfig") {
-        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
-        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
-            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
-        }
-    }
-        $config = "";
-        if ($marzban_list_get['config'] == "onconfig" && is_array($dataoutput['configs'])) {
-            foreach ($dataoutput['configs'] as $link) {
-                $config .= "\n" . $link;
-            }
-        }
+        $service_links = formatServiceDeliveryLinks($panel, $dataoutput);
+        $output_config_link = $service_links['main'];
+        $config = $service_links['extra'];
         $textbotlang['textbot']['afterPay'] = $panel['type'] == "Manualsale" ? $textbotlang['textbot']['manual'] : $textbotlang['textbot']['afterPay'];
         $textbotlang['textbot']['afterPay'] = $panel['type'] == "WGDashboard" ? $textbotlang['textbot']['wgDashboard'] : $textbotlang['textbot']['afterPay'];
         $textbotlang['textbot']['afterPay'] = $panel['type'] == "ibsng" || $panel['type'] == "mikrotik" ? $textbotlang['textbot']['afterPayIbsng'] : $textbotlang['textbot']['afterPay'];

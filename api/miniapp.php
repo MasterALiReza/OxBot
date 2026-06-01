@@ -857,21 +857,9 @@ switch ($data['actions']) {
             }
             return;
         }
-        $config = "";
-        $output_config_link = "";
-    if ($panel['sublink'] == "onsublink") {
-        $output_config_link = $dataoutput['subscription_url'];
-    } elseif ($panel['sublink'] == "bothsubandconfig") {
-        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
-        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
-            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
-        }
-    }
-        if ($panel['config'] == "onconfig" && is_array($dataoutput['configs'])) {
-            foreach ($dataoutput['configs'] as $link) {
-                $config .= "\n" . $link;
-            }
-        }
+        $service_links = formatServiceDeliveryLinks($panel, $dataoutput);
+        $output_config_link = $service_links['main'];
+        $config = $service_links['extra'];
         $textbotlang['textbot']['afterPay'] = $panel['type'] == "Manualsale" ? $textbotlang['textbot']['manual'] : $textbotlang['textbot']['afterPay'];
         $textbotlang['textbot']['afterPay'] = $panel['type'] == "WGDashboard" ? $textbotlang['textbot']['wgDashboard'] : $textbotlang['textbot']['afterPay'];
         $textbotlang['textbot']['afterPay'] = $panel['type'] == "ibsng" || $panel['type'] == "mikrotik" ? $textbotlang['textbot']['afterPayIbsng'] : $textbotlang['textbot']['afterPay'];
