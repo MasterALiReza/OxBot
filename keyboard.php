@@ -415,6 +415,13 @@ $backadmin = json_encode([
     ],
     'resize_keyboard' => true,
 ]);
+$keyboardconfirm = json_encode([
+    'keyboard' => [
+        [['text' => $textbotlang['keyboard']['confirm']]],
+        [['text' => $textbotlang['Admin']['backAdminBtn']], ['text' => $textbotlang['Admin']['backMenuBtn']]]
+    ],
+    'resize_keyboard' => true,
+]);
 //------------------  [ list panel ]----------------//
 $stmt = $pdo->prepare("SHOW TABLES LIKE 'marzban_panel'");
 $stmt->execute();

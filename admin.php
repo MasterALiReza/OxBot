@@ -3767,7 +3767,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     update("marzban_panel", "datelogin", null, "name_panel", $user['Processing_value']);
     step('home', $from_id);
 } elseif ($text == $textbotlang['keyboard']['deletePanel'] && $adminrulecheck['rule'] == "administrator") {
-    sendmessage($from_id, $textbotlang['Admin']['adminphp']['ask_send_confirm'], $backadmin, 'HTML');
+    sendmessage($from_id, $textbotlang['Admin']['adminphp']['ask_send_confirm'], $keyboardconfirm, 'HTML');
     step('confirmremovepanel', $from_id);
 } elseif ($user['step'] == "confirmremovepanel") {
     if ($text == $textbotlang['keyboard']['confirm']) {
@@ -3779,7 +3779,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     }
     step('home', $from_id);
 } elseif ($text == $textbotlang['keyboard']['restartXray'] && $adminrulecheck['rule'] == "administrator") {
-    sendmessage($from_id, $textbotlang['Admin']['managepanel']['confirmRestartXray'], $backadmin, 'HTML');
+    sendmessage($from_id, $textbotlang['Admin']['managepanel']['confirmRestartXray'], $keyboardconfirm, 'HTML');
     step('confirmrestartxray', $from_id);
 } elseif ($user['step'] == "confirmrestartxray") {
     if ($text == $textbotlang['keyboard']['confirm']) {
@@ -3792,7 +3792,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     }
     step('home', $from_id);
 } elseif ($text == $textbotlang['keyboard']['deleteDepleted'] && $adminrulecheck['rule'] == "administrator") {
-    sendmessage($from_id, $textbotlang['Admin']['managepanel']['confirmDeleteDepleted'], $backadmin, 'HTML');
+    sendmessage($from_id, $textbotlang['Admin']['managepanel']['confirmDeleteDepleted'], $keyboardconfirm, 'HTML');
     step('confirmdeletedepleted', $from_id);
 } elseif ($user['step'] == "confirmdeletedepleted") {
     if ($text == $textbotlang['keyboard']['confirm']) {
@@ -3805,7 +3805,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     }
     step('home', $from_id);
 } elseif ($text == $textbotlang['keyboard']['resetAllTraffics'] && $adminrulecheck['rule'] == "administrator") {
-    sendmessage($from_id, $textbotlang['Admin']['managepanel']['confirmResetAllTraffics'], $backadmin, 'HTML');
+    sendmessage($from_id, $textbotlang['Admin']['managepanel']['confirmResetAllTraffics'], $keyboardconfirm, 'HTML');
     step('confirmresetalltraffics', $from_id);
 } elseif ($user['step'] == "confirmresetalltraffics") {
     if ($text == $textbotlang['keyboard']['confirm']) {
