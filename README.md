@@ -35,7 +35,7 @@ A Powerful Bot for Selling VPN Services with Auto Configuration Build.
 
 ## ✨ Overview
 
-**Mirza Bot** is a feature-rich Telegram bot designed for selling VPN services for platforms like **Marzban**,**3x-ui panels**,**alireza panels**,**pasarguard**,**ibsng**,.... This bot simplifies the process of VPN subscription sales, enabling seamless automation, configuration building, and user management.
+**Mirza Bot** is a feature-rich Telegram bot designed for selling VPN services for platforms like **Marzban**, **3x-ui panels**, **alireza panels**, **pasarguard**, **ibsng**, etc. This bot simplifies the process of VPN subscription sales, enabling seamless automation, configuration building, and user management.
 
 Mirza Panel comes in two versions:  
 1. **Free Version** 🆓: Offers basic functionalities to get started with VPN sales.  
@@ -109,17 +109,19 @@ When prompted, **select option 1** to complete the installation.
 
 ---
 
-## 🔄 updating bot
+## 🔄 Updating the Bot
 
 To update your bot to the latest version, use the following command:
 
 ```bash
 curl -o install.sh -L https://raw.githubusercontent.com/MasterALiReza/mirzabot/main/install.sh && bash install.sh
 ```
-When prompted, **select option update** to remove the bot.
+
+When prompted, **select the update option** to update the bot.
+
 ---
 
-## ❌ removing
+## ❌ Removing the Bot
 
 If you want to completely remove the bot from your server, run the following command:
 

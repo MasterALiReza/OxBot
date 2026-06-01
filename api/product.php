@@ -439,6 +439,14 @@ switch ($data['actions'] ?? '') {
             if ($user_data == null)
                 sendJsonResponse(false, "User Not Found", [], 200);
             $datainbound = $user_data['inboundId'];
+        } elseif ($panel['type'] == "MHSanaei-3.2") {
+            $user_data_res = get_client_MHSanaei($data['input'], $panel['name_panel']);
+            if (isset($user_data_res['success']) && !$user_data_res['success'])
+                sendJsonResponse(false, isset($user_data_res['msg']) ? $user_data_res['msg'] : 'User not found', [], 200);
+            if (!isset($user_data_res['obj']))
+                sendJsonResponse(false, "User Not Found", [], 200);
+            $user_data = $user_data_res['obj'];
+            $datainbound = $user_data['inboundId'];
         } elseif ($panel['type'] == "s_ui") {
             $user_data = GetClientsS_UI($data['input'], $panel['name_panel']);
             if (count($user_data) == 0) {
