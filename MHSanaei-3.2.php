@@ -562,6 +562,39 @@ function get_subLinks_MHSanaei($namepanel, $subid) {
     return request_MHSanaei($url, 'GET', $panel);
 }
 
+function mhsanaei_subscription_url($panel, $subid) {
+    $raw_base = (!empty($panel['linksubx']) && $panel['linksubx'] != "none") ? $panel['linksubx'] : ($panel['url_panel'] ?? '');
+    $base = rtrim(trim((string)$raw_base), "/ \t\n\r\0\x0B");
+    if ($base === '') {
+        return '/sub/' . rawurlencode($subid);
+    }
+    if (!preg_match('#^[a-z][a-z0-9+.-]*://#i', $base)) {
+        $base = 'https://' . ltrim($base, '/');
+    }
+
+    $parts = parse_url($base);
+    if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+        return $base . '/sub/' . rawurlencode($subid);
+    }
+
+    $origin = $parts['scheme'] . '://' . $parts['host'];
+    if (isset($parts['port'])) {
+        $origin .= ':' . $parts['port'];
+    }
+
+    $path = isset($parts['path']) ? trim($parts['path'], '/') : '';
+    $segments = ($path === '') ? array() : explode('/', $path);
+    $sub_index = array_search('sub', $segments, true);
+
+    if ($sub_index !== false) {
+        $segments = array_slice($segments, 0, $sub_index + 1);
+    } else {
+        $segments[] = 'sub';
+    }
+
+    return $origin . '/' . implode('/', $segments) . '/' . rawurlencode($subid);
+}
+
 function MHSanaei_router($methodName, $args) {
     global $domainhosts, $pdo, $textbotlang;
 
@@ -599,8 +632,7 @@ function MHSanaei_router($methodName, $args) {
                 $Output = ['status' => 'successful', 'username' => $usernameC];
                 $subLinksRes = get_subLinks_MHSanaei($name_panel, $subId);
                 $Output['configs'] = (isset($subLinksRes['success']) && $subLinksRes['success']) ? $subLinksRes['obj'] : [];
-                $domain = (!empty($Get_Data_Panel['linksubx']) && $Get_Data_Panel['linksubx'] != "none") ? rtrim($Get_Data_Panel['linksubx'], '/') : rtrim($Get_Data_Panel['url_panel'], '/');
-                $Output['subscription_url'] = $domain . '/sub/' . $subId;
+                $Output['subscription_url'] = mhsanaei_subscription_url($Get_Data_Panel, $subId);
                 
                 $inoice = ($Get_Data_Panel['subvip'] == "onsubvip") ? select("invoice", "*", "username", $usernameC, "select") : false;
                 if ($inoice != false) {
@@ -639,8 +671,7 @@ function MHSanaei_router($methodName, $args) {
             $subid = (string)($user_ptr['subId'] ?? '');
             $subLinksRes = $subid !== '' ? get_subLinks_MHSanaei($name_panel, $subid) : array('success' => false);
             $links_user = (isset($subLinksRes['success']) && $subLinksRes['success']) ? $subLinksRes['obj'] : [];
-            $domain = (!empty($Get_Data_Panel['linksubx']) && $Get_Data_Panel['linksubx'] != "none") ? rtrim($Get_Data_Panel['linksubx'], '/') : rtrim($Get_Data_Panel['url_panel'], '/');
-            $subscription_url = $domain . '/sub/' . $subid;
+            $subscription_url = mhsanaei_subscription_url($Get_Data_Panel, $subid);
             $inoice = (isset($Get_Data_Panel['subvip']) && $Get_Data_Panel['subvip'] == "onsubvip") ? select("invoice", "*", "username", $username, "select") : false;
             if ($inoice != false) $subscription_url = "https://$domainhosts/sub/" . $inoice['id_invoice'];
 
@@ -667,11 +698,11 @@ function MHSanaei_router($methodName, $args) {
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
             $update = mhsanaei_update_client_payload($panel, $username, $context['client'], array('subId' => $newSubId));
             if (isset($update['success']) && $update['success']) {
-                $domain = (!empty($panel['linksubx']) && $panel['linksubx'] != "none") ? rtrim($panel['linksubx'], '/') : rtrim($panel['url_panel'], '/');
+                $subscription_url = mhsanaei_subscription_url($panel, $newSubId);
                 return array(
                     'status' => 'successful',
-                    'configs' => [ $domain . "/sub/" . $newSubId ],
-                    'subscription_url' => $domain . "/sub/" . $newSubId
+                    'configs' => [ $subscription_url ],
+                    'subscription_url' => $subscription_url
                 );
             }
             return array('status' => 'Unsuccessful', 'msg' => $update['msg'] ?? 'Unsuccessful');
