@@ -2,101 +2,65 @@
 require_once 'config.php';
 require_once 'request.php';
 
-function login_MHSanaei_internal($panel) {
-    if (!empty($panel['datelogin'])) {
-        $date = json_decode($panel['datelogin'], true);
-        if (is_array($date) && isset($date['time']) && isset($date['access_token'])) {
-            $start_date = time() - strtotime($date['time']);
-            if ($start_date <= 3600) { // 1 hour validity
-                return $date['access_token'];
-            }
+function request_MHSanaei($url, $method, $panel, $data = null) {
+    // Exactly like x-ui_single: We use the global login() function from x-ui_single.php
+    login($panel['code_panel']);
+    
+    $headers = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+    );
+    $req = new CurlRequest($url);
+    $req->setHeaders($headers);
+    $req->setCookie('cookie.txt');
+    
+    if ($method == 'POST') {
+        if ($data !== null) {
+            $req->setBody(is_array($data) ? json_encode($data) : $data);
+        }
+        $response = $req->post();
+    } else {
+        $response = $req->get();
+    }
+    
+    if (is_file('cookie.txt')) {
+        @unlink('cookie.txt');
+    }
+    
+    if (isset($response['body'])) {
+        $decoded = json_decode($response['body'], true);
+        if ($decoded !== null && !(isset($decoded['success']) && $decoded['success'] === false && strpos($response['body'], 'Unauthorized') !== false)) {
+            return $decoded;
+        }
+    }
+    
+    // Fallback: If cookie failed (maybe user actually put an API token in password field)
+    $authHeader = 'Authorization: Bearer ' . $panel['password_panel'];
+    $req = new CurlRequest($url);
+    $headers[1] = $authHeader; // Replace Content-Type with Auth for GET, or add it
+    $headers = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        $authHeader
+    );
+    $req->setHeaders($headers);
+    if ($method == 'POST') {
+        if ($data !== null) {
+            $req->setBody(is_array($data) ? json_encode($data) : $data);
+        }
+        $response = $req->post();
+    } else {
+        $response = $req->get();
+    }
+
+    if (isset($response['body'])) {
+        $decoded = json_decode($response['body'], true);
+        if ($decoded !== null) {
+            return $decoded;
         }
     }
 
-    $curl = curl_init();
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => rtrim($panel['url_panel'], '/') . '/login',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT_MS => 10000,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']),
-        CURLOPT_HEADER => true,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
-    ));
-    $response = curl_exec($curl);
-    if (!$response) {
-        curl_close($curl);
-        return false;
-    }
-    $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
-    $header = substr($response, 0, $header_size);
-    curl_close($curl);
-
-    preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $header, $matches);
-    $cookies = array();
-    foreach($matches[1] as $item) {
-        parse_str($item, $cookie);
-        $cookies = array_merge($cookies, $cookie);
-    }
-
-    if (isset($cookies['session'])) {
-        $session = 'session=' . $cookies['session'];
-        $time = date('Y/m/d H:i:s');
-        $data = json_encode(array(
-            'time' => $time,
-            'access_token' => $session
-        ));
-        update("marzban_panel", "datelogin", $data, 'name_panel', $panel['name_panel']);
-        return $session;
-    }
-    return false;
-}
-
-function request_MHSanaei($url, $method, $panel, $data = null) {
-    $session = login_MHSanaei_internal($panel);
-    $authHeader = $session ? 'Cookie: ' . $session : 'Authorization: Bearer ' . $panel['password_panel'];
-
-
-    $curl = curl_init();
-    $options = array(
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT_MS => 10000,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => $method,
-        CURLOPT_HTTPHEADER => array(
-            'Accept: application/json',
-            $authHeader
-        ),
-    );
-    
-    if ($data !== null) {
-        $options[CURLOPT_POSTFIELDS] = is_array($data) ? json_encode($data) : $data;
-        $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
-    }
-    
-    curl_setopt_array($curl, $options);
-    $response = curl_exec($curl);
-    $error = curl_error($curl);
-    curl_close($curl);
-    
-    if ($error) {
-        return array('success' => false, 'msg' => $error);
-    }
-    
-    $decoded = json_decode($response, true);
-    if ($decoded === null) {
-        return array('success' => false, 'msg' => 'Invalid panel response');
-    }
-    return $decoded;
+    return array('success' => false, 'msg' => 'Invalid panel response');
 }
 
 function get_client_MHSanaei($email, $namepanel) {
