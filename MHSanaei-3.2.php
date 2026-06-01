@@ -6,7 +6,7 @@ require_once 'request.php';
 function panel_login_cookie_MHSanaei($code_panel)
 {
     $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
-    $base_url = rtrim($panel['url_panel'], '/');
+    $base_url = rtrim(trim($panel['url_panel']), '/');
     $cookie_file = __DIR__ . '/cookie_mhsanaei_' . $code_panel . '.txt';
     
     $csrf_token = '';
@@ -46,10 +46,11 @@ function panel_login_cookie_MHSanaei($code_panel)
         $headers_form[] = 'X-CSRF-Token: ' . $csrf_token;
     }
     
-    $payload_form = "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']);
+    $payload_form = "username=" . trim($panel['username_panel']) . "&password=" . urlencode(trim($panel['password_panel']));
 
     $curl = curl_init();
     curl_setopt_array($curl, array(
+        CURLINFO_HEADER_OUT => true,
         CURLOPT_URL => $base_url . '/login',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
@@ -67,6 +68,7 @@ function panel_login_cookie_MHSanaei($code_panel)
     ));
     $response = curl_exec($curl);
     $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $headers_out = curl_getinfo($curl, CURLINFO_HEADER_OUT);
     
     if (curl_error($curl)) {
         return json_encode(array(
@@ -78,7 +80,7 @@ function panel_login_cookie_MHSanaei($code_panel)
     if ($http_code != 200) {
         return json_encode(array(
             'success' => false,
-            'msg' => 'HTTP Error ' . $http_code . ' | CSRF: ' . ($csrf_token ? 'Yes' : 'No') . ' | Resp: ' . mb_substr($response, 0, 100)
+            'msg' => 'HTTP Error ' . $http_code . ' | Req: ' . str_replace("\r\n", " ", $headers_out)
         ));
     }
     
