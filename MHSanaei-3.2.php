@@ -62,6 +62,7 @@ function panel_login_cookie_MHSanaei($code_panel)
         CURLOPT_POSTFIELDS => $payload_json,
         CURLOPT_HTTPHEADER => $headers_json,
         CURLOPT_COOKIEJAR => 'cookie.txt',
+        CURLOPT_COOKIEFILE => 'cookie.txt',
     ));
     $response = curl_exec($curl);
     
