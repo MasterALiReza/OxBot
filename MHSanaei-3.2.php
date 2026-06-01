@@ -7,6 +7,7 @@ function panel_login_cookie_MHSanaei($code_panel)
 {
     $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
     $base_url = rtrim($panel['url_panel'], '/');
+    $cookie_file = __DIR__ . '/cookie_mhsanaei_' . $code_panel . '.txt';
     
     $csrf_token = '';
     $curl_csrf = curl_init();
@@ -20,8 +21,8 @@ function panel_login_cookie_MHSanaei($code_panel)
         CURLOPT_HTTPHEADER => array(
             'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
         ),
-        CURLOPT_COOKIEJAR => 'cookie.txt',
-        CURLOPT_COOKIEFILE => 'cookie.txt',
+        CURLOPT_COOKIEJAR => $cookie_file,
+        CURLOPT_COOKIEFILE => $cookie_file,
     ));
     $csrf_resp = curl_exec($curl_csrf);
     if (curl_getinfo($curl_csrf, CURLINFO_HTTP_CODE) == 200) {
@@ -61,8 +62,8 @@ function panel_login_cookie_MHSanaei($code_panel)
         CURLOPT_CUSTOMREQUEST => 'POST',
         CURLOPT_POSTFIELDS => $payload_form,
         CURLOPT_HTTPHEADER => $headers_form,
-        CURLOPT_COOKIEJAR => 'cookie.txt',
-        CURLOPT_COOKIEFILE => 'cookie.txt',
+        CURLOPT_COOKIEJAR => $cookie_file,
+        CURLOPT_COOKIEFILE => $cookie_file,
     ));
     $response = curl_exec($curl);
     $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -87,6 +88,8 @@ function panel_login_cookie_MHSanaei($code_panel)
 function login_MHSanaei($code_panel, $verify = true)
 {
     $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
+    $cookie_file = __DIR__ . '/cookie_mhsanaei_' . $panel['code_panel'] . '.txt';
+
     if ($panel['datelogin'] != null && $verify) {
         $date = json_decode($panel['datelogin'], true);
         if (isset($date['time'])) {
@@ -94,16 +97,17 @@ function login_MHSanaei($code_panel, $verify = true)
             $time = strtotime($time);
             $time = $time + 60 * 60;
             if ($time > time()) {
-                file_put_contents('cookie.txt', $date['access_token']);
+                file_put_contents($cookie_file, $date['access_token']);
                 return array('success' => true);
             }
         }
     }
+
     $response = panel_login_cookie_MHSanaei($panel['code_panel']);
     $time = date('Y/m/d H:i:s');
     $data = json_encode(array(
         'time' => $time,
-        'access_token' => file_get_contents('cookie.txt')
+        'access_token' => file_exists($cookie_file) ? file_get_contents($cookie_file) : ''
     ));
     update("marzban_panel", "datelogin", $data, 'name_panel', $panel['name_panel']);
     if (!is_string($response))
@@ -154,9 +158,12 @@ function request_MHSanaei($url, $method, $panel, $data = null) {
         $headers[] = 'X-CSRF-Token: ' . $csrf_token;
     }
     
+    $cookie_file = __DIR__ . '/cookie_mhsanaei_' . $panel['code_panel'] . '.txt';
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
-    $req->setCookie('cookie.txt');
+    if (file_exists($cookie_file)) {
+        $req->setCookie($cookie_file);
+    }
     
     if ($method == 'POST') {
         $postData = is_array($data) ? json_encode($data) : $data;
