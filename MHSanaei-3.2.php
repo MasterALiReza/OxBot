@@ -2,7 +2,66 @@
 require_once 'config.php';
 require_once 'request.php';
 
-function request_MHSanaei($url, $method, $token, $data = null) {
+function login_MHSanaei_internal($panel) {
+    if (!empty($panel['datelogin'])) {
+        $date = json_decode($panel['datelogin'], true);
+        if (is_array($date) && isset($date['time']) && isset($date['access_token'])) {
+            $start_date = time() - strtotime($date['time']);
+            if ($start_date <= 3600) { // 1 hour validity
+                return $date['access_token'];
+            }
+        }
+    }
+
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => rtrim($panel['url_panel'], '/') . '/login',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT_MS => 10000,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']),
+        CURLOPT_HEADER => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+    ));
+    $response = curl_exec($curl);
+    if (!$response) {
+        curl_close($curl);
+        return false;
+    }
+    $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+    $header = substr($response, 0, $header_size);
+    curl_close($curl);
+
+    preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $header, $matches);
+    $cookies = array();
+    foreach($matches[1] as $item) {
+        parse_str($item, $cookie);
+        $cookies = array_merge($cookies, $cookie);
+    }
+
+    if (isset($cookies['session'])) {
+        $session = 'session=' . $cookies['session'];
+        $time = date('Y/m/d H:i:s');
+        $data = json_encode(array(
+            'time' => $time,
+            'access_token' => $session
+        ));
+        update("marzban_panel", "datelogin", $data, 'name_panel', $panel['name_panel']);
+        return $session;
+    }
+    return false;
+}
+
+function request_MHSanaei($url, $method, $panel, $data = null) {
+    $session = login_MHSanaei_internal($panel);
+    $authHeader = $session ? 'Cookie: ' . $session : 'Authorization: Bearer ' . $panel['password_panel'];
+
+
     $curl = curl_init();
     $options = array(
         CURLOPT_URL => $url,
@@ -15,7 +74,7 @@ function request_MHSanaei($url, $method, $token, $data = null) {
         CURLOPT_CUSTOMREQUEST => $method,
         CURLOPT_HTTPHEADER => array(
             'Accept: application/json',
-            'Authorization: Bearer ' . $token
+            $authHeader
         ),
     );
     
@@ -43,7 +102,7 @@ function request_MHSanaei($url, $method, $token, $data = null) {
 function get_client_MHSanaei($email, $namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     $url = $panel['url_panel'] . '/panel/api/clients/get/' . urlencode($email);
-    return request_MHSanaei($url, 'GET', $panel['password_panel']);
+    return request_MHSanaei($url, 'GET', $panel);
 }
 
 function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $inboundid, $name_product, $note = "", $tgId = "") {
@@ -79,7 +138,7 @@ function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $i
     if (!empty($inboundid)) {
         if ($inboundid == "all" || $inboundid == "0") {
             $url_inbounds = $panel['url_panel'] . '/panel/api/inbounds/options';
-            $res_inbounds = request_MHSanaei($url_inbounds, 'GET', $panel['password_panel']);
+            $res_inbounds = request_MHSanaei($url_inbounds, 'GET', $panel);
             if (isset($res_inbounds['success']) && $res_inbounds['success'] && is_array($res_inbounds['obj'])) {
                 foreach ($res_inbounds['obj'] as $inb) {
                     $inbounds_array[] = intval($inb['id']);
@@ -106,25 +165,25 @@ function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $i
     );
     
     $url = $panel['url_panel'] . '/panel/api/clients/add';
-    return request_MHSanaei($url, 'POST', $panel['password_panel'], $data);
+    return request_MHSanaei($url, 'POST', $panel, $data);
 }
 
 function ResetUserDataUsage_MHSanaei($email, $namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     $url = $panel['url_panel'] . '/panel/api/clients/resetTraffic/' . urlencode($email);
-    return request_MHSanaei($url, 'POST', $panel['password_panel']);
+    return request_MHSanaei($url, 'POST', $panel);
 }
 
 function removeClient_MHSanaei($namepanel, $email) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     $url = $panel['url_panel'] . '/panel/api/clients/del/' . urlencode($email);
-    return request_MHSanaei($url, 'POST', $panel['password_panel']);
+    return request_MHSanaei($url, 'POST', $panel);
 }
 
 function get_online_MHSanaei($namepanel, $email) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     $url = $panel['url_panel'] . '/panel/api/clients/onlines';
-    $response = request_MHSanaei($url, 'POST', $panel['password_panel']);
+    $response = request_MHSanaei($url, 'POST', $panel);
     
     if (isset($response['success']) && $response['success']) {
         if (in_array($email, $response['obj'])) {
@@ -137,7 +196,7 @@ function get_online_MHSanaei($namepanel, $email) {
 function get_subLinks_MHSanaei($namepanel, $subid) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     $url = $panel['url_panel'] . '/panel/api/clients/subLinks/' . urlencode($subid);
-    return request_MHSanaei($url, 'GET', $panel['password_panel']);
+    return request_MHSanaei($url, 'GET', $panel);
 }
 
 function MHSanaei_router($methodName, $args) {
@@ -234,7 +293,7 @@ function MHSanaei_router($methodName, $args) {
             $user_data['subId'] = bin2hex(random_bytes(8)); // Update subId to revoke
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
             $url = $panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username);
-            $update = request_MHSanaei($url, 'POST', $panel['password_panel'], $user_data);
+            $update = request_MHSanaei($url, 'POST', $panel, $user_data);
             if (isset($update['success']) && $update['success']) {
                 $domain = (!empty($panel['linksubx']) && $panel['linksubx'] != "none") ? rtrim($panel['linksubx'], '/') : rtrim($panel['url_panel'], '/');
                 return array(
@@ -270,7 +329,7 @@ function MHSanaei_router($methodName, $args) {
             }
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
             $url = $panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username);
-            $update = request_MHSanaei($url, 'POST', $panel['password_panel'], $user_data);
+            $update = request_MHSanaei($url, 'POST', $panel, $user_data);
             if (isset($update['success']) && $update['success']) return array('status' => true, 'data' => $update);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
             
@@ -282,7 +341,7 @@ function MHSanaei_router($methodName, $args) {
             $user_data['enable'] = !$user_data['enable']; // Toggle status
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
             $url = $panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username);
-            $update = request_MHSanaei($url, 'POST', $panel['password_panel'], $user_data);
+            $update = request_MHSanaei($url, 'POST', $panel, $user_data);
             if (isset($update['success']) && $update['success']) return array('status' => 'successful', 'msg' => null);
             return array('status' => 'Unsuccessful', 'msg' => 'Error');
             
@@ -312,7 +371,7 @@ function MHSanaei_router($methodName, $args) {
             $user_data['enable'] = true;
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
             $url = $panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username);
-            $update = request_MHSanaei($url, 'POST', $panel['password_panel'], $user_data);
+            $update = request_MHSanaei($url, 'POST', $panel, $user_data);
             if (isset($update['success']) && $update['success']) return array('status' => true);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
             
@@ -327,7 +386,7 @@ function MHSanaei_router($methodName, $args) {
             $user_data['totalGB'] = $current_total + ($limit_volume_new * pow(1024, 3));
             $user_data['enable'] = true;
             $url = $Get_Data_Panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username_account);
-            $update = request_MHSanaei($url, 'POST', $Get_Data_Panel['password_panel'], $user_data);
+            $update = request_MHSanaei($url, 'POST', $Get_Data_Panel, $user_data);
             if (isset($update['success']) && $update['success']) return array('status' => true);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
             
@@ -346,7 +405,7 @@ function MHSanaei_router($methodName, $args) {
             }
             $user_data['enable'] = true;
             $url = $Get_Data_Panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username_account);
-            $update = request_MHSanaei($url, 'POST', $Get_Data_Panel['password_panel'], $user_data);
+            $update = request_MHSanaei($url, 'POST', $Get_Data_Panel, $user_data);
             if (isset($update['success']) && $update['success']) return array('status' => true);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
 
@@ -360,19 +419,19 @@ function MHSanaei_router($methodName, $args) {
 function restartXray_MHSanaei($namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     $url = $panel['url_panel'] . '/panel/api/server/restartXrayService';
-    return request_MHSanaei($url, 'POST', $panel['password_panel']);
+    return request_MHSanaei($url, 'POST', $panel);
 }
 
 function delDepleted_MHSanaei($namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     $url = $panel['url_panel'] . '/panel/api/clients/delDepleted';
-    return request_MHSanaei($url, 'POST', $panel['password_panel']);
+    return request_MHSanaei($url, 'POST', $panel);
 }
 
 function resetAllTraffics_MHSanaei($namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     $url = $panel['url_panel'] . '/panel/api/clients/resetAllTraffics';
-    return request_MHSanaei($url, 'POST', $panel['password_panel']);
+    return request_MHSanaei($url, 'POST', $panel);
 }
 
 function check_connection_MHSanaei($code_panel) {
@@ -381,7 +440,7 @@ function check_connection_MHSanaei($code_panel) {
         return array('success' => false, 'msg' => 'Panel not found in database');
     }
     $url = $panel['url_panel'] . '/panel/api/server/status';
-    $res = request_MHSanaei($url, 'GET', $panel['password_panel']);
+    $res = request_MHSanaei($url, 'GET', $panel);
     if (isset($res['success'])) {
         return $res;
     }
