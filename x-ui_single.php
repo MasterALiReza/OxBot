@@ -6,7 +6,22 @@ function panel_login_cookie($code_panel)
 {
     $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
     $curl = curl_init();
-    curl_setopt_array($curl, array(
+    
+    $is_sanaei = (isset($panel['type']) && $panel['type'] == 'MHSanaei-3.2');
+    
+    $postfields = $is_sanaei 
+        ? json_encode(array(
+            'username' => $panel['username_panel'],
+            'password' => $panel['password_panel'],
+            'twoFactorCode' => ''
+          ))
+        : "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']);
+        
+    $headers = $is_sanaei 
+        ? array('Content-Type: application/json', 'Accept: application/json')
+        : array();
+
+    $options = array(
         CURLOPT_URL => rtrim($panel['url_panel'], '/') . '/login',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
@@ -16,9 +31,15 @@ function panel_login_cookie($code_panel)
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']),
+        CURLOPT_POSTFIELDS => $postfields,
         CURLOPT_COOKIEJAR => 'cookie.txt',
-    ));
+    );
+    
+    if (!empty($headers)) {
+        $options[CURLOPT_HTTPHEADER] = $headers;
+    }
+    
+    curl_setopt_array($curl, $options);
     $response = curl_exec($curl);
     if (curl_error($curl)) {
         return json_encode(array(
