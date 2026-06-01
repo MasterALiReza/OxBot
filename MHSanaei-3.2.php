@@ -32,20 +32,15 @@ function panel_login_cookie_MHSanaei($code_panel)
     }
     curl_close($curl_csrf);
     
-    $headers_json = array(
-        'Content-Type: application/json',
-        'Accept: application/json',
+    $headers_form = array(
+        'Content-Type: application/x-www-form-urlencoded',
         'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
     );
     if ($csrf_token) {
-        $headers_json[] = 'X-CSRF-Token: ' . $csrf_token;
+        $headers_form[] = 'X-CSRF-Token: ' . $csrf_token;
     }
     
-    $payload_json = json_encode(array(
-        'username' => $panel['username_panel'],
-        'password' => $panel['password_panel'],
-        'twoFactorCode' => ''
-    ));
+    $payload_form = "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']);
 
     $curl = curl_init();
     curl_setopt_array($curl, array(
@@ -59,19 +54,28 @@ function panel_login_cookie_MHSanaei($code_panel)
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
         CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => $payload_json,
-        CURLOPT_HTTPHEADER => $headers_json,
+        CURLOPT_POSTFIELDS => $payload_form,
+        CURLOPT_HTTPHEADER => $headers_form,
         CURLOPT_COOKIEJAR => 'cookie.txt',
         CURLOPT_COOKIEFILE => 'cookie.txt',
     ));
     $response = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     
     if (curl_error($curl)) {
         return json_encode(array(
             'success' => false,
-            'msg' => curl_error($curl)
+            'msg' => curl_error($curl) . ' | HTTP: ' . $http_code
         ));
     }
+    
+    if ($http_code != 200) {
+        return json_encode(array(
+            'success' => false,
+            'msg' => 'HTTP Error ' . $http_code . ' | CSRF: ' . ($csrf_token ? 'Yes' : 'No') . ' | Resp: ' . mb_substr($response, 0, 100)
+        ));
+    }
+    
     return $response;
 }
 
@@ -544,5 +548,6 @@ function check_connection_MHSanaei($code_panel) {
     if (isset($res['success']) && $res['success']) {
         return $res;
     }
-    return $res ?? array('success' => false, 'msg' => 'Login failed');
+    $errorMsg = isset($res['msg']) ? $res['msg'] : json_encode($res);
+    return array('success' => false, 'msg' => 'Login failed: ' . $errorMsg);
 }
