@@ -12,7 +12,7 @@ function panel_login_cookie_MHSanaei($code_panel) {
     ));
     
     curl_setopt_array($curl, array(
-        CURLOPT_URL => $panel['url_panel'] . '/login',
+        CURLOPT_URL => rtrim($panel['url_panel'], '/') . '/login',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
@@ -123,7 +123,7 @@ function request_MHSanaei($url, $method, $panel, $data = null) {
 
 function get_client_MHSanaei($email, $namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $url = $panel['url_panel'] . '/panel/api/clients/get/' . urlencode($email);
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/get/' . urlencode($email);
     return request_MHSanaei($url, 'GET', $panel);
 }
 
@@ -159,7 +159,7 @@ function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $i
     $inbounds_array = [];
     if (!empty($inboundid)) {
         if ($inboundid == "all" || $inboundid == "0") {
-            $url_inbounds = $panel['url_panel'] . '/panel/api/inbounds/options';
+            $url_inbounds = rtrim($panel['url_panel'], '/') . '/panel/api/inbounds/options';
             $res_inbounds = request_MHSanaei($url_inbounds, 'GET', $panel);
             if (isset($res_inbounds['success']) && $res_inbounds['success'] && is_array($res_inbounds['obj'])) {
                 foreach ($res_inbounds['obj'] as $inb) {
@@ -186,25 +186,25 @@ function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $i
         "inboundIds" => $inbounds_array
     );
     
-    $url = $panel['url_panel'] . '/panel/api/clients/add';
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/add';
     return request_MHSanaei($url, 'POST', $panel, $data);
 }
 
 function ResetUserDataUsage_MHSanaei($email, $namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $url = $panel['url_panel'] . '/panel/api/clients/resetTraffic/' . urlencode($email);
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/resetTraffic/' . urlencode($email);
     return request_MHSanaei($url, 'POST', $panel);
 }
 
 function removeClient_MHSanaei($namepanel, $email) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $url = $panel['url_panel'] . '/panel/api/clients/del/' . urlencode($email);
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/del/' . urlencode($email);
     return request_MHSanaei($url, 'POST', $panel);
 }
 
 function get_online_MHSanaei($namepanel, $email) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $url = $panel['url_panel'] . '/panel/api/clients/onlines';
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/onlines';
     $response = request_MHSanaei($url, 'POST', $panel);
     
     if (isset($response['success']) && $response['success']) {
@@ -217,7 +217,7 @@ function get_online_MHSanaei($namepanel, $email) {
 
 function get_subLinks_MHSanaei($namepanel, $subid) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $url = $panel['url_panel'] . '/panel/api/clients/subLinks/' . urlencode($subid);
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/subLinks/' . urlencode($subid);
     return request_MHSanaei($url, 'GET', $panel);
 }
 
@@ -314,7 +314,7 @@ function MHSanaei_router($methodName, $args) {
             $user_data = $user_data_res['obj'];
             $user_data['subId'] = bin2hex(random_bytes(8)); // Update subId to revoke
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
-            $url = $panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username);
+            $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username);
             $update = request_MHSanaei($url, 'POST', $panel, $user_data);
             if (isset($update['success']) && $update['success']) {
                 $domain = (!empty($panel['linksubx']) && $panel['linksubx'] != "none") ? rtrim($panel['linksubx'], '/') : rtrim($panel['url_panel'], '/');
@@ -350,7 +350,7 @@ function MHSanaei_router($methodName, $args) {
                 }
             }
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
-            $url = $panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username);
+            $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username);
             $update = request_MHSanaei($url, 'POST', $panel, $user_data);
             if (isset($update['success']) && $update['success']) return array('status' => true, 'data' => $update);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
@@ -362,7 +362,7 @@ function MHSanaei_router($methodName, $args) {
             $user_data = $user_data_res['obj'];
             $user_data['enable'] = !$user_data['enable']; // Toggle status
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
-            $url = $panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username);
+            $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username);
             $update = request_MHSanaei($url, 'POST', $panel, $user_data);
             if (isset($update['success']) && $update['success']) return array('status' => 'successful', 'msg' => null);
             return array('status' => 'Unsuccessful', 'msg' => 'Error');
@@ -392,7 +392,7 @@ function MHSanaei_router($methodName, $args) {
             }
             $user_data['enable'] = true;
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
-            $url = $panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username);
+            $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username);
             $update = request_MHSanaei($url, 'POST', $panel, $user_data);
             if (isset($update['success']) && $update['success']) return array('status' => true);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
@@ -407,7 +407,7 @@ function MHSanaei_router($methodName, $args) {
             $current_total = isset($user_data['totalGB']) ? $user_data['totalGB'] : (isset($user_data['total']) ? $user_data['total'] : 0);
             $user_data['totalGB'] = $current_total + ($limit_volume_new * pow(1024, 3));
             $user_data['enable'] = true;
-            $url = $Get_Data_Panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username_account);
+            $url = rtrim($Get_Data_Panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username_account);
             $update = request_MHSanaei($url, 'POST', $Get_Data_Panel, $user_data);
             if (isset($update['success']) && $update['success']) return array('status' => true);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
@@ -426,7 +426,7 @@ function MHSanaei_router($methodName, $args) {
                 $user_data['expiryTime'] += $addedTime;
             }
             $user_data['enable'] = true;
-            $url = $Get_Data_Panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username_account);
+            $url = rtrim($Get_Data_Panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username_account);
             $update = request_MHSanaei($url, 'POST', $Get_Data_Panel, $user_data);
             if (isset($update['success']) && $update['success']) return array('status' => true);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
@@ -440,19 +440,19 @@ function MHSanaei_router($methodName, $args) {
 
 function restartXray_MHSanaei($namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $url = $panel['url_panel'] . '/panel/api/server/restartXrayService';
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/server/restartXrayService';
     return request_MHSanaei($url, 'POST', $panel);
 }
 
 function delDepleted_MHSanaei($namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $url = $panel['url_panel'] . '/panel/api/clients/delDepleted';
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/delDepleted';
     return request_MHSanaei($url, 'POST', $panel);
 }
 
 function resetAllTraffics_MHSanaei($namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $url = $panel['url_panel'] . '/panel/api/clients/resetAllTraffics';
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/resetAllTraffics';
     return request_MHSanaei($url, 'POST', $panel);
 }
 
