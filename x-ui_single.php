@@ -5,23 +5,15 @@ ini_set('error_log', 'error_log');
 function panel_login_cookie($code_panel)
 {
     $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
+    
+    // First attempt: JSON payload (supported by MHSanaei 3.2+ and modern x-ui)
     $curl = curl_init();
-    
-    $is_sanaei = (isset($panel['type']) && $panel['type'] == 'MHSanaei-3.2');
-    
-    $postfields = $is_sanaei 
-        ? json_encode(array(
-            'username' => $panel['username_panel'],
-            'password' => $panel['password_panel'],
-            'twoFactorCode' => ''
-          ))
-        : "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']);
-        
-    $headers = $is_sanaei 
-        ? array('Content-Type: application/json', 'Accept: application/json')
-        : array();
-
-    $options = array(
+    $payload = json_encode(array(
+        'username' => $panel['username_panel'],
+        'password' => $panel['password_panel'],
+        'twoFactorCode' => ''
+    ));
+    curl_setopt_array($curl, array(
         CURLOPT_URL => rtrim($panel['url_panel'], '/') . '/login',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
@@ -31,22 +23,49 @@ function panel_login_cookie($code_panel)
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => $postfields,
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_HTTPHEADER => array(
+            'Content-Type: application/json',
+            'Accept: application/json'
+        ),
         CURLOPT_COOKIEJAR => 'cookie.txt',
-    );
+    ));
+    $response = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     
-    if (!empty($headers)) {
-        $options[CURLOPT_HTTPHEADER] = $headers;
+    if (!curl_error($curl) && $http_code == 200) {
+        $decoded = json_decode($response, true);
+        if (isset($decoded['success']) && $decoded['success']) {
+            curl_close($curl);
+            return $response;
+        }
     }
-    
-    curl_setopt_array($curl, $options);
+    curl_close($curl);
+
+    // Second attempt: urlencoded form POST (fallback for old x-ui panels)
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => rtrim($panel['url_panel'], '/') . '/login',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT_MS => 10000,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']),
+        CURLOPT_COOKIEJAR => 'cookie.txt',
+    ));
     $response = curl_exec($curl);
     if (curl_error($curl)) {
+        curl_close($curl);
         return json_encode(array(
             'success' => false,
             'msg' => curl_error($curl)
         ));
     }
+    curl_close($curl);
     return $response;
 }
 function login($code_panel, $verify = true)
