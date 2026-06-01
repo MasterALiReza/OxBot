@@ -309,52 +309,209 @@ function get_client_MHSanaei($email, $namepanel) {
     return request_MHSanaei($url, 'GET', $panel);
 }
 
-function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $inboundid, $name_product, $note = "", $tgId = "") {
+function get_client_traffic_MHSanaei($email, $namepanel) {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    
-    if ($name_product == "usertest") {
-        if ($panel['on_hold_test'] == "1") {
-            if ($Expire == 0) {
-                $timeservice = 0;
-            } else {
-                $timelast = $Expire - time();
-                $timeservice = -intval(($timelast / 86400) * 86400000);
-            }
-        } else {
-            $timeservice = $Expire * 1000;
-        }
-    } else {
-        if ($panel['conecton'] == "onconecton") {
-            if ($Expire == 0) {
-                $timeservice = 0;
-            } else {
-                $timelast = $Expire - time();
-                $timeservice = -intval(($timelast / 86400) * 86400000);
-            }
-        } else {
-            $timeservice = $Expire * 1000;
-        }
-    }
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/traffic/' . urlencode($email);
+    return request_MHSanaei($url, 'GET', $panel);
+}
 
-    $limitIp = isset($panel['limit_panel']) && is_numeric($panel['limit_panel']) ? intval($panel['limit_panel']) : 0;
-    
-    $inbounds_array = [];
-    if (!empty($inboundid)) {
-        if ($inboundid == "all" || $inboundid == "0") {
-            $url_inbounds = rtrim($panel['url_panel'], '/') . '/panel/api/inbounds/options';
-            $res_inbounds = request_MHSanaei($url_inbounds, 'GET', $panel);
-            if (isset($res_inbounds['success']) && $res_inbounds['success'] && is_array($res_inbounds['obj'])) {
-                foreach ($res_inbounds['obj'] as $inb) {
-                    $inbounds_array[] = intval($inb['id']);
+function mhsanaei_to_int($value, $default = 0)
+{
+    if ($value === null || $value === '') {
+        return $default;
+    }
+    return is_numeric($value) ? (int)round((float)$value) : $default;
+}
+
+function mhsanaei_to_bool($value, $default = true)
+{
+    if (is_bool($value)) {
+        return $value;
+    }
+    if ($value === null || $value === '') {
+        return $default;
+    }
+    if (is_numeric($value)) {
+        return ((int)$value) == 1;
+    }
+    $value = strtolower(trim((string)$value));
+    if (in_array($value, array('true', 'on', 'yes', 'enable', 'enabled'), true)) {
+        return true;
+    }
+    if (in_array($value, array('false', 'off', 'no', 'disable', 'disabled'), true)) {
+        return false;
+    }
+    return $default;
+}
+
+function mhsanaei_expiry_ms($panel, $Expire, $name_product)
+{
+    if ($Expire == 0) {
+        return 0;
+    }
+    if (($name_product == "usertest" && $panel['on_hold_test'] == "1") || ($name_product != "usertest" && $panel['conecton'] == "onconecton")) {
+        $timelast = $Expire - time();
+        return -intval(($timelast / 86400) * 86400000);
+    }
+    return mhsanaei_to_int($Expire) * 1000;
+}
+
+function mhsanaei_collect_inbound_ids($value)
+{
+    $ids = array();
+    $walk = function ($item) use (&$walk, &$ids) {
+        if (is_array($item)) {
+            if (isset($item['id']) && is_numeric($item['id'])) {
+                $ids[] = (int)$item['id'];
+            } elseif (isset($item['inboundId']) && is_numeric($item['inboundId'])) {
+                $ids[] = (int)$item['inboundId'];
+            } else {
+                foreach ($item as $child) {
+                    $walk($child);
                 }
             }
-        } else {
-            $inbounds_array = array_map('intval', explode(',', $inboundid));
+        } elseif (is_numeric($item)) {
+            $ids[] = (int)$item;
+        } elseif (is_string($item)) {
+            foreach (preg_split('/[,\s]+/', $item) as $part) {
+                if (is_numeric($part)) {
+                    $ids[] = (int)$part;
+                }
+            }
         }
+    };
+    $walk($value);
+    return array_values(array_unique(array_filter($ids, function ($id) {
+        return $id > 0;
+    })));
+}
+
+function mhsanaei_resolve_inbound_ids($panel, $inboundid)
+{
+    $raw = is_string($inboundid) ? trim($inboundid) : $inboundid;
+    if ($raw === '' || $raw === null) {
+        $raw = $panel['inboundid'] ?? '';
+    }
+
+    if ($raw === "all" || $raw === "0" || $raw === 0) {
+        $url_inbounds = rtrim($panel['url_panel'], '/') . '/panel/api/inbounds/options';
+        $res_inbounds = request_MHSanaei($url_inbounds, 'GET', $panel);
+        $ids = array();
+        if (isset($res_inbounds['success']) && $res_inbounds['success'] && is_array($res_inbounds['obj'])) {
+            foreach ($res_inbounds['obj'] as $inb) {
+                if (isset($inb['id'])) {
+                    $ids[] = (int)$inb['id'];
+                }
+            }
+        }
+        return $ids;
+    }
+
+    if (is_string($raw)) {
+        $decoded = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return mhsanaei_collect_inbound_ids($decoded);
+        }
+    }
+    return mhsanaei_collect_inbound_ids($raw);
+}
+
+function mhsanaei_extract_client_context($response)
+{
+    if (!isset($response['success']) || !$response['success'] || !isset($response['obj']) || !is_array($response['obj'])) {
+        return array('success' => false, 'msg' => $response['msg'] ?? 'User not found');
+    }
+    $obj = $response['obj'];
+    $client = isset($obj['client']) && is_array($obj['client']) ? $obj['client'] : $obj;
+    $inboundIds = isset($obj['inboundIds']) ? mhsanaei_collect_inbound_ids($obj['inboundIds']) : (isset($client['inboundIds']) ? mhsanaei_collect_inbound_ids($client['inboundIds']) : array());
+    return array('success' => true, 'client' => $client, 'inboundIds' => $inboundIds);
+}
+
+function mhsanaei_client_payload($client, $patch = array())
+{
+    $client = is_array($client) ? $client : array();
+    $merged = array_replace($client, $patch);
+    $payload = array(
+        'email' => trim((string)($merged['email'] ?? '')),
+        'subId' => (string)($merged['subId'] ?? ''),
+        'id' => (string)($merged['id'] ?? ($merged['uuid'] ?? '')),
+        'password' => (string)($merged['password'] ?? ''),
+        'auth' => (string)($merged['auth'] ?? ''),
+        'flow' => (string)($merged['flow'] ?? ''),
+        'security' => (string)($merged['security'] ?? 'auto'),
+        'totalGB' => mhsanaei_to_int($merged['totalGB'] ?? ($merged['total'] ?? 0)),
+        'expiryTime' => mhsanaei_to_int($merged['expiryTime'] ?? 0),
+        'reset' => mhsanaei_to_int($merged['reset'] ?? 0),
+        'limitIp' => mhsanaei_to_int($merged['limitIp'] ?? 0),
+        'tgId' => mhsanaei_to_int($merged['tgId'] ?? 0),
+        'group' => (string)($merged['group'] ?? ''),
+        'comment' => (string)($merged['comment'] ?? ''),
+        'enable' => mhsanaei_to_bool($merged['enable'] ?? true, true)
+    );
+    if ($payload['subId'] === '') {
+        $payload['subId'] = bin2hex(random_bytes(8));
+    }
+    if ($payload['security'] === '') {
+        $payload['security'] = 'auto';
+    }
+    if (isset($merged['reverse']) && is_array($merged['reverse'])) {
+        $payload['reverse'] = $merged['reverse'];
+    }
+    return $payload;
+}
+
+function mhsanaei_patch_from_config($config)
+{
+    $patch = array();
+    if (!is_array($config)) {
+        return $patch;
+    }
+    if (isset($config['settings'])) {
+        $settings = is_array($config['settings']) ? $config['settings'] : json_decode($config['settings'], true);
+        if (is_array($settings) && isset($settings['clients'][0]) && is_array($settings['clients'][0])) {
+            $patch = array_replace($patch, $settings['clients'][0]);
+        }
+    }
+    $map = array(
+        'data_limit' => 'totalGB',
+        'total' => 'totalGB',
+        'totalGB' => 'totalGB',
+        'expire' => 'expiryTime',
+        'expiryTime' => 'expiryTime',
+        'enable' => 'enable',
+        'subId' => 'subId',
+        'limitIp' => 'limitIp',
+        'tgId' => 'tgId',
+        'group' => 'group',
+        'comment' => 'comment',
+        'reset' => 'reset',
+    );
+    foreach ($map as $from => $to) {
+        if (array_key_exists($from, $config)) {
+            $patch[$to] = ($from === 'expire') ? mhsanaei_to_int($config[$from]) * 1000 : $config[$from];
+        }
+    }
+    return $patch;
+}
+
+function mhsanaei_update_client_payload($panel, $email, $client, $patch = array())
+{
+    $payload = mhsanaei_client_payload($client, $patch);
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($email);
+    return request_MHSanaei($url, 'POST', $panel, $payload);
+}
+
+function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $inboundid, $name_product, $note = "", $tgId = "", $group = "") {
+    $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
+    $timeservice = mhsanaei_expiry_ms($panel, $Expire, $name_product);
+    $limitIp = isset($panel['limit_panel']) && is_numeric($panel['limit_panel']) ? intval($panel['limit_panel']) : 0;
+    $inbounds_array = mhsanaei_resolve_inbound_ids($panel, $inboundid);
+    if (empty($inbounds_array)) {
+        return array('success' => false, 'msg' => 'No inbound selected');
     }
 
     $data = array(
-        "client" => array(
+        "client" => mhsanaei_client_payload(array(
             "email" => $usernameac,
             "enable" => true,
             "totalGB" => $Total,
@@ -362,9 +519,11 @@ function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $i
             "subId" => $subid,
             "comment" => $note,
             "reset" => 0,
-            "tgId" => (string)$tgId,
-            "limitIp" => $limitIp
-        ),
+            "tgId" => $tgId,
+            "limitIp" => $limitIp,
+            "group" => $group,
+            "security" => "auto"
+        )),
         "inboundIds" => $inbounds_array
     );
     
@@ -404,7 +563,7 @@ function get_subLinks_MHSanaei($namepanel, $subid) {
 }
 
 function MHSanaei_router($methodName, $args) {
-    global $domainhosts, $pdo;
+    global $domainhosts, $pdo, $textbotlang;
 
     switch ($methodName) {
         case 'createUser':
@@ -420,17 +579,21 @@ function MHSanaei_router($methodName, $args) {
             } elseif ($code_product == "usertest") {
                 $Get_Data_Product['name_product'] = "usertest";
             }
+            if (!is_array($Get_Data_Product)) {
+                return array('status' => 'Unsuccessful', 'msg' => 'Product not found');
+            }
             $expire = $Data_Config['expire'];
             $data_limit = $Data_Config['data_limit'];
             $note = "{$Data_Config['from_id']} | {$Data_Config['username']} | {$Data_Config['type']}";
             
             $subId = bin2hex(random_bytes(8));
-            $inbounds = ($Get_Data_Product['inbounds'] != null) ? $Get_Data_Product['inbounds'] : $Get_Data_Panel['inboundid'];
+            $inbounds = (!empty($Get_Data_Product['inbounds'])) ? $Get_Data_Product['inbounds'] : $Get_Data_Panel['inboundid'];
+            $group = (!empty($Get_Data_Product['category'])) ? $Get_Data_Product['category'] : "";
             
-            $data_Output = addClient_MHSanaei($name_panel, $usernameC, $expire, $data_limit, $subId, $inbounds, $Get_Data_Product['name_product'], $note, isset($Data_Config['from_id']) ? $Data_Config['from_id'] : "");
-            if (isset($data_Output['msg']) && !$data_Output['success']) {
+            $data_Output = addClient_MHSanaei($name_panel, $usernameC, $expire, $data_limit, $subId, $inbounds, $Get_Data_Product['name_product'], $note, isset($Data_Config['from_id']) ? $Data_Config['from_id'] : "", $group);
+            if (isset($data_Output['success']) && !$data_Output['success']) {
                 return array('status' => 'Unsuccessful', 'msg' => $data_Output['msg']);
-            } elseif (isset($data_Output['success']) && !$data_Output['success']) {
+            } elseif (!isset($data_Output['success'])) {
                 return array('status' => 'Unsuccessful', 'msg' => 'Panel Error');
             } else {
                 $Output = ['status' => 'successful', 'username' => $usernameC];
@@ -450,67 +613,68 @@ function MHSanaei_router($methodName, $args) {
             list($name_panel, $username) = $args;
             $Get_Data_Panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
             $user_data_res = get_client_MHSanaei($username, $name_panel);
-            if (isset($user_data_res['success']) && !$user_data_res['success']) {
-                return array('status' => 'Unsuccessful', 'msg' => isset($user_data_res['msg']) ? $user_data_res['msg'] : 'User not found');
-            } elseif (!isset($user_data_res['obj'])) {
-                return array('status' => 'Unsuccessful', 'msg' => "User not found");
-            } else {
-                $user_data = $user_data_res['obj'];
-            $user_ptr = &$user_data;
-            if (isset($user_data['client']) && is_array($user_data['client'])) $user_ptr = &$user_data['client'];
-                $expire = $user_ptr['expiryTime'] / 1000;
-                $status_user = $user_ptr['enable'] ? "active" : "disabled";
-                
-                $current_total = isset($user_ptr['totalGB']) ? $user_ptr['totalGB'] : (isset($user_ptr['total']) ? $user_ptr['total'] : 0);
-                if (intval($current_total) != 0) {
-                    if ((intval($current_total) - ($user_ptr['up'] + $user_ptr['down'])) <= 0) $status_user = "limited";
-                }
-                if (intval($user_ptr['expiryTime']) != 0) {
-                    if ($expire - time() <= 0) $status_user = "expired";
-                }
-                
-                $subLinksRes = get_subLinks_MHSanaei($name_panel, $user_ptr['subId']);
-                $links_user = (isset($subLinksRes['success']) && $subLinksRes['success']) ? $subLinksRes['obj'] : [];
-                $domain = (!empty($Get_Data_Panel['linksubx']) && $Get_Data_Panel['linksubx'] != "none") ? rtrim($Get_Data_Panel['linksubx'], '/') : rtrim($Get_Data_Panel['url_panel'], '/');
-                $subscription_url = $domain . '/sub/' . $user_ptr['subId'];
-                $inoice = (isset($Get_Data_Panel['subvip']) && $Get_Data_Panel['subvip'] == "onsubvip") ? select("invoice", "*", "username", $username, "select") : false;
-                if ($inoice != false) $subscription_url = "https://$domainhosts/sub/" . $inoice['id_invoice'];
-                
-                $is_online = get_online_MHSanaei($name_panel, $username);
-                return array(
-                    'status' => $status_user,
-                    'username' => $user_ptr['email'],
-                    'data_limit' => $current_total,
-                    'expire' => $expire,
-                    'online_at' => $is_online,
-                    'used_traffic' => $user_ptr['up'] + $user_ptr['down'],
-                    'links' => $links_user,
-                    'subscription_url' => $subscription_url,
-                    'sub_updated_at' => null,
-                    'sub_last_user_agent' => null,
-                );
+            $context = mhsanaei_extract_client_context($user_data_res);
+            if (!$context['success']) {
+                return array('status' => 'Unsuccessful', 'msg' => $context['msg']);
             }
+
+            $user_ptr = $context['client'];
+            $traffic_res = get_client_traffic_MHSanaei($username, $name_panel);
+            $traffic = (isset($traffic_res['success']) && $traffic_res['success'] && isset($traffic_res['obj']) && is_array($traffic_res['obj'])) ? $traffic_res['obj'] : array();
+            $up = mhsanaei_to_int($traffic['up'] ?? ($user_ptr['up'] ?? 0));
+            $down = mhsanaei_to_int($traffic['down'] ?? ($user_ptr['down'] ?? 0));
+            $used = $up + $down;
+            $current_total = mhsanaei_to_int($user_ptr['totalGB'] ?? ($traffic['total'] ?? ($user_ptr['total'] ?? 0)));
+            $expiry_ms = mhsanaei_to_int($user_ptr['expiryTime'] ?? ($traffic['expiryTime'] ?? 0));
+            $expire = $expiry_ms > 0 ? intval($expiry_ms / 1000) : $expiry_ms;
+            $status_user = mhsanaei_to_bool($user_ptr['enable'] ?? ($traffic['enable'] ?? true), true) ? "active" : "disabled";
+
+            if ($current_total != 0 && ($current_total - $used) <= 0) {
+                $status_user = "limited";
+            }
+            if ($expiry_ms > 0 && $expire - time() <= 0) {
+                $status_user = "expired";
+            }
+
+            $subid = (string)($user_ptr['subId'] ?? '');
+            $subLinksRes = $subid !== '' ? get_subLinks_MHSanaei($name_panel, $subid) : array('success' => false);
+            $links_user = (isset($subLinksRes['success']) && $subLinksRes['success']) ? $subLinksRes['obj'] : [];
+            $domain = (!empty($Get_Data_Panel['linksubx']) && $Get_Data_Panel['linksubx'] != "none") ? rtrim($Get_Data_Panel['linksubx'], '/') : rtrim($Get_Data_Panel['url_panel'], '/');
+            $subscription_url = $domain . '/sub/' . $subid;
+            $inoice = (isset($Get_Data_Panel['subvip']) && $Get_Data_Panel['subvip'] == "onsubvip") ? select("invoice", "*", "username", $username, "select") : false;
+            if ($inoice != false) $subscription_url = "https://$domainhosts/sub/" . $inoice['id_invoice'];
+
+            $is_online = get_online_MHSanaei($name_panel, $username);
+            return array(
+                'status' => $status_user,
+                'username' => $user_ptr['email'],
+                'data_limit' => $current_total,
+                'expire' => $expire,
+                'online_at' => $is_online,
+                'used_traffic' => $used,
+                'links' => $links_user,
+                'subscription_url' => $subscription_url,
+                'sub_updated_at' => null,
+                'sub_last_user_agent' => null,
+            );
             
         case 'Revoke_sub':
             list($name_panel, $username) = $args;
             $user_data_res = get_client_MHSanaei($username, $name_panel);
-            if (!isset($user_data_res['obj'])) return array('status' => 'Unsuccessful', 'msg' => 'Unsuccessful');
-            $user_data = $user_data_res['obj'];
-            $user_ptr = &$user_data;
-            if (isset($user_data['client']) && is_array($user_data['client'])) $user_ptr = &$user_data['client'];
-            $user_ptr['subId'] = bin2hex(random_bytes(8)); // Update subId to revoke
+            $context = mhsanaei_extract_client_context($user_data_res);
+            if (!$context['success']) return array('status' => 'Unsuccessful', 'msg' => $context['msg']);
+            $newSubId = bin2hex(random_bytes(8));
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
-            $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username);
-            $update = request_MHSanaei($url, 'POST', $panel, $user_data);
+            $update = mhsanaei_update_client_payload($panel, $username, $context['client'], array('subId' => $newSubId));
             if (isset($update['success']) && $update['success']) {
                 $domain = (!empty($panel['linksubx']) && $panel['linksubx'] != "none") ? rtrim($panel['linksubx'], '/') : rtrim($panel['url_panel'], '/');
                 return array(
                     'status' => 'successful',
-                    'configs' => [ $domain . "/sub/" . $user_ptr['subId'] ],
-                    'subscription_url' => $domain . "/sub/" . $user_ptr['subId']
+                    'configs' => [ $domain . "/sub/" . $newSubId ],
+                    'subscription_url' => $domain . "/sub/" . $newSubId
                 );
             }
-            return array('status' => 'Unsuccessful', 'msg' => 'Unsuccessful');
+            return array('status' => 'Unsuccessful', 'msg' => $update['msg'] ?? 'Unsuccessful');
             
         case 'RemoveUser':
             list($name_panel, $username) = $args;
@@ -520,42 +684,24 @@ function MHSanaei_router($methodName, $args) {
             
         case 'Modifyuser':
             list($username, $name_panel, $config) = $args;
-            // config contains settings like enable, totalGB etc. We translate this to 3x-ui fields.
-            // But since panels.php for x-ui_single passes complex JSON, we must adapt.
-            // Actually, we can fetch the user, patch it, and update.
             $user_data_res = get_client_MHSanaei($username, $name_panel);
-            if (!isset($user_data_res['obj'])) return array('status' => false, 'msg' => 'User not found');
-            $user_data = $user_data_res['obj'];
-            $user_ptr = &$user_data;
-            if (isset($user_data['client']) && is_array($user_data['client'])) $user_ptr = &$user_data['client'];
-            if (isset($config['settings'])) {
-                $sets_decoded = json_decode($config['settings'], true);
-                if (isset($sets_decoded['clients'][0])) {
-                    $sets = $sets_decoded['clients'][0];
-                    if (isset($sets['enable'])) $user_ptr['enable'] = $sets['enable'];
-                    if (isset($sets['totalGB'])) $user_ptr['totalGB'] = $sets['totalGB'];
-                    if (isset($sets['expiryTime'])) $user_ptr['expiryTime'] = $sets['expiryTime'];
-                }
-            }
+            $context = mhsanaei_extract_client_context($user_data_res);
+            if (!$context['success']) return array('status' => false, 'msg' => $context['msg']);
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
-            $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username);
-            $update = request_MHSanaei($url, 'POST', $panel, $user_data);
+            $update = mhsanaei_update_client_payload($panel, $username, $context['client'], mhsanaei_patch_from_config($config));
             if (isset($update['success']) && $update['success']) return array('status' => true, 'data' => $update);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
             
         case 'Change_status':
             list($username, $name_panel) = $args;
             $user_data_res = get_client_MHSanaei($username, $name_panel);
-            if (!isset($user_data_res['obj'])) return array('status' => 'Unsuccessful', 'msg' => 'User not found');
-            $user_data = $user_data_res['obj'];
-            $user_ptr = &$user_data;
-            if (isset($user_data['client']) && is_array($user_data['client'])) $user_ptr = &$user_data['client'];
-            $user_ptr['enable'] = !$user_ptr['enable']; // Toggle status
+            $context = mhsanaei_extract_client_context($user_data_res);
+            if (!$context['success']) return array('status' => 'Unsuccessful', 'msg' => $context['msg']);
+            $newEnable = !mhsanaei_to_bool($context['client']['enable'] ?? true, true);
             $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
-            $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username);
-            $update = request_MHSanaei($url, 'POST', $panel, $user_data);
+            $update = mhsanaei_update_client_payload($panel, $username, $context['client'], array('enable' => $newEnable));
             if (isset($update['success']) && $update['success']) return array('status' => 'successful', 'msg' => null);
-            return array('status' => 'Unsuccessful', 'msg' => 'Error');
+            return array('status' => 'Unsuccessful', 'msg' => $update['msg'] ?? 'Error');
             
         case 'ResetUserDataUsage':
             list($username, $name_panel) = $args;
@@ -565,27 +711,55 @@ function MHSanaei_router($methodName, $args) {
             
         case 'extend':
             list($Method_extend, $new_limit, $time_day, $username, $code_product, $name_panel) = $args;
-            // Similar to Modifyuser, we patch the user data.
-            $user_data_res = get_client_MHSanaei($username, $name_panel);
-            if (!isset($user_data_res['obj'])) return false;
-            $user_data = $user_data_res['obj'];
-            $user_ptr = &$user_data;
-            if (isset($user_data['client']) && is_array($user_data['client'])) $user_ptr = &$user_data['client'];
-            if ($Method_extend == "change") {
-                $user_ptr['totalGB'] = $new_limit;
-                $user_ptr['expiryTime'] = $time_day;
-            } else {
-                $user_ptr['totalGB'] = (isset($user_ptr['totalGB']) ? $user_ptr['totalGB'] : (isset($user_ptr['total']) ? $user_ptr['total'] : 0)) + $new_limit;
-                if ($user_ptr['expiryTime'] == 0 || $user_ptr['expiryTime'] < 0) {
-                    $user_ptr['expiryTime'] = $time_day;
-                } else {
-                    $user_ptr['expiryTime'] = $user_ptr['expiryTime'] + ($time_day - time()*1000); // Rough approximation
+            $panel = select("marzban_panel", "*", "code_panel", $name_panel, "select");
+            if ($panel == false) return array('status' => false, 'msg' => 'data not found');
+            $data_user = MHSanaei_router('DataUser', array($panel['name_panel'], $username));
+            if ($data_user['status'] == "Unsuccessful") return array('status' => false, 'msg' => $data_user['msg']);
+
+            $data_limit_old = mhsanaei_to_int($data_user['data_limit'] ?? 0);
+            $time_old = mhsanaei_to_int($data_user['expire'] ?? 0);
+            $time_old = time() - $time_old > 0 ? time() : $time_old;
+            $data_limit_new = $new_limit == 0 ? 0 : mhsanaei_to_int($new_limit * pow(1024, 3));
+            $data_limit_new_add = $new_limit == 0 ? 0 : $data_limit_old + mhsanaei_to_int($new_limit * pow(1024, 3));
+            $time_new = $time_day == 0 ? 0 : time() + mhsanaei_to_int($time_day) * 86400;
+            $time_old = $time_old == 0 ? time() : $time_old;
+            $time_new_add = $time_day == 0 ? 0 : $time_old + mhsanaei_to_int($time_day) * 86400;
+
+            if ($Method_extend == ($textbotlang['keyboard']['resetVolumeTime'] ?? '')) {
+                $reset = ResetUserDataUsage_MHSanaei($username, $panel['name_panel']);
+                if (!isset($reset['success']) || !$reset['success']) {
+                    return array('status' => false, 'msg' => 'error reset : ' . ($reset['msg'] ?? 'Error'));
                 }
+            } elseif ($Method_extend == ($textbotlang['keyboard']['addTimeVolumeNextMonth'] ?? '')) {
+                $data_limit_new = $data_limit_new_add;
+                $time_new = $time_new_add;
+            } elseif ($Method_extend == ($textbotlang['keyboard']['resetTimeAddVolume'] ?? '')) {
+                $data_limit_new = $data_limit_new_add;
+            } elseif ($Method_extend == ($textbotlang['keyboard']['resetVolumeAddTime'] ?? '')) {
+                $reset = ResetUserDataUsage_MHSanaei($username, $panel['name_panel']);
+                if (!isset($reset['success']) || !$reset['success']) {
+                    return array('status' => false, 'msg' => 'error reset : ' . ($reset['msg'] ?? 'Error'));
+                }
+                $time_new = $time_new_add;
+            } elseif ($Method_extend == ($textbotlang['keyboard']['addTimeConvertVolume'] ?? '')) {
+                $reset = ResetUserDataUsage_MHSanaei($username, $panel['name_panel']);
+                if (!isset($reset['success']) || !$reset['success']) {
+                    return array('status' => false, 'msg' => 'error reset : ' . ($reset['msg'] ?? 'Error'));
+                }
+                $time_new = $time_new_add;
+                $data_limit_last = $data_limit_old - mhsanaei_to_int($data_user['used_traffic'] ?? 0);
+                $data_limit_last = $data_limit_last < 0 ? 0 : $data_limit_last;
+                $data_limit_new = $data_limit_new + $data_limit_last;
             }
-            $user_ptr['enable'] = true;
-            $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
-            $url = rtrim($panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username);
-            $update = request_MHSanaei($url, 'POST', $panel, $user_data);
+
+            $user_data_res = get_client_MHSanaei($username, $panel['name_panel']);
+            $context = mhsanaei_extract_client_context($user_data_res);
+            if (!$context['success']) return array('status' => false, 'msg' => $context['msg']);
+            $update = mhsanaei_update_client_payload($panel, $username, $context['client'], array(
+                'totalGB' => $data_limit_new,
+                'expiryTime' => $time_new * 1000,
+                'enable' => true
+            ));
             if (isset($update['success']) && $update['success']) return array('status' => true);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
             
@@ -594,15 +768,11 @@ function MHSanaei_router($methodName, $args) {
             $Get_Data_Panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
             $name_panel = $Get_Data_Panel['name_panel'];
             $user_data_res = get_client_MHSanaei($username_account, $name_panel);
-            if (!isset($user_data_res['obj'])) return array('status' => false, 'msg' => 'User not found');
-            $user_data = $user_data_res['obj'];
-            $user_ptr = &$user_data;
-            if (isset($user_data['client']) && is_array($user_data['client'])) $user_ptr = &$user_data['client'];
-            $current_total = isset($user_ptr['totalGB']) ? $user_ptr['totalGB'] : (isset($user_ptr['total']) ? $user_ptr['total'] : 0);
-            $user_ptr['totalGB'] = $current_total + ($limit_volume_new * pow(1024, 3));
-            $user_ptr['enable'] = true;
-            $url = rtrim($Get_Data_Panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username_account);
-            $update = request_MHSanaei($url, 'POST', $Get_Data_Panel, $user_data);
+            $context = mhsanaei_extract_client_context($user_data_res);
+            if (!$context['success']) return array('status' => false, 'msg' => $context['msg']);
+            $current_total = mhsanaei_to_int($context['client']['totalGB'] ?? ($context['client']['total'] ?? 0));
+            $new_total = $limit_volume_new == 0 ? 0 : $current_total + mhsanaei_to_int($limit_volume_new * pow(1024, 3));
+            $update = mhsanaei_update_client_payload($Get_Data_Panel, $username_account, $context['client'], array('totalGB' => $new_total, 'enable' => true));
             if (isset($update['success']) && $update['success']) return array('status' => true);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
             
@@ -611,19 +781,12 @@ function MHSanaei_router($methodName, $args) {
             $Get_Data_Panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
             $name_panel = $Get_Data_Panel['name_panel'];
             $user_data_res = get_client_MHSanaei($username_account, $name_panel);
-            if (!isset($user_data_res['obj'])) return array('status' => false, 'msg' => 'User not found');
-            $user_data = $user_data_res['obj'];
-            $user_ptr = &$user_data;
-            if (isset($user_data['client']) && is_array($user_data['client'])) $user_ptr = &$user_data['client'];
-            $addedTime = $limit_time_new * 86400 * 1000;
-            if ($user_ptr['expiryTime'] == 0 || $user_ptr['expiryTime'] < 0) {
-                $user_ptr['expiryTime'] = (time() * 1000) + $addedTime;
-            } else {
-                $user_ptr['expiryTime'] += $addedTime;
-            }
-            $user_ptr['enable'] = true;
-            $url = rtrim($Get_Data_Panel['url_panel'], '/') . '/panel/api/clients/update/' . urlencode($username_account);
-            $update = request_MHSanaei($url, 'POST', $Get_Data_Panel, $user_data);
+            $context = mhsanaei_extract_client_context($user_data_res);
+            if (!$context['success']) return array('status' => false, 'msg' => $context['msg']);
+            $expiry = mhsanaei_to_int($context['client']['expiryTime'] ?? 0);
+            $base = $expiry > time() * 1000 ? $expiry : time() * 1000;
+            $new_expiry = $limit_time_new == 0 ? 0 : $base + mhsanaei_to_int($limit_time_new) * 86400 * 1000;
+            $update = mhsanaei_update_client_payload($Get_Data_Panel, $username_account, $context['client'], array('expiryTime' => $new_expiry, 'enable' => true));
             if (isset($update['success']) && $update['success']) return array('status' => true);
             return array('status' => false, 'msg' => $update['msg'] ?? 'Error');
 
