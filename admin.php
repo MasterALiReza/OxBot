@@ -3507,18 +3507,26 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             $text_marzban = $textbotlang['Admin']['managepanel']['errorStatusPanel'] . json_encode($Check_token);
             sendmessage($from_id, $text_marzban, $optionMarzban, 'HTML');
         }
-    } elseif ($marzban_list_get['type'] == "x-ui_single" || $marzban_list_get['type'] == "MHSanaei-3.2") {
-        $x_ui_check_connect = login($marzban_list_get['code_panel'], false);
-        $panel_option = ($marzban_list_get['type'] == "MHSanaei-3.2") ? $optionMHSanaei : $optionX_ui_single;
+    } elseif ($marzban_list_get['type'] == "MHSanaei-3.2") {
+        $x_ui_check_connect = check_connection_MHSanaei($marzban_list_get['code_panel']);
         if (isset($x_ui_check_connect['success']) && $x_ui_check_connect['success']) {
-            sendmessage($from_id, $textbotlang['Admin']['managepanel']['connectXUi'], $panel_option, 'HTML');
-        } elseif (isset($x_ui_check_connect['msg']) && $x_ui_check_connect['msg'] == "Invalid username or password.") {
-            $text_marzban = $textbotlang['Admin']['adminphp']['err_invalid_panel_user'];
-            sendmessage($from_id, $text_marzban, $panel_option, 'HTML');
+            sendmessage($from_id, $textbotlang['Admin']['managepanel']['connectXUi'], $optionMHSanaei, 'HTML');
         } else {
             $err_msg = isset($x_ui_check_connect['msg']) ? $x_ui_check_connect['msg'] : 'Unknown error';
             $text_marzban = $textbotlang['Admin']['managepanel']['errorStatusPanel'] . sprintf($textbotlang['Admin']['adminphp']['err_error_5'], $err_msg);
-            sendmessage($from_id, $text_marzban, $panel_option, 'HTML');
+            sendmessage($from_id, $text_marzban, $optionMHSanaei, 'HTML');
+        }
+    } elseif ($marzban_list_get['type'] == "x-ui_single") {
+        $x_ui_check_connect = login($marzban_list_get['code_panel'], false);
+        if (isset($x_ui_check_connect['success']) && $x_ui_check_connect['success']) {
+            sendmessage($from_id, $textbotlang['Admin']['managepanel']['connectXUi'], $optionX_ui_single, 'HTML');
+        } elseif (isset($x_ui_check_connect['msg']) && $x_ui_check_connect['msg'] == "Invalid username or password.") {
+            $text_marzban = $textbotlang['Admin']['adminphp']['err_invalid_panel_user'];
+            sendmessage($from_id, $text_marzban, $optionX_ui_single, 'HTML');
+        } else {
+            $err_msg = isset($x_ui_check_connect['msg']) ? $x_ui_check_connect['msg'] : 'Unknown error';
+            $text_marzban = $textbotlang['Admin']['managepanel']['errorStatusPanel'] . sprintf($textbotlang['Admin']['adminphp']['err_error_5'], $err_msg);
+            sendmessage($from_id, $text_marzban, $optionX_ui_single, 'HTML');
         }
     } elseif ($marzban_list_get['type'] == "alireza_single") {
         $x_ui_check_connect = login($marzban_list_get['code_panel'], false);
@@ -3727,7 +3735,8 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ask_send_panel_name_id'], $backadmin, 'HTML');
     step('getinboundiid', $from_id);
 } elseif ($user['step'] == "getinboundiid") {
-    sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_success_save_1'], $optionX_ui_single, 'HTML');
+    $typepanel = select("marzban_panel", "*", "name_panel", $user['Processing_value'], "select");
+    outtypepanel($typepanel['type'], $textbotlang['Admin']['adminphp']['ok_success_save_1']);
     update("marzban_panel", "inboundid", $text, "name_panel", $user['Processing_value']);
     step('home', $from_id);
 } elseif ($text == $textbotlang['keyboard']['editUsername'] && $adminrulecheck['rule'] == "administrator") {

@@ -363,3 +363,22 @@ function resetAllTraffics_MHSanaei($namepanel) {
     $url = $panel['url_panel'] . '/panel/api/clients/resetAllTraffics';
     return request_MHSanaei($url, 'POST', $panel['password_panel']);
 }
+
+function check_connection_MHSanaei($code_panel) {
+    $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
+    if (!$panel) {
+        return array('success' => false, 'msg' => 'Panel not found in database');
+    }
+    $url = $panel['url_panel'] . '/panel/api/server/status';
+    $res = request_MHSanaei($url, 'GET', $panel['password_panel']);
+    if (isset($res['success'])) {
+        return $res;
+    }
+    if (isset($res['detail'])) {
+        return array('success' => false, 'msg' => $res['detail']);
+    }
+    if (isset($res['obj']) || isset($res['cpu']) || isset($res['mem'])) {
+        return array('success' => true, 'msg' => 'Connected successfully');
+    }
+    return $res;
+}
