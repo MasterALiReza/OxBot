@@ -3,73 +3,8 @@ require_once 'config.php';
 require_once 'request.php';
 
 
-function panel_login_cookie_MHSanaei($code_panel)
-{
-    $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
-    $curl = curl_init();
-    
-    // As explicitly requested: do NOT append /login to the end of the URL for MHSanaei!
-    $url = rtrim($panel['url_panel'], '/');
-    
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT_MS => 10000,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']),
-        CURLOPT_COOKIEJAR => 'cookie.txt',
-    ));
-    $response = curl_exec($curl);
-    if (curl_error($curl)) {
-        return json_encode(array(
-            'success' => false,
-            'msg' => curl_error($curl)
-        ));
-    }
-    return $response;
-}
-
-function login_MHSanaei($code_panel, $verify = true)
-{
-    $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
-    if ($panel['datelogin'] != null && $verify) {
-        $date = json_decode($panel['datelogin'], true);
-        if (isset($date['time'])) {
-            $timecurrent = time();
-            $start_date = time() - strtotime($date['time']);
-            if ($start_date <= 3000) {
-                file_put_contents('cookie.txt', $date['access_token']);
-                return;
-            }
-        }
-    }
-    $response = panel_login_cookie_MHSanaei($panel['code_panel']);
-    $time = date('Y/m/d H:i:s');
-    $data = json_encode(array(
-        'time' => $time,
-        'access_token' => file_get_contents('cookie.txt')
-    ));
-    update("marzban_panel", "datelogin", $data, 'name_panel', $panel['name_panel']);
-    if (!is_string($response))
-        return array('success' => false);
-    $decoded = json_decode($response, true);
-    if ($decoded === null) {
-        return array('success' => false, 'msg' => 'Invalid panel response');
-    }
-    return $decoded;
-}
-
-
-
-
-
-
 function request_MHSanaei($url, $method, $panel, $data = null) {
-    login_MHSanaei($panel['code_panel']);
+    login($panel['code_panel']);
     
     $headers = array(
         'Accept: application/json',
@@ -473,19 +408,10 @@ function resetAllTraffics_MHSanaei($namepanel) {
 }
 
 function check_connection_MHSanaei($code_panel) {
-    // Exactly like x-ui_single, we just check if login succeeds.
-    $res = login_MHSanaei($code_panel, false);
+    // Use same login as x-ui_single
+    $res = login($code_panel, false);
     if (isset($res['success']) && $res['success']) {
         return $res;
     }
-    
-    // Fallback: If login fails, maybe they provided a Bearer token in the password field.
-    // We verify by hitting an API endpoint.
-    $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
-    $url = rtrim($panel['url_panel'], '/') . '/panel/api/inbounds/options';
-    $res_fallback = request_MHSanaei($url, 'GET', $panel);
-    if (isset($res_fallback['success']) && $res_fallback['success']) {
-        return array('success' => true, 'msg' => 'Connected via Token');
-    }
-    return $res;
+    return $res ?? array('success' => false, 'msg' => 'Login failed');
 }

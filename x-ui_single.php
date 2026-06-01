@@ -7,13 +7,14 @@ function panel_login_cookie($code_panel)
     $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
     $curl = curl_init();
     curl_setopt_array($curl, array(
-        CURLOPT_URL => $panel['url_panel'] . '/login',
+        CURLOPT_URL => rtrim($panel['url_panel'], '/') . '/login',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
         CURLOPT_TIMEOUT_MS => 10000,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_CUSTOMREQUEST => 'POST',
         CURLOPT_POSTFIELDS => "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']),
         CURLOPT_COOKIEJAR => 'cookie.txt',
@@ -61,7 +62,7 @@ function get_clinets($username, $namepanel)
 {
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     login($marzban_list_get['code_panel']);
-    $url = $marzban_list_get['url_panel'] . "/panel/api/inbounds/getClientTraffics/$username";
+    $url = rtrim($marzban_list_get['url_panel'], '/') . "/panel/api/inbounds/getClientTraffics/$username";
     $headers = array(
         'Accept: application/json',
         'Content-Type: application/json',
@@ -144,7 +145,7 @@ function addClient($namepanel, $usernameac, $Expire, $Total, $Uuid, $Flow, $subi
             'msg' => 'username is null'
         );
     $configpanel = json_encode($config, true);
-    $url = $marzban_list_get['url_panel'] . '/panel/api/inbounds/addClient';
+    $url = rtrim($marzban_list_get['url_panel'], '/') . '/panel/api/inbounds/addClient';
     $headers = array(
         'Accept: application/json',
         'Content-Type: application/json',
@@ -161,7 +162,7 @@ function updateClient($namepanel, $uuid, array $config)
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     login($marzban_list_get['code_panel']);
     $configpanel = json_encode($config, true);
-    $url = $marzban_list_get['url_panel'] . '/panel/api/inbounds/updateClient/' . $uuid;
+    $url = rtrim($marzban_list_get['url_panel'], '/') . '/panel/api/inbounds/updateClient/' . $uuid;
     $headers = array(
         'Accept: application/json',
         'Content-Type: application/json',
@@ -179,7 +180,7 @@ function ResetUserDataUsagex_uisin($usernamepanel, $namepanel)
     $data_user = json_decode($data_user['body'], true)['obj'];
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     login($marzban_list_get['code_panel']);
-    $url = $marzban_list_get['url_panel'] . "/panel/api/inbounds/{$data_user['inboundId']}/resetClientTraffic/" . $usernamepanel;
+    $url = rtrim($marzban_list_get['url_panel'], '/') . "/panel/api/inbounds/{$data_user['inboundId']}/resetClientTraffic/" . $usernamepanel;
     $headers = array(
         'Accept: application/json',
         'Content-Type: application/json',
@@ -195,7 +196,7 @@ function removeClient($location, $username)
 {
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
     login($marzban_list_get['code_panel']);
-    $url = $marzban_list_get['url_panel'] . "/panel/api/inbounds/{$marzban_list_get['inboundid']}/delClientByEmail/" . $username;
+    $url = rtrim($marzban_list_get['url_panel'], '/') . "/panel/api/inbounds/{$marzban_list_get['inboundid']}/delClientByEmail/" . $username;
     $headers = array(
         'Accept: application/json',
         'Content-Type: application/json',
