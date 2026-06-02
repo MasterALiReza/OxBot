@@ -33,6 +33,16 @@ try {
 }
 $totalPages = max(1, (int) ceil($total / $perPage));
 
+// Calculate Global Stats
+try {
+  $globalTotal = db_count($pdo, "SELECT COUNT(*) FROM invoice");
+  $globalRevenue = db_fetchColumn($pdo, "SELECT SUM(price_product) FROM invoice") ?: 0;
+  $globalActive = db_count($pdo, "SELECT COUNT(*) FROM invoice WHERE Status = 'active'");
+  $globalUnpaid = db_count($pdo, "SELECT COUNT(*) FROM invoice WHERE Status = 'unpaid'");
+} catch (Exception $e) {
+  $globalTotal = 0; $globalRevenue = 0; $globalActive = 0; $globalUnpaid = 0;
+}
+
 $statusMap = [
   'active' => ['tag-ok', $textbotlang['panel']['invoiceStatusActive']],
   'end_of_time' => ['tag-warn', $textbotlang['panel']['invoiceNotifTimeExpire']],
@@ -49,6 +59,77 @@ $activeNav = 'invoice';
 include __DIR__ . '/inc/layout_head.php';
 ?>
 
+<!-- Top Statistics Cards -->
+<div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
+    
+    <!-- Stat 1: Total Orders -->
+    <div class="dash-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">کل سفارشات</div>
+            <div class="icon-glow bg-blue">
+                <?= icon('shopping-bag', 20) ?>
+            </div>
+        </div>
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
+            <?= number_format($globalTotal) ?>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+            <span class="status-pill neutral">سفارش ثبت شده در ربات</span>
+        </div>
+    </div>
+    
+    <!-- Stat 2: Total Revenue -->
+    <div class="dash-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">مجموع درآمد</div>
+            <div class="icon-glow bg-emerald">
+                <?= icon('dollar-sign', 20) ?>
+            </div>
+        </div>
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1; direction: ltr; display:flex; justify-content:flex-end;">
+            <?= $globalRevenue >= 1_000_000
+                ? number_format($globalRevenue / 1_000_000, 1) . '<span style="font-size:1.2rem;font-weight:600;margin-left:6px;align-self:flex-end;margin-bottom:2px">M</span>'
+                : number_format($globalRevenue) ?>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+            <span class="status-pill success">از فروش کل سفارشات</span>
+        </div>
+    </div>
+    
+    <!-- Stat 3: Active Services -->
+    <div class="dash-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">سرویس‌های فعال</div>
+            <div class="icon-glow bg-purple">
+                <?= icon('check-circle', 20) ?>
+            </div>
+        </div>
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
+            <?= number_format($globalActive) ?>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+            <span class="status-pill neutral">در حال استفاده</span>
+        </div>
+    </div>
+    
+    <!-- Stat 4: Unpaid Orders -->
+    <div class="dash-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">پرداخت نشده</div>
+            <div class="icon-glow bg-amber">
+                <?= icon('clock', 20) ?>
+            </div>
+        </div>
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
+            <?= number_format($globalUnpaid) ?>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+            <span class="status-pill warning">معلق یا رها شده</span>
+        </div>
+    </div>
+
+</div>
+
 <div class="card fade-up">
   <div class="toolbar">
     <div class="toolbar-title"><?= $textbotlang['panel']['invoiceOrdersHeading'] ?> <small>(<?= number_format($total) ?>)</small></div>
@@ -62,7 +143,7 @@ include __DIR__ . '/inc/layout_head.php';
       </select>
       <div class="search-box" style="min-width:240px">
         <?= icon('search', 14) ?>
-        <input type="text" name="q" placeholder=$textbotlang['panel']['invoiceSearchOrderPlaceholder'] value="<?= htmlspecialchars($search) ?>"
+        <input type="text" name="q" placeholder="<?= htmlspecialchars($textbotlang['panel']['invoiceSearchOrderPlaceholder'] ?? 'جستجو') ?>" value="<?= htmlspecialchars($search) ?>"
           autocomplete="off">
         <button type="button" class="search-clear">✕</button>
         <button type="submit" class="search-btn"><?= $textbotlang['panel']['invoiceSearchBtn'] ?></button>
@@ -81,8 +162,8 @@ include __DIR__ . '/inc/layout_head.php';
           <th><?= $textbotlang['panel']['invoiceColUser'] ?></th>
           <th><?= $textbotlang['panel']['invoiceColProduct'] ?></th>
           <th><?= $textbotlang['panel']['invoiceColPrice'] ?></th>
-          <th><?= $textbotlang['panel']['invoiceColStatus'] ?></th>
           <th><?= $textbotlang['panel']['invoiceColDate'] ?></th>
+          <th><?= $textbotlang['panel']['invoiceColStatus'] ?></th>
         </tr>
       </thead>
       <tbody>
