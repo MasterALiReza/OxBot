@@ -2528,8 +2528,6 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_financial_mgmt, 'HTML');
 } elseif ($text == $textbotlang['keyboard']['adminMenuSupport'] && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_support_mgmt, 'HTML');
-} elseif ($text == $textbotlang['keyboard']['adminMenuBack'] && $adminrulecheck['rule'] == "administrator") {
-    sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboardadmin, 'HTML');
 } elseif ($text == $textbotlang['keyboard']['adminMenuSettings'] && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $setting_panel, 'HTML');
 } elseif ($text == $textbotlang['keyboard']['shopSettings'] && $adminrulecheck['rule'] == "administrator") {
