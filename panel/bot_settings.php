@@ -18,6 +18,14 @@ try {
     }
 } catch (Exception $e) {}
 
+try {
+    $stmt = $pdo->query("SELECT cardnumber, namecard FROM card_number LIMIT 1");
+    if($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $pay_settings['cardnumber'] = $r['cardnumber'];
+        $pay_settings['namecard'] = $r['namecard'];
+    }
+} catch (Exception $e) {}
+
 $shop_settings = [];
 try {
     $stmt = $pdo->query("SELECT Namevalue, value FROM shopSetting");
@@ -222,6 +230,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $updates_setting = [];
     $params_setting = [];
+    $new_cardnumber = null;
+    $new_namecard = null;
     
     foreach($_POST as $key => $val) {
         if(strpos($key, 'set_') === 0) {
@@ -230,10 +240,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $params_setting[] = $val;
         } elseif(strpos($key, 'pay_') === 0) {
             $field = substr($key, 4);
-            db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [$val, $field]);
+            if ($field === 'cardnumber') {
+                $new_cardnumber = $val;
+            } elseif ($field === 'namecard') {
+                $new_namecard = $val;
+            } else {
+                db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [$val, $field]);
+            }
         } elseif(strpos($key, 'shop_') === 0) {
             $field = substr($key, 5);
             db_query($pdo, "UPDATE shopSetting SET value = ? WHERE Namevalue = ?", [$val, $field]);
+        }
+    }
+    
+    if ($new_cardnumber !== null && $new_namecard !== null) {
+        $old = db_fetch($pdo, "SELECT cardnumber, namecard FROM card_number LIMIT 1");
+        $old_card = $old ? $old['cardnumber'] : null;
+        if ($old_card !== $new_cardnumber || ($old && $old['namecard'] !== $new_namecard) || !$old) {
+            if ($old_card) {
+                db_query($pdo, "DELETE FROM card_number WHERE cardnumber = ?", [$old_card]);
+            }
+            if ($new_cardnumber) {
+                db_query($pdo, "INSERT IGNORE INTO card_number (cardnumber, namecard) VALUES (?, ?)", [$new_cardnumber, $new_namecard]);
+            }
         }
     }
     
