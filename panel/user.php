@@ -603,7 +603,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <input type="hidden" name="action" value="add_balance">
                 <div class="field">
                     <label><?= $textbotlang['panel']['userDetailUser'] ?></label>
-                    <input type="number" name="amount" class="input" placeholder=$textbotlang['panel']['userAmountPlaceholder'] min="1000" required>
+                    <input type="number" name="amount" class="input" placeholder="<?= $textbotlang['panel']['userAmountPlaceholder'] ?>" min="1000" required>
                     <span class="field-hint"><?= $textbotlang['panel']['userDetailAmount'] ?> <strong><?= number_format($balance) ?> <?= $textbotlang['panel']['userDetailMethod'] ?></strong></span>
                 </div>
             </div>
