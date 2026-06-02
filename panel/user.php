@@ -201,52 +201,52 @@ include __DIR__ . '/inc/layout_head.php';
 
             <div class="kv-list">
                 <div class="kv">
-                    <span class="kv-key"><?= $textbotlang['panel']['userAddBalanceTitle'] ?></span>
-                    <span class="kv-val cm"><?= htmlspecialchars($user['id']) ?></span>
+                    <span class="kv-key">آیدی تلگرام</span>
+                    <span class="kv-val cm" style="direction: ltr;"><?= htmlspecialchars($user['id']) ?></span>
                 </div>
                 <?php if ($fullName): ?>
                     <div class="kv">
-                        <span class="kv-key"><?= $textbotlang['panel']['userAddBalanceBtn'] ?></span>
+                        <span class="kv-key">نام و نام خانوادگی</span>
                         <span class="kv-val"><?= htmlspecialchars($fullName) ?></span>
                     </div>
                 <?php endif; ?>
                 <?php if (!empty($user['number']) && $user['number'] !== 'none'): ?>
                     <div class="kv">
-                        <span class="kv-key"><?= $textbotlang['panel']['userChangeGroupTitle'] ?></span>
-                        <span class="kv-val cm"><?= htmlspecialchars($user['number']) ?></span>
+                        <span class="kv-key">شماره موبایل</span>
+                        <span class="kv-val cm" style="direction: ltr;"><?= htmlspecialchars($user['number']) ?></span>
                     </div>
                 <?php endif; ?>
                 <div class="kv">
-                    <span class="kv-key"><?= $textbotlang['panel']['userChangeGroupBtn'] ?></span>
-                    <span class="kv-val" style="color:var(--ac)"><?= number_format($balance) ?> <?= $textbotlang['panel']['userBlockUserBtn'] ?></span>
+                    <span class="kv-key">موجودی</span>
+                    <span class="kv-val" style="color:var(--ac)"><?= number_format($balance) ?> تومان</span>
                 </div>
                 <div class="kv">
-                    <span class="kv-key"><?= $textbotlang['panel']['userUnblockUserBtn'] ?></span>
+                    <span class="kv-key">گروه کاربری</span>
                     <span class="kv-val">
                         <span class="tag <?= user_role_tag($agent) ?>"><?= user_role_label($agent) ?></span>
                         <span class="cm cf"
-                            style="margin-right:6px;font-size:.72rem"><?= htmlspecialchars($agent) ?></span>
+                            style="margin-right:6px;font-size:.72rem">(<?= htmlspecialchars($agent) ?>)</span>
                     </span>
                 </div>
                 <div class="kv">
-                    <span class="kv-key"><?= $textbotlang['panel']['userServicesTabLabel'] ?></span>
+                    <span class="kv-key">تاریخ عضویت</span>
                     <span class="kv-val"><?= safe_date($user['register'] ?? null) ?></span>
                 </div>
                 <?php if (!empty($user['affiliates']) && $user['affiliates'] !== '0'): ?>
                     <div class="kv">
-                        <span class="kv-key"><?= $textbotlang['panel']['userTransactionsTabLabel'] ?></span>
-                        <span class="kv-val cm" style="color:var(--ac)"><?= htmlspecialchars($user['affiliates']) ?></span>
+                        <span class="kv-key">معرف</span>
+                        <span class="kv-val cm" style="color:var(--ac); direction: ltr;"><?= htmlspecialchars($user['affiliates']) ?></span>
                     </div>
                 <?php endif; ?>
                 <?php if ((int) ($user['affiliatescount'] ?? 0) > 0): ?>
                     <div class="kv">
-                        <span class="kv-key"><?= $textbotlang['panel']['userOrdersTabLabel'] ?></span>
-                        <span class="kv-val"><?= number_format((int) $user['affiliatescount']) ?> <?= $textbotlang['panel']['userColService'] ?></span>
+                        <span class="kv-key">زیرمجموعه‌ها</span>
+                        <span class="kv-val"><?= number_format((int) $user['affiliatescount']) ?> نفر</span>
                     </div>
                 <?php endif; ?>
                 <?php if ((int) ($user['score'] ?? 0) > 0): ?>
                     <div class="kv">
-                        <span class="kv-key"><?= $textbotlang['panel']['userColStatus'] ?></span>
+                        <span class="kv-key">امتیاز کاربر</span>
                         <span class="kv-val" style="color:var(--warn)">⭐ <?= number_format((int) $user['score']) ?></span>
                     </div>
                 <?php endif; ?>
@@ -594,7 +594,7 @@ include __DIR__ . '/inc/layout_head.php';
 <div class="modal-veil" id="addModal">
     <div class="modal">
         <div class="modal-head">
-            <h3><?= $textbotlang['panel']['userCancelBtn'] ?></h3>
+            <h3>افزایش موجودی</h3>
             <button class="modal-x" onclick="closeModal('addModal')"><?= icon('close', 14) ?></button>
         </div>
         <form method="POST">
@@ -602,14 +602,14 @@ include __DIR__ . '/inc/layout_head.php';
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="add_balance">
                 <div class="field">
-                    <label><?= $textbotlang['panel']['userDetailUser'] ?></label>
-                    <input type="number" name="amount" class="input" placeholder="<?= $textbotlang['panel']['userAmountPlaceholder'] ?>" min="1000" required>
-                    <span class="field-hint"><?= $textbotlang['panel']['userDetailAmount'] ?> <strong><?= number_format($balance) ?> <?= $textbotlang['panel']['userDetailMethod'] ?></strong></span>
+                    <label>مبلغ افزایش (تومان)</label>
+                    <input type="number" name="amount" class="input" placeholder="مبلغ به تومان وارد کنید" min="1000" required>
+                    <span class="field-hint">موجودی فعلی کاربر: <strong><?= number_format($balance) ?> تومان</strong></span>
                 </div>
             </div>
             <div class="modal-foot">
-                <button type="submit" class="btn btn-primary"><?= icon('plus', 13) ?> <?= $textbotlang['panel']['userDetailStatus'] ?></button>
-                <button type="button" class="btn btn-ghost" onclick="closeModal('addModal')"><?= $textbotlang['panel']['userDetailDate'] ?></button>
+                <button type="submit" class="btn btn-primary"><?= icon('plus', 13) ?> افزایش موجودی</button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('addModal')">انصراف</button>
             </div>
         </form>
     </div>
@@ -618,7 +618,7 @@ include __DIR__ . '/inc/layout_head.php';
 <div class="modal-veil" id="roleModal">
     <div class="modal">
         <div class="modal-head">
-            <h3><?= $textbotlang['panel']['userDetailProduct'] ?></h3>
+            <h3>تغییر گروه کاربری</h3>
             <button class="modal-x" onclick="closeModal('roleModal')"><?= icon('close', 14) ?></button>
         </div>
         <form method="POST">
@@ -626,21 +626,21 @@ include __DIR__ . '/inc/layout_head.php';
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="set_role">
                 <div class="field">
-                    <label><?= $textbotlang['panel']['userDetailService'] ?></label>
+                    <label>انتخاب گروه</label>
                     <select name="new_role" class="select">
                         <option value="f" <?= $agent === 'f' ? 'selected' : '' ?>><?= $textbotlang['panel']['userRoleFreeUser'] ?></option>
                         <option value="n" <?= $agent === 'n' ? 'selected' : '' ?>><?= $textbotlang['panel']['userRoleNormalAgent'] ?></option>
                         <option value="n2" <?= $agent === 'n2' ? 'selected' : '' ?>><?= $textbotlang['panel']['userRoleAdvancedAgent2'] ?></option>
                     </select>
                     <span class="field-hint">
-                        <?= $textbotlang['panel']['userDetailPanel'] ?> <strong><?= user_role_label($agent) ?></strong>
+                        گروه فعلی: <strong><?= user_role_label($agent) ?></strong>
                         <span class="cm" style="color:var(--mute)">(<?= htmlspecialchars($agent) ?>)</span>
                     </span>
                 </div>
             </div>
             <div class="modal-foot">
-                <button type="submit" class="btn btn-primary"><?= icon('check', 13) ?> <?= $textbotlang['panel']['userDetailTrackingCode'] ?></button>
-                <button type="button" class="btn btn-ghost" onclick="closeModal('roleModal')"><?= $textbotlang['panel']['userDetailDescription'] ?></button>
+                <button type="submit" class="btn btn-primary"><?= icon('check', 13) ?> ثبت تغییرات</button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('roleModal')">انصراف</button>
             </div>
         </form>
     </div>

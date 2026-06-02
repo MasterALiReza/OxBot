@@ -56,6 +56,10 @@
 .status-pill.danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .status-pill.neutral { background: rgba(100, 116, 139, 0.1); color: #64748b; }
 
+.mobile-only-label {
+    display: none;
+}
+
 @media (max-width: 768px) {
     /* 1. Touch Targets (Minimum 44px height for touch friendly elements) */
     .btn, .input, .select, .textarea, .search-box input, .arvan-input, .arvan-select {
@@ -111,7 +115,8 @@
         flex: 1 1 100% !important;
         width: 100% !important;
         white-space: normal !important;
-        word-break: break-all !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
         text-align: right !important;
     }
 
@@ -150,12 +155,20 @@
     }
 
     /* Use ::before to show the label on mobile */
-    .tbl-wrap td::before {
+    .tbl-wrap td:not(.no-label)::before {
         content: attr(data-label) ": ";
         font-weight: 600;
         color: var(--cf);
         font-size: 0.75rem;
         white-space: nowrap;
+    }
+    
+    .tbl-wrap td.no-label::before {
+        display: none !important;
+    }
+    
+    .mobile-only-label {
+        display: inline-block !important;
     }
 
     .tbl-wrap td > div {

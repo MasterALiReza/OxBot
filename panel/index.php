@@ -96,7 +96,13 @@ try {
 $recentInvoices = [];
 $recentUsers = [];
 try {
-    $recentInvoices = db_fetchAll($pdo, "SELECT * FROM invoice ORDER BY time_sell DESC LIMIT 6");
+    $recentInvoices = db_fetchAll($pdo, "
+        SELECT i.*, u.username, u.name 
+        FROM invoice i 
+        LEFT JOIN user u ON i.id_user = u.id 
+        ORDER BY i.time_sell DESC 
+        LIMIT 6
+    ");
     $recentUsers = db_fetchAll($pdo, "SELECT * FROM user ORDER BY register DESC LIMIT 6");
 } catch (Exception $e) {}
 
@@ -113,93 +119,104 @@ include __DIR__ . '/inc/layout_head.php';
 <div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
     
     <!-- Stat 1: Total Users -->
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashTotalUsers'] ?></div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             </div>
+            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashTotalUsers'] ?></div>
         </div>
-        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
-            <?= number_format($totalUsers) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-            <?php if ($newToday > 0): ?>
-                <span class="status-pill success">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                    <?= $newToday ?> <?= $textbotlang['panel']['dashTodaySpan'] ?>
-                </span>
-            <?php else: ?>
-                <span class="status-pill neutral"><?= $textbotlang['panel']['dashNoChange'] ?></span>
-            <?php endif; ?>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
+                <?= number_format($totalUsers) ?>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <?php if ($newToday > 0): ?>
+                    <span class="status-pill success" style="padding: 4px 10px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                        <?= $newToday ?> <?= $textbotlang['panel']['dashTodaySpan'] ?>
+                    </span>
+                <?php else: ?>
+                    <span class="status-pill neutral" style="padding: 4px 10px;"><?= $textbotlang['panel']['dashNoChange'] ?></span>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
     
     <!-- Stat 2: Total Revenue -->
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashTotalRevenue'] ?></div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-emerald">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
+            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashTotalRevenue'] ?></div>
         </div>
-        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1; direction: ltr; display:flex; justify-content:flex-end;">
-            <?= $totalRevenue >= 1_000_000
-                ? number_format($totalRevenue / 1_000_000, 1) . '<span style="font-size:1.2rem;font-weight:600;margin-right:6px;align-self:flex-end;margin-bottom:2px">میلیون تومان</span>'
-                : number_format($totalRevenue) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
-            <?php if ($todayRevenue > 0): ?>
-                <span class="status-pill success">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                    <?= $todayRevenue >= 1_000_000 ? number_format($todayRevenue / 1_000_000, 1) . ' میلیون' : number_format($todayRevenue) ?> <?= $textbotlang['panel']['dashUnitToman'] ?>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="display: flex; align-items: baseline; gap: 6px;">
+                <span style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1; direction: ltr;">
+                    <?= $totalRevenue >= 1_000_000 ? number_format($totalRevenue / 1_000_000, 1) : number_format($totalRevenue) ?>
                 </span>
-            <?php else: ?>
-                <span class="status-pill neutral">0 <?= $textbotlang['panel']['dashUnitToman'] ?> امروز</span>
-            <?php endif; ?>
+                <span style="font-size: 1rem; font-weight: 600; color: var(--cf);">
+                    <?= $totalRevenue >= 1_000_000 ? 'میلیون تومان' : 'تومان' ?>
+                </span>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <?php if ($todayRevenue > 0): ?>
+                    <span class="status-pill success" style="padding: 4px 10px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                        <?= $todayRevenue >= 1_000_000 ? number_format($todayRevenue / 1_000_000, 1) . ' میلیون' : number_format($todayRevenue) ?> <?= $textbotlang['panel']['dashUnitToman'] ?>
+                    </span>
+                <?php else: ?>
+                    <span class="status-pill neutral" style="padding: 4px 10px;">0 <?= $textbotlang['panel']['dashUnitToman'] ?> امروز</span>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
     
     <!-- Stat 3: Active Services -->
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashActiveService'] ?></div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-purple">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
             </div>
+            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashActiveService'] ?></div>
         </div>
-        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
-            <?= number_format($activeNow) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-            <span class="status-pill" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
-                <?= $activePanels ?> <?= $textbotlang['panel']['dashActivePanels'] ?>
-            </span>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
+                <?= number_format($activeNow) ?>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <span class="status-pill" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; padding: 4px 10px;">
+                    <?= $activePanels ?> <?= $textbotlang['panel']['dashActivePanels'] ?>
+                </span>
+            </div>
         </div>
     </div>
 
     <!-- Stat 4: Today's Transactions -->
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">تراکنش امروز</div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-orange">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
+            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">تراکنش امروز</div>
         </div>
-        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
-            <?= number_format($txToday) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-            <?php if ($pendingPay > 0): ?>
-                <span class="status-pill danger">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-                    <?= $pendingPay ?> <?= $textbotlang['panel']['dashPendingPayment'] ?>
-                </span>
-            <?php else: ?>
-                <span class="status-pill success">
-                    <?= $textbotlang['panel']['dashStatusRegistered'] ?>
-                </span>
-            <?php endif; ?>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
+                <?= number_format($txToday) ?>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <?php if ($pendingPay > 0): ?>
+                    <span class="status-pill danger" style="padding: 4px 10px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+                        <?= $pendingPay ?> <?= $textbotlang['panel']['dashPendingPayment'] ?>
+                    </span>
+                <?php else: ?>
+                    <span class="status-pill success" style="padding: 4px 10px;">
+                        <?= $textbotlang['panel']['dashStatusRegistered'] ?>
+                    </span>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </div>
@@ -294,12 +311,37 @@ include __DIR__ . '/inc/layout_head.php';
                             [$pillClass, $label] = $statusMap[$rawStatus] ?? ['status-pill neutral', $inv['Status'] ?? '—'];
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
-                                <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="cf"><div style="display:flex; align-items:center; gap:8px;">
-                                    <div style="width:28px;height:28px;border-radius:50%;background:rgba(148, 163, 184, 0.1);color:var(--cf);display:flex;align-items:center;justify-content:center;font-size:10px;"><?= icon('user', 14) ?></div>
-                                    <span class="cm"><?= htmlspecialchars($inv['id_user'] ?? '—') ?></span>
-                                </div></td>
-                                <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?>" class="cs" style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-                                    <span style="font-weight:600; color:var(--ct)"><?= htmlspecialchars(trunc($inv['name_product'] ?? '—', 20)) ?></span>
+                                <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="no-label" style="padding-top: 12px; padding-bottom: 12px;">
+                                    <div style="display:flex; align-items:center; justify-content: space-between; width: 100%;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <div style="width:32px;height:32px;border-radius:50%;background:rgba(148, 163, 184, 0.1);display:flex;align-items:center;justify-content:center;color:var(--cf);">
+                                                <?= icon('user', 16) ?>
+                                            </div>
+                                            <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                                                <span class="cs" style="font-weight:600; line-height:1.2; text-align: right;">
+                                                    <?php if (!empty($inv['name'])): ?>
+                                                        <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
+                                                    <?php elseif (!empty($inv['username'])): ?>
+                                                        @<?= htmlspecialchars(trunc($inv['username'], 18)) ?>
+                                                    <?php else: ?>
+                                                        <?= $textbotlang['panel']['dashColUser'] ?>
+                                                    <?php endif; ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div style="display:flex; align-items:center;">
+                                            <span class="mobile-only-label" style="font-size: 0.75rem; color: var(--cf); font-weight: 600; margin-left: 4px;">:</span>
+                                            <span class="cm" style="font-size:0.8rem; color:var(--ct); font-weight: 600; line-height:1.2; direction: ltr;">
+                                                <?= htmlspecialchars($inv['id_user']) ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?>" class="cs no-label">
+                                    <div style="display:flex; align-items:center; justify-content: space-between; width: 100%;">
+                                        <span class="mobile-only-label" style="font-size: 0.75rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashColProduct'] ?>:</span>
+                                        <span style="font-weight:600; color:var(--ct); white-space:normal; overflow-wrap:break-word; word-break:break-word; text-align: left; max-width: 70%; line-height: 1.4;"><?= htmlspecialchars($inv['name_product'] ?? '—') ?></span>
+                                    </div>
                                 </td>
                                 <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?>" class="cn" style="white-space:nowrap; font-weight:500;">
                                     <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?></span>
@@ -353,21 +395,29 @@ include __DIR__ . '/inc/layout_head.php';
                             else $roleClass .= 'neutral';
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
-                                <td data-label="<?= $textbotlang['panel']['dashColName'] ?>">
-                                    <div style="display:flex; align-items:center; gap:10px;">
-                                        <div style="width:32px;height:32px;border-radius:50%;background:rgba(148, 163, 184, 0.1);display:flex;align-items:center;justify-content:center;color:var(--cf);">
-                                            <?= icon('user', 16) ?>
+                                <td data-label="<?= $textbotlang['panel']['dashColName'] ?>" class="no-label" style="padding-top: 12px; padding-bottom: 12px;">
+                                    <div style="display:flex; align-items:center; justify-content: space-between; width: 100%;">
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <div style="width:32px;height:32px;border-radius:50%;background:rgba(148, 163, 184, 0.1);display:flex;align-items:center;justify-content:center;color:var(--cf);">
+                                                <?= icon('user', 16) ?>
+                                            </div>
+                                            <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                                                <span class="cs" style="font-weight:600; line-height:1.2; text-align: right;">
+                                                    <?php if ($name): ?>
+                                                        <?= htmlspecialchars(trunc($name, 14)) ?>
+                                                    <?php elseif ($uname): ?>
+                                                        @<?= htmlspecialchars(trunc($uname, 12)) ?>
+                                                    <?php else: ?>
+                                                        <?= $textbotlang['panel']['dashColName'] ?>
+                                                    <?php endif; ?>
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div style="display:flex; flex-direction:column; justify-content:center;">
-                                            <?php if ($name): ?>
-                                                <span class="cs" style="font-weight:600; line-height:1.2;"><?= htmlspecialchars(trunc($name, 14)) ?></span>
-                                                <span class="cm" style="font-size:0.7rem; color:var(--cf); line-height:1.2; margin-top:2px;"><?= htmlspecialchars($u['id']) ?></span>
-                                            <?php elseif ($uname): ?>
-                                                <span class="cm" style="color:var(--ac); font-weight:600; line-height:1.2;">@<?= htmlspecialchars(trunc($uname, 12)) ?></span>
-                                                <span class="cm" style="font-size:0.7rem; color:var(--cf); line-height:1.2; margin-top:2px;"><?= htmlspecialchars($u['id']) ?></span>
-                                            <?php else: ?>
-                                                <span class="cm cf" style="font-weight:600;"><?= htmlspecialchars($u['id']) ?></span>
-                                            <?php endif; ?>
+                                        <div style="display:flex; align-items:center;">
+                                            <span class="mobile-only-label" style="font-size: 0.75rem; color: var(--cf); font-weight: 600; margin-left: 4px;">:</span>
+                                            <span class="cm cf" style="font-size:0.8rem; font-weight:600; line-height:1.2; direction: ltr;">
+                                                <?= htmlspecialchars($u['id']) ?>
+                                            </span>
                                         </div>
                                     </div>
                                 </td>
