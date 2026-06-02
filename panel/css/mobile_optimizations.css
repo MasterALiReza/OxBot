@@ -101,18 +101,18 @@
     }
 
     .tbl-wrap td {
-        display: block !important;
-        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
         padding: 10px 12px !important;
-        padding-right: 125px !important; /* Space for the RTL label on the right */
-        text-align: left !important; /* Push the value to the left */
         border-bottom: 1px solid var(--bd) !important;
         min-height: 44px;
-        max-width: none !important; /* Override desktop max-width */
         flex: 1 1 100% !important;
         width: 100% !important;
         white-space: normal !important;
         word-break: break-all !important;
+        text-align: right !important;
     }
 
     /* Side-by-side columns to save vertical space on mobile */
@@ -143,7 +143,6 @@
     .tbl-wrap td[data-label="محصول"] {
         flex: 1 1 50% !important;
         width: 50% !important;
-        padding-right: 80px !important; /* Shorter padding for side-by-side cells */
     }
 
     .tbl-wrap td:last-child {
@@ -152,16 +151,10 @@
 
     /* Use ::before to show the label on mobile */
     .tbl-wrap td::before {
-        content: attr(data-label);
-        position: absolute !important;
-        right: 12px !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
+        content: attr(data-label) ": ";
         font-weight: 600;
         color: var(--cf);
-        text-transform: uppercase;
         font-size: 0.75rem;
-        margin-left: 0 !important;
         white-space: nowrap;
     }
 
@@ -175,15 +168,15 @@
 
     /* Custom Header layout for Name cell to make it look like real cards */
     .tbl-wrap td[data-label="نام"] {
-        padding-right: 12px !important;
-        text-align: right !important;
+        justify-content: flex-start !important;
         flex: 1 1 100% !important;
         width: 100% !important;
     }
     .tbl-wrap td[data-label="نام"]::before {
         display: none !important;
     }
-    .tbl-wrap td[data-label="نام"] > div {
+    .tbl-wrap td[data-label="نام"] > div,
+    .tbl-wrap td[data-label="کاربر"] > div {
         display: flex !important;
         width: 100%;
         text-align: right !important;

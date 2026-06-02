@@ -145,14 +145,14 @@ include __DIR__ . '/inc/layout_head.php';
         </div>
         <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1; direction: ltr; display:flex; justify-content:flex-end;">
             <?= $totalRevenue >= 1_000_000
-                ? number_format($totalRevenue / 1_000_000, 1) . '<span style="font-size:1.2rem;font-weight:600;margin-left:6px;align-self:flex-end;margin-bottom:2px">M</span>'
+                ? number_format($totalRevenue / 1_000_000, 1) . '<span style="font-size:1.2rem;font-weight:600;margin-right:6px;align-self:flex-end;margin-bottom:2px">میلیون تومان</span>'
                 : number_format($totalRevenue) ?>
         </div>
         <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
             <?php if ($todayRevenue > 0): ?>
                 <span class="status-pill success">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                    <?= $todayRevenue >= 1_000_000 ? number_format($todayRevenue / 1_000_000, 1) . 'M' : number_format($todayRevenue) ?> <?= $textbotlang['panel']['dashUnitToman'] ?>
+                    <?= $todayRevenue >= 1_000_000 ? number_format($todayRevenue / 1_000_000, 1) . ' میلیون' : number_format($todayRevenue) ?> <?= $textbotlang['panel']['dashUnitToman'] ?>
                 </span>
             <?php else: ?>
                 <span class="status-pill neutral">0 <?= $textbotlang['panel']['dashUnitToman'] ?> امروز</span>
@@ -290,7 +290,8 @@ include __DIR__ . '/inc/layout_head.php';
                             'send_on_hold' => ['status-pill neutral', $textbotlang['panel']['dashStatusWaiting']],
                         ];
                         foreach ($recentInvoices as $inv):
-                            [$pillClass, $label] = $statusMap[$inv['Status'] ?? ''] ?? ['status-pill neutral', $inv['Status'] ?? '—'];
+                            $rawStatus = strtolower(trim($inv['Status'] ?? ''));
+                            [$pillClass, $label] = $statusMap[$rawStatus] ?? ['status-pill neutral', $inv['Status'] ?? '—'];
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
                                 <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="cf"><div style="display:flex; align-items:center; gap:8px;">
