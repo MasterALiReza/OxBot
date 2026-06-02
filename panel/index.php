@@ -33,22 +33,49 @@ try {
     $txToday = db_count($pdo, "SELECT COUNT(*) FROM Payment_report WHERE time > ?", [strtotime('today')]);
 } catch (Exception $e) {}
 
-// 2. Chart Data (Last 7 Days)
+// 2. Chart Data (Dynamic Range)
+$range = $_GET['range'] ?? '7d';
 $chartLabels = [];
 $chartData = [];
+$chartSubtitle = '';
+
 $persianDays = [
     'Saturday' => 'شنبه', 'Sunday' => 'یکشنبه', 'Monday' => 'دوشنبه',
     'Tuesday' => 'سه‌شنبه', 'Wednesday' => 'چهارشنبه', 'Thursday' => 'پنجشنبه', 'Friday' => 'جمعه'
 ];
 
 try {
-    for ($i = 6; $i >= 0; $i--) {
-        $startOfDay = strtotime("-$i days 00:00:00");
-        $endOfDay = strtotime("-$i days 23:59:59");
-        $dayRev = (int) db_query($pdo, "SELECT COALESCE(SUM(price_product),0) FROM invoice WHERE Status IN ('active','end_of_time','end_of_volume','sendedwarn','send_on_hold') AND time_sell BETWEEN ? AND ?", [$startOfDay, $endOfDay])->fetchColumn();
-        
-        $chartLabels[] = $persianDays[date('l', $startOfDay)];
-        $chartData[] = $dayRev;
+    if ($range === '24h') {
+        $chartSubtitle = 'مجموع فروش ۲۴ ساعت گذشته (تومان)';
+        for ($i = 23; $i >= 0; $i--) {
+            $startOfHour = strtotime("-$i hours", strtotime(date('Y-m-d H:00:00')));
+            $endOfHour = $startOfHour + 3599;
+            $dayRev = (int) db_query($pdo, "SELECT COALESCE(SUM(price_product),0) FROM invoice WHERE Status IN ('active','end_of_time','end_of_volume','sendedwarn','send_on_hold') AND time_sell BETWEEN ? AND ?", [$startOfHour, $endOfHour])->fetchColumn();
+            
+            $chartLabels[] = date('H:00', $startOfHour);
+            $chartData[] = $dayRev;
+        }
+    } elseif ($range === '30d') {
+        $chartSubtitle = 'مجموع فروش ۳۰ روز گذشته (تومان)';
+        for ($i = 29; $i >= 0; $i--) {
+            $startOfDay = strtotime("-$i days 00:00:00");
+            $endOfDay = strtotime("-$i days 23:59:59");
+            $dayRev = (int) db_query($pdo, "SELECT COALESCE(SUM(price_product),0) FROM invoice WHERE Status IN ('active','end_of_time','end_of_volume','sendedwarn','send_on_hold') AND time_sell BETWEEN ? AND ?", [$startOfDay, $endOfDay])->fetchColumn();
+            
+            $chartLabels[] = date('m/d', $startOfDay);
+            $chartData[] = $dayRev;
+        }
+    } else {
+        $range = '7d'; // fallback
+        $chartSubtitle = 'مجموع فروش ۷ روز گذشته (تومان)';
+        for ($i = 6; $i >= 0; $i--) {
+            $startOfDay = strtotime("-$i days 00:00:00");
+            $endOfDay = strtotime("-$i days 23:59:59");
+            $dayRev = (int) db_query($pdo, "SELECT COALESCE(SUM(price_product),0) FROM invoice WHERE Status IN ('active','end_of_time','end_of_volume','sendedwarn','send_on_hold') AND time_sell BETWEEN ? AND ?", [$startOfDay, $endOfDay])->fetchColumn();
+            
+            $chartLabels[] = $persianDays[date('l', $startOfDay)];
+            $chartData[] = $dayRev;
+        }
     }
 } catch (Exception $e) {}
 
@@ -169,10 +196,17 @@ include __DIR__ . '/inc/layout_head.php';
     
     <!-- Sales Chart -->
     <div class="card fade-up">
-        <div class="card-head">
+        <div class="card-head" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
                 <div class="card-title"><?= $textbotlang['panel']['dashSalesChartTitle'] ?></div>
-                <div class="card-subtitle">مجموع فروش ۷ روز گذشته (تومان)</div>
+                <div class="card-subtitle"><?= $chartSubtitle ?></div>
+            </div>
+            <div>
+                <select class="form-select" style="font-size:0.75rem; padding: 4px 20px 4px 8px; border-radius:6px; background-color:var(--bg); color:var(--ct); border:1px solid var(--bd); cursor:pointer;" onchange="window.location.href='index.php?range='+this.value">
+                    <option value="24h" <?= $range === '24h' ? 'selected' : '' ?>>۲۴ ساعت گذشته</option>
+                    <option value="7d" <?= $range === '7d' ? 'selected' : '' ?>>۷ روز گذشته</option>
+                    <option value="30d" <?= $range === '30d' ? 'selected' : '' ?>>۱ ماه گذشته</option>
+                </select>
             </div>
         </div>
         <div class="card-body" style="position: relative; height: 300px; width: 100%; padding-top: 10px;">
@@ -342,7 +376,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if the theme is dark or light from CSS variables
     const isDark = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() === '#0f172a' || document.documentElement.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#94a3b8' : '#64748b';
-    const gridColor = isDark ? '#1e293b' : '#e2e8f0';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.06)';
+
+    // Persian Number Converter
+    const toPersianNum = (num) => {
+        const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        return num.toString().replace(/\d/g, x => farsiDigits[x]);
+    };
 
     // 1. Sales Line Chart
     const salesCtx = document.getElementById('salesChart');
@@ -355,18 +395,18 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'درآمد (تومان)',
+                    label: 'درآمد',
                     data: data,
                     borderColor: '#3b82f6', // Match reference blue line
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 3,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#3b82f6',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: isDark ? '#1e293b' : '#ffffff',
                     pointBorderWidth: 2,
                     pointRadius: 4,
                     pointHoverRadius: 6,
-                    fill: false, // Solid line without fill, more like the reference design
-                    tension: 0.3
+                    fill: false,
+                    tension: 0.4
                 }]
             },
             options: {
@@ -375,16 +415,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)',
                         titleColor: isDark ? '#f8fafc' : '#0f172a',
                         bodyColor: isDark ? '#cbd5e1' : '#475569',
                         borderColor: isDark ? '#334155' : '#cbd5e1',
                         borderWidth: 1,
                         padding: 10,
                         displayColors: false,
+                        titleFont: { family: 'Vazirmatn' },
+                        bodyFont: { family: 'Vazirmatn' },
                         callbacks: {
+                            title: function(context) {
+                                return toPersianNum(context[0].label);
+                            },
                             label: function(context) {
-                                return new Intl.NumberFormat('fa-IR').format(context.parsed.y) + ' تومان';
+                                return toPersianNum(new Intl.NumberFormat('en-US').format(context.parsed.y)) + ' تومان';
                             }
                         }
                     }
@@ -392,17 +437,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 scales: {
                     x: {
                         grid: { display: false, drawBorder: false },
-                        ticks: { color: textColor, font: { family: 'Vazirmatn, sans-serif', size: 11 } }
+                        ticks: { 
+                            color: textColor, 
+                            font: { family: 'Vazirmatn, sans-serif', size: 11 },
+                            callback: function(value) {
+                                return toPersianNum(this.getLabelForValue(value));
+                            }
+                        }
                     },
                     y: {
-                        grid: { color: gridColor, drawBorder: false, borderDash: [5, 5] },
+                        grid: { color: gridColor, drawBorder: false, borderDash: [4, 4] },
                         ticks: { 
                             color: textColor,
                             font: { family: 'Vazirmatn, sans-serif', size: 11 },
                             callback: function(value) {
-                                if (value >= 1000000) return (value / 1000000) + 'M';
-                                if (value >= 1000) return (value / 1000) + 'K';
-                                return value;
+                                if (value >= 1000000) return toPersianNum(value / 1000000) + ' میلیون';
+                                if (value >= 1000) return toPersianNum(value / 1000) + ' هزار';
+                                return toPersianNum(value);
                             }
                         },
                         beginAtZero: true
@@ -431,9 +482,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     label: 'تعداد فروش',
                     data: bsData,
                     backgroundColor: bsColors,
-                    borderRadius: 6, // rounded corners for bars
+                    borderRadius: 6,
                     borderSkipped: false,
-                    barPercentage: 0.6
+                    maxBarThickness: 32 // Polish the bars width
                 }]
             },
             options: {
@@ -442,16 +493,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)',
                         titleColor: isDark ? '#f8fafc' : '#0f172a',
                         bodyColor: isDark ? '#cbd5e1' : '#475569',
                         borderColor: isDark ? '#334155' : '#cbd5e1',
                         borderWidth: 1,
                         padding: 10,
                         displayColors: false,
+                        titleFont: { family: 'Vazirmatn' },
+                        bodyFont: { family: 'Vazirmatn' },
                         callbacks: {
                             label: function(context) {
-                                return new Intl.NumberFormat('fa-IR').format(context.parsed.y) + ' فروش';
+                                return toPersianNum(context.parsed.y) + ' فروش';
                             }
                         }
                     }
@@ -459,17 +512,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 scales: {
                     x: {
                         grid: { display: false, drawBorder: false },
-                        ticks: { color: textColor, font: { family: 'Vazirmatn, sans-serif', size: 11 } }
+                        ticks: { 
+                            color: textColor, 
+                            font: { family: 'Vazirmatn, sans-serif', size: 10 },
+                            maxRotation: 45, // Angled slightly so they don't overlap if long
+                            minRotation: 0,
+                            callback: function(value) {
+                                return toPersianNum(this.getLabelForValue(value));
+                            }
+                        }
                     },
                     y: {
-                        grid: { color: gridColor, drawBorder: false, borderDash: [5, 5] },
+                        grid: { color: gridColor, drawBorder: false, borderDash: [4, 4] },
                         ticks: { 
                             color: textColor,
                             font: { family: 'Vazirmatn, sans-serif', size: 11 },
-                            stepSize: 1, // Sales are integers
+                            stepSize: 1,
                             callback: function(value) {
-                                if (value >= 1000) return (value / 1000) + 'K';
-                                return value;
+                                if (value >= 1000) return toPersianNum(value / 1000) + ' هزار';
+                                return toPersianNum(value);
                             }
                         },
                         beginAtZero: true
