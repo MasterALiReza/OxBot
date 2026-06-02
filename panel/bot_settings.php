@@ -296,39 +296,70 @@ include __DIR__ . '/inc/layout_head.php';
 <style>
 .arvan-layout {
     display: flex;
+    flex-direction: column;
     gap: 20px;
-    align-items: flex-start;
     margin-bottom: 30px;
 }
-.arvan-sidebar {
-    width: 280px;
-    flex-shrink: 0;
+.arvan-main-tabs {
     display: flex;
-    gap: 12px;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 5px;
 }
-.arvan-nav-icons {
-    width: 65px;
+.arvan-main-tab-btn {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
     align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
     background: var(--sf);
     border: 1px solid var(--bd);
     border-radius: 12px;
-    padding: 15px 0;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    color: var(--mute);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    outline: none;
 }
-.arvan-nav-text {
-    flex: 1;
-    background: var(--sf);
-    border: 1px solid var(--bd);
-    border-radius: 12px;
-    padding: 15px;
+.arvan-main-tab-btn.active {
+    background: var(--ac);
+    color: #fff;
+    border-color: var(--ac);
+}
+.arvan-main-tab-btn:hover:not(.active) {
+    background: var(--bg);
+}
+
+.arvan-sub-tabs {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    gap: 10px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--bd);
 }
+.arvan-sub-tab-btn {
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--fg);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    outline: none;
+    margin-bottom: -1px;
+}
+.arvan-sub-tab-btn.active {
+    color: var(--ac);
+    border-bottom-color: var(--ac);
+    font-weight: bold;
+}
+.arvan-sub-tab-btn:hover:not(.active) {
+    color: var(--ac);
+}
+
 .arvan-content {
     flex: 1;
     min-width: 0;
@@ -341,7 +372,7 @@ include __DIR__ . '/inc/layout_head.php';
 .arvan-select {
     width: 100%;
     padding: 12px;
-    padding-left: 35px; /* RTL arrow padding */
+    padding-left: 35px;
     border-radius: 8px;
     border: 1px solid var(--bd);
     background: var(--bg);
@@ -376,21 +407,6 @@ include __DIR__ . '/inc/layout_head.php';
     border-color: var(--ac);
     box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
 }
-@media (max-width: 768px) {
-    .arvan-layout {
-        flex-direction: column;
-    }
-    .arvan-sidebar {
-        width: 100%;
-        flex-direction: column;
-    }
-    .arvan-nav-icons {
-        flex-direction: row;
-        width: 100%;
-        padding: 10px 15px;
-        overflow-x: auto;
-    }
-}
 @media (max-width: 480px) {
     .arvan-grid {
         grid-template-columns: 1fr;
@@ -398,75 +414,134 @@ include __DIR__ . '/inc/layout_head.php';
 }
 </style>
 
-<div class="arvan-layout fade-up">
-    <!-- Sidebar -->
-    <div class="arvan-sidebar">
-        <!-- Icons Column -->
-        <div class="arvan-nav-icons">
-            <?php foreach ($schema as $key => $tab_data): ?>
-                <a href="?tab=<?= $key ?>" title="<?= $tab_data['title'] ?>" 
-                   style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: <?= $tab === $key ? '#fff' : 'var(--mute)' ?>; background: <?= $tab === $key ? 'var(--ac)' : 'transparent' ?>; transition: all 0.2s; text-decoration: none;">
-                    <?= icon($tab_data['icon'] ?? 'settings', 22) ?>
-                </a>
-            <?php endforeach; ?>
-        </div>
-        
-        <!-- Text Column -->
-        <div class="arvan-nav-text">
-            <div style="font-weight: 800; font-size: 1.05rem; margin-bottom: 15px; padding: 0 5px; color: var(--fg); border-bottom: 1px solid var(--bd); padding-bottom: 12px;">
-                <?= $schema[$tab]['title'] ?>
-            </div>
-            <?php foreach($schema[$tab]['sections'] as $section_title => $fields): ?>
-                <a href="?tab=<?= $tab ?>&sec=<?= urlencode($section_title) ?>" 
-                   style="display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: all 0.2s; color: <?= $sec === $section_title ? '#fff' : 'var(--fg)' ?>; background: <?= $sec === $section_title ? 'var(--ac)' : 'transparent' ?>; font-weight: <?= $sec === $section_title ? 'bold' : 'normal' ?>;">
-                    <?= $section_title ?>
-                </a>
-            <?php endforeach; ?>
-        </div>
+<div class="fade-up">
+    <!-- Main Tabs -->
+    <div class="arvan-main-tabs">
+        <?php foreach ($schema as $key => $tab_data): ?>
+            <button type="button" class="arvan-main-tab-btn <?= $tab === $key ? 'active' : '' ?>" data-tab="<?= $key ?>">
+                <?= icon($tab_data['icon'] ?? 'settings', 22) ?>
+                <span style="font-weight: 600;"><?= $tab_data['title'] ?></span>
+            </button>
+        <?php endforeach; ?>
     </div>
-    
-    <!-- Main Content -->
-    <div class="arvan-content">
-        <div class="card" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
-            <div class="card-head" style="padding: 20px; border-bottom: 1px solid var(--bd);">
-                <div>
-                    <div class="card-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 4px; height: 18px; background: var(--ac); border-radius: 2px;"></div>
-                        <?= htmlspecialchars($sec) ?>
+
+    <form method="POST" id="settingsForm">
+        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+        <input type="hidden" name="current_tab" id="current_tab_input" value="<?= htmlspecialchars($tab) ?>">
+        <input type="hidden" name="current_sec" id="current_sec_input" value="<?= htmlspecialchars($sec) ?>">
+        
+        <?php foreach ($schema as $key => $tab_data): ?>
+            <div class="arvan-tab-content" id="tab-content-<?= $key ?>" style="display: <?= $tab === $key ? 'block' : 'none' ?>;">
+                
+                <div class="card" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                    <!-- Sub Tabs -->
+                    <div class="card-head" style="padding: 0 20px; border-bottom: 1px solid var(--bd);">
+                        <div class="arvan-sub-tabs" style="margin-bottom: 0; border-bottom: none; padding-top: 15px;">
+                            <?php $isFirstSec = true; foreach ($tab_data['sections'] as $section_title => $fields): ?>
+                                <?php 
+                                    $isActiveSec = false;
+                                    if ($tab === $key && $sec === $section_title) $isActiveSec = true;
+                                    elseif ($tab !== $key && $isFirstSec && $sec === '') $isActiveSec = true;
+                                    elseif ($tab !== $key && $isFirstSec && !isset($schema[$key]['sections'][$sec])) $isActiveSec = true;
+                                ?>
+                                <button type="button" class="arvan-sub-tab-btn <?= $isActiveSec ? 'active' : '' ?>" data-tab="<?= $key ?>" data-sec="<?= htmlspecialchars($section_title) ?>">
+                                    <?= htmlspecialchars($section_title) ?>
+                                </button>
+                            <?php $isFirstSec = false; endforeach; ?>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body" style="padding: 25px;">
+                        <?php $isFirstSec = true; foreach ($tab_data['sections'] as $section_title => $fields): ?>
+                            <?php 
+                                $isActiveSec = false;
+                                if ($tab === $key && $sec === $section_title) $isActiveSec = true;
+                                elseif ($tab !== $key && $isFirstSec && $sec === '') $isActiveSec = true;
+                                elseif ($tab !== $key && $isFirstSec && !isset($schema[$key]['sections'][$sec])) $isActiveSec = true;
+                            ?>
+                            <div class="arvan-section-content" data-tab="<?= $key ?>" data-sec="<?= htmlspecialchars($section_title) ?>" style="display: <?= $isActiveSec ? 'block' : 'none' ?>;">
+                                <div class="arvan-grid">
+                                    <?php foreach($fields as $f): ?>
+                                        <div class="field">
+                                            <label style="font-weight: 600; margin-bottom: 8px; color: var(--fg); font-size: 0.9rem;"><?= $f['label'] ?></label>
+                                            <?php if($f['type'] === 'select'): ?>
+                                                <select name="<?= $f['name'] ?>" class="arvan-select">
+                                                    <?php foreach($f['options'] as $opt_val => $opt_label): ?>
+                                                        <option value="<?= htmlspecialchars($opt_val) ?>" <?= (strval($f['val']) === strval($opt_val)) ? 'selected' : '' ?>><?= htmlspecialchars($opt_label) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            <?php elseif($f['type'] === 'text' || $f['type'] === 'number'): ?>
+                                                <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>">
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php $isFirstSec = false; endforeach; ?>
                     </div>
                 </div>
             </div>
-            
-            <form method="POST" class="card-body" style="padding: 25px;">
-                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                <input type="hidden" name="current_tab" value="<?= htmlspecialchars($tab) ?>">
-                <input type="hidden" name="current_sec" value="<?= htmlspecialchars($sec) ?>">
-                
-                <div class="arvan-grid">
-                    <?php foreach($schema[$tab]['sections'][$sec] as $f): ?>
-                        <div class="field">
-                            <label style="font-weight: 600; margin-bottom: 8px; color: var(--fg); font-size: 0.9rem;"><?= $f['label'] ?></label>
-                            <?php if($f['type'] === 'select'): ?>
-                                <select name="<?= $f['name'] ?>" class="arvan-select">
-                                    <?php foreach($f['options'] as $opt_val => $opt_label): ?>
-                                        <option value="<?= $opt_val ?>" <?= (strval($f['val']) === strval($opt_val)) ? 'selected' : '' ?>><?= $opt_label ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            <?php elseif($f['type'] === 'text' || $f['type'] === 'number'): ?>
-                                <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= $f['placeholder'] ?? '' ?>">
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-                
-                <div style="margin-top:35px; display: flex; justify-content: flex-end; border-top: 1px solid var(--bd); padding-top: 20px;">
-                    <button type="submit" class="btn btn-primary" style="padding: 12px 35px; font-size: 1rem; border-radius: 8px; display:flex; align-items:center; gap:8px;">
-                        <?= icon('check', 18) ?> ذخیره تغییرات
-                    </button>
-                </div>
-            </form>
+        <?php endforeach; ?>
+        
+        <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary" style="padding: 12px 35px; font-size: 1rem; border-radius: 8px; display:flex; align-items:center; gap:8px;">
+                <?= icon('check', 18) ?> ذخیره تغییرات
+            </button>
         </div>
-    </div>
+    </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mainTabs = document.querySelectorAll('.arvan-main-tab-btn');
+    const subTabs = document.querySelectorAll('.arvan-sub-tab-btn');
+    const tabContents = document.querySelectorAll('.arvan-tab-content');
+    const secContents = document.querySelectorAll('.arvan-section-content');
+    
+    mainTabs.forEach(btn => {
+        btn.addEventListener('click', function() {
+            mainTabs.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const targetTab = this.getAttribute('data-tab');
+            document.getElementById('current_tab_input').value = targetTab;
+            
+            tabContents.forEach(c => c.style.display = 'none');
+            document.getElementById('tab-content-' + targetTab).style.display = 'block';
+            
+            const targetSubTabs = document.querySelectorAll(`.arvan-sub-tab-btn[data-tab="${targetTab}"]`);
+            if (targetSubTabs.length > 0) {
+                const activeSubTab = Array.from(targetSubTabs).find(st => st.classList.contains('active'));
+                if (!activeSubTab) {
+                    targetSubTabs[0].click();
+                } else {
+                    document.getElementById('current_sec_input').value = activeSubTab.getAttribute('data-sec');
+                }
+            }
+        });
+    });
+    
+    subTabs.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            const targetSec = this.getAttribute('data-sec');
+            
+            const siblingTabs = document.querySelectorAll(`.arvan-sub-tab-btn[data-tab="${targetTab}"]`);
+            siblingTabs.forEach(b => b.classList.remove('active'));
+            
+            this.classList.add('active');
+            document.getElementById('current_sec_input').value = targetSec;
+            
+            const siblingContents = document.querySelectorAll(`.arvan-section-content[data-tab="${targetTab}"]`);
+            siblingContents.forEach(c => c.style.display = 'none');
+            
+            const targetContent = Array.from(siblingContents).find(c => c.getAttribute('data-sec') === targetSec);
+            if (targetContent) {
+                targetContent.style.display = 'block';
+            }
+        });
+    });
+});
+</script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
