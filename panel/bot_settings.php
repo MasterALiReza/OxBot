@@ -243,7 +243,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     flash('success', $textbotlang['panel']['botSettingsSuccess'] ?? 'تنظیمات با موفقیت ذخیره شد.');
     $redirect_tab = $_POST['current_tab'] ?? 'general';
-    header('Location: bot_settings.php?tab=' . $redirect_tab);
+    $redirect_sec = $_POST['current_sec'] ?? '';
+    header('Location: bot_settings.php?tab=' . urlencode($redirect_tab) . '&sec=' . urlencode($redirect_sec));
     exit;
 }
 
@@ -252,62 +253,142 @@ if (!array_key_exists($tab, $schema)) {
     $tab = 'general';
 }
 
+$sections = array_keys($schema[$tab]['sections']);
+$sec = $_GET['sec'] ?? $sections[0];
+if (!in_array($sec, $sections)) {
+    $sec = $sections[0];
+}
+
 $pageTitle = $textbotlang['panel']['layoutPageTitleBotSettings'] ?? 'تنظیمات ربات';
 $activeNav = 'bot_settings';
 include __DIR__ . '/inc/layout_head.php';
 ?>
 
-<div style="display:flex;gap:4px;margin-bottom:18px;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:5px;overflow-x:auto" class="fade-up">
-    <?php foreach ($schema as $key => $tab_data): ?>
-        <a href="?tab=<?= $key ?>"
-            style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:7px;font-size:.82rem;font-weight:600;white-space:nowrap;flex-shrink:0;transition:all .15s;text-decoration:none;
-                  <?= $tab === $key ? 'background:var(--ac);color:#fff;box-shadow:0 0 14px var(--acg)' : 'color:var(--mute)' ?>">
-            <?= icon($tab_data['icon'] ?? 'settings', 15) ?> <?= $tab_data['title'] ?>
-        </a>
-    <?php endforeach; ?>
-</div>
+<style>
+.arvan-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin-bottom: 30px;
+}
+.arvan-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    gap: 12px;
+}
+.arvan-nav-icons {
+    width: 65px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 15px 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+.arvan-nav-text {
+    flex: 1;
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+.arvan-content {
+    flex: 1;
+    min-width: 0;
+}
+@media (max-width: 768px) {
+    .arvan-layout {
+        flex-direction: column;
+    }
+    .arvan-sidebar {
+        width: 100%;
+        flex-direction: column;
+    }
+    .arvan-nav-icons {
+        flex-direction: row;
+        width: 100%;
+        padding: 10px 15px;
+        overflow-x: auto;
+    }
+}
+</style>
 
-<div class="card fade-up">
-    <div class="card-head">
-        <div>
-            <div class="card-title"><?= icon($schema[$tab]['icon'] ?? 'settings', 18) ?> <?= $schema[$tab]['title'] ?></div>
+<div class="arvan-layout fade-up">
+    <!-- Sidebar -->
+    <div class="arvan-sidebar">
+        <!-- Icons Column -->
+        <div class="arvan-nav-icons">
+            <?php foreach ($schema as $key => $tab_data): ?>
+                <a href="?tab=<?= $key ?>" title="<?= $tab_data['title'] ?>" 
+                   style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: <?= $tab === $key ? '#fff' : 'var(--mute)' ?>; background: <?= $tab === $key ? 'var(--ac)' : 'transparent' ?>; transition: all 0.2s; text-decoration: none;">
+                    <?= icon($tab_data['icon'] ?? 'settings', 22) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+        
+        <!-- Text Column -->
+        <div class="arvan-nav-text">
+            <div style="font-weight: 800; font-size: 1.05rem; margin-bottom: 15px; padding: 0 5px; color: var(--fg); border-bottom: 1px solid var(--bd); padding-bottom: 12px;">
+                <?= $schema[$tab]['title'] ?>
+            </div>
+            <?php foreach($schema[$tab]['sections'] as $section_title => $fields): ?>
+                <a href="?tab=<?= $tab ?>&sec=<?= urlencode($section_title) ?>" 
+                   style="display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 0.9rem; transition: all 0.2s; color: <?= $sec === $section_title ? '#fff' : 'var(--fg)' ?>; background: <?= $sec === $section_title ? 'var(--ac)' : 'transparent' ?>; font-weight: <?= $sec === $section_title ? 'bold' : 'normal' ?>;">
+                    <?= $section_title ?>
+                </a>
+            <?php endforeach; ?>
         </div>
     </div>
     
-    <div class="card-body" style="display:flex; flex-direction:column; gap:20px;">
-        <?php foreach($schema[$tab]['sections'] as $section_title => $fields): ?>
-            <form method="POST" style="border: 1px solid var(--bd); border-radius: 10px; overflow: hidden; background: var(--bg); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
-                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                <input type="hidden" name="current_tab" value="<?= $tab ?>">
-                
-                <div style="background: var(--sf); padding: 12px 15px; font-weight: bold; border-bottom: 1px solid var(--bd); color: var(--fg); font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 4px; height: 16px; background: var(--ac); border-radius: 2px;"></div>
-                    <?= $section_title ?>
+    <!-- Main Content -->
+    <div class="arvan-content">
+        <div class="card" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+            <div class="card-head" style="padding: 20px; border-bottom: 1px solid var(--bd);">
+                <div>
+                    <div class="card-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 4px; height: 18px; background: var(--ac); border-radius: 2px;"></div>
+                        <?= htmlspecialchars($sec) ?>
+                    </div>
                 </div>
-                <div style="padding: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-                    <?php foreach($fields as $f): ?>
+            </div>
+            
+            <form method="POST" class="card-body" style="padding: 25px;">
+                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                <input type="hidden" name="current_tab" value="<?= htmlspecialchars($tab) ?>">
+                <input type="hidden" name="current_sec" value="<?= htmlspecialchars($sec) ?>">
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                    <?php foreach($schema[$tab]['sections'][$sec] as $f): ?>
                         <div class="field">
-                            <label><?= $f['label'] ?></label>
+                            <label style="font-weight: 600; margin-bottom: 8px; color: var(--fg); font-size: 0.9rem;"><?= $f['label'] ?></label>
                             <?php if($f['type'] === 'select'): ?>
-                                <select name="<?= $f['name'] ?>" class="select">
+                                <select name="<?= $f['name'] ?>" class="select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--bd); background: var(--bg); color: var(--fg); font-size: 0.95rem;">
                                     <?php foreach($f['options'] as $opt_val => $opt_label): ?>
                                         <option value="<?= $opt_val ?>" <?= (strval($f['val']) === strval($opt_val)) ? 'selected' : '' ?>><?= $opt_label ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             <?php elseif($f['type'] === 'text' || $f['type'] === 'number'): ?>
-                                <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= $f['placeholder'] ?? '' ?>">
+                                <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="input" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--bd); background: var(--bg); color: var(--fg); font-size: 0.95rem;" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= $f['placeholder'] ?? '' ?>">
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
                 
-                <div style="padding: 12px 15px; background: var(--sf); border-top: 1px solid var(--bd); display: flex; justify-content: flex-end;">
-                    <button type="submit" class="btn btn-primary" style="padding: 8px 24px; font-size: 0.9rem; border-radius: 6px;">
-                        <?= icon('check', 16) ?> ذخیره تنظیمات <?= $section_title ?>
+                <div style="margin-top:35px; display: flex; justify-content: flex-end; border-top: 1px solid var(--bd); padding-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="padding: 12px 35px; font-size: 1rem; border-radius: 8px; display:flex; align-items:center; gap:8px;">
+                        <?= icon('check', 18) ?> ذخیره تغییرات
                     </button>
                 </div>
             </form>
-        <?php endforeach; ?>
+        </div>
     </div>
 </div>
 
