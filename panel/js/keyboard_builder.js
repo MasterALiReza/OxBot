@@ -3,23 +3,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const unusedKeysContainer = document.getElementById("unused-keys");
     const saveBtn = document.getElementById("save-keyboard-btn");
     
-    // Modal Elements
-    const addModal = document.getElementById("add-btn-modal");
-    const closeModalBtn = document.getElementById("close-modal-btn");
-    const modalUnusedList = document.getElementById("modal-unused-list");
-    
-    // Load data from global variable injected by PHP
     const data = window.KEYBOARD_INITIAL_DATA || { keylist: [], userlist: [], text: {} };
     const textDict = data.text;
     
     let rowSortables = [];
-    let currentRowForAdd = null; // Track which row requested the + button
 
     // Initialize layout
     renderUnusedKeys(data.keylist);
     renderActiveKeyboard(data.userlist);
     ensureEmptyRowAtBottom();
-    refreshAddInlineButtons();
     initSortables();
 
     function createButtonElement(keyName, isActive = false) {
@@ -77,61 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function moveToUnused(btn) {
         unusedKeysContainer.appendChild(btn);
         ensureEmptyRowAtBottom();
-        refreshAddInlineButtons();
-    }
-
-    function openAddModal(targetRow) {
-        currentRowForAdd = targetRow;
-        modalUnusedList.innerHTML = "";
-        
-        const unusedBtns = Array.from(unusedKeysContainer.children);
-        if (unusedBtns.length === 0) {
-            modalUnusedList.innerHTML = "<div style='text-align:center; padding: 20px; color: #64748b;'>هیچ دکمه غیرفعالی وجود ندارد.</div>";
-        } else {
-            unusedBtns.forEach(btn => {
-                const keyName = btn.dataset.key;
-                const modalItem = document.createElement("div");
-                modalItem.className = "modal-btn";
-                modalItem.innerText = textDict[keyName] || keyName;
-                modalItem.onclick = () => {
-                    targetRow.insertBefore(btn, targetRow.querySelector('.add-inline-btn'));
-                    closeModal();
-                    ensureEmptyRowAtBottom();
-                    refreshAddInlineButtons();
-                };
-                modalUnusedList.appendChild(modalItem);
-            });
-        }
-        
-        addModal.classList.add("show");
-    }
-
-    function closeModal() {
-        addModal.classList.remove("show");
-        currentRowForAdd = null;
-    }
-
-    closeModalBtn.onclick = closeModal;
-    addModal.onclick = (e) => {
-        if (e.target === addModal) closeModal();
-    };
-
-    function refreshAddInlineButtons() {
-        // Remove existing add buttons
-        document.querySelectorAll(".add-inline-btn").forEach(btn => btn.remove());
-        
-        // Add new add buttons to rows with 1 item
-        document.querySelectorAll(".telegram-row").forEach(row => {
-            // Count actual key buttons
-            const keyCount = row.querySelectorAll('.kb-btn').length;
-            if (keyCount === 1 && !row.classList.contains('empty-row')) {
-                const addBtn = document.createElement("div");
-                addBtn.className = "add-inline-btn";
-                addBtn.innerHTML = "➕";
-                addBtn.onclick = () => openAddModal(row);
-                row.appendChild(addBtn);
-            }
-        });
     }
 
     function ensureEmptyRowAtBottom() {
@@ -173,8 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 row.classList.remove("empty-row");
             }
         });
-        
-        refreshAddInlineButtons();
     }
 
     function initSortables() {
