@@ -165,6 +165,19 @@ $initial_data = [
         </div>
         
     </div>
+
+    <!-- Modal for adding buttons -->
+    <div id="add-btn-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>انتخاب دکمه برای افزودن</span>
+                <span class="modal-close" id="close-modal-btn">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-unused-list">
+                <!-- Unused keys will be populated here -->
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -3,24 +3,42 @@ document.addEventListener("DOMContentLoaded", () => {
     const unusedKeysContainer = document.getElementById("unused-keys");
     const saveBtn = document.getElementById("save-keyboard-btn");
     
+    // Modal Elements
+    const addModal = document.getElementById("add-btn-modal");
+    const closeModalBtn = document.getElementById("close-modal-btn");
+    const modalUnusedList = document.getElementById("modal-unused-list");
+    
     // Load data from global variable injected by PHP
     const data = window.KEYBOARD_INITIAL_DATA || { keylist: [], userlist: [], text: {} };
     const textDict = data.text;
     
     let rowSortables = [];
+    let currentRowForAdd = null; // Track which row requested the + button
 
     // Initialize layout
     renderUnusedKeys(data.keylist);
     renderActiveKeyboard(data.userlist);
     ensureEmptyRowAtBottom();
+    refreshAddInlineButtons();
     initSortables();
 
-    function createButtonElement(keyName) {
+    function createButtonElement(keyName, isActive = false) {
         const btn = document.createElement("div");
         btn.className = "kb-btn telegram-btn";
         btn.dataset.key = keyName;
         // The span helps with text overflow
         btn.innerHTML = `<span>${textDict[keyName] || keyName}</span>`;
+        
+        // Add remove button
+        const removeBtn = document.createElement("div");
+        removeBtn.className = "remove-btn";
+        removeBtn.innerHTML = "✖";
+        removeBtn.onclick = (e) => {
+            e.stopPropagation();
+            moveToUnused(btn);
+        };
+        btn.appendChild(removeBtn);
+        
         return btn;
     }
 
@@ -34,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
         unusedKeysContainer.innerHTML = "";
         keylist.forEach(item => {
             if (item && item.length > 0 && item[0].text) {
-                unusedKeysContainer.appendChild(createButtonElement(item[0].text));
+                unusedKeysContainer.appendChild(createButtonElement(item[0].text, false));
             }
         });
     }
@@ -46,12 +64,72 @@ document.addEventListener("DOMContentLoaded", () => {
             let hasItems = false;
             rowArr.forEach(item => {
                 if (item.text) {
-                    rowEl.appendChild(createButtonElement(item.text));
+                    rowEl.appendChild(createButtonElement(item.text, true));
                     hasItems = true;
                 }
             });
             if (hasItems) {
                 telegramBoard.appendChild(rowEl);
+            }
+        });
+    }
+
+    function moveToUnused(btn) {
+        unusedKeysContainer.appendChild(btn);
+        ensureEmptyRowAtBottom();
+        refreshAddInlineButtons();
+    }
+
+    function openAddModal(targetRow) {
+        currentRowForAdd = targetRow;
+        modalUnusedList.innerHTML = "";
+        
+        const unusedBtns = Array.from(unusedKeysContainer.children);
+        if (unusedBtns.length === 0) {
+            modalUnusedList.innerHTML = "<div style='text-align:center; padding: 20px; color: #64748b;'>هیچ دکمه غیرفعالی وجود ندارد.</div>";
+        } else {
+            unusedBtns.forEach(btn => {
+                const keyName = btn.dataset.key;
+                const modalItem = document.createElement("div");
+                modalItem.className = "modal-btn";
+                modalItem.innerText = textDict[keyName] || keyName;
+                modalItem.onclick = () => {
+                    targetRow.insertBefore(btn, targetRow.querySelector('.add-inline-btn'));
+                    closeModal();
+                    ensureEmptyRowAtBottom();
+                    refreshAddInlineButtons();
+                };
+                modalUnusedList.appendChild(modalItem);
+            });
+        }
+        
+        addModal.classList.add("show");
+    }
+
+    function closeModal() {
+        addModal.classList.remove("show");
+        currentRowForAdd = null;
+    }
+
+    closeModalBtn.onclick = closeModal;
+    addModal.onclick = (e) => {
+        if (e.target === addModal) closeModal();
+    };
+
+    function refreshAddInlineButtons() {
+        // Remove existing add buttons
+        document.querySelectorAll(".add-inline-btn").forEach(btn => btn.remove());
+        
+        // Add new add buttons to rows with 1 item
+        document.querySelectorAll(".telegram-row").forEach(row => {
+            // Count actual key buttons
+            const keyCount = row.querySelectorAll('.kb-btn').length;
+            if (keyCount === 1 && !row.classList.contains('empty-row')) {
+                const addBtn = document.createElement("div");
+                addBtn.className = "add-inline-btn";
+                addBtn.innerHTML = "➕";
+                addBtn.onclick = () => openAddModal(row);
+                row.appendChild(addBtn);
             }
         });
     }
@@ -63,8 +141,9 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // Remove empty rows that are NOT the last row
         rows.forEach(row => {
-            if (row.children.length === 0 && row !== lastRow) {
-                if (rowSortables.includes(row.sortableInstance)) {
+            const keyCount = row.querySelectorAll('.kb-btn').length;
+            if (keyCount === 0 && row !== lastRow) {
+                if (row.sortableInstance && rowSortables.includes(row.sortableInstance)) {
                     // Cleanup Sortable instance
                     row.sortableInstance.destroy();
                     rowSortables = rowSortables.filter(s => s !== row.sortableInstance);
@@ -77,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const updatedRows = telegramBoard.querySelectorAll(".telegram-row");
         lastRow = updatedRows.length > 0 ? updatedRows[updatedRows.length - 1] : null;
 
-        if (!lastRow || lastRow.children.length > 0) {
+        if (!lastRow || lastRow.querySelectorAll('.kb-btn').length > 0) {
             // Last row has items, create a new empty row
             const newEmptyRow = createRowElement();
             newEmptyRow.classList.add("empty-row");
@@ -90,32 +169,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Clean up empty-row class from non-empty rows
         telegramBoard.querySelectorAll(".telegram-row").forEach(row => {
-            if (row.children.length > 0) {
+            if (row.querySelectorAll('.kb-btn').length > 0) {
                 row.classList.remove("empty-row");
             }
         });
+        
+        refreshAddInlineButtons();
     }
 
     function initSortables() {
-        // Sortable for unused keys area
-        new Sortable(unusedKeysContainer, {
+        const sortableOptions = {
             group: "shared",
             animation: 150,
             ghostClass: "sortable-ghost",
+            delay: 150, // Delay to prevent accidental drags when scrolling on mobile
+            delayOnTouchOnly: true,
+            forceFallback: true, // Fixes iOS and Safari dragging issues
+            fallbackClass: "sortable-fallback",
+            filter: ".add-inline-btn, .remove-btn", // Prevent dragging these
             onEnd: ensureEmptyRowAtBottom
-        });
+        };
+
+        // Sortable for unused keys area
+        new Sortable(unusedKeysContainer, sortableOptions);
 
         // Initialize sortable for existing rows
-        document.querySelectorAll(".telegram-row").forEach(initRowSortable);
+        document.querySelectorAll(".telegram-row").forEach(row => {
+            initRowSortable(row, sortableOptions);
+        });
     }
 
-    function initRowSortable(rowElement) {
-        const sortable = new Sortable(rowElement, {
-            group: "shared",
-            animation: 150,
-            ghostClass: "sortable-ghost",
-            onEnd: ensureEmptyRowAtBottom
-        });
+    function initRowSortable(rowElement, options) {
+        if (!options) {
+            options = {
+                group: "shared",
+                animation: 150,
+                ghostClass: "sortable-ghost",
+                delay: 150,
+                delayOnTouchOnly: true,
+                forceFallback: true,
+                fallbackClass: "sortable-fallback",
+                filter: ".add-inline-btn, .remove-btn",
+                onEnd: ensureEmptyRowAtBottom
+            };
+        }
+        const sortable = new Sortable(rowElement, options);
         rowElement.sortableInstance = sortable;
         rowSortables.push(sortable);
     }
@@ -128,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         document.querySelectorAll(".telegram-row").forEach(row => {
             const rowData = [];
-            Array.from(row.children).forEach(btn => {
+            row.querySelectorAll(".kb-btn").forEach(btn => {
                 if (btn.dataset.key) {
                     rowData.push({ text: btn.dataset.key });
                 }
