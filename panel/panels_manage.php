@@ -207,7 +207,7 @@ include __DIR__ . '/inc/layout_head.php';
                                     <button class="btn btn-ghost btn-sm btn-icon test-conn-btn" data-id="<?= $p['id'] ?>" title="<?= $textbotlang['panel']['panelsActionTest'] ?>">
                                         <?= icon('dashboard', 14) ?>
                                     </button>
-                                    <button class="btn btn-ghost btn-sm btn-icon" onclick='openPanelModal("edit", <?= htmlspecialchars($panelData, ENT_QUOTES, "UTF-8") ?>)' title="ویرایش">
+                                    <button class="btn btn-ghost btn-sm btn-icon" data-panel="<?= htmlspecialchars($panelData, ENT_QUOTES, 'UTF-8') ?>" onclick="openPanelModal('edit', this)" title="ویرایش">
                                         <?= icon('edit', 14) ?>
                                     </button>
                                     <a href="?action=delete&id=<?= (int)$p['id'] ?>" class="btn btn-no btn-sm btn-icon" title="<?= $textbotlang['panel']['panelsActionDelete'] ?>" onclick="return confirm('<?= sprintf($textbotlang['panel']['panelsConfirmDelete'], htmlspecialchars($p['name_panel'])) ?>')">
@@ -223,16 +223,17 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Add/Edit Panel Modal -->
-<div id="panelModal" class="modal">
-    <div class="modal-content" style="max-width:500px">
-        <div class="modal-header">
+<div id="panelModalVeil" class="modal-veil">
+    <div class="modal" style="max-width:500px">
+        <div class="modal-head">
             <h3 id="panelModalTitle">افزودن پنل جدید</h3>
-            <button class="btn btn-ghost btn-sm btn-icon" onclick="closePanelModal()" style="margin-right:auto;margin-left:0">
+            <button type="button" class="modal-x" onclick="closePanelModal()">
                 <?= icon('x', 16) ?>
             </button>
         </div>
-        <form method="post" action="panels_manage.php" class="modal-body" style="display:flex;flex-direction:column;gap:15px">
-            <input type="hidden" name="action" id="panelAction" value="add">
+        <form method="post" action="panels_manage.php">
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:15px">
+                <input type="hidden" name="action" id="panelAction" value="add">
             <input type="hidden" name="id" id="panelId" value="">
             
             <div class="field-group">
@@ -280,17 +281,18 @@ include __DIR__ . '/inc/layout_head.php';
                 </select>
             </div>
 
-            <div class="modal-footer" style="margin-top:10px;display:flex;justify-content:flex-end;gap:10px;">
-                <button type="button" class="btn btn-secondary" onclick="closePanelModal()">انصراف</button>
-                <button type="submit" class="btn btn-primary">ذخیره پنل</button>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-ghost" onclick="closePanelModal()">انصراف</button>
+                <button type="submit" class="btn btn-primary" style="margin-right:auto">ذخیره پنل</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Test Connection Modal -->
-<div id="testConnModal" class="modal">
-    <div class="modal-content" style="max-width:400px;text-align:center">
+<div id="testConnModalVeil" class="modal-veil">
+    <div class="modal" style="max-width:400px;text-align:center">
         <div class="modal-body" style="padding:30px 20px">
             <div id="testConnLoader">
                 <div class="spinner" style="margin:0 auto 15px"></div>
@@ -301,7 +303,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <div id="testConnIcon" style="font-size:40px;margin-bottom:10px"></div>
                 <h4 id="testConnTitle" style="margin:0 0 10px"></h4>
                 <p id="testConnMessage" style="margin:0;font-size:14px;color:var(--ts);"></p>
-                <button class="btn btn-secondary btn-sm" style="margin-top:20px" onclick="closeTestConnModal()">بستن</button>
+                <button class="btn btn-ghost btn-sm" style="margin-top:20px" onclick="closeTestConnModal()">بستن</button>
             </div>
         </div>
     </div>
@@ -320,10 +322,15 @@ include __DIR__ . '/inc/layout_head.php';
 </style>
 
 <script>
-function openPanelModal(action, data = null) {
-    const modal = document.getElementById('panelModal');
+function openPanelModal(action, btn = null) {
+    const modalVeil = document.getElementById('panelModalVeil');
     const title = document.getElementById('panelModalTitle');
     const actionInput = document.getElementById('panelAction');
+    
+    let data = null;
+    if (btn && btn.getAttribute('data-panel')) {
+        data = JSON.parse(btn.getAttribute('data-panel'));
+    }
     
     if (action === 'add') {
         title.innerText = 'افزودن پنل جدید';
@@ -347,16 +354,16 @@ function openPanelModal(action, data = null) {
         document.getElementById('panelStatus').value = data.status;
     }
     
-    modal.classList.add('show');
+    modalVeil.classList.add('open');
 }
 
 function closePanelModal() {
-    document.getElementById('panelModal').classList.remove('show');
+    document.getElementById('panelModalVeil').classList.remove('open');
 }
 
 // Test Connection Logic
 const testBtns = document.querySelectorAll('.test-conn-btn');
-const testModal = document.getElementById('testConnModal');
+const testModalVeil = document.getElementById('testConnModalVeil');
 const loader = document.getElementById('testConnLoader');
 const resultView = document.getElementById('testConnResult');
 
@@ -367,7 +374,7 @@ testBtns.forEach(btn => {
         // Show modal & loader
         loader.style.display = 'block';
         resultView.style.display = 'none';
-        testModal.classList.add('show');
+        testModalVeil.classList.add('open');
         
         try {
             const res = await fetch(`panels_manage.php?action=test_connection&id=${id}`);
@@ -403,7 +410,7 @@ testBtns.forEach(btn => {
 });
 
 function closeTestConnModal() {
-    testModal.classList.remove('show');
+    testModalVeil.classList.remove('open');
 }
 </script>
 
