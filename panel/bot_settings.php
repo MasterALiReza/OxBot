@@ -407,9 +407,45 @@ include __DIR__ . '/inc/layout_head.php';
 }
 .arvan-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
 }
+.toggle-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 12px;
+    background: var(--bg);
+    border-radius: 14px;
+    border: 1px solid var(--bd);
+    gap: 12px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+.toggle-field:hover {
+    border-color: var(--bds);
+    background: var(--sf2);
+}
+.toggle-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+}
+.toggle-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--fg);
+    margin: 0;
+    line-height: 1.4;
+    cursor: pointer;
+}
+.toggle-state {
+    font-size: 0.75rem;
+    color: var(--mute);
+}
+
 .arvan-select {
     width: 100%;
     padding: 12px;
@@ -450,7 +486,18 @@ include __DIR__ . '/inc/layout_head.php';
 }
 @media (max-width: 480px) {
     .arvan-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .field:not(.toggle-field) {
+        grid-column: 1 / -1;
+    }
+    .toggle-field {
+        padding: 14px 8px;
+        gap: 10px;
+    }
+    .toggle-label {
+        font-size: 0.78rem;
     }
 }
 @media (max-width: 600px) {
@@ -484,9 +531,27 @@ include __DIR__ . '/inc/layout_head.php';
         width: 20px !important;
         height: 20px !important;
     }
+    .arvan-sub-tabs {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        border-bottom: none;
+        padding-bottom: 10px;
+    }
     .arvan-sub-tab-btn {
-        padding: 8px 12px;
-        font-size: 0.85rem;
+        padding: 8px 14px;
+        font-size: 0.8rem;
+        background: var(--bg);
+        border: 1px solid var(--bd) !important;
+        border-radius: 10px;
+        margin: 0;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+    .arvan-sub-tab-btn.active {
+        background: var(--ac);
+        color: #fff !important;
+        border-color: var(--ac) !important;
     }
     .card-head {
         padding: 0 10px !important;
@@ -595,14 +660,14 @@ input:checked + .arvan-slider:before {
                                             $currentVal = (strval($f['val']) === strval($val1)) ? $val1 : $val2;
                                             $isChecked = ($currentVal === $val1);
                                         ?>
-                                            <div class="field toggle-field" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--bg); border-radius: 12px; border: 1px solid var(--bd);">
-                                                <div style="display: flex; flex-direction: column; gap: 4px;">
-                                                    <label style="font-weight: 500; margin: 0; color: var(--fg); font-size: 0.95rem; cursor: pointer;" for="chk_<?= $f['name'] ?>"><?= $f['label'] ?></label>
-                                                    <span style="font-size: 0.75rem; color: var(--mute);"><?= $isChecked ? $f['options'][$val1] : $f['options'][$val2] ?></span>
+                                            <div class="field toggle-field">
+                                                <div class="toggle-texts">
+                                                    <label class="toggle-label" for="chk_<?= $f['name'] ?>"><?= $f['label'] ?></label>
+                                                    <span class="toggle-state"><?= $isChecked ? $f['options'][$val1] : $f['options'][$val2] ?></span>
                                                 </div>
                                                 <input type="hidden" name="<?= $f['name'] ?>" id="hidden_<?= $f['name'] ?>" value="<?= htmlspecialchars($currentVal) ?>">
                                                 <label class="arvan-switch">
-                                                    <input type="checkbox" id="chk_<?= $f['name'] ?>" <?= $isChecked ? 'checked' : '' ?> onchange="document.getElementById('hidden_<?= $f['name'] ?>').value = this.checked ? '<?= $val1 ?>' : '<?= $val2 ?>'; this.closest('.toggle-field').querySelector('span').innerText = this.checked ? '<?= $f['options'][$val1] ?>' : '<?= $f['options'][$val2] ?>';">
+                                                    <input type="checkbox" id="chk_<?= $f['name'] ?>" <?= $isChecked ? 'checked' : '' ?> onchange="document.getElementById('hidden_<?= $f['name'] ?>').value = this.checked ? '<?= $val1 ?>' : '<?= $val2 ?>'; this.closest('.toggle-field').querySelector('.toggle-state').innerText = this.checked ? '<?= $f['options'][$val1] ?>' : '<?= $f['options'][$val2] ?>';">
                                                     <span class="arvan-slider"></span>
                                                 </label>
                                             </div>
