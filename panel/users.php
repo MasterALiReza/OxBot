@@ -77,29 +77,29 @@ include __DIR__ . '/inc/layout_head.php';
         <form method="GET" id="usersForm" class="toolbar-end">
             <select name="status" class="select" style="width:auto"
                 onchange="document.getElementById('usersForm').submit()">
-                <option value=""><?= $textbotlang['panel']['usersColBalance'] ?></option>
-                <option value="active" <?= $status === 'active' ? 'selected' : '' ?>><?= $textbotlang['panel']['usersColGroup'] ?></option>
-                <option value="block" <?= $status === 'block' ? 'selected' : '' ?>><?= $textbotlang['panel']['usersColStatus'] ?></option>
+                <option value=""><?= $textbotlang['panel']['usersAllStatuses'] ?></option>
+                <option value="active" <?= $status === 'active' ? 'selected' : '' ?>><?= $textbotlang['panel']['usersStatusActiveFilter'] ?></option>
+                <option value="block" <?= $status === 'block' ? 'selected' : '' ?>><?= $textbotlang['panel']['usersStatusBlockedFilter'] ?></option>
             </select>
 
             <select name="role" class="select" style="width:auto"
                 onchange="document.getElementById('usersForm').submit()">
-                <option value=""><?= $textbotlang['panel']['usersColActions'] ?></option>
-                <option value="f" <?= $role === 'f' ? 'selected' : '' ?>><?= $textbotlang['panel']['usersColJoinDate'] ?></option>
-                <option value="n" <?= $role === 'n' ? 'selected' : '' ?>><?= $textbotlang['panel']['usersColPhone'] ?></option>
-                <option value="n2" <?= $role === 'n2' ? 'selected' : '' ?>><?= $textbotlang['panel']['usersColCustomName'] ?></option>
+                <option value=""><?= $textbotlang['panel']['usersAllGroups'] ?></option>
+                <option value="f" <?= $role === 'f' ? 'selected' : '' ?>><?= $textbotlang['panel']['usersGroupFreeUser'] ?></option>
+                <option value="n" <?= $role === 'n' ? 'selected' : '' ?>><?= $textbotlang['panel']['usersGroupNormalAgent'] ?></option>
+                <option value="n2" <?= $role === 'n2' ? 'selected' : '' ?>><?= $textbotlang['panel']['usersGroupAdvancedAgent'] ?></option>
             </select>
 
             <div class="search-box" style="min-width:260px">
                 <?= icon('search', 15) ?>
-                <input type="text" name="q" placeholder=$textbotlang['panel']['usersSearchUserPlaceholder']
+                <input type="text" name="q" placeholder="<?= $textbotlang['panel']['usersSearchUserPlaceholder'] ?>"
                     value="<?= htmlspecialchars($search) ?>" autocomplete="off">
                 <button type="button" class="search-clear">✕</button>
-                <button type="submit" class="search-btn"><?= $textbotlang['panel']['usersAllGroups'] ?></button>
+                <button type="submit" class="search-btn"><?= $textbotlang['panel']['usersSearchBtn'] ?></button>
             </div>
 
             <?php if ($search || $status || $role): ?>
-                <a href="users.php" class="btn-link" style="font-size:.78rem;white-space:nowrap"><?= $textbotlang['panel']['usersAllStatuses'] ?></a>
+                <a href="users.php" class="btn-link" style="font-size:.78rem;white-space:nowrap"><?= $textbotlang['panel']['usersClearBtn'] ?></a>
             <?php endif; ?>
         </form>
     </div>
@@ -109,15 +109,15 @@ include __DIR__ . '/inc/layout_head.php';
             <thead>
                 <tr>
                     <th style="width:36px">#</th>
-                    <th><?= $textbotlang['panel']['usersSearchBtn'] ?></th>
-                    <th><?= $textbotlang['panel']['usersClearBtn'] ?></th>
-                    <th><?= $textbotlang['panel']['usersGroupFreeUser'] ?></th>
-                    <th><?= $textbotlang['panel']['usersGroupNormalAgent'] ?></th>
-                    <th><?= $textbotlang['panel']['usersGroupAdvancedAgent'] ?></th>
-                    <th><?= $textbotlang['panel']['usersStatusActiveFilter'] ?></th>
-                    <th><?= $textbotlang['panel']['usersStatusBlockedFilter'] ?></th>
-                    <th><?= $textbotlang['panel']['usersPaginationPrev'] ?></th>
-                    <th style="width:72px"></th>
+                    <th><?= $textbotlang['panel']['usersColId'] ?></th>
+                    <th><?= $textbotlang['panel']['usersColUsername'] ?></th>
+                    <th><?= $textbotlang['panel']['usersColCustomName'] ?></th>
+                    <th><?= $textbotlang['panel']['usersColPhone'] ?></th>
+                    <th><?= $textbotlang['panel']['usersColBalance'] ?></th>
+                    <th><?= $textbotlang['panel']['usersColScore'] ?></th>
+                    <th><?= $textbotlang['panel']['usersColJoinDate'] ?></th>
+                    <th><?= $textbotlang['panel']['usersColGroup'] ?></th>
+                    <th style="width:72px"><?= $textbotlang['panel']['usersColActions'] ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -149,28 +149,28 @@ include __DIR__ . '/inc/layout_head.php';
                         ?>
                         <tr>
                             <td class="cf" data-label="#"><?= $i++ ?></td>
-                            <td class="cm" data-label="<?= $textbotlang['panel']['usersSearchBtn'] ?>"><?= htmlspecialchars($u['id']) ?></td>
-                            <td data-label="<?= $textbotlang['panel']['usersClearBtn'] ?>">
+                            <td class="cm" data-label="<?= $textbotlang['panel']['usersColId'] ?>"><?= htmlspecialchars($u['id']) ?></td>
+                            <td data-label="<?= $textbotlang['panel']['usersColUsername'] ?>">
                                 <?php if ($uname): ?>
                                     <span class="cm" style="color:var(--ac)">@<?= htmlspecialchars($uname) ?></span>
                                 <?php else: ?>
                                     <span class="cf">—</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="cs" data-label="<?= $textbotlang['panel']['usersGroupFreeUser'] ?>"><?= $name ? htmlspecialchars(trunc($name, 20)) : '<span class="cf">—</span>' ?></td>
-                            <td class="cm cf" data-label="<?= $textbotlang['panel']['usersGroupNormalAgent'] ?>">
+                            <td class="cs" data-label="<?= $textbotlang['panel']['usersColCustomName'] ?>"><?= $name ? htmlspecialchars(trunc($name, 20)) : '<span class="cf">—</span>' ?></td>
+                            <td class="cm cf" data-label="<?= $textbotlang['panel']['usersColPhone'] ?>">
                                 <?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?>
                             </td>
-                            <td class="cn cs" style="white-space:nowrap" data-label="<?= $textbotlang['panel']['usersGroupAdvancedAgent'] ?>">
-                                <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['usersPaginationNext'] ?></span>
+                            <td class="cn cs" style="white-space:nowrap" data-label="<?= $textbotlang['panel']['usersColBalance'] ?>">
+                                <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['usersCurrencySymbol'] ?></span>
                             </td>
-                            <td class="cn" data-label="<?= $textbotlang['panel']['usersStatusActiveFilter'] ?>">
+                            <td class="cn" data-label="<?= $textbotlang['panel']['usersColScore'] ?>">
                                 <?= (int) ($u['score'] ?? 0) > 0
                                     ? '<span style="color:var(--warn)">⭐ ' . number_format((int) ($u['score'] ?? 0)) . '</span>'
                                     : '<span class="cf">—</span>' ?>
                             </td>
-                            <td class="cf" data-label="<?= $textbotlang['panel']['usersStatusBlockedFilter'] ?>"><?= safe_date($u['register'] ?? null) ?></td>
-                            <td data-label="<?= $textbotlang['panel']['usersPaginationPrev'] ?>">
+                            <td class="cf" data-label="<?= $textbotlang['panel']['usersColJoinDate'] ?>"><?= safe_date($u['register'] ?? null) ?></td>
+                            <td data-label="<?= $textbotlang['panel']['usersColGroup'] ?>">
                                 <?php if ($isBlocked): ?>
                                     <span class="tag tag-no"><?= $textbotlang['panel']['usersTotalCountLabel'] ?></span>
                                 <?php else: ?>
@@ -179,22 +179,22 @@ include __DIR__ . '/inc/layout_head.php';
                                     </span>
                                 <?php endif; ?>
                             </td>
-                            <td data-label="عملیات">
+                            <td data-label="<?= $textbotlang['panel']['usersColActions'] ?>">
                                 <div style="display:flex;gap:4px">
                                     <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn btn-ghost btn-sm btn-icon"
-                                        title=$textbotlang['panel']['usersViewBtn']>
+                                        title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
                                         <?= icon('eye', 14) ?>
                                     </a>
                                     <?php if ($isBlocked): ?>
                                         <a href="user_action.php?action=unblock&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
-                                            class="btn btn-ok btn-sm btn-icon" title=$textbotlang['panel']['usersUnblockBtn']
-                                            data-confirm=sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id'])>
+                                            class="btn btn-ok btn-sm btn-icon" title="<?= $textbotlang['panel']['usersUnblockBtn'] ?>"
+                                            data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id']) ?>">
                                             <?= icon('check', 13) ?>
                                         </a>
                                     <?php else: ?>
                                         <a href="user_action.php?action=block&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
-                                            class="btn btn-no btn-sm btn-icon" title=$textbotlang['panel']['usersBlockBtn']
-                                            data-confirm=sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id'])>
+                                            class="btn btn-no btn-sm btn-icon" title="<?= $textbotlang['panel']['usersBlockBtn'] ?>"
+                                            data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id']) ?>">
                                             <?= icon('block', 13) ?>
                                         </a>
                                     <?php endif; ?>
@@ -207,7 +207,7 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
 
     <div class="tbl-foot">
-        <span><?= number_format($total) ?> <?= $textbotlang['panel']['usersColReferrer'] ?> <?= $page ?> <?= $textbotlang['panel']['usersColAffiliateCount'] ?> <?= $totalPages ?></span>
+        <span><?= number_format($total) ?> <?= $textbotlang['panel']['usersPaginationTotalUsers'] ?> <?= $page ?> <?= $textbotlang['panel']['usersPaginationOf'] ?> <?= $totalPages ?></span>
         <div class="pager">
             <?php
             $qs = fn($p) => '?q=' . urlencode($search)
