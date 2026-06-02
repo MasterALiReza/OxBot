@@ -148,29 +148,29 @@ include __DIR__ . '/inc/layout_head.php';
                             $uname = '';
                         ?>
                         <tr>
-                            <td class="cf"><?= $i++ ?></td>
-                            <td class="cm"><?= htmlspecialchars($u['id']) ?></td>
-                            <td>
+                            <td class="cf" data-label="#"><?= $i++ ?></td>
+                            <td class="cm" data-label="<?= $textbotlang['panel']['usersSearchBtn'] ?>"><?= htmlspecialchars($u['id']) ?></td>
+                            <td data-label="<?= $textbotlang['panel']['usersClearBtn'] ?>">
                                 <?php if ($uname): ?>
                                     <span class="cm" style="color:var(--ac)">@<?= htmlspecialchars($uname) ?></span>
                                 <?php else: ?>
                                     <span class="cf">—</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="cs"><?= $name ? htmlspecialchars(trunc($name, 20)) : '<span class="cf">—</span>' ?></td>
-                            <td class="cm cf">
+                            <td class="cs" data-label="<?= $textbotlang['panel']['usersGroupFreeUser'] ?>"><?= $name ? htmlspecialchars(trunc($name, 20)) : '<span class="cf">—</span>' ?></td>
+                            <td class="cm cf" data-label="<?= $textbotlang['panel']['usersGroupNormalAgent'] ?>">
                                 <?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?>
                             </td>
-                            <td class="cn cs" style="white-space:nowrap">
+                            <td class="cn cs" style="white-space:nowrap" data-label="<?= $textbotlang['panel']['usersGroupAdvancedAgent'] ?>">
                                 <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['usersPaginationNext'] ?></span>
                             </td>
-                            <td class="cn">
+                            <td class="cn" data-label="<?= $textbotlang['panel']['usersStatusActiveFilter'] ?>">
                                 <?= (int) ($u['score'] ?? 0) > 0
                                     ? '<span style="color:var(--warn)">⭐ ' . number_format((int) ($u['score'] ?? 0)) . '</span>'
                                     : '<span class="cf">—</span>' ?>
                             </td>
-                            <td class="cf"><?= safe_date($u['register'] ?? null) ?></td>
-                            <td>
+                            <td class="cf" data-label="<?= $textbotlang['panel']['usersStatusBlockedFilter'] ?>"><?= safe_date($u['register'] ?? null) ?></td>
+                            <td data-label="<?= $textbotlang['panel']['usersPaginationPrev'] ?>">
                                 <?php if ($isBlocked): ?>
                                     <span class="tag tag-no"><?= $textbotlang['panel']['usersTotalCountLabel'] ?></span>
                                 <?php else: ?>
@@ -179,7 +179,7 @@ include __DIR__ . '/inc/layout_head.php';
                                     </span>
                                 <?php endif; ?>
                             </td>
-                            <td>
+                            <td data-label="عملیات">
                                 <div style="display:flex;gap:4px">
                                     <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn btn-ghost btn-sm btn-icon"
                                         title=$textbotlang['panel']['usersViewBtn']>

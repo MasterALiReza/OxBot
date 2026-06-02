@@ -7,6 +7,50 @@
     unicode-bidi: isolate !important;
 }
 
+/* Global Stat/Dashboard Cards */
+.dash-card {
+    position: relative;
+    overflow: hidden;
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.dash-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+    border-color: var(--ac);
+}
+.icon-glow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+}
+.bg-purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.bg-blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.bg-emerald { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.bg-orange { background: rgba(249, 115, 22, 0.1); color: #f97316; }
+.bg-amber { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.bg-red { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+.status-pill {
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+}
+.status-pill.success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.status-pill.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.status-pill.danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.status-pill.neutral { background: rgba(100, 116, 139, 0.1); color: #64748b; }
+
 @media (max-width: 768px) {
     /* 1. Touch Targets (Minimum 44px height for touch friendly elements) */
     .btn, .input, .select, .textarea, .search-box input, .arvan-input, .arvan-select {
@@ -80,7 +124,12 @@
     .tbl-wrap td[data-label="سرور/پنل"],
     .tbl-wrap td[data-label="دسته‌بندی"],
     .tbl-wrap td[data-label="کد"],
-    .tbl-wrap td[data-label="نوع پنل"] {
+    .tbl-wrap td[data-label="نوع پنل"],
+    .tbl-wrap td[data-label="آیدی"],
+    .tbl-wrap td[data-label="نام سفارشی"],
+    .tbl-wrap td[data-label="شماره"],
+    .tbl-wrap td[data-label="امتیاز"],
+    .tbl-wrap td[data-label="عضویت"] {
         flex: 1 1 50% !important;
         width: 50% !important;
         padding-right: 80px !important; /* Shorter padding for side-by-side cells */
