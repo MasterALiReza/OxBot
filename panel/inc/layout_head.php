@@ -146,7 +146,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           <a href="settings.php" class="nav-item <?= $activeNav === 'settings' ? 'active' : '' ?>"
             title="<?= $textbotlang['panel']['layoutPageTitleSettings'] ?>">
             <span class="nav-icon"><?= icon('settings') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutProfileMenuLabel'] ?></span>
+              class="nav-label">پیکربندی پنل</span>
           </a>
           <a href="logout.php" class="nav-item" title="<?= $textbotlang['panel']['layoutPageTitleLogout'] ?>">
             <span class="nav-icon"><?= icon('logout') ?></span><span
