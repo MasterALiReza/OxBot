@@ -14,7 +14,23 @@ $pay_settings = [];
 try {
     $stmt = $pdo->query("SELECT NamePay, ValuePay FROM PaySetting");
     while($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $pay_settings[$r['NamePay']] = $r['ValuePay'];
+        if ($r['NamePay'] === 'minbalance' || $r['NamePay'] === 'maxbalance') {
+            $decoded = json_decode($r['ValuePay'], true);
+            if (is_array($decoded)) {
+                $pay_settings[$r['NamePay']] = $decoded['n'] ?? ($decoded['allusers'] ?? '');
+                $pay_settings[$r['NamePay'] . 'paynotverify_from_json'] = $decoded['f'] ?? '';
+            } else {
+                $pay_settings[$r['NamePay']] = $r['ValuePay'];
+            }
+        } else {
+            $pay_settings[$r['NamePay']] = $r['ValuePay'];
+        }
+    }
+    if (isset($pay_settings['minbalancepaynotverify_from_json']) && $pay_settings['minbalancepaynotverify_from_json'] !== '') {
+        $pay_settings['minbalancepaynotverify'] = $pay_settings['minbalancepaynotverify_from_json'];
+    }
+    if (isset($pay_settings['maxbalancepaynotverify_from_json']) && $pay_settings['maxbalancepaynotverify_from_json'] !== '') {
+        $pay_settings['maxbalancepaynotverify'] = $pay_settings['maxbalancepaynotverify_from_json'];
     }
 } catch (Exception $e) {}
 
@@ -244,6 +260,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $new_cardnumber = $val;
             } elseif ($field === 'namecard') {
                 $new_namecard = $val;
+            } elseif ($field === 'minbalance' || $field === 'maxbalance') {
+                $old_json = db_fetch($pdo, "SELECT ValuePay FROM PaySetting WHERE NamePay = ?", [$field])['ValuePay'] ?? '';
+                $decoded = json_decode($old_json, true);
+                if (!is_array($decoded)) $decoded = [];
+                $decoded['n'] = $val;
+                $decoded['n2'] = $val;
+                $decoded['allusers'] = $val;
+                db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [json_encode($decoded), $field]);
+            } elseif ($field === 'minbalancepaynotverify') {
+                db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [$val, $field]);
+                $old_json = db_fetch($pdo, "SELECT ValuePay FROM PaySetting WHERE NamePay = ?", ['minbalance'])['ValuePay'] ?? '';
+                $decoded = json_decode($old_json, true);
+                if (!is_array($decoded)) $decoded = [];
+                $decoded['f'] = $val;
+                db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [json_encode($decoded), 'minbalance']);
+            } elseif ($field === 'maxbalancepaynotverify') {
+                db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [$val, $field]);
+                $old_json = db_fetch($pdo, "SELECT ValuePay FROM PaySetting WHERE NamePay = ?", ['maxbalance'])['ValuePay'] ?? '';
+                $decoded = json_decode($old_json, true);
+                if (!is_array($decoded)) $decoded = [];
+                $decoded['f'] = $val;
+                db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [json_encode($decoded), 'maxbalance']);
             } else {
                 db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [$val, $field]);
             }
