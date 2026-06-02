@@ -124,14 +124,6 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
             <span class="status-pill success">مرزبان متصل</span>
         </div>
     </div>
-    
-    <!-- Action Card -->
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(59, 130, 246, 0.05); border: 1px dashed rgba(59, 130, 246, 0.3); cursor: pointer; transition: all 0.2s;" onclick="openModal('addModal')" onmouseover="this.style.background='rgba(59,130,246,0.1)'" onmouseout="this.style.background='rgba(59,130,246,0.05)'">
-        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--ac); color: white; display: flex; justify-content: center; align-items: center; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);">
-            <?= icon('plus', 24) ?>
-        </div>
-        <div style="font-size: 1.1rem; font-weight: 600; color: var(--ac);">افزودن محصول جدید</div>
-    </div>
 
 </div>
 
@@ -153,11 +145,16 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
     </div>
   <?php else: ?>
     <div class="toolbar">
-      <div class="toolbar-title"><?= $textbotlang['panel']['productColTime'] ?> <small>(<?= count($products) ?>)</small></div>
-      <div class="search-box" style="min-width:220px">
-        <?= icon('search', 14) ?>
-        <input type="text" placeholder="<?= htmlspecialchars($textbotlang['panel']['productSearchPlaceholder'] ?? 'جستجوی محصول...') ?>" data-filter="prodTbl">
-        <button type="button" class="search-clear">✕</button>
+      <div class="toolbar-title">فهرست محصولات <small>(<?= count($products) ?>)</small></div>
+      <div class="toolbar-end" style="display:flex; align-items:center; gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="openModal('addModal')">
+          <?= icon('plus', 14) ?> افزودن محصول جدید
+        </button>
+        <div class="search-box" style="min-width:220px">
+          <?= icon('search', 14) ?>
+          <input type="text" placeholder="جستجوی محصول..." data-filter="prodTbl">
+          <button type="button" class="search-clear">✕</button>
+        </div>
       </div>
     </div>
     <div class="tbl-wrap">
@@ -165,14 +162,14 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
         <thead>
           <tr>
             <th>#</th>
-            <th><?= $textbotlang['panel']['productColName'] ?? 'نام محصول' ?></th>
-            <th><?= $textbotlang['panel']['productColPrice'] ?? 'قیمت' ?></th>
-            <th><?= $textbotlang['panel']['productColVolume'] ?? 'حجم' ?></th>
-            <th><?= $textbotlang['panel']['productColTime'] ?? 'مدت زمان' ?></th>
-            <th><?= $textbotlang['panel']['productColLocation'] ?? 'سرور/پنل' ?></th>
-            <th><?= $textbotlang['panel']['productColCategory'] ?? 'دسته‌بندی' ?></th>
-            <th><?= $textbotlang['panel']['productColId'] ?? 'کد' ?></th>
-            <th><?= $textbotlang['panel']['productColActions'] ?? 'عملیات' ?></th>
+            <th>نام محصول</th>
+            <th>قیمت</th>
+            <th>حجم</th>
+            <th>مدت زمان</th>
+            <th>سرور/پنل</th>
+            <th>دسته‌بندی</th>
+            <th>کد</th>
+            <th>عملیات</th>
           </tr>
         </thead>
         <tbody>
@@ -180,24 +177,24 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
           foreach ($products as $p): ?>
             <tr>
               <td data-label="#" class="cf"><?= $i++ ?></td>
-              <td data-label="<?= $textbotlang['panel']['productColName'] ?? 'نام محصول' ?>" class="cs"><?= htmlspecialchars($p['name_product'] ?? '') ?></td>
-              <td data-label="<?= $textbotlang['panel']['productColPrice'] ?? 'قیمت' ?>" class="cn cs"><?= number_format((int) ($p['price_product'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span></td>
-              <td data-label="<?= $textbotlang['panel']['productColVolume'] ?? 'حجم' ?>" class="cn"><?= htmlspecialchars($p['Volume_constraint'] ?? '—') ?> <span class="cf">GB</span></td>
-              <td data-label="<?= $textbotlang['panel']['productColTime'] ?? 'مدت زمان' ?>" class="cn"><?= htmlspecialchars($p['Service_time'] ?? '—') ?> <span class="cf"><?= $textbotlang['panel']['productDayUnit'] ?? 'روز' ?></span></td>
-              <td data-label="<?= $textbotlang['panel']['productColLocation'] ?? 'سرور/پنل' ?>" class="cf"><?= htmlspecialchars(trunc($p['Location'] ?? '—', 16)) ?></td>
-              <td data-label="<?= $textbotlang['panel']['productColCategory'] ?? 'دسته‌بندی' ?>"><?php if (!empty($p['category'])): ?><span
+              <td data-label="نام محصول" class="cs"><?= htmlspecialchars($p['name_product'] ?? '') ?></td>
+              <td data-label="قیمت" class="cn cs"><?= number_format((int) ($p['price_product'] ?? 0)) ?> <span class="cf">تومان</span></td>
+              <td data-label="حجم" class="cn"><?= htmlspecialchars($p['Volume_constraint'] ?? '—') ?> <span class="cf">GB</span></td>
+              <td data-label="مدت زمان" class="cn"><?= htmlspecialchars($p['Service_time'] ?? '—') ?> <span class="cf">روز</span></td>
+              <td data-label="سرور/پنل" class="cf"><?= htmlspecialchars(trunc($p['Location'] ?? '—', 16)) ?></td>
+              <td data-label="دسته‌بندی"><?php if (!empty($p['category'])): ?><span
                     class="tag tag-info"><?= htmlspecialchars($p['category']) ?></span><?php else: ?><span
                     class="cf">—</span><?php endif; ?></td>
-              <td data-label="<?= $textbotlang['panel']['productColId'] ?? 'کد' ?>" class="cm" style="font-size:.72rem"><?= htmlspecialchars($p['code_product'] ?? '') ?></td>
-              <td data-label="<?= $textbotlang['panel']['productColActions'] ?? 'عملیات' ?>">
+              <td data-label="کد" class="cm" style="font-size:.72rem"><?= htmlspecialchars($p['code_product'] ?? '') ?></td>
+              <td data-label="عملیات">
                 <div style="display:flex;gap:5px">
-                  <button class="btn btn-ghost btn-sm btn-icon" title=$textbotlang['panel']['productEditBtn']
+                  <button class="btn btn-ghost btn-sm btn-icon" title="ویرایش"
                     onclick="openEditModal(<?= htmlspecialchars(json_encode($p), ENT_QUOTES) ?>)">
                     <?= icon('edit', 13) ?>
                   </button>
                   <a href="product.php?delete=<?= (int) $p['id'] ?>&_csrf=<?= csrf_token() ?>"
-                    class="btn btn-no btn-sm btn-icon" title=$textbotlang['panel']['productDeleteBtn']
-                    data-confirm=sprintf($textbotlang['panel']['productConfirmDeleteProduct'], $p['name_product'])>
+                    class="btn btn-no btn-sm btn-icon" title="حذف"
+                    data-confirm="آیا از حذف محصول «<?= htmlspecialchars($p['name_product'] ?? '') ?>» مطمئن هستید؟">
                     <?= icon('trash', 13) ?>
                   </a>
                 </div>

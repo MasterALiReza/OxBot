@@ -1,5 +1,10 @@
 /* Mobile UI/UX Optimizations (Mobile-First & Fitts Law) */
 
+:root {
+    --ct: var(--text);
+}
+
+
 /* Global LTR font direction fixes for usernames/codes */
 .cm {
     direction: ltr !important;
@@ -106,6 +111,8 @@
         max-width: none !important; /* Override desktop max-width */
         flex: 1 1 100% !important;
         width: 100% !important;
+        white-space: normal !important;
+        word-break: break-all !important;
     }
 
     /* Side-by-side columns to save vertical space on mobile */
@@ -222,6 +229,10 @@
         gap: 12px !important;
     }
 
+    .stats > *:nth-child(3):last-child {
+        grid-column: span 2 !important;
+    }
+
     .stats .dash-card {
         padding: 12px !important;
     }
@@ -247,6 +258,21 @@
     .content {
         padding: 12px !important;
         padding-bottom: 80px !important; /* Make room for bottom nav */
+    }
+    
+    .dash-grid-2 {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    .arvan-main-tabs::-webkit-scrollbar,
+    .arvan-sub-tabs::-webkit-scrollbar {
+        display: none !important;
+    }
+    .arvan-main-tabs,
+    .arvan-sub-tabs {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
     }
 }
 
