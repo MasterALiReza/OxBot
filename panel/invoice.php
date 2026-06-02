@@ -36,7 +36,7 @@ $totalPages = max(1, (int) ceil($total / $perPage));
 // Calculate Global Stats
 try {
   $globalTotal = db_count($pdo, "SELECT COUNT(*) FROM invoice");
-  $globalRevenue = db_fetchColumn($pdo, "SELECT SUM(price_product) FROM invoice") ?: 0;
+  $globalRevenue = db_fetchAll($pdo, "SELECT SUM(price_product) as total FROM invoice")[0]['total'] ?? 0;
   $globalActive = db_count($pdo, "SELECT COUNT(*) FROM invoice WHERE Status = 'active'");
   $globalUnpaid = db_count($pdo, "SELECT COUNT(*) FROM invoice WHERE Status = 'unpaid'");
 } catch (Exception $e) {
