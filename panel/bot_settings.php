@@ -154,11 +154,18 @@ $schema = [
                 ['name' => 'pay_chashbackzarinpal', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackzarinpal'] ?? '0'],
             ],
             'درگاه NowPayment' => [
-                ['name' => 'pay_nowpaymentstatus', 'label' => 'وضعیت NowPayment', 'type' => 'select', 'options' => ['onnowpayment' => 'روشن', 'offnowpayment' => 'خاموش'], 'val' => $pay_settings['nowpaymentstatus'] ?? ''],
-                ['name' => 'pay_apinowpayment', 'label' => 'API Key', 'type' => 'text', 'val' => $pay_settings['apinowpayment'] ?? ''],
+                ['name' => 'pay_statusnowpayment', 'label' => 'وضعیت NowPayment', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $pay_settings['statusnowpayment'] ?? '0'],
+                ['name' => 'pay_marchent_tronseller', 'label' => 'API Key (NowPayment)', 'type' => 'text', 'val' => $pay_settings['marchent_tronseller'] ?? ''],
                 ['name' => 'pay_minbalancenowpayment', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalancenowpayment'] ?? ''],
                 ['name' => 'pay_maxbalancenowpayment', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalancenowpayment'] ?? ''],
                 ['name' => 'pay_cashbacknowpayment', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['cashbacknowpayment'] ?? '0'],
+            ],
+            'درگاه Plisio' => [
+                ['name' => 'pay_nowpaymentstatus', 'label' => 'وضعیت Plisio', 'type' => 'select', 'options' => ['onnowpayment' => 'روشن', 'offnowpayment' => 'خاموش'], 'val' => $pay_settings['nowpaymentstatus'] ?? ''],
+                ['name' => 'pay_apinowpayment', 'label' => 'API Key (Plisio)', 'type' => 'text', 'val' => $pay_settings['apinowpayment'] ?? ''],
+                ['name' => 'pay_minbalanceplisio', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalanceplisio'] ?? ''],
+                ['name' => 'pay_maxbalanceplisio', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalanceplisio'] ?? ''],
+                ['name' => 'pay_chashbackplisio', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackplisio'] ?? '0'],
             ],
             'درگاه آقای پرداخت' => [
                 ['name' => 'pay_statusaqayepardakht', 'label' => 'وضعیت آقای پرداخت', 'type' => 'select', 'options' => ['onaqayepardakht' => 'روشن', 'offaqayepardakht' => 'خاموش'], 'val' => $pay_settings['statusaqayepardakht'] ?? ''],
@@ -176,7 +183,6 @@ $schema = [
             ],
             'ترون و ارز دیجیتال' => [
                 ['name' => 'pay_digistatus', 'label' => 'وضعیت درگاه کریپتو', 'type' => 'select', 'options' => ['ondigi' => 'روشن', 'offdigi' => 'خاموش'], 'val' => $pay_settings['digistatus'] ?? ''],
-                ['name' => 'pay_marchent_tronseller', 'label' => 'مرچنت TronSeller', 'type' => 'text', 'val' => $pay_settings['marchent_tronseller'] ?? ''],
                 ['name' => 'pay_urlpaymenttron', 'label' => 'آدرس API TronSeller', 'type' => 'text', 'val' => $pay_settings['urlpaymenttron'] ?? ''],
                 ['name' => 'pay_walletaddress', 'label' => 'آدرس کیف پول TRC20', 'type' => 'text', 'val' => $pay_settings['walletaddress'] ?? ''],
                 ['name' => 'pay_minbalancedigitaltron', 'label' => 'حداقل مبلغ کریپتو', 'type' => 'number', 'val' => $pay_settings['minbalancedigitaltron'] ?? ''],
@@ -199,9 +205,6 @@ $schema = [
                 ['name' => 'pay_minbalanceiranpay2', 'label' => 'حداقل ترنادو', 'type' => 'number', 'val' => $pay_settings['minbalanceiranpay2'] ?? ''],
                 ['name' => 'pay_maxbalanceiranpay2', 'label' => 'حداکثر ترنادو', 'type' => 'number', 'val' => $pay_settings['maxbalanceiranpay2'] ?? ''],
                 ['name' => 'pay_chashbackiranpay2', 'label' => 'کش‌بک ترنادو', 'type' => 'number', 'val' => $pay_settings['chashbackiranpay2'] ?? '0'],
-                ['name' => 'pay_minbalanceplisio', 'label' => 'حداقل Plisio', 'type' => 'number', 'val' => $pay_settings['minbalanceplisio'] ?? ''],
-                ['name' => 'pay_maxbalanceplisio', 'label' => 'حداکثر Plisio', 'type' => 'number', 'val' => $pay_settings['maxbalanceplisio'] ?? ''],
-                ['name' => 'pay_chashbackplisio', 'label' => 'کش‌بک Plisio', 'type' => 'number', 'val' => $pay_settings['chashbackplisio'] ?? '0'],
                 ['name' => 'pay_minbalanceperfect', 'label' => 'حداقل Perfect Money', 'type' => 'number', 'val' => $pay_settings['minbalanceperfect'] ?? ''],
                 ['name' => 'pay_maxbalanceperfect', 'label' => 'حداکثر Perfect Money', 'type' => 'number', 'val' => $pay_settings['maxbalanceperfect'] ?? ''],
                 ['name' => 'pay_chashbackperfect', 'label' => 'کش‌بک Perfect Money', 'type' => 'number', 'val' => $pay_settings['chashbackperfect'] ?? '0'],
