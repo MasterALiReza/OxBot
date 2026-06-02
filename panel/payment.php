@@ -125,7 +125,7 @@ include __DIR__ . '/inc/layout_head.php';
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
             <div style="display: flex; align-items: baseline; gap: 6px;">
-                <span style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1; direction: ltr;">
+                <span style="font-size: 1.5rem; font-weight: 700; color: var(--ct); line-height: 1; direction: ltr;">
                     <?= $totalSuccess >= 1_000_000 ? number_format($totalSuccess / 1_000_000, 1) : number_format($totalSuccess) ?>
                 </span>
                 <span style="font-size: 1rem; font-weight: 600; color: var(--cf);">
@@ -147,7 +147,7 @@ include __DIR__ . '/inc/layout_head.php';
             <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">تعداد کل تراکنش‌ها</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--ct); line-height: 1;">
                 <?= number_format($total) ?>
             </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
@@ -166,7 +166,7 @@ include __DIR__ . '/inc/layout_head.php';
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
             <div style="display: flex; align-items: baseline; gap: 6px;">
-                <span style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1; direction: ltr;">
+                <span style="font-size: 1.5rem; font-weight: 700; color: var(--ct); line-height: 1; direction: ltr;">
                     <?= $todaySuccess >= 1_000_000 ? number_format($todaySuccess / 1_000_000, 1) : number_format($todaySuccess) ?>
                 </span>
                 <span style="font-size: 1rem; font-weight: 600; color: var(--cf);">
@@ -195,7 +195,7 @@ include __DIR__ . '/inc/layout_head.php';
             <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">تراکنش‌های امروز</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--ct); line-height: 1;">
                 <?= number_format($todayCount) ?>
             </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
@@ -276,8 +276,8 @@ include __DIR__ . '/inc/layout_head.php';
                 <?= safe_date($p['time'] ?? null, 'Y/m/d H:i') ?>
               </td>
               <td data-label="وضعیت"><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
-              <td data-label="عملیات" style="text-align:left; white-space:nowrap;">
-                <div class="actions">
+              <td data-label="عملیات">
+                <div style="display:flex; gap:4px; justify-content: flex-end; align-items: center;">
                     <?php if ($st === 'waiting'): ?>
                       <a href="payment.php?action=confirm&id=<?= urlencode($p['id_order']) ?>&_csrf=<?= csrf_token() ?>" class="btn-icon" style="color:var(--success)" title="تایید" onclick="return confirm('آیا از تایید این تراکنش مطمئن هستید؟')">
                           <?= icon('check', 16) ?>
