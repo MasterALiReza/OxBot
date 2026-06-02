@@ -43,19 +43,13 @@ var _lb = (function () {
 
 window.addEventListener('load', function () { _lb.done(); });
 
-document.addEventListener('click', function (e) {
-    var a = e.target.closest('a[href]');
-    if (!a) return;
-    if (a.target || a.dataset.confirm) return;
-    var href = a.href || '';
-    if (!href || href.startsWith('javascript') || href.startsWith('#') || href.startsWith('mailto')) return;
-    try { if (new URL(href).origin !== location.origin) return; } catch (x) {}
+document.body.addEventListener('htmx:beforeRequest', function (e) {
     _lb.start();
 });
 
-document.addEventListener('submit', function (e) {
-    var f = e.target;
-    if (f && f.method && f.method.toLowerCase() !== 'dialog') _lb.start();
+document.body.addEventListener('htmx:afterSwap', function (e) {
+    _lb.done();
+    closeSidebar();
 });
 
 var _TOAST_ICONS = {
@@ -112,15 +106,13 @@ document.getElementById('confirm-veil').addEventListener('click', function (e) {
     if (e.target === this) closeConfirm();
 });
 
-document.querySelectorAll('[data-confirm]').forEach(function (el) {
-    el.addEventListener('click', function (e) {
+document.body.addEventListener('htmx:confirm', function(e) {
+    if(e.detail.elt.hasAttribute('data-confirm')) {
         e.preventDefault();
-        var href = el.href;
-        showConfirm(el.dataset.confirm || t('jsConfirmDefault'), function () {
-            _lb.start();
-            window.location.href = href;
+        showConfirm(e.detail.elt.getAttribute('data-confirm') || t('jsConfirmDefault'), function() {
+            e.detail.issueRequest();
         });
-    });
+    }
 });
 
 var _THEME_BG = {
@@ -196,32 +188,43 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
-document.querySelectorAll('.search-box').forEach(function (box) {
-    var inp = box.querySelector('input');
-    var btn = box.querySelector('.search-clear');
-    if (!inp || !btn) return;
-    function update() { btn.style.display = inp.value ? 'grid' : 'none'; }
-    inp.addEventListener('input', update);
-    update();
-    btn.addEventListener('click', function () {
-        inp.value = '';
-        inp.focus();
+window.initUI = function(context) {
+    context.querySelectorAll('.search-box').forEach(function (box) {
+        if (box.dataset.initialized) return;
+        box.dataset.initialized = 'true';
+        var inp = box.querySelector('input');
+        var btn = box.querySelector('.search-clear');
+        if (!inp || !btn) return;
+        function update() { btn.style.display = inp.value ? 'grid' : 'none'; }
+        inp.addEventListener('input', update);
         update();
-        inp.dispatchEvent(new Event('input'));
-    });
-});
-
-document.querySelectorAll('[data-filter]').forEach(function (inp) {
-    var tbl = document.getElementById(inp.dataset.filter);
-    if (!tbl) return;
-    inp.addEventListener('input', function () {
-        var q = inp.value.trim().toLowerCase();
-        tbl.querySelectorAll('tbody tr').forEach(function (tr) {
-            if (tr.querySelector('.empty')) return;
-            tr.style.display = !q || tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+        btn.addEventListener('click', function () {
+            inp.value = '';
+            inp.focus();
+            update();
+            inp.dispatchEvent(new Event('input'));
         });
     });
+
+    context.querySelectorAll('[data-filter]').forEach(function (inp) {
+        if (inp.dataset.initialized) return;
+        inp.dataset.initialized = 'true';
+        var tbl = document.getElementById(inp.dataset.filter);
+        if (!tbl) return;
+        inp.addEventListener('input', function () {
+            var q = inp.value.trim().toLowerCase();
+            tbl.querySelectorAll('tbody tr').forEach(function (tr) {
+                if (tr.querySelector('.empty')) return;
+                tr.style.display = !q || tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    });
+};
+
+document.body.addEventListener('htmx:load', function(e) {
+    initUI(e.detail.elt);
 });
+initUI(document);
 
 setTimeout(function () {
     document.querySelectorAll('.notice').forEach(function (n) {

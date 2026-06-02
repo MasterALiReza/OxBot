@@ -62,7 +62,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
   </script>
 </head>
 
-<body>
+<body hx-boost="true">
 
   <div id="load-bar"></div>
   <div id="toast-area"></div>
