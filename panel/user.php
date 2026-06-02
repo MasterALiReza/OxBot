@@ -441,24 +441,24 @@ include __DIR__ . '/inc/layout_head.php';
                                     'end_of_volume' => ['tag-no', $textbotlang['panel']['userStatusNearVolumeEnd']],
                                     'sendedwarn' => ['tag-warn', $textbotlang['panel']['userNotifAllSent']],
                                     'send_on_hold' => ['tag-plain', $textbotlang['panel']['userStatusWaiting']],
-                                    'unpiad' => ['tag-plain', $textbotlang['panel']['userStatusUnpaid']],
+                                    'unpaid' => ['tag-no', $textbotlang['panel']['userStatusUnpaid']],
                                 ];
                                 foreach ($invoices as $inv):
                                     [$tagClass, $label] = $statusMap[$inv['Status'] ?? ''] ?? ['tag-plain', $inv['Status'] ?? '—'];
                                     ?>
                                     <tr>
-                                        <td class="cs"
+                                        <td data-label="<?= $textbotlang['panel']['userDetailTitle'] ?>" class="cs"
                                             style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                                             <?= htmlspecialchars($inv['name_product'] ?? '—') ?>
                                         </td>
-                                        <td class="cn cs" style="white-space:nowrap">
+                                        <td data-label="<?= $textbotlang['panel']['userCloseBtn'] ?>" class="cn cs" style="white-space:nowrap">
                                             <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['userColName'] ?></span>
                                         </td>
-                                        <td class="cn cf"><?= htmlspecialchars($inv['Volume'] ?? '—') ?></td>
-                                        <td class="cf" style="white-space:nowrap">
+                                        <td data-label="<?= $textbotlang['panel']['userRoleNormalUser'] ?>" class="cn cf"><?= htmlspecialchars($inv['Volume'] ?? '—') ?></td>
+                                        <td data-label="<?= $textbotlang['panel']['userRoleAgent'] ?>" class="cf" style="white-space:nowrap">
                                             <?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?>
                                         </td>
-                                        <td><span class="tag <?= $tagClass ?>"><?= $label ?></span></td>
+                                        <td data-label="<?= $textbotlang['panel']['userRoleAdvancedAgent'] ?>"><span class="tag <?= $tagClass ?>"><?= $label ?></span></td>
                                     </tr>
                                 <?php endforeach; endif; ?>
                         </tbody>
@@ -503,7 +503,7 @@ include __DIR__ . '/inc/layout_head.php';
                                 ];
                                 $payStatusMap = [
                                     'paid' => ['tag-ok', $textbotlang['panel']['userStatusSuccess']],
-                                    'Unpaid' => ['tag-no', $textbotlang['panel']['userStatusFailed']],
+                                    'unpaid' => ['tag-no', $textbotlang['panel']['userStatusUnpaid']],
                                     'expire' => ['tag-plain', $textbotlang['panel']['userStatusExpired']],
                                     'reject' => ['tag-no', $textbotlang['panel']['userStatusRejected']],
                                     'waiting' => ['tag-warn', $textbotlang['panel']['userStatusWaiting2']],
@@ -515,14 +515,14 @@ include __DIR__ . '/inc/layout_head.php';
                                     $method = $methodLabels[$p['Payment_Method'] ?? ''] ?? ($p['Payment_Method'] ?? '—');
                                     ?>
                                     <tr>
-                                        <td class="cn cs" style="white-space:nowrap">
+                                        <td data-label="<?= $textbotlang['panel']['userColCreatedAt'] ?>" class="cn cs" style="white-space:nowrap">
                                             <?= number_format((int) ($p['price'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['userReferrerLabel'] ?></span>
                                         </td>
-                                        <td style="font-size:.82rem"><?= htmlspecialchars($method) ?></td>
-                                        <td class="cf" style="white-space:nowrap">
+                                        <td data-label="<?= $textbotlang['panel']['userWalletLabel'] ?>" style="font-size:.82rem"><?= htmlspecialchars($method) ?></td>
+                                        <td data-label="<?= $textbotlang['panel']['userTotalPurchaseLabel'] ?>" class="cf" style="white-space:nowrap">
                                             <?= safe_date($p['time'] ?? null, 'Y/m/d H:i') ?>
                                         </td>
-                                        <td><span class="tag <?= $tagClass ?>"><?= $label ?></span></td>
+                                        <td data-label="<?= $textbotlang['panel']['userTotalServicesLabel'] ?>"><span class="tag <?= $tagClass ?>"><?= $label ?></span></td>
                                     </tr>
                                 <?php endforeach; endif; ?>
                         </tbody>
@@ -554,12 +554,12 @@ include __DIR__ . '/inc/layout_head.php';
                                     $refAgent = $ref['agent'] ?? 'f';
                                     ?>
                                     <tr>
-                                        <td>
+                                        <td data-label="<?= $textbotlang['panel']['userNoteLabel'] ?>">
                                             <a href="user.php?id=<?= (int) $ref['id'] ?>" class="cm" style="color:var(--ac)">
                                                 <?= htmlspecialchars($ref['id']) ?>
                                             </a>
                                         </td>
-                                        <td>
+                                        <td data-label="<?= $textbotlang['panel']['userEditNoteBtn'] ?>">
                                             <?php if ($refName): ?>
                                                 <span class="cs"><?= htmlspecialchars(trunc($refName, 16)) ?></span>
                                             <?php elseif ($refUname): ?>
@@ -569,15 +569,15 @@ include __DIR__ . '/inc/layout_head.php';
                                                 <span class="cf">—</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="cn" style="white-space:nowrap">
+                                        <td data-label="<?= $textbotlang['panel']['userSendMessageBtn'] ?>" class="cn" style="white-space:nowrap">
                                             <?= number_format((int) ($ref['Balance'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['userSendBtn'] ?></span>
                                         </td>
-                                        <td>
+                                        <td data-label="<?= $textbotlang['panel']['userSendMessageTitle'] ?>">
                                             <span class="tag <?= user_role_tag($refAgent) ?>">
                                                 <?= user_role_label($refAgent) ?>
                                             </span>
                                         </td>
-                                        <td class="cf"><?= safe_date($ref['register'] ?? null, 'm/d') ?></td>
+                                        <td data-label="<?= $textbotlang['panel']['userMessagePlaceholder'] ?>" class="cf"><?= safe_date($ref['register'] ?? null, 'm/d') ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

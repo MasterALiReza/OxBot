@@ -120,10 +120,7 @@
     .tbl-wrap td[data-label="مقدار"],
     .tbl-wrap td[data-label="قیمت"],
     .tbl-wrap td[data-label="مبلغ"],
-    .tbl-wrap td[data-label="نام"],
-    .tbl-wrap td[data-label="محصول"],
     .tbl-wrap td[data-label="وضعیت"],
-    .tbl-wrap td[data-label="کاربر"],
     .tbl-wrap td[data-label="یوزرنیم"],
     .tbl-wrap td[data-label="تاریخ"],
     .tbl-wrap td[data-label="روش پرداخت"],
@@ -139,7 +136,9 @@
     .tbl-wrap td[data-label="نام سفارشی"],
     .tbl-wrap td[data-label="شماره"],
     .tbl-wrap td[data-label="امتیاز"],
-    .tbl-wrap td[data-label="عضویت"] {
+    .tbl-wrap td[data-label="عضویت"],
+    .tbl-wrap td[data-label="ثبت‌نام"],
+    .tbl-wrap td[data-label="کیف پول"] {
         flex: 1 1 50% !important;
         width: 50% !important;
         padding-right: 80px !important; /* Shorter padding for side-by-side cells */
@@ -174,18 +173,21 @@
 
     /* Custom Header layout for Name and User cells to make them look like real cards */
     .tbl-wrap td[data-label="نام"],
-    .tbl-wrap td[data-label="کاربر"] {
+    .tbl-wrap td[data-label="کاربر"],
+    .tbl-wrap td[data-label="محصول"] {
         padding-right: 12px !important;
         text-align: right !important;
         flex: 1 1 100% !important;
         width: 100% !important;
     }
     .tbl-wrap td[data-label="نام"]::before,
-    .tbl-wrap td[data-label="کاربر"]::before {
+    .tbl-wrap td[data-label="کاربر"]::before,
+    .tbl-wrap td[data-label="محصول"]::before {
         display: none !important;
     }
     .tbl-wrap td[data-label="نام"] > div,
-    .tbl-wrap td[data-label="کاربر"] > div {
+    .tbl-wrap td[data-label="کاربر"] > div,
+    .tbl-wrap td[data-label="محصول"] > div {
         display: flex !important;
         width: 100%;
         text-align: right !important;
@@ -281,6 +283,18 @@
     .content {
         padding: 12px !important;
         padding-bottom: 80px !important; /* Make room for bottom nav */
+    }
+
+    /* Center align .kv list items on mobile */
+    .kv {
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        gap: 6px !important;
+    }
+    .kv-val {
+        text-align: center !important;
     }
     
     .dash-grid-2 {
