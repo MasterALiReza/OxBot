@@ -412,15 +412,15 @@ include __DIR__ . '/inc/layout_head.php';
 }
 .toggle-field {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    padding: 16px 12px;
+    justify-content: space-between;
+    padding: 16px 20px;
     background: var(--bg);
     border-radius: 14px;
     border: 1px solid var(--bd);
     gap: 12px;
-    text-align: center;
+    text-align: right;
     transition: all 0.2s ease;
 }
 .toggle-field:hover {
@@ -431,7 +431,7 @@ include __DIR__ . '/inc/layout_head.php';
     display: flex;
     flex-direction: column;
     gap: 4px;
-    align-items: center;
+    align-items: flex-start;
 }
 .toggle-label {
     font-size: 0.85rem;
@@ -493,8 +493,14 @@ include __DIR__ . '/inc/layout_head.php';
         grid-column: 1 / -1;
     }
     .toggle-field {
+        flex-direction: column;
+        justify-content: center;
         padding: 14px 8px;
         gap: 10px;
+        text-align: center;
+    }
+    .toggle-texts {
+        align-items: center;
     }
     .toggle-label {
         font-size: 0.78rem;
