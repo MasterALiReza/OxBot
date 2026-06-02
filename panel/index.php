@@ -282,6 +282,8 @@ include __DIR__ . '/inc/layout_head.php';
                     <?php else:
                         $statusMap = [
                             'active' => ['status-pill success', $textbotlang['panel']['dashStatusActive']],
+                            'disabled' => ['status-pill danger', $textbotlang['panel']['panelsStatusInactive']],
+                            'unpaid' => ['status-pill neutral', $textbotlang['panel']['invoiceStatusUnpaid']],
                             'end_of_time' => ['status-pill warning', $textbotlang['panel']['dashStatusExpired']],
                             'end_of_volume' => ['status-pill danger', $textbotlang['panel']['dashStatusVolumeFinished']],
                             'sendedwarn' => ['status-pill warning', $textbotlang['panel']['dashStatusWarning']],
