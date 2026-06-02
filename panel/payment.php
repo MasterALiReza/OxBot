@@ -3,6 +3,41 @@ require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/icons.php';
 require_auth();
 
+if (isset($_GET['action'])) {
+    $action = $_GET['action'];
+    $id_order = $_GET['id'] ?? '';
+    csrf_check_get();
+
+    if ($action === 'confirm') {
+        $Payment_report = db_fetch($pdo, "SELECT * FROM Payment_report WHERE id_order = ?", [$id_order]);
+        if ($Payment_report && $Payment_report['payment_Status'] === 'waiting') {
+            require_once __DIR__ . '/../../panels.php';
+            global $ManagePanel, $textbotlang, $from_id, $message_id, $Confirm_pay;
+            $ManagePanel = new ManagePanel();
+            $from_id = null;
+            $message_id = null;
+            $Confirm_pay = null;
+            DirectPayment($id_order);
+            flash('success', "تراکنش با موفقیت تایید و اعمال شد.");
+            header('Location: payment.php');
+            exit;
+        }
+    } elseif ($action === 'reject') {
+        $Payment_report = db_fetch($pdo, "SELECT * FROM Payment_report WHERE id_order = ?", [$id_order]);
+        if ($Payment_report && $Payment_report['payment_Status'] === 'waiting') {
+            db_query($pdo, "UPDATE Payment_report SET payment_Status = 'reject', dec_not_confirmed = 'remove_all' WHERE id_order = ?", [$id_order]);
+            flash('success', "تراکنش با موفقیت رد شد.");
+            header('Location: payment.php');
+            exit;
+        }
+    } elseif ($action === 'delete') {
+        db_query($pdo, "DELETE FROM Payment_report WHERE id_order = ?", [$id_order]);
+        flash('success', "تراکنش با موفقیت حذف شد.");
+        header('Location: payment.php');
+        exit;
+    }
+}
+
 $search = trim($_GET['q'] ?? '');
 $status = $_GET['status'] ?? '';
 $page = max(1, (int) ($_GET['page'] ?? 1));
@@ -69,6 +104,13 @@ $activeNav = 'payment';
 include __DIR__ . '/inc/layout_head.php';
 ?>
 
+<?php if ($msg = get_flash('error')): ?>
+  <div class="alert alert-error"><?= htmlspecialchars($msg) ?></div>
+<?php endif; ?>
+<?php if ($msg = get_flash('success')): ?>
+  <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
+<?php endif; ?>
+
 <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
   <div class="stat success">
     <div class="stat-label">جمع تراکنش‌های موفق</div>
@@ -120,12 +162,13 @@ include __DIR__ . '/inc/layout_head.php';
           <th>روش پرداخت</th>
           <th>تاریخ</th>
           <th>وضعیت</th>
+          <th style="text-align:left">عملیات</th>
         </tr>
       </thead>
       <tbody>
         <?php if (empty($payments)): ?>
           <tr>
-            <td colspan="7">
+            <td colspan="8">
               <div class="empty">
                 <div class="empty-mark">—</div>
                 <p>هیچ تراکنشی یافت نشد</p>
@@ -146,13 +189,27 @@ include __DIR__ . '/inc/layout_head.php';
               <td class="cell-mono" style="color:var(--accent)">
                 <?= htmlspecialchars(trunc((string) ($p['id_order'] ?? '—'), 18)) ?>
               </td>
-              <td class="cell-strong cell-num"><?= number_format((int) ($p['price'] ?? 0)) ?> <span
-                  style="color:var(--text-dim);font-weight:400;font-size:.72rem">تومان</span></td>
+              <td class="cell-strong cell-num"><?= number_format((int) ($p['price'] ?? 0)) ?> <span style="color:var(--text-dim);font-weight:400;font-size:.72rem">تومان</span></td>
               <td style="font-size:.8rem"><?= htmlspecialchars($method) ?></td>
               <td style="font-size:.78rem;color:var(--text-dim);white-space:nowrap">
                 <?= safe_date($p['time'] ?? null, 'Y/m/d H:i') ?>
               </td>
               <td><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
+              <td style="text-align:left; white-space:nowrap;">
+                <div class="actions">
+                    <?php if ($st === 'waiting'): ?>
+                      <a href="payment.php?action=confirm&id=<?= urlencode($p['id_order']) ?>&_csrf=<?= csrf_token() ?>" class="btn-icon" style="color:var(--success)" title="تایید" onclick="return confirm('آیا از تایید این تراکنش مطمئن هستید؟')">
+                          <?= icon('check', 16) ?>
+                      </a>
+                      <a href="payment.php?action=reject&id=<?= urlencode($p['id_order']) ?>&_csrf=<?= csrf_token() ?>" class="btn-icon" style="color:var(--warn)" title="رد کردن" onclick="return confirm('آیا از رد این تراکنش مطمئن هستید؟')">
+                          <?= icon('x', 16) ?>
+                      </a>
+                    <?php endif; ?>
+                    <a href="payment.php?action=delete&id=<?= urlencode($p['id_order']) ?>&_csrf=<?= csrf_token() ?>" class="btn-icon" style="color:var(--danger)" title="حذف" onclick="return confirm('آیا از حذف این تراکنش مطمئن هستید؟')">
+                        <?= icon('trash', 16) ?>
+                    </a>
+                </div>
+              </td>
             </tr>
           <?php endforeach; endif; ?>
       </tbody>
