@@ -132,14 +132,13 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           </a>
           <a href="bot_settings.php" class="nav-item <?= $activeNav === 'bot_settings' ? 'active' : '' ?>"
             title="<?= $textbotlang['panel']['layoutPageTitleBotSettings'] ?>">
-            <span class="nav-icon"><?= icon('settings') ?></span><span
+            <span class="nav-icon"><?= icon('cpu') ?></span><span
               class="nav-label"><?= $textbotlang['panel']['layoutNavBotSettings'] ?></span>
           </a>
           <a href="keyboard.php" class="nav-item <?= $activeNav === 'keyboard' ? 'active' : '' ?>"
             title="<?= $textbotlang['panel']['layoutPageTitleKeyboard'] ?>">
-            <span class="nav-icon">
-              <?= icon('settings') ?>
-            </span><span class="nav-label"><?= $textbotlang['panel']['layoutThemeToggleLabel'] ?></span>
+            <span class="nav-icon"><?= icon('sliders') ?></span><span
+              class="nav-label"><?= $textbotlang['panel']['layoutThemeToggleLabel'] ?></span>
           </a>
         </div>
         <div class="nav-section">
@@ -178,8 +177,6 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           </div>
         </div>
         <div class="topbar-tools">
-          <a href="settings.php" class="icon-btn"
-            title="<?= $textbotlang['panel']['layoutPageTitleSettings'] ?>"><?= icon('settings', 16) ?></a>
           <a href="logout.php" class="icon-btn"
             title="<?= $textbotlang['panel']['layoutPageTitleLogout'] ?>"><?= icon('logout', 16) ?></a>
         </div>
