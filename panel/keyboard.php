@@ -28,52 +28,97 @@ if ($method == "POST" && is_array($keyboard)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><?= $textbotlang['panel']['keyboardManageTitle'] ?></title>
 
-    <script type="module" crossorigin src="js/sort_keyboard.js"></script>
-    <link rel="stylesheet" crossorigin href="css/sort_keyboard.css">
+    <!-- SortableJS library -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
+    <!-- New Vanilla JS Builder -->
+    <link rel="stylesheet" href="css/keyboard_builder.css">
+    <script src="js/keyboard_builder.js" defer></script>
+    
     <style>
         @import url(https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap);
 
         * {
-            font-family: 'Vazirmatn' !important;
+            font-family: 'Vazirmatn', sans-serif !important;
         }
 
         button {
-            font-family: yekan;
+            font-family: 'Vazirmatn', sans-serif;
         }
 
         .btnback {
             position: fixed;
             top: 10px;
             left: 10px;
-            padding: 7px;
-            background-color: #3d3d3d;
+            padding: 7px 15px;
+            background-color: #334155;
             color: #fff;
-            border-radius: 6px;
-            font-family: yekan;
+            border-radius: 8px;
             font-size: 13px;
             font-weight: bold;
+            text-decoration: none;
+            z-index: 100;
+        }
+        
+        .btnback:hover {
+            background-color: #1e293b;
         }
 
         .btndefult {
             position: fixed;
             top: 10px;
             left: 150px;
-            padding: 7px;
+            padding: 7px 15px;
             background-color: #fff;
-            border: 2px solid #3d3d3d;
-            color: #3d3d3d;
-            border-radius: 6px;
-            font-family: yekan;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+            border-radius: 8px;
             font-size: 13px;
             font-weight: bold;
+            text-decoration: none;
+            z-index: 100;
+        }
+        
+        .btndefult:hover {
+            background-color: #f1f5f9;
+        }
+        
+        body {
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
         }
     </style>
 </head>
 
 <body>
-    <a class="btnback" href="index.php"><?= $textbotlang['panel']['keyboardSortHint'] ?></a>
-    <a class="btndefult" href="keyboard.php?action=reaset"><?= $textbotlang['panel']['keyboardSaveBtn'] ?></a>
-    <div id="root"></div>
+    <a class="btnback" href="index.php"><?= $textbotlang['panel']['keyboardSortHint'] ?? 'بازگشت به پنل کاربری' ?></a>
+    <a class="btndefult" href="keyboard.php?action=reaset"><?= $textbotlang['panel']['keyboardSaveBtn'] ?? 'بازگشت به حالت پیشفرض' ?></a>
+    
+    <div class="keyboard-app-container">
+        
+        <!-- Unused Keys Section -->
+        <div class="board-section">
+            <div class="container-header">دکمه‌های در دسترس (غیرفعال)</div>
+            <div id="unused-keys">
+                <!-- Unused buttons will be injected here -->
+            </div>
+        </div>
+
+        <!-- Active Keyboard Section -->
+        <div class="board-section">
+            <div class="container-header">چیدمان کیبورد ربات (فعال)</div>
+            <div id="active-keyboard">
+                <!-- Rows will be injected here -->
+            </div>
+            
+            <div class="actions-bar">
+                <button id="add-row-btn" class="add-row-btn">+ افزودن ردیف جدید</button>
+                <button id="save-keyboard-btn" class="save-keyboard-btn">ذخیره تغییرات</button>
+            </div>
+        </div>
+        
+    </div>
 </body>
 
 </html>
