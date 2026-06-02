@@ -1,5 +1,12 @@
 /* Mobile UI/UX Optimizations (Mobile-First & Fitts Law) */
 
+/* Global LTR font direction fixes for usernames/codes */
+.cm {
+    direction: ltr !important;
+    display: inline-block !important;
+    unicode-bidi: isolate !important;
+}
+
 @media (max-width: 768px) {
     /* 1. Touch Targets (Minimum 44px height for touch friendly elements) */
     .btn, .input, .select, .textarea, .search-box input, .arvan-input, .arvan-select {
@@ -34,7 +41,8 @@
     }
 
     .tbl-wrap tr {
-        display: block;
+        display: flex !important;
+        flex-wrap: wrap !important;
         background: var(--bg);
         border: 1px solid var(--bd);
         border-radius: 12px;
@@ -44,12 +52,38 @@
     }
 
     .tbl-wrap td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 4px !important;
+        display: block !important;
+        position: relative !important;
+        padding: 10px 12px !important;
+        padding-right: 125px !important; /* Space for the RTL label on the right */
+        text-align: left !important; /* Push the value to the left */
         border-bottom: 1px solid var(--bd) !important;
-        text-align: left;
+        min-height: 44px;
+        max-width: none !important; /* Override desktop max-width */
+        flex: 1 1 100% !important;
+        width: 100% !important;
+    }
+
+    /* Side-by-side columns to save vertical space on mobile */
+    .tbl-wrap td[data-label="نوع"],
+    .tbl-wrap td[data-label="مقدار"],
+    .tbl-wrap td[data-label="قیمت"],
+    .tbl-wrap td[data-label="وضعیت"],
+    .tbl-wrap td[data-label="کاربر"],
+    .tbl-wrap td[data-label="یوزرنیم"],
+    .tbl-wrap td[data-label="تاریخ"],
+    .tbl-wrap td[data-label="روش پرداخت"],
+    .tbl-wrap td[data-label="موجودی"],
+    .tbl-wrap td[data-label="گروه"],
+    .tbl-wrap td[data-label="حجم"],
+    .tbl-wrap td[data-label="مدت زمان"],
+    .tbl-wrap td[data-label="سرور/پنل"],
+    .tbl-wrap td[data-label="دسته‌بندی"],
+    .tbl-wrap td[data-label="کد"],
+    .tbl-wrap td[data-label="نوع پنل"] {
+        flex: 1 1 50% !important;
+        width: 50% !important;
+        padding-right: 80px !important; /* Shorter padding for side-by-side cells */
     }
 
     .tbl-wrap td:last-child {
@@ -59,15 +93,24 @@
     /* Use ::before to show the label on mobile */
     .tbl-wrap td::before {
         content: attr(data-label);
+        position: absolute !important;
+        right: 12px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
         font-weight: 600;
         color: var(--cf);
         text-transform: uppercase;
         font-size: 0.75rem;
-        margin-left: 15px; /* RTL margin */
+        margin-left: 0 !important;
+        white-space: nowrap;
     }
 
     .tbl-wrap td > div {
-        text-align: left;
+        display: inline-flex !important; /* Keep avatar and text compact on the left */
+        align-items: center !important;
+        gap: 10px !important;
+        text-align: right !important; /* Right align internal RTL text */
+        direction: rtl !important;
     }
     
     /* 3. Toolbar & Forms (Stacking and 100% width) */
