@@ -273,76 +273,80 @@ include __DIR__ . '/inc/layout_head.php';
                     </div>
                 <?php endif; ?>
             </div>
-        </div>
+    </div>
+
+    <div class="u-main-col" style="display:flex;flex-direction:column;gap:16px">
 
         <div class="card fade-up d1">
             <div class="card-head">
-                <div class="card-title">عملیات کاربر</div>
+                <div class="card-title" style="display:flex;align-items:center;gap:6px">
+                    <span style="color:var(--ac)"><?= icon('zap', 16) ?></span> عملیات کاربر
+                </div>
             </div>
-            <div style="padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
-                <button class="btn btn-primary btn-sm" style="justify-content:center" onclick="openModal('addModal')">
-                    <?= icon('plus', 13) ?> افزایش موجودی
+            <div style="padding:16px;display:flex;flex-wrap:wrap;gap:10px">
+                <button class="btn btn-primary" onclick="openModal('addModal')">
+                    <?= icon('plus', 14) ?> افزایش موجودی
                 </button>
-                <button class="btn btn-primary btn-sm" style="background:var(--warn);color:#000;justify-content:center" onclick="openModal('deductModal')">
-                    <?= icon('minus', 13) ?> کسر موجودی
+                <button class="btn" style="background:var(--warn);color:#000;border:none" onclick="openModal('deductModal')">
+                    <?= icon('minus', 14) ?> کسر موجودی
                 </button>
-                <a href="user_action.php?action=zerobalance&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php" class="btn btn-ghost btn-sm" style="justify-content:center" data-confirm="آیا از صفر کردن موجودی کاربر مطمئن هستید؟">
-                    <?= icon('slash', 13) ?> صفر موجودی
+                <a href="user_action.php?action=zerobalance&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php" class="btn btn-ghost" data-confirm="آیا از صفر کردن موجودی کاربر مطمئن هستید؟">
+                    <?= icon('slash', 14) ?> صفر موجودی
                 </a>
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('roleModal')">
-                    <?= icon('users', 13) ?> تغییر گروه
+                <button class="btn btn-ghost" onclick="openModal('roleModal')">
+                    <?= icon('users', 14) ?> تغییر گروه
                 </button>
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('discountModal')">
-                    <?= icon('percent', 13) ?> درصد تخفیف
+                <button class="btn btn-ghost" onclick="openModal('discountModal')">
+                    <?= icon('percent', 14) ?> درصد تخفیف
                 </button>
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('msgModal')">
-                    <?= icon('message-square', 13) ?> ارسال پیام
+                <button class="btn btn-ghost" onclick="openModal('msgModal')">
+                    <?= icon('message-square', 14) ?> ارسال پیام
                 </button>
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('limitTestModal')">
-                    <?= icon('sliders', 13) ?> اکانت تست
+                <button class="btn btn-ghost" onclick="openModal('limitTestModal')">
+                    <?= icon('sliders', 14) ?> اکانت تست
                 </button>
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('transferModal')">
-                    <?= icon('refresh-cw', 13) ?> انتقال حساب
+                <button class="btn btn-ghost" onclick="openModal('transferModal')">
+                    <?= icon('refresh-cw', 14) ?> انتقال حساب
                 </button>
 
                 <?php if ($isBlocked): ?>
                     <a href="user_action.php?action=unblock&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                        class="btn btn-ok btn-sm" style="justify-content:center" data-confirm="آیا از رفع مسدودیت مطمئن هستید؟">
-                        <?= icon('check', 13) ?> رفع مسدودی
+                        class="btn btn-ok" data-confirm="آیا از رفع مسدودیت مطمئن هستید؟">
+                        <?= icon('check', 14) ?> رفع مسدودی
                     </a>
                 <?php else: ?>
                     <a href="user_action.php?action=block&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                        class="btn btn-no btn-sm" style="justify-content:center" data-confirm="آیا از مسدود کردن مطمئن هستید؟">
-                        <?= icon('block', 13) ?> مسدود کردن
+                        class="btn btn-no" data-confirm="آیا از مسدود کردن مطمئن هستید؟">
+                        <?= icon('block', 14) ?> مسدود کردن
                     </a>
                 <?php endif; ?>
 
                 <?php $isVerify = (int)($user['verify'] ?? 0) === 1; ?>
                 <a href="user_action.php?action=toggle_verify&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn <?= $isVerify ? 'btn-no' : 'btn-ok' ?> btn-sm" style="justify-content:center" data-confirm="آیا مطمئن هستید؟">
-                    <?= icon($isVerify ? 'x-circle' : 'check-circle', 13) ?> <?= $isVerify ? 'لغو احراز هویت' : 'تایید احراز هویت' ?>
+                    class="btn <?= $isVerify ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
+                    <?= icon($isVerify ? 'x-circle' : 'check-circle', 14) ?> <?= $isVerify ? 'لغو احراز هویت' : 'تایید احراز هویت' ?>
                 </a>
 
                 <?php $isCard = (int)($user['cardpayment'] ?? 0) === 1; ?>
                 <a href="user_action.php?action=toggle_card&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn <?= $isCard ? 'btn-no' : 'btn-ok' ?> btn-sm" style="justify-content:center" data-confirm="آیا مطمئن هستید؟">
-                    <?= icon('credit-card', 13) ?> <?= $isCard ? 'غیرفعال کارت' : 'فعالسازی کارت' ?>
+                    class="btn <?= $isCard ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
+                    <?= icon('credit-card', 14) ?> <?= $isCard ? 'غیرفعال کارت' : 'فعالسازی کارت' ?>
                 </a>
 
                 <a href="user_action.php?action=verify_channel&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn btn-ghost btn-sm" style="justify-content:center" data-confirm="آیا تایید عضویت کانال اعمال شود؟">
-                    <?= icon('bell', 13) ?> تایید کانال
+                    class="btn btn-ghost" data-confirm="آیا تایید عضویت کانال اعمال شود؟">
+                    <?= icon('bell', 14) ?> تایید کانال
                 </a>
 
                 <?php $isCron = (int)($user['status_cron'] ?? 0) === 1; ?>
                 <a href="user_action.php?action=toggle_cron&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn <?= $isCron ? 'btn-no' : 'btn-ok' ?> btn-sm" style="justify-content:center" data-confirm="آیا مطمئن هستید؟">
-                    <?= icon('clock', 13) ?> <?= $isCron ? 'غیرفعال پیام' : 'فعال پیام کرون' ?>
+                    class="btn <?= $isCron ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
+                    <?= icon('clock', 14) ?> <?= $isCron ? 'غیرفعال پیام' : 'فعال پیام کرون' ?>
                 </a>
                 
                 <a href="user_action.php?action=removeaffiliates&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn btn-ghost btn-sm" style="justify-content:center" data-confirm="حذف تمام زیرمجموعه های کاربر؟">
-                    <?= icon('user-minus', 13) ?> حذف زیرمجموعه‌ها
+                    class="btn btn-ghost" data-confirm="حذف تمام زیرمجموعه های کاربر؟">
+                    <?= icon('user-minus', 14) ?> حذف زیرمجموعه‌ها
                 </a>
             </div>
         </div>
@@ -350,40 +354,38 @@ include __DIR__ . '/inc/layout_head.php';
         <?php if (in_array($agent, ['n', 'n2'])): ?>
         <div class="card fade-up d2">
             <div class="card-head">
-                <div class="card-title">عملیات نمایندگی</div>
+                <div class="card-title" style="display:flex;align-items:center;gap:6px">
+                    <span style="color:var(--warn)"><?= icon('briefcase', 16) ?></span> عملیات نمایندگی
+                </div>
             </div>
-            <div style="padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('agentBuyCapModal')">
-                    <?= icon('briefcase', 13) ?> سقف خرید نماینده
+            <div style="padding:16px;display:flex;flex-wrap:wrap;gap:10px">
+                <button class="btn btn-ghost" onclick="openModal('agentBuyCapModal')">
+                    <?= icon('briefcase', 14) ?> سقف خرید نماینده
                 </button>
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('agentVolPriceModal')">
-                    <?= icon('database', 13) ?> قیمت پایه حجم
+                <button class="btn btn-ghost" onclick="openModal('agentVolPriceModal')">
+                    <?= icon('database', 14) ?> قیمت پایه حجم
                 </button>
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('agentTimePriceModal')">
-                    <?= icon('clock', 13) ?> قیمت پایه زمان
+                <button class="btn btn-ghost" onclick="openModal('agentTimePriceModal')">
+                    <?= icon('clock', 14) ?> قیمت پایه زمان
                 </button>
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('agentHidePanelModal')">
-                    <?= icon('eye-off', 13) ?> مخفی کردن پنل
+                <button class="btn btn-ghost" onclick="openModal('agentHidePanelModal')">
+                    <?= icon('eye-off', 14) ?> مخفی کردن پنل
                 </button>
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('agentExpireModal')">
-                    <?= icon('calendar', 13) ?> تاریخ انقضا
+                <button class="btn btn-ghost" onclick="openModal('agentExpireModal')">
+                    <?= icon('calendar', 14) ?> تاریخ انقضا
                 </button>
-                <button class="btn btn-ghost btn-sm" style="justify-content:center" onclick="openModal('agentLocLimitModal')">
-                    <?= icon('map-pin', 13) ?> سقف لوکیشن
+                <button class="btn btn-ghost" onclick="openModal('agentLocLimitModal')">
+                    <?= icon('map-pin', 14) ?> سقف لوکیشن
                 </button>
 
                 <?php $isBotSell = (int)($user['status_bot_sell'] ?? 0) === 1; ?>
                 <a href="user_action.php?action=toggle_bot&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn <?= $isBotSell ? 'btn-no' : 'btn-ok' ?> btn-sm" style="justify-content:center" data-confirm="آیا مطمئن هستید؟">
-                    <?= icon('cpu', 13) ?> <?= $isBotSell ? 'حذف ربات فروش' : 'ساخت ربات فروش' ?>
+                    class="btn <?= $isBotSell ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
+                    <?= icon('cpu', 14) ?> <?= $isBotSell ? 'حذف ربات فروش' : 'ساخت ربات فروش' ?>
                 </a>
             </div>
         </div>
         <?php endif; ?>
-
-    </div>
-
-    <div class="u-main-col" style="display:flex;flex-direction:column;gap:16px">
 
         <div class="card fade-up">
             <div class="card-head">
