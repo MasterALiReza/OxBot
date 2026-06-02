@@ -290,7 +290,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <tbody>
                     <?php if (empty($recentInvoices)): ?>
                         <tr>
-                            <td colspan="4">
+                            <td colspan="4" class="no-label">
                                 <div class="empty" style="padding:24px">
                                     <p><?= $textbotlang['panel']['dashNoOrdersYet'] ?></p>
                                 </div>
@@ -375,7 +375,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <tbody>
                     <?php if (empty($recentUsers)): ?>
                         <tr>
-                            <td colspan="3">
+                            <td colspan="3" class="no-label">
                                 <div class="empty" style="padding:24px"><p><?= $textbotlang['panel']['dashNoUsersYet'] ?></p></div>
                             </td>
                         </tr>
