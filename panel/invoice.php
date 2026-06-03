@@ -67,14 +67,14 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">کل سفارشات</div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">کل سفارشات</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
-                <?= number_format($globalTotal) ?>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <span class="status-pill neutral" style="padding: 4px 10px;">سفارش ثبت شده</span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($globalTotal) ?>
             </div>
         </div>
     </div>
@@ -85,19 +85,19 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-emerald">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">مجموع درآمد</div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">مجموع درآمد</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="display: flex; align-items: baseline; gap: 6px;">
-                <span style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1; direction: ltr;">
-                    <?= $globalRevenue >= 1_000_000 ? number_format($globalRevenue / 1_000_000, 1) : number_format($globalRevenue) ?>
-                </span>
-                <span style="font-size: 1rem; font-weight: 600; color: var(--cf);">
-                    <?= $globalRevenue >= 1_000_000 ? 'میلیون تومان' : 'تومان' ?>
-                </span>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <span class="status-pill success" style="padding: 4px 10px;">فروش کل</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 6px;">
+                <span style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1; direction: ltr;">
+                    <?= $globalRevenue >= 1_000_000 ? number_format($globalRevenue / 1_000_000, 1) : number_format($globalRevenue) ?>
+                </span>
+                <span style="font-size: 0.85rem; font-weight: 500; color: var(--cf);">
+                    <?= $globalRevenue >= 1_000_000 ? 'میلیون تومان' : 'تومان' ?>
+                </span>
             </div>
         </div>
     </div>
@@ -108,14 +108,14 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-purple">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">سرویس‌های فعال</div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">سرویس‌های فعال</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
-                <?= number_format($globalActive) ?>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <span class="status-pill neutral" style="padding: 4px 10px;">در حال استفاده</span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($globalActive) ?>
             </div>
         </div>
     </div>
@@ -126,14 +126,14 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-amber">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">پرداخت نشده</div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">پرداخت نشده</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
-                <?= number_format($globalUnpaid) ?>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <span class="status-pill warning" style="padding: 4px 10px;">رها شده</span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($globalUnpaid) ?>
             </div>
         </div>
     </div>

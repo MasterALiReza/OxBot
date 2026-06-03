@@ -115,7 +115,7 @@ include __DIR__ . '/inc/layout_head.php';
 ?>
 
 <!-- Include Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/chart.min.js"></script>
 
 <!-- Top Statistics Cards -->
 <div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
@@ -126,12 +126,9 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashTotalUsers'] ?></div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;"><?= $textbotlang['panel']['dashTotalUsers'] ?></div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
-                <?= number_format($totalUsers) ?>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <?php if ($newToday > 0): ?>
                     <span class="status-pill success" style="padding: 4px 10px;">
@@ -142,6 +139,9 @@ include __DIR__ . '/inc/layout_head.php';
                     <span class="status-pill neutral" style="padding: 4px 10px;"><?= $textbotlang['panel']['dashNoChange'] ?></span>
                 <?php endif; ?>
             </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($totalUsers) ?>
+            </div>
         </div>
     </div>
     
@@ -151,17 +151,9 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-emerald">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashTotalRevenue'] ?></div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;"><?= $textbotlang['panel']['dashTotalRevenue'] ?></div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="display: flex; align-items: baseline; gap: 6px;">
-                <span style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1; direction: ltr;">
-                    <?= $totalRevenue >= 1_000_000 ? number_format($totalRevenue / 1_000_000, 1) : number_format($totalRevenue) ?>
-                </span>
-                <span style="font-size: 1rem; font-weight: 600; color: var(--cf);">
-                    <?= $totalRevenue >= 1_000_000 ? 'میلیون تومان' : 'تومان' ?>
-                </span>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <?php if ($todayRevenue > 0): ?>
                     <span class="status-pill success" style="padding: 4px 10px;">
@@ -172,6 +164,14 @@ include __DIR__ . '/inc/layout_head.php';
                     <span class="status-pill neutral" style="padding: 4px 10px;">0 <?= $textbotlang['panel']['dashUnitToman'] ?> امروز</span>
                 <?php endif; ?>
             </div>
+            <div style="display: flex; align-items: baseline; gap: 6px;">
+                <span style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1; direction: ltr;">
+                    <?= $totalRevenue >= 1_000_000 ? number_format($totalRevenue / 1_000_000, 1) : number_format($totalRevenue) ?>
+                </span>
+                <span style="font-size: 0.85rem; font-weight: 500; color: var(--cf);">
+                    <?= $totalRevenue >= 1_000_000 ? 'میلیون تومان' : 'تومان' ?>
+                </span>
+            </div>
         </div>
     </div>
     
@@ -181,16 +181,16 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-purple">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashActiveService'] ?></div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;"><?= $textbotlang['panel']['dashActiveService'] ?></div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
-                <?= number_format($activeNow) ?>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <span class="status-pill" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; padding: 4px 10px;">
-                    <?= $activePanels ?> <?= $textbotlang['panel']['dashActivePanels'] ?>
+                    <?= $activePanels ?> پنل متصل
                 </span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($activeNow) ?>
             </div>
         </div>
     </div>
@@ -201,12 +201,9 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-orange">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">تراکنش امروز</div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">تراکنش امروز</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
-                <?= number_format($txToday) ?>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <?php if ($pendingPay > 0): ?>
                     <span class="status-pill danger" style="padding: 4px 10px;">
@@ -218,6 +215,9 @@ include __DIR__ . '/inc/layout_head.php';
                         <?= $textbotlang['panel']['dashStatusRegistered'] ?>
                     </span>
                 <?php endif; ?>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($txToday) ?>
             </div>
         </div>
     </div>
@@ -469,6 +469,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // 1. Sales Line Chart
+    if (typeof Chart !== 'undefined') {
+        Chart.defaults.font.family = "'Vazirmatn', system-ui, sans-serif";
+    }
     const salesCtx = document.getElementById('salesChart');
     if (salesCtx) {
         const labels = <?= json_encode($chartLabels) ?>;

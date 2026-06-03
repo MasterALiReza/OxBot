@@ -68,14 +68,14 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">کل درخواست‌ها</div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">کل درخواست‌ها</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
-                <?= number_format($globalTotal) ?>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <span class="status-pill neutral" style="padding: 4px 10px;">تراکنش دستی ثبت شده</span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($globalTotal) ?>
             </div>
         </div>
     </div>
@@ -85,14 +85,14 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-amber">
                 <?= icon('clock', 20) ?>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">در انتظار انجام</div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">در انتظار انجام</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
-                <?= number_format($globalPending) ?>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <span class="status-pill warning" style="padding: 4px 10px;">نیازمند بررسی</span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($globalPending) ?>
             </div>
         </div>
     </div>
@@ -102,14 +102,14 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-emerald">
                 <?= icon('check-circle', 20) ?>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">انجام شده</div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">انجام شده</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
-                <?= number_format($globalDone) ?>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <span class="status-pill success" style="padding: 4px 10px;">موفق</span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($globalDone) ?>
             </div>
         </div>
     </div>
@@ -119,14 +119,14 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="icon-glow bg-red">
                 <?= icon('x-circle', 20) ?>
             </div>
-            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">رد شده</div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">رد شده</div>
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
-                <?= number_format($globalReject) ?>
-            </div>
             <div style="font-size: 0.85rem; font-weight: 500;">
                 <span class="status-pill danger" style="padding: 4px 10px;">لغو شده</span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($globalReject) ?>
             </div>
         </div>
     </div>

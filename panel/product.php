@@ -80,48 +80,54 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
 <!-- Top Statistics Cards -->
 <div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
     
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">کل محصولات</div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-blue">
                 <?= icon('package', 20) ?>
             </div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">کل محصولات</div>
         </div>
-        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
-            <?= number_format($totalProducts) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-            <span class="status-pill neutral">محصول ثبت‌شده</span>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <span class="status-pill neutral">محصول ثبت‌شده</span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($totalProducts) ?>
+            </div>
         </div>
     </div>
     
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">دسته‌بندی‌ها</div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-amber">
                 <?= icon('layers', 20) ?>
             </div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">دسته‌بندی‌ها</div>
         </div>
-        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
-            <?= number_format($categoriesCount) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-            <span class="status-pill warning">دسته فعال</span>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <span class="status-pill warning">دسته فعال</span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($categoriesCount) ?>
+            </div>
         </div>
     </div>
     
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">پنل‌های متصل</div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-emerald">
                 <?= icon('server', 20) ?>
             </div>
+            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">پنل‌های متصل</div>
         </div>
-        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
-            <?= number_format($panelsCount) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-            <span class="status-pill success">مرزبان متصل</span>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <span class="status-pill success">پنل متصل</span>
+            </div>
+            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+                <?= number_format($panelsCount) ?>
+            </div>
         </div>
     </div>
 

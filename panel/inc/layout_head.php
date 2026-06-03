@@ -63,7 +63,35 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
 </head>
 
 <body hx-boost="true">
-
+  <script>
+    // Farsi digits conversion
+    document.addEventListener("DOMContentLoaded", function() {
+        const p2e = s => s.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+        const e2p = s => s.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+        function walk(node) {
+            if (node.nodeType === 3) {
+                if(node.parentElement && node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE' && node.parentElement.tagName !== 'TEXTAREA') {
+                    node.nodeValue = e2p(node.nodeValue);
+                }
+            } else if (node.nodeType === 1) {
+                if (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') return;
+                for (var i = 0; i < node.childNodes.length; i++) {
+                    walk(node.childNodes[i]);
+                }
+            }
+        }
+        walk(document.body);
+        document.body.addEventListener('htmx:afterSwap', function(e) {
+            walk(e.detail.elt);
+            // Update active nav links
+            var path = window.location.pathname.split('/').pop() || 'index.php';
+            document.querySelectorAll('.sidebar-nav .nav-item, .bottom-nav .bnav-item').forEach(function(el) {
+                if(el.getAttribute('href') === path) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+        });
+    });
+  </script>
   <div id="load-bar"></div>
   <div id="toast-area"></div>
 
@@ -83,7 +111,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
   <div class="app">
     <div class="sidebar-backdrop" id="backdrop" onclick="closeSidebar()"></div>
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" hx-preserve="true">
       <div class="sidebar-brand">
         <div class="brand-mark">M</div>
         <div class="brand-name"><?= $textbotlang['panel']['layoutNavProducts'] ?><span>

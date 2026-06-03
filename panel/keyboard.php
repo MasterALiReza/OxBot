@@ -73,7 +73,7 @@ $initial_data = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><?= $textbotlang['panel']['keyboardManageTitle'] ?></title>
 
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="js/sortable.min.js"></script>
     <script>
         window.KEYBOARD_INITIAL_DATA = <?= json_encode($initial_data) ?>;
     </script>
@@ -81,7 +81,7 @@ $initial_data = [
     <script src="js/keyboard_builder.js" defer></script>
     
     <style>
-        @import url(https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap);
+        @import url('fonts/vazirmatn/Vazirmatn-font-face.css');
 
         * {
             font-family: 'Vazirmatn', sans-serif !important;
