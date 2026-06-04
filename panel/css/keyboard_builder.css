@@ -147,6 +147,53 @@
     background: #dc2626;
 }
 
+/* Style Edit Button inside active keys */
+.style-btn {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    background: #f59e0b;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 10;
+}
+
+.telegram-board .kb-btn:hover .style-btn,
+.telegram-board .kb-btn.show-actions .style-btn {
+    opacity: 1;
+}
+
+.style-btn:hover {
+    transform: scale(1.1);
+    background: #d97706;
+}
+
+@media (max-width: 600px) {
+    .style-btn {
+        opacity: 0; 
+    }
+    .telegram-board .kb-btn.show-actions .style-btn {
+        opacity: 1;
+    }
+}
+
+/* Telegram Button Color Styles */
+.kb-btn.btn-primary { background: #3390ec; color: #ffffff; border-color: #3390ec; }
+.kb-btn.btn-success { background: #4ba64f; color: #ffffff; border-color: #4ba64f; }
+.kb-btn.btn-danger { background: #e53935; color: #ffffff; border-color: #e53935; }
+.kb-btn.btn-secondary { background: #e2e8f0; color: #1e293b; border-color: #cbd5e1; }
+
+
 /* Add Slot for rows with 1 item */
 .add-slot {
     flex: 1;

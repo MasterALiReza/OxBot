@@ -4049,6 +4049,37 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     }
     update("user", "Processing_value_four", "none", "id", $from_id);
     step('home', $from_id);
+} elseif (preg_match('/^getmanualconfig_(.*)/', $datain, $dataget)) {
+    $invoice_id = $dataget[1];
+    $nameloc = select("invoice", "*", "id_invoice", $invoice_id, "select");
+    if ($nameloc) {
+        $ManagePanel = new ManagePanel();
+        $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
+        if (isset($DataUserOut['configs']) && !empty($DataUserOut['configs'])) {
+            telegram('answerCallbackQuery', [
+                'callback_query_id' => $update->callback_query->id,
+                'text' => "✅ کانفیگ‌ها ارسال شدند.",
+                'show_alert' => false
+            ]);
+            foreach ($DataUserOut['configs'] as $conf) {
+                if (trim($conf) !== '') {
+                    sendmessage($from_id, "<code>" . $conf . "</code>", null, 'HTML');
+                }
+            }
+        } else {
+            telegram('answerCallbackQuery', [
+                'callback_query_id' => $update->callback_query->id,
+                'text' => "❌ کانفیگی یافت نشد.",
+                'show_alert' => true
+            ]);
+        }
+    } else {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $update->callback_query->id,
+            'text' => "❌ فاکتور یافت نشد.",
+            'show_alert' => true
+        ]);
+    }
 } elseif ($datain == "aptdc") {
     sendmessage($from_id, $textbotlang['users']['Discount']['getcodesell'], $backuser, 'HTML');
     step('getcodesellDiscount', $from_id);

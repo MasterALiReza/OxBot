@@ -1765,7 +1765,7 @@ function formatServiceDeliveryLinks($panel_info, $dataoutput)
 
     if ($has_subscription && $has_config) {
         $main = $subscription_url;
-        $extra = "\n\n🔗 لینک کانفیگ (شیوه اتصال):\n\n<code>" . $configs[0] . "</code>";
+        $extra = '';
     } elseif ($has_subscription) {
         $main = $subscription_url;
         $extra = '';
@@ -1794,6 +1794,31 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
         $out_put_qrcode = $sub_link;
     } elseif ($panel_info['config'] == "onconfig" && !empty($config)) {
         $out_put_qrcode = $config[0];
+    }
+    
+    $has_config_feature = ($panel_info['config'] == 'onconfig' || $panel_info['sublink'] == 'bothsubandconfig') && !empty($config);
+    if ($has_config_feature) {
+        if ($reply_markup) {
+            $markup_arr = json_decode($reply_markup, true);
+            if (isset($markup_arr['inline_keyboard'])) {
+                $new_button = [['text' => '📥 دریافت دستی کانفیگ', 'callback_data' => 'getmanualconfig_' . $invoice_id]];
+                $helpbtn_index = -1;
+                foreach ($markup_arr['inline_keyboard'] as $idx => $row) {
+                    foreach ($row as $btn) {
+                        if (isset($btn['callback_data']) && $btn['callback_data'] == 'helpbtn') {
+                            $helpbtn_index = $idx;
+                            break 2;
+                        }
+                    }
+                }
+                if ($helpbtn_index !== -1) {
+                    array_splice($markup_arr['inline_keyboard'], $helpbtn_index, 0, [$new_button]);
+                } else {
+                    array_unshift($markup_arr['inline_keyboard'], $new_button);
+                }
+                $reply_markup = json_encode($markup_arr);
+            }
+        }
     }
     if ($STATUS_SEND_MESSAGE_PHOTO) {
         if ($panel_info['type'] == "WGDashboard") {
