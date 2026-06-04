@@ -3753,6 +3753,14 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     outtypepanel($typepanel['type'], $textbotlang['Admin']['adminphp']['ok_success_save_1']);
     update("marzban_panel", "inboundid", $text, "name_panel", $user['Processing_value']);
     step('home', $from_id);
+} elseif ($text == $textbotlang['keyboard']['setSanaeiGroup'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['Admin']['adminphp']['ask_send_sanaei_group'], $backadmin, 'HTML');
+    step('getsanaeigroup', $from_id);
+} elseif ($user['step'] == "getsanaeigroup") {
+    $typepanel = select("marzban_panel", "*", "name_panel", $user['Processing_value'], "select");
+    outtypepanel($typepanel['type'], $textbotlang['Admin']['adminphp']['ok_success_sanaei_group']);
+    update("marzban_panel", "sanaei_group", $text, "name_panel", $user['Processing_value']);
+    step('home', $from_id);
 } elseif ($text == $textbotlang['keyboard']['editUsername'] && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['Admin']['managepanel']['getUsernameNew'], $backadmin, 'HTML');
     step('GetusernameNew', $from_id);
@@ -9477,6 +9485,10 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
         'oninbounddisable' => $textbotlang['Admin']['Status']['statuson'],
         'offinbounddisable' => $textbotlang['Admin']['Status']['statusoff']
     ][$panel['inboundstatus']];
+    $inbound_deactive_status = [
+        '1' => $textbotlang['Admin']['Status']['statuson'],
+        '0' => $textbotlang['Admin']['Status']['statusoff']
+    ][$panel['inbound_deactive']] ?? $textbotlang['Admin']['Status']['statusoff'];
     $subvip = [
         'onsubvip' => $textbotlang['Admin']['Status']['statuson'],
         'offsubvip' => $textbotlang['Admin']['Status']['statusoff']
@@ -9567,10 +9579,14 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             ['text' => $textbotlang['keyboard']['exclusiveSubLink'], 'callback_data' => "none"],
         ];
     }
-    if (in_array($panel['type'], ["marzban"])) {
+    if (in_array($panel['type'], ["marzban", "MHSanaei-3.2", "x-ui_single", "marzneshin"])) {
         $Bot_Status['inline_keyboard'][] = [
             ['text' => $inbocunddisable, 'callback_data' => "editpanel-inbocunddisable-{$panel['inboundstatus']}-{$panel['code_panel']}"],
             ['text' => $textbotlang['keyboard']['inactiveAccount'], 'callback_data' => "none"],
+        ];
+        $Bot_Status['inline_keyboard'][] = [
+            ['text' => $inbound_deactive_status, 'callback_data' => "editpanel-inbounddeactive-{$panel['inbound_deactive']}-{$panel['code_panel']}"],
+            ['text' => "🚫 غیرفعال‌سازی پس از اتمام", 'callback_data' => "none"],
         ];
     }
     if ($panel['type'] == "ibsng" || $panel['type'] == "mikrotik") {
@@ -9648,6 +9664,13 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             $valuenew = "oninbounddisable";
         }
         update("marzban_panel", "inboundstatus", $valuenew, "code_panel", $code_panel);
+    } elseif ($type == "inbounddeactive") {
+        if ($value == "1") {
+            $valuenew = "0";
+        } else {
+            $valuenew = "1";
+        }
+        update("marzban_panel", "inbound_deactive", $valuenew, "code_panel", $code_panel);
     } elseif ($type == "subvip") {
         if ($value == "onsubvip") {
             $valuenew = "offsubvip";
@@ -9735,6 +9758,10 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
         'oninbounddisable' => $textbotlang['Admin']['Status']['statuson'],
         'offinbounddisable' => $textbotlang['Admin']['Status']['statusoff']
     ][$panel['inboundstatus']];
+    $inbound_deactive_status = [
+        '1' => $textbotlang['Admin']['Status']['statuson'],
+        '0' => $textbotlang['Admin']['Status']['statusoff']
+    ][$panel['inbound_deactive']] ?? $textbotlang['Admin']['Status']['statusoff'];
     $subvip = [
         'onsubvip' => $textbotlang['Admin']['Status']['statuson'],
         'offsubvip' => $textbotlang['Admin']['Status']['statusoff']
@@ -9825,10 +9852,14 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             ['text' => $textbotlang['keyboard']['exclusiveSubLink'], 'callback_data' => "none"],
         ];
     }
-    if (in_array($panel['type'], ["marzban"])) {
+    if (in_array($panel['type'], ["marzban", "MHSanaei-3.2", "x-ui_single", "marzneshin"])) {
         $Bot_Status['inline_keyboard'][] = [
             ['text' => $inbocunddisable, 'callback_data' => "editpanel-inbocunddisable-{$panel['inboundstatus']}-{$panel['code_panel']}"],
             ['text' => $textbotlang['keyboard']['inactiveAccount'], 'callback_data' => "none"],
+        ];
+        $Bot_Status['inline_keyboard'][] = [
+            ['text' => $inbound_deactive_status, 'callback_data' => "editpanel-inbounddeactive-{$panel['inbound_deactive']}-{$panel['code_panel']}"],
+            ['text' => "🚫 غیرفعال‌سازی پس از اتمام", 'callback_data' => "none"],
         ];
     }
     $Bot_Status = json_encode($Bot_Status);

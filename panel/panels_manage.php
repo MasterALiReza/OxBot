@@ -594,6 +594,129 @@ include __DIR__ . '/inc/layout_head.php';
     animation: spin 1s linear infinite;
 }
 @keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Modern premium custom styles for Inbounds list */
+#inboundsList {
+    max-height: 220px !important;
+    padding-right: 4px;
+    direction: rtl;
+}
+.inbound-item-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    position: relative;
+    text-align: right;
+    box-sizing: border-box;
+}
+.inbound-item-card:hover {
+    border-color: var(--ac);
+    background: rgba(0, 180, 216, 0.02);
+}
+.inbound-item-card.selected {
+    border-color: var(--ac);
+    background: rgba(0, 180, 216, 0.08);
+    box-shadow: 0 0 8px rgba(0, 180, 216, 0.1);
+}
+.inbound-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--ac);
+    flex-shrink: 0;
+    margin: 0;
+}
+.inbound-card-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: calc(100% - 30px);
+}
+.inbound-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+.inbound-remark {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 75%;
+}
+.inbound-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.badge-vless { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+.badge-vmess { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.badge-trojan { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+.badge-shadowsocks, .badge-ss { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.badge-hysteria, .badge-hysteria2 { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.badge-tuic { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+.inbound-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--ts);
+}
+.inbound-id-tag, .inbound-port-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    direction: ltr;
+}
+.inbound-id-tag b, .inbound-port-tag b {
+    color: var(--text);
+}
+#inboundsList::-webkit-scrollbar {
+    width: 5px;
+}
+#inboundsList::-webkit-scrollbar-track {
+    background: var(--bg-sec);
+    border-radius: 3px;
+}
+#inboundsList::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+#inboundsList::-webkit-scrollbar-thumb:hover {
+    background: var(--ts);
+}
+@media (max-width: 576px) {
+    .inbound-item-card {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+    .inbound-remark {
+        font-size: 12px;
+    }
+    .inbound-badge {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+    .inbound-card-footer {
+        font-size: 10px;
+    }
+}
 </style>
 
 <script>
@@ -796,17 +919,29 @@ function closeTestConnModal() {
         const val = document.getElementById('panelInboundId').value;
         const ids = val.split(',').map(x => x.trim()).filter(x => x !== '');
         document.querySelectorAll('.inbound-checkbox').forEach(cb => {
-            cb.checked = ids.includes(cb.value);
+            const isChecked = ids.includes(cb.value);
+            cb.checked = isChecked;
+            const card = cb.closest('.inbound-item-card');
+            if (card) {
+                if (isChecked) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            }
         });
     }
 
     function toggleInboundSelection(cb) {
         const val = document.getElementById('panelInboundId').value;
         let ids = val.split(',').map(x => x.trim()).filter(x => x !== '');
+        const card = cb.closest('.inbound-item-card');
         if (cb.checked) {
             if (!ids.includes(cb.value)) ids.push(cb.value);
+            if (card) card.classList.add('selected');
         } else {
             ids = ids.filter(id => id !== cb.value);
+            if (card) card.classList.remove('selected');
         }
         document.getElementById('panelInboundId').value = ids.join(',');
     }
@@ -843,11 +978,19 @@ function closeTestConnModal() {
                 data.inbounds.forEach(inb => {
                     const isChecked = currentIds.includes(String(inb.id));
                     const label = document.createElement('label');
-                    label.style.display = 'flex'; label.style.alignItems = 'center'; label.style.gap = '8px';
-                    label.style.cursor = 'pointer'; label.style.fontSize = '13px'; label.style.color = 'var(--text)';
+                    label.className = `inbound-item-card ${isChecked ? 'selected' : ''}`;
                     label.innerHTML = `
                         <input type="checkbox" class="inbound-checkbox" value="${inb.id}" ${isChecked ? 'checked' : ''} onchange="toggleInboundSelection(this)">
-                        <span>ID: <b>${inb.id}</b> - ${inb.remark} <span style="color:var(--ts); font-size:11px;">(${inb.protocol} - ${inb.port})</span></span>
+                        <div class="inbound-card-content">
+                            <div class="inbound-card-header">
+                                <span class="inbound-remark" title="${inb.remark || ''}">${inb.remark || 'بدون نام'}</span>
+                                <span class="inbound-badge badge-${(inb.protocol || '').toLowerCase()}">${(inb.protocol || '').toUpperCase()}</span>
+                            </div>
+                            <div class="inbound-card-footer">
+                                <span class="inbound-id-tag">ID: <b>${inb.id}</b></span>
+                                <span class="inbound-port-tag">Port: <b>${inb.port}</b></span>
+                            </div>
+                        </div>
                     `;
                     list.appendChild(label);
                 });

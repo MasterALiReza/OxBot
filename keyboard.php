@@ -1113,7 +1113,7 @@ $optionMHSanaei = json_encode([
         [['text' => $textbotlang['keyboard']['panelName']], ['text' => $textbotlang['keyboard']['deletePanel']]],
         [['text' => $textbotlang['keyboard']['editPassword']], ['text' => $textbotlang['keyboard']['editUsername']]],
         [['text' => $textbotlang['keyboard']['editPanelUrl']], ['text' => $textbotlang['keyboard']['renewalMethod']]],
-        [['text' => $textbotlang['keyboard']['setInboundId']]],
+        [['text' => $textbotlang['keyboard']['setInboundId']], ['text' => $textbotlang['keyboard']['setSanaeiGroup']]],
         [['text' => $textbotlang['keyboard']['usernameMethod']], ['text' => $textbotlang['extracted']['keyboard_php']['subLinkDomain']]],
         [['text' => $textbotlang['keyboard']['changeUserGroup']], ['text' => $textbotlang['keyboard']['accountCreateLimit']]],
         [['text' => $textbotlang['keyboard']['testServiceTime']], ['text' => $textbotlang['keyboard']['testAccountVolume']]],
