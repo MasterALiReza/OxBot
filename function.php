@@ -1797,7 +1797,8 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
     }
     
     $has_config_feature = ($panel_info['config'] == 'onconfig' || $panel_info['sublink'] == 'bothsubandconfig') && !empty($config);
-    if ($has_config_feature) {
+    $manual_config_enabled = ($setting['status_manual_config'] ?? '1') === '1';
+    if ($has_config_feature && $manual_config_enabled) {
         if ($reply_markup) {
             $markup_arr = json_decode($reply_markup, true);
             if (isset($markup_arr['inline_keyboard'])) {
@@ -1849,11 +1850,7 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
     } else {
         sendmessage($user_id, $caption, $reply_markup, 'HTML');
     }
-    if ($panel_info['config'] == "onconfig" && $setting['status_keyboard_config'] == "1") {
-        if (is_array($config)) {
-            sendmessage($user_id, $textbotlang['hardcoded']['getConfigHint'], keyboard_config($config, $invoice_id, false), 'HTML');
-        }
-    }
+    // Bottom "click to get config" message removed — manual delivery handled via 📥 button
 }
 function isValidInvitationCode($setting, $fromId, $verfy_status)
 {

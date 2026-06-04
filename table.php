@@ -232,6 +232,7 @@ timeauto_not_verify,status_keyboard_config,cron_status
         addFieldToTable("setting", "wheelagent", "1", "varchar(45)");
         addFieldToTable("setting", "linkappstatus", "0", "varchar(45)");
         addFieldToTable("setting", "categoryhelp", "0", "varchar(45)");
+        addFieldToTable("setting", "status_manual_config", "1", "varchar(20)");
         addFieldToTable("setting", "daywarn", "2", "varchar(45)");
         addFieldToTable("setting", "btn_status_extned", "0", "varchar(45)");
         addFieldToTable("setting", "wheelـluck_price", "0", "varchar(45)");

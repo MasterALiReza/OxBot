@@ -4051,19 +4051,66 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     step('home', $from_id);
 } elseif (preg_match('/^getmanualconfig_(.*)/', $datain, $dataget)) {
     $invoice_id = $dataget[1];
+    // Check toggle
+    if (($setting['status_manual_config'] ?? '1') !== '1') {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $update->callback_query->id,
+            'text' => "❌ دریافت دستی کانفیگ غیرفعال است.",
+            'show_alert' => true
+        ]);
+        return;
+    }
     $nameloc = select("invoice", "*", "id_invoice", $invoice_id, "select");
     if ($nameloc) {
         $ManagePanel = new ManagePanel();
         $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
-        if (isset($DataUserOut['configs']) && !empty($DataUserOut['configs'])) {
+        $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
+        $configs_to_send = [];
+
+        // Collect configs (works for both 3x-ui sanaei multi-inbound and x-ui single)
+        if (isset($DataUserOut['configs']) && is_array($DataUserOut['configs']) && !empty($DataUserOut['configs'])) {
+            foreach ($DataUserOut['configs'] as $conf) {
+                $conf = trim((string)$conf);
+                if ($conf !== '') {
+                    $configs_to_send[] = $conf;
+                }
+            }
+        }
+
+        if (!empty($configs_to_send)) {
             telegram('answerCallbackQuery', [
                 'callback_query_id' => $update->callback_query->id,
                 'text' => "✅ کانفیگ‌ها ارسال شدند.",
                 'show_alert' => false
             ]);
-            foreach ($DataUserOut['configs'] as $conf) {
-                if (trim($conf) !== '') {
-                    sendmessage($from_id, "<code>" . $conf . "</code>", null, 'HTML');
+            $image_bg = 'images.jpg';
+            foreach ($configs_to_send as $idx => $conf) {
+                // Build inbound label if possible (protocol prefix)
+                $protocol = 'کانفیگ';
+                if (str_starts_with($conf, 'vless://')) $protocol = '⚡ VLESS';
+                elseif (str_starts_with($conf, 'vmess://')) $protocol = '🔵 VMess';
+                elseif (str_starts_with($conf, 'trojan://')) $protocol = '🔴 Trojan';
+                elseif (str_starts_with($conf, 'ss://')) $protocol = '🟢 Shadowsocks';
+                elseif (str_starts_with($conf, 'hy2://') || str_starts_with($conf, 'hysteria2://')) $protocol = '🟣 Hysteria2';
+                elseif (str_starts_with($conf, 'wireguard://') || str_starts_with($conf, '[Interface]')) $protocol = '🔒 WireGuard';
+
+                $caption = "<b>{$protocol}</b> — کانفیگ شماره " . ($idx + 1) . "\n\n<code>{$conf}</code>";
+                // Generate QR
+                $urlimage = "{$from_id}_manual_{$invoice_id}_{$idx}.png";
+                try {
+                    $qrCode = createqrcode($conf);
+                    file_put_contents($urlimage, $qrCode->getString());
+                    addBackgroundImage($urlimage, $qrCode, $image_bg);
+                    telegram('sendphoto', [
+                        'chat_id' => $from_id,
+                        'photo' => new CURLFile($urlimage),
+                        'caption' => $caption,
+                        'parse_mode' => 'HTML',
+                    ]);
+                    unlink($urlimage);
+                } catch (Throwable $e) {
+                    // Fallback: send text only if QR fails
+                    sendmessage($from_id, $caption, null, 'HTML');
                 }
             }
         } else {
