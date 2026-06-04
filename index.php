@@ -4601,11 +4601,16 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         mysqli_free_result($cardQuery);
         $price_copy = $user['Processing_value'];
         if ($PaySetting == "onautoconfirm") {
-            $random_number = rand(0, 2000);
-            $user['Processing_value'] = intval($user['Processing_value']) + $random_number;
-            if (in_array($user['Processing_value'], $pricepayment)) {
-                $random_number = rand(0, 2000);
-                $user['Processing_value'] = intval($user['Processing_value']) + $random_number;
+            $base_value = intval($user['Processing_value']);
+            while (true) {
+                $random_number = rand(1, 999);
+                $test_value = $base_value + $random_number;
+                if ($test_value % 1000 === 0) continue; // Ensure it doesn't end in 000
+                $check_price = mysqli_query($connect, "SELECT id FROM Payment_report WHERE price = '$test_value' AND (payment_Status = 'Unpaid' OR payment_Status = 'waiting')");
+                if (mysqli_num_rows($check_price) == 0) {
+                    $user['Processing_value'] = $test_value;
+                    break;
+                }
             }
             $valueshow = "{$user['Processing_value']}0";
             $replacements = [
@@ -4708,10 +4713,10 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             }
             return;
         }
-        $stmt = $connect->prepare("INSERT INTO Payment_report (id_user,id_order,time,price,payment_Status,Payment_Method,id_invoice) VALUES (?,?,?,?,?,?,?)");
+        $stmt = $connect->prepare("INSERT INTO Payment_report (id_user,id_order,time,price,payment_Status,Payment_Method,id_invoice,dec_not_confirmed) VALUES (?,?,?,?,?,?,?,?)");
         $payment_Status = "Unpaid";
         $Payment_Method = "aqayepardakht";
-        $stmt->bind_param("sssssss", $from_id, $randomString, $dateacc, $user['Processing_value'], $payment_Status, $Payment_Method, $invoice);
+        $stmt->bind_param("ssssssss", $from_id, $randomString, $dateacc, $user['Processing_value'], $payment_Status, $Payment_Method, $invoice, $pay['transid']);
         $stmt->execute();
         $paymentkeyboard = json_encode([
             'inline_keyboard' => [

@@ -21,7 +21,13 @@ $ManagePanel = new ManagePanel();
 $invoice_id = htmlspecialchars($_POST['invoice_id'], ENT_QUOTES, 'UTF-8');
 $setting = select("setting", "*");
 $PaySetting = select("PaySetting", "ValuePay", "NamePay", "merchant_id_aqayepardakht","select")['ValuePay'];
-$Payment_report = select("Payment_report", "price", "id_order", $invoice_id,"select")['price'];
+$Payment_report_row = select("Payment_report", "*", "id_order", $invoice_id,"select");
+
+if (!$Payment_report_row || $Payment_report_row['dec_not_confirmed'] !== $_POST['transid']) {
+    die("Invalid Transaction.");
+}
+
+$Payment_report = $Payment_report_row['price'];
 $price = $Payment_report;
 // verify Transaction
 

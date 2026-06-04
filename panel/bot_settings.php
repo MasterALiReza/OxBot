@@ -46,9 +46,29 @@ $shop_settings = [];
 try {
     $stmt = $pdo->query("SELECT Namevalue, value FROM shopSetting");
     while($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $shop_settings[$r['Namevalue']] = $r['value'];
+        if ($r['Namevalue'] === 'chashbackextend_agent') {
+            $decoded = json_decode($r['value'], true);
+            if (is_array($decoded)) {
+                $shop_settings['chashbackextend_agent_n'] = $decoded['n'] ?? 0;
+                $shop_settings['chashbackextend_agent_n2'] = $decoded['n2'] ?? 0;
+            }
+        } else {
+            $shop_settings[$r['Namevalue']] = $r['value'];
+        }
     }
 } catch (Exception $e) {}
+
+$affiliate_settings = [];
+try {
+    $stmt = $pdo->query("SELECT * FROM affiliates LIMIT 1");
+    if($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $affiliate_settings = $r;
+    }
+} catch (Exception $e) {}
+
+$cron_status = json_decode($row['cron_status'] ?? '{}', true);
+$limitnumber = json_decode($row['limitnumber'] ?? '{}', true);
+$lottery_prize = json_decode($row['Lottery_prize'] ?? '{}', true);
 
 $schema = [
     'general' => [
@@ -64,6 +84,9 @@ $schema = [
                 ['name' => 'set_verifybucodeuser', 'label' => 'تاییدیه پیامکی (کد)', 'type' => 'select', 'options' => ['onverify' => 'فعال', 'offverify' => 'غیرفعال'], 'val' => $row['verifybucodeuser'] ?? ''],
                 ['name' => 'set_get_number', 'label' => 'دریافت شماره تماس', 'type' => 'select', 'options' => ['onAuthenticationphone' => 'اجباری', 'offAuthenticationphone' => 'اختیاری/خاموش'], 'val' => $row['get_number'] ?? ''],
                 ['name' => 'set_iran_number', 'label' => 'فقط شماره ایران', 'type' => 'select', 'options' => ['onAuthenticationiran' => 'بله', 'offAuthenticationiran' => 'خیر'], 'val' => $row['iran_number'] ?? ''],
+                ['name' => 'set_limitnumber_free', 'label' => 'محدودیت (کاربران رایگان)', 'type' => 'number', 'val' => $limitnumber['free'] ?? '100'],
+                ['name' => 'set_limitnumber_all', 'label' => 'محدودیت (همه کاربران)', 'type' => 'number', 'val' => $limitnumber['all'] ?? '100'],
+                ['name' => 'set_numbercount', 'label' => 'محدودیت اکانت با هر شماره', 'type' => 'number', 'val' => $row['numbercount'] ?? '0'],
                 ['name' => 'set_timeauto_not_verify', 'label' => 'زمان حذف تایید نشده (روز)', 'type' => 'number', 'val' => $row['timeauto_not_verify'] ?? '4'],
             ],
             'گزارشات و ارتباطات' => [
@@ -87,6 +110,16 @@ $schema = [
                 ['name' => 'set_inlinebtnmain', 'label' => 'دکمه‌های شیشه‌ای منوی اصلی', 'type' => 'select', 'options' => ['oninline' => 'روشن', 'offinline' => 'خاموش'], 'val' => $row['inlinebtnmain'] ?? ''],
                 ['name' => 'set_btn_status_extned', 'label' => 'دکمه تمدید سرویس', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $row['btn_status_extned'] ?? ''],
                 ['name' => 'set_status_keyboard_config', 'label' => 'کیبورد تنظیمات کانفیگ', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $row['status_keyboard_config'] ?? ''],
+            ],
+            'مدیریت کرون‌جاب' => [
+                ['name' => 'set_cron_day', 'label' => 'محاسبه روزها (day)', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['day'] ?? true) ? '1' : '0'],
+                ['name' => 'set_cron_volume', 'label' => 'محاسبه حجم (volume)', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['volume'] ?? true) ? '1' : '0'],
+                ['name' => 'set_cron_remove', 'label' => 'حذف پایان‌یافته', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['remove'] ?? false) ? '1' : '0'],
+                ['name' => 'set_cron_remove_volume', 'label' => 'حذف تمام‌شده', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['remove_volume'] ?? false) ? '1' : '0'],
+                ['name' => 'set_cron_test', 'label' => 'حذف سرویس تست', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['test'] ?? false) ? '1' : '0'],
+                ['name' => 'set_cron_on_hold', 'label' => 'مسدودی موقت', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['on_hold'] ?? false) ? '1' : '0'],
+                ['name' => 'set_cron_uptime_node', 'label' => 'پایداری نودها', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['uptime_node'] ?? false) ? '1' : '0'],
+                ['name' => 'set_cron_uptime_panel', 'label' => 'پایداری پنل‌ها', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['uptime_panel'] ?? false) ? '1' : '0'],
             ]
         ]
     ],
@@ -119,6 +152,8 @@ $schema = [
                 ['name' => 'shop_customtimepricef', 'label' => 'قیمت زمان اضافه (پلن f)', 'type' => 'number', 'val' => $shop_settings['customtimepricef'] ?? ''],
                 ['name' => 'shop_customtimepricen', 'label' => 'قیمت زمان اضافه (پلن n)', 'type' => 'number', 'val' => $shop_settings['customtimepricen'] ?? ''],
                 ['name' => 'shop_customtimepricen2', 'label' => 'قیمت زمان اضافه (پلن n2)', 'type' => 'number', 'val' => $shop_settings['customtimepricen2'] ?? ''],
+                ['name' => 'shop_chashbackextend_agent_n', 'label' => 'کش‌بک تمدید نماینده (n)', 'type' => 'number', 'val' => $shop_settings['chashbackextend_agent_n'] ?? '0'],
+                ['name' => 'shop_chashbackextend_agent_n2', 'label' => 'کش‌بک تمدید نماینده (n2)', 'type' => 'number', 'val' => $shop_settings['chashbackextend_agent_n2'] ?? '0'],
             ]
         ]
     ],
@@ -208,6 +243,22 @@ $schema = [
                 ['name' => 'pay_minbalanceperfect', 'label' => 'حداقل Perfect Money', 'type' => 'number', 'val' => $pay_settings['minbalanceperfect'] ?? ''],
                 ['name' => 'pay_maxbalanceperfect', 'label' => 'حداکثر Perfect Money', 'type' => 'number', 'val' => $pay_settings['maxbalanceperfect'] ?? ''],
                 ['name' => 'pay_chashbackperfect', 'label' => 'کش‌بک Perfect Money', 'type' => 'number', 'val' => $pay_settings['chashbackperfect'] ?? '0'],
+            ],
+            'راهنمای درگاه‌ها' => [
+                ['name' => 'pay_helpcart', 'label' => 'راهنمای کارت به کارت', 'type' => 'text', 'val' => $pay_settings['helpcart'] ?? ''],
+                ['name' => 'pay_helpaqayepardakht', 'label' => 'راهنمای آقای پرداخت', 'type' => 'text', 'val' => $pay_settings['helpaqayepardakht'] ?? ''],
+                ['name' => 'pay_helpstar', 'label' => 'راهنمای استارز', 'type' => 'text', 'val' => $pay_settings['helpstar'] ?? ''],
+                ['name' => 'pay_helpplisio', 'label' => 'راهنمای Plisio', 'type' => 'text', 'val' => $pay_settings['helpplisio'] ?? ''],
+                ['name' => 'pay_helpiranpay1', 'label' => 'راهنمای ایران پی 1', 'type' => 'text', 'val' => $pay_settings['helpiranpay1'] ?? ''],
+                ['name' => 'pay_helpiranpay2', 'label' => 'راهنمای ایران پی 2 (ترنادو)', 'type' => 'text', 'val' => $pay_settings['helpiranpay2'] ?? ''],
+                ['name' => 'pay_helpiranpay3', 'label' => 'راهنمای ایران پی 3', 'type' => 'text', 'val' => $pay_settings['helpiranpay3'] ?? ''],
+                ['name' => 'pay_helpperfectmony', 'label' => 'راهنمای پرفکت مانی', 'type' => 'text', 'val' => $pay_settings['helpperfectmony'] ?? ''],
+                ['name' => 'pay_helpzarinpal', 'label' => 'راهنمای زرین‌پال', 'type' => 'text', 'val' => $pay_settings['helpzarinpal'] ?? ''],
+                ['name' => 'pay_helpnowpayment', 'label' => 'راهنمای NowPayment', 'type' => 'text', 'val' => $pay_settings['helpnowpayment'] ?? ''],
+                ['name' => 'pay_helpofflinearze', 'label' => 'راهنمای کریپتو آفلاین', 'type' => 'text', 'val' => $pay_settings['helpofflinearze'] ?? ''],
+            ],
+            'استثنائات تایید' => [
+                ['name' => 'pay_Exception_auto_cart', 'label' => 'استثنائات کارت (JSON)', 'type' => 'text', 'placeholder' => '{"userid1": true, "userid2": true}', 'val' => $pay_settings['Exception_auto_cart'] ?? '{}'],
             ]
         ]
     ],
@@ -222,6 +273,12 @@ $schema = [
             'همکاری در فروش (Affiliates)' => [
                 ['name' => 'set_affiliatesstatus', 'label' => 'وضعیت همکاری در فروش', 'type' => 'select', 'options' => ['onaffiliates' => 'فعال', 'offaffiliates' => 'غیرفعال'], 'val' => $row['affiliatesstatus'] ?? ''],
                 ['name' => 'set_affiliatespercentage', 'label' => 'درصد پورسانت', 'type' => 'number', 'val' => $row['affiliatespercentage'] ?? '0'],
+                ['name' => 'aff_status_commission', 'label' => 'وضعیت پورسانت‌دهی', 'type' => 'select', 'options' => ['oncommission' => 'فعال', 'offcommission' => 'غیرفعال'], 'val' => $affiliate_settings['status_commission'] ?? ''],
+                ['name' => 'aff_Discount', 'label' => 'کد تخفیف به معرف', 'type' => 'select', 'options' => ['onDiscountaffiliates' => 'فعال', 'offDiscountaffiliates' => 'غیرفعال'], 'val' => $affiliate_settings['Discount'] ?? ''],
+                ['name' => 'aff_price_Discount', 'label' => 'مبلغ/درصد تخفیف', 'type' => 'number', 'val' => $affiliate_settings['price_Discount'] ?? '0'],
+                ['name' => 'aff_porsant_one_buy', 'label' => 'پورسانت فقط خرید اول', 'type' => 'select', 'options' => ['on_buy_porsant' => 'بله', 'off_buy_porsant' => 'خیر'], 'val' => $affiliate_settings['porsant_one_buy'] ?? ''],
+                ['name' => 'aff_description', 'label' => 'متن توضیحات', 'type' => 'text', 'val' => $affiliate_settings['description'] ?? ''],
+                ['name' => 'aff_id_media', 'label' => 'فایل مدیای راهنما', 'type' => 'text', 'val' => $affiliate_settings['id_media'] ?? ''],
             ]
         ]
     ],
@@ -234,6 +291,9 @@ $schema = [
                 ['name' => 'set_wheelـluck_price', 'label' => 'قیمت هر چرخش (تومان)', 'type' => 'number', 'val' => $row['wheelـluck_price'] ?? '0'],
                 ['name' => 'set_statusfirstwheel', 'label' => 'اولین چرخش رایگان', 'type' => 'select', 'options' => ['1' => 'بله', '0' => 'خیر'], 'val' => $row['statusfirstwheel'] ?? ''],
                 ['name' => 'set_wheelagent', 'label' => 'گردونه برای نمایندگان', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['wheelagent'] ?? ''],
+                ['name' => 'set_prize_one', 'label' => 'جایزه سطح 1', 'type' => 'number', 'val' => $lottery_prize['one'] ?? '0'],
+                ['name' => 'set_prize_tow', 'label' => 'جایزه سطح 2', 'type' => 'number', 'val' => $lottery_prize['tow'] ?? '0'],
+                ['name' => 'set_prize_theree', 'label' => 'جایزه سطح 3', 'type' => 'number', 'val' => $lottery_prize['theree'] ?? '0'],
             ],
             'سایر بازی‌ها و امتیازات' => [
                 ['name' => 'set_Dice', 'label' => 'بازی تاس', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['Dice'] ?? ''],
@@ -252,8 +312,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_cardnumber = null;
     $new_namecard = null;
     
+    $new_cron_status = json_decode($row['cron_status'] ?? '{}', true);
+    if (!is_array($new_cron_status)) $new_cron_status = [];
+    
+    $new_limitnumber = json_decode($row['limitnumber'] ?? '{}', true);
+    if (!is_array($new_limitnumber)) $new_limitnumber = [];
+    
+    $new_lottery_prize = json_decode($row['Lottery_prize'] ?? '{}', true);
+    if (!is_array($new_lottery_prize)) $new_lottery_prize = [];
+    
+    $new_chashbackextend_agent = ['n' => 0, 'n2' => 0];
+    $stmt = $pdo->query("SELECT value FROM shopSetting WHERE Namevalue = 'chashbackextend_agent'");
+    if($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $dec = json_decode($r['value'], true);
+        if(is_array($dec)) $new_chashbackextend_agent = $dec;
+    }
+    
+    $updates_affiliates = [];
+    $params_affiliates = [];
+    
     foreach($_POST as $key => $val) {
-        if(strpos($key, 'set_') === 0) {
+        if(strpos($key, 'set_cron_') === 0) {
+            $field = substr($key, 9);
+            $new_cron_status[$field] = ($val === '1');
+        } elseif(strpos($key, 'set_limitnumber_') === 0) {
+            $field = substr($key, 16);
+            $new_limitnumber[$field] = intval($val);
+        } elseif(strpos($key, 'set_prize_') === 0) {
+            $field = substr($key, 10);
+            $new_lottery_prize[$field] = strval($val);
+        } elseif(strpos($key, 'set_') === 0) {
             $field = substr($key, 4);
             $updates_setting[] = "$field = ?";
             $params_setting[] = $val;
@@ -288,10 +376,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [$val, $field]);
             }
+        } elseif(strpos($key, 'shop_chashbackextend_agent_') === 0) {
+            $field = substr($key, 27);
+            $new_chashbackextend_agent[$field] = intval($val);
         } elseif(strpos($key, 'shop_') === 0) {
             $field = substr($key, 5);
             db_query($pdo, "UPDATE shopSetting SET value = ? WHERE Namevalue = ?", [$val, $field]);
+        } elseif(strpos($key, 'aff_') === 0) {
+            $field = substr($key, 4);
+            $updates_affiliates[] = "$field = ?";
+            $params_affiliates[] = $val;
         }
+    }
+    
+    $updates_setting[] = "cron_status = ?";
+    $params_setting[] = json_encode($new_cron_status);
+    
+    $updates_setting[] = "limitnumber = ?";
+    $params_setting[] = json_encode($new_limitnumber);
+    
+    $updates_setting[] = "Lottery_prize = ?";
+    $params_setting[] = json_encode($new_lottery_prize);
+    
+    db_query($pdo, "UPDATE shopSetting SET value = ? WHERE Namevalue = ?", [json_encode($new_chashbackextend_agent), 'chashbackextend_agent']);
+    
+    if(!empty($updates_affiliates)) {
+        db_query($pdo, "UPDATE affiliates SET " . implode(', ', $updates_affiliates), $params_affiliates);
     }
     
     if ($new_cardnumber !== null && $new_namecard !== null) {

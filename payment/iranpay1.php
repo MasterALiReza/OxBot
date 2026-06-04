@@ -24,6 +24,11 @@ $StatusPayment = $data['status'];
 $setting = select("setting", "*");
 $PaySetting = select("PaySetting", "*", "NamePay", "marchent_floypay", "select")['ValuePay'];
 $Payment_reports = select("Payment_report", "*", "id_order", $hashid, "select");
+
+if (!$Payment_reports || $Payment_reports['dec_not_confirmed'] !== $authority) {
+    die("Invalid Transaction.");
+}
+
 $invoice_id = $Payment_reports['id_order'];
 $price = $Payment_reports['price'];
 // verify Transaction
