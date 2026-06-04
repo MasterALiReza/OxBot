@@ -133,6 +133,11 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
             <span class="nav-icon"><?= icon('users') ?></span><span
               class="nav-label"><?= $textbotlang['panel']['layoutMenuSectionMain'] ?></span>
           </a>
+          <a href="broadcast.php" class="nav-item <?= $activeNav === 'broadcast' ? 'active' : '' ?>"
+            title="ارسال پیام همگانی">
+            <span class="nav-icon"><?= icon('send') ?></span><span
+              class="nav-label">پیام همگانی</span>
+          </a>
           <a href="invoice.php" class="nav-item <?= $activeNav === 'invoice' ? 'active' : '' ?>"
             title="<?= $textbotlang['panel']['layoutPageTitleInvoice'] ?>">
             <span class="nav-icon"><?= icon('invoice') ?></span><span

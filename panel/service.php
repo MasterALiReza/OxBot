@@ -168,6 +168,7 @@ include __DIR__ . '/inc/layout_head.php';
           <th><?= $textbotlang['panel']['serviceColPrice'] ?? 'قیمت' ?></th>
           <th><?= $textbotlang['panel']['serviceColDate'] ?? 'تاریخ' ?></th>
           <th><?= $textbotlang['panel']['serviceColStatus'] ?? 'وضعیت' ?></th>
+          <th><?= $textbotlang['panel']['serviceColActions'] ?? 'عملیات' ?></th>
         </tr>
       </thead>
       <tbody>
@@ -231,6 +232,28 @@ include __DIR__ . '/inc/layout_head.php';
               <td data-label="<?= $textbotlang['panel']['serviceColPrice'] ?? 'قیمت' ?>" class="cn cs"><?= number_format((int) ($s['price'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span></td>
               <td data-label="<?= $textbotlang['panel']['serviceColDate'] ?? 'تاریخ' ?>" class="cf"><?= safe_date($s['time'] ?? null, 'Y/m/d') ?></td>
               <td data-label="<?= $textbotlang['panel']['serviceColStatus'] ?? 'وضعیت' ?>"><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
+              <td data-label="<?= $textbotlang['panel']['serviceColActions'] ?? 'عملیات' ?>">
+                <?php if (($s['status'] ?? '') === 'pending'): ?>
+                  <div style="display: flex; gap: 6px;">
+                    <button type="button" class="btn" style="background:var(--emerald); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:0.8rem; cursor:pointer;"
+                            hx-post="ajax/service_action.php"
+                            hx-vals='{"action": "done", "id": "<?= $s['id'] ?>", "_csrf": "<?= csrf_token() ?>"}'
+                            hx-target="closest tr"
+                            hx-swap="outerHTML">
+                      تایید
+                    </button>
+                    <button type="button" class="btn" style="background:var(--red); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:0.8rem; cursor:pointer;"
+                            hx-post="ajax/service_action.php"
+                            hx-vals='{"action": "reject", "id": "<?= $s['id'] ?>", "_csrf": "<?= csrf_token() ?>"}'
+                            hx-target="closest tr"
+                            hx-swap="outerHTML">
+                      رد
+                    </button>
+                  </div>
+                <?php else: ?>
+                  <span class="cf">—</span>
+                <?php endif; ?>
+              </td>
             </tr>
           <?php endforeach; endif; ?>
       </tbody>
