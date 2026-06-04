@@ -7,11 +7,47 @@ $textbotlang = languagechange();
 if(!is_file('info'))return;
 if(!is_file('users.json'))return;
 
+// Load administrative and owner Telegram IDs
+$admin_ids = select("admin", "id_admin", null, null, "FETCH_COLUMN") ?: [];
+global $adminnumber;
+if (isset($adminnumber) && $adminnumber !== '') {
+    $admin_ids[] = (string)$adminnumber;
+}
+$admin_ids = array_values(array_unique(array_filter($admin_ids)));
+
+$info = json_decode(file_get_contents('info'), true);
+if (!is_array($info)) {
+    $info = [];
+}
+
+// Intercept new broadcast runs (e.g. from admin.php) and merge admins/owner
+if (!isset($info['admin_appended'])) {
+    $raw_userid = json_decode(file_get_contents('users.json'), true) ?: [];
+    $existing_ids = [];
+    foreach ($raw_userid as $u) {
+        if (is_array($u) && isset($u['id'])) {
+            $existing_ids[] = (string)$u['id'];
+        } elseif (is_object($u) && isset($u->id)) {
+            $existing_ids[] = (string)$u->id;
+        } elseif (is_scalar($u)) {
+            $existing_ids[] = (string)$u;
+        }
+    }
+    
+    $merged_ids = array_merge($existing_ids, $admin_ids);
+    $merged_ids = array_values(array_unique(array_filter($merged_ids)));
+    
+    $new_userid_list = [];
+    foreach ($merged_ids as $id) {
+        $new_userid_list[] = ['id' => $id];
+    }
+    
+    file_put_contents('users.json', json_encode($new_userid_list));
+    $info['admin_appended'] = true;
+    file_put_contents('info', json_encode($info));
+}
 
 $userid = json_decode(file_get_contents('users.json'));
-if(is_file('info')){
-$info = json_decode(file_get_contents('info'),true);
-}
 $count = 0;
 if(count($userid) == 0){
     if(isset($info['id_admin'])){
@@ -76,9 +112,16 @@ $keyboardaddbalance = json_encode([
         ]
     ]);
 for ($i = 0; $i < 20; $i++) {
-    $iduser = $userid[$i];
-    unset($userid[$i]);
-    $userid = array_values($userid);
+    if (empty($userid)) {
+        break;
+    }
+    $iduser = array_shift($userid);
+    if (!isset($iduser->id)) {
+        continue;
+    }
+    
+    $isAdminOrOwner = in_array((string)$iduser->id, $admin_ids);
+
     if ($info['type'] == "unpinmessage") {
         unpinmessage($iduser->id);
     } elseif ($info['type'] == "sendmessage" or $info['type'] == "xdaynotmessage") {
@@ -108,12 +151,12 @@ for ($i = 0; $i < 20; $i++) {
             }
         }
 
-        if ($meesage['ok'] and $info['pingmessage'] == "yes") {
+        if ($meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
             pinmessage($iduser->id, $meesage['result']['message_id']);
         }
     } elseif ($info['type'] == "forwardmessage") {
         $meesage = forwardMessage($info['id_admin'], $info['message'], $iduser->id);
-        if ($meesage['ok'] and $info['pingmessage'] == "yes") {
+        if ($meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
             pinmessage($iduser->id, $meesage['result']['message_id']);
         }
     }

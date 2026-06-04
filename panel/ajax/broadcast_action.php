@@ -53,10 +53,33 @@ if (empty($users)) {
     exit;
 }
 
-// Format exactly as the cron expects: an array of objects with 'id' property.
-$formatted_users = [];
+// Fetch admin ids & owner to merge into the broadcast target list
+$admin_ids = [];
+$admin_rows = db_fetchAll($pdo, "SELECT id_admin FROM admin");
+foreach ($admin_rows as $row) {
+    if (!empty($row['id_admin'])) {
+        $admin_ids[] = (string)$row['id_admin'];
+    }
+}
+if (isset($adminnumber) && $adminnumber !== '') {
+    $admin_ids[] = (string)$adminnumber;
+}
+
+$all_ids = [];
 foreach ($users as $u) {
-    $formatted_users[] = ['id' => $u['id']];
+    if (!empty($u['id'])) {
+        $all_ids[] = (string)$u['id'];
+    }
+}
+
+// Merge and deduplicate
+$all_ids = array_merge($all_ids, $admin_ids);
+$all_ids = array_values(array_unique(array_filter($all_ids)));
+
+// Format exactly as the cron expects: an array of objects/arrays with 'id' property.
+$formatted_users = [];
+foreach ($all_ids as $id) {
+    $formatted_users[] = ['id' => $id];
 }
 
 $info = [

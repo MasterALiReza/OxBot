@@ -10,7 +10,7 @@ require 'inc/layout_head.php';
 <style>
 /* Mission Control Aesthetic for Broadcast */
 .broadcast-dashboard {
-    max-width: 900px;
+    max-width: 760px;
     margin: 0 auto;
 }
 
@@ -110,12 +110,12 @@ require 'inc/layout_head.php';
 
 .bc-checkbox-wrapper {
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 16px;
+    align-items: center;
+    gap: 16px;
+    padding: 18px;
     background: var(--sf);
-    border: 1px solid var(--bd);
-    border-radius: 10px;
+    border: 1.5px solid var(--bd);
+    border-radius: 12px;
     cursor: pointer;
     transition: all var(--tf);
 }
@@ -123,14 +123,16 @@ require 'inc/layout_head.php';
 .bc-checkbox-wrapper:hover {
     border-color: var(--ac);
     background: var(--sf3);
+    box-shadow: 0 0 14px var(--acs);
 }
 
 .bc-checkbox-wrapper input[type="checkbox"] {
-    margin-top: 4px;
+    margin: 0;
     accent-color: var(--ac);
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .bc-checkbox-text strong {
@@ -143,11 +145,13 @@ require 'inc/layout_head.php';
 .bc-checkbox-text small {
     color: var(--dim);
     font-size: 0.75rem;
+    line-height: 1.5;
+    display: block;
 }
 
 .bc-submit {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     margin-top: 30px;
 }
 
