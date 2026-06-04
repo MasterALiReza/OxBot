@@ -374,7 +374,8 @@ include __DIR__ . '/inc/layout_head.php';
                             </select>
                         </div>
                         <div class="field-group">
-                            <label>وضعیت اتصال API</label>
+                            <label>اتصال خودکار ربات به پنل (API)</label>
+                            <small style="color:var(--ts);font-size:11px;display:block;margin-bottom:6px;">برای آپدیت خودکار حجم و زمان کاربران، روشن کنید.</small>
                             <select name="conecton" id="panelConecton" class="input">
                                 <option value="onconecton">روشن</option>
                                 <option value="offconecton">خاموش</option>
@@ -813,12 +814,12 @@ function closeTestConnModal() {
         const url = document.getElementById('panelUrl').value;
         const user = document.getElementById('panelUsername').value;
         const pass = document.getElementById('panelPassword').value;
-        if (!url || !user || !pass) {
-            alert('لطفاً ابتدا فیلدهای آدرس، نام کاربری و رمزعبور پنل را پر کنید.');
-            return;
-        }
         const loader = document.getElementById('inboundsLoader');
         const list = document.getElementById('inboundsList');
+        if (!url || !user || !pass) {
+            list.innerHTML = '<small style="color:var(--red)">لطفاً ابتدا فیلدهای آدرس، نام کاربری و رمزعبور پنل را پر کنید.</small>';
+            return;
+        }
         loader.style.display = 'inline';
         list.innerHTML = '<small style="color:var(--ts)">در حال دریافت اطلاعات از پنل...</small>';
 

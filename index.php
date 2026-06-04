@@ -4121,19 +4121,32 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
                 elseif (str_starts_with($conf, 'wireguard://') || str_starts_with($conf, '[Interface]')) $protocol = '🔒 WireGuard';
 
                 $caption = "<b>{$protocol}</b> — کانفیگ شماره " . ($idx + 1) . "\n\n<code>{$conf}</code>";
+                
+                $caption_photo = $caption;
+                $send_separate = false;
+                if (mb_strlen($caption, 'UTF-8') > 1000) {
+                    $caption_photo = "<b>{$protocol}</b> — کانفیگ شماره " . ($idx + 1);
+                    $send_separate = true;
+                }
+
                 // Generate QR
                 $urlimage = "{$from_id}_manual_{$invoice_id}_{$idx}.png";
                 try {
                     $qrCode = createqrcode($conf);
                     file_put_contents($urlimage, $qrCode->getString());
                     addBackgroundImage($urlimage, $qrCode, $image_bg);
+                    
                     telegram('sendphoto', [
                         'chat_id' => $from_id,
                         'photo' => new CURLFile($urlimage),
-                        'caption' => $caption,
+                        'caption' => $caption_photo,
                         'parse_mode' => 'HTML',
                     ]);
                     unlink($urlimage);
+                    
+                    if ($send_separate) {
+                        sendmessage($from_id, "<code>{$conf}</code>", null, 'HTML');
+                    }
                 } catch (Throwable $e) {
                     // Fallback: send text only if QR fails
                     sendmessage($from_id, $caption, null, 'HTML');

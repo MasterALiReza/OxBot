@@ -119,9 +119,9 @@ include __DIR__ . '/inc/layout_head.php';
 <?php
 // Role config map
 $roleConfig = [
-    'administrator' => ['label' => 'مدیر کل',  'tag' => 'tag-ok',   'icon' => 'settings',      'color' => '#22c55e'],
-    'Seller'        => ['label' => 'فروشنده',   'tag' => 'tag-info', 'icon' => 'wallet',        'color' => '#3b82f6'],
-    'support'       => ['label' => 'پشتیبان',   'tag' => 'tag-warn', 'icon' => 'message-square','color' => '#f59e0b'],
+    'administrator' => ['label' => 'مدیر کل',  'tag' => 'tag-ok',   'icon' => 'shield',  'color' => '#22c55e'],
+    'Seller'        => ['label' => 'فروشنده',   'tag' => 'tag-info', 'icon' => 'tag',     'color' => '#3b82f6'],
+    'support'       => ['label' => 'پشتیبان',   'tag' => 'tag-warn', 'icon' => 'life',    'color' => '#f59e0b'],
 ];
 $getRoleConf = fn($rule) => $roleConfig[$rule] ?? ['label' => $rule, 'tag' => 'tag-plain', 'icon' => 'user', 'color' => '#6b7280'];
 ?>
@@ -140,7 +140,7 @@ $getRoleConf = fn($rule) => $roleConfig[$rule] ?? ['label' => $rule, 'tag' => 't
     </div>
     <div class="dash-card">
         <div class="dash-card-header">
-            <div class="icon-glow bg-emerald"><?= icon('settings', 20) ?></div>
+            <div class="icon-glow bg-emerald"><?= icon('shield', 20) ?></div>
             <div class="dash-card-title">مدیران کل</div>
         </div>
         <div class="dash-card-footer">
@@ -150,7 +150,7 @@ $getRoleConf = fn($rule) => $roleConfig[$rule] ?? ['label' => $rule, 'tag' => 't
     </div>
     <div class="dash-card">
         <div class="dash-card-header">
-            <div class="icon-glow bg-blue"><?= icon('wallet', 20) ?></div>
+            <div class="icon-glow bg-blue"><?= icon('tag', 20) ?></div>
             <div class="dash-card-title">فروشندگان</div>
         </div>
         <div class="dash-card-footer">
@@ -160,7 +160,7 @@ $getRoleConf = fn($rule) => $roleConfig[$rule] ?? ['label' => $rule, 'tag' => 't
     </div>
     <div class="dash-card">
         <div class="dash-card-header">
-            <div class="icon-glow bg-amber"><?= icon('message-square', 20) ?></div>
+            <div class="icon-glow bg-amber"><?= icon('life', 20) ?></div>
             <div class="dash-card-title">پشتیبان‌ها</div>
         </div>
         <div class="dash-card-footer">
