@@ -152,20 +152,41 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
   <?php else: ?>
     <div class="toolbar">
       <div class="toolbar-title">فهرست محصولات <small>(<?= count($products) ?>)</small></div>
-      <div class="toolbar-end" style="display:flex; align-items:center; gap:8px;">
-        <button class="btn btn-primary btn-sm" onclick="openModal('addModal')">
-          <?= icon('plus', 14) ?> افزودن محصول جدید
-        </button>
-        <div class="search-box" style="min-width:220px">
+      <div class="toolbar-end" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <select class="select" id="filter-category" style="width:auto; min-width:140px; padding: 8px 12px 8px 30px; font-size: 0.8rem;">
+            <option value="all">همه دسته‌بندی‌ها</option>
+            <?php foreach (array_unique(array_filter(array_column($products, 'category'))) as $cat): ?>
+                <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <select class="select" id="filter-panel" style="width:auto; min-width:140px; padding: 8px 12px 8px 30px; font-size: 0.8rem;">
+            <option value="all">همه سرورها/پنل‌ها</option>
+            <?php foreach (array_unique(array_filter(array_column($products, 'Location'))) as $loc): ?>
+                <option value="<?= htmlspecialchars($loc) ?>"><?= htmlspecialchars($loc) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <div class="search-box" style="min-width:220px; flex: 1;">
           <?= icon('search', 14) ?>
-          <input type="text" placeholder="جستجوی محصول..." data-filter="prodTbl">
+          <input type="text" placeholder="جستجوی محصول..." id="filter-search">
           <button type="button" class="search-clear">✕</button>
         </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('addModal')" style="flex-shrink:0;">
+          <?= icon('plus', 14) ?> افزودن محصول جدید
+        </button>
       </div>
     </div>
     <div class="product-grid" id="prodTbl">
+      <div class="filter-empty-state" id="filter-empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="11" y1="8" x2="11" y2="14"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+          <p>هیچ محصولی با این فیلترها یافت نشد.</p>
+      </div>
       <?php foreach ($products as $p): ?>
-        <div class="product-card filterable-item">
+        <div class="product-card filterable-item" data-category="<?= htmlspecialchars($p['category'] ?? '') ?>" data-panel="<?= htmlspecialchars($p['Location'] ?? '') ?>">
             <div class="pc-head">
                 <div>
                     <h3 class="pc-title"><?= htmlspecialchars($p['name_product'] ?? '') ?></h3>

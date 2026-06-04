@@ -2,7 +2,7 @@
 .swal2-container { font-family: var(--font) !important; }
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 16px;
     padding-top: 10px;
 }
@@ -100,3 +100,42 @@
     display: flex;
     gap: 6px;
 }
+
+.filter-empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--dim);
+    display: none;
+}
+
+.filter-empty-state.show {
+    display: block;
+}
+
+.filter-empty-state svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+    color: var(--mute);
+}
+
+.filter-empty-state p {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+@media (max-width: 480px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .product-card {
+        padding: 16px 14px;
+    }
+    .pc-actions .btn {
+        min-height: 44px; /* Touch target */
+    }
+}
+
