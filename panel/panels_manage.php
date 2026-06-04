@@ -350,8 +350,9 @@ include __DIR__ . '/inc/layout_head.php';
                             <input type="text" name="username_panel" id="panelUsername" class="input" placeholder="admin" style="direction:ltr;text-align:left;">
                         </div>
                         <div class="field-group">
-                            <label>رمز عبور پنل</label>
+                            <label>رمز عبور یا توکن API پنل</label>
                             <input type="password" name="password_panel" id="panelPassword" class="input" placeholder="••••••••" style="direction:ltr;text-align:left;">
+                            <small style="color:var(--ts);font-size:11px;display:block;margin-top:4px;">برای پنل ثنایی نسخه ۳.۲ به بالا می‌توانید به جای رمز عبور، توکن API (API Key) را وارد کنید.</small>
                         </div>
                     </div>
                 </div>
@@ -816,8 +817,8 @@ function closeTestConnModal() {
         const pass = document.getElementById('panelPassword').value;
         const loader = document.getElementById('inboundsLoader');
         const list = document.getElementById('inboundsList');
-        if (!url || !user || !pass) {
-            list.innerHTML = '<small style="color:var(--red)">لطفاً ابتدا فیلدهای آدرس، نام کاربری و رمزعبور پنل را پر کنید.</small>';
+        if (!url || !pass) {
+            list.innerHTML = '<small style="color:var(--red)">لطفاً ابتدا فیلدهای آدرس و رمزعبور/توکن پنل را پر کنید.</small>';
             return;
         }
         loader.style.display = 'inline';
@@ -866,11 +867,11 @@ function closeTestConnModal() {
         const pass = document.getElementById('panelPassword').value;
         const resultDiv = document.getElementById('inlineConnResult');
 
-        if (!url || !user || !pass) {
+        if (!url || !pass) {
             resultDiv.style.display = 'block';
             resultDiv.style.background = 'rgba(239,68,68,0.1)';
             resultDiv.style.color = '#ef4444';
-            resultDiv.innerHTML = '❌ لطفاً آدرس، نام کاربری و رمز عبور را در تب «اصلی» وارد کنید.';
+            resultDiv.innerHTML = '❌ لطفاً آدرس و رمزعبور/توکن را در تب «اصلی» وارد کنید.';
             return;
         }
 
