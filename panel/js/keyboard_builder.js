@@ -14,13 +14,32 @@
     ensureEmptyRowAtBottom();
     initSortables();
 
-    function createButtonElement(keyName, isActive = false) {
+    function createButtonElement(keyName, isActive = false, btnStyle = null) {
         const btn = document.createElement("div");
         btn.className = "kb-btn telegram-btn";
+        
+        if (btnStyle && btnStyle !== 'default') {
+            btn.classList.add(`btn-${btnStyle}`);
+        }
+        
         btn.dataset.key = keyName;
+        if (btnStyle) {
+            btn.dataset.style = btnStyle;
+        }
+        
         // The span helps with text overflow
         btn.innerHTML = `<span>${textDict[keyName] || keyName}</span>`;
         
+        // Add style/color picker button
+        const styleBtn = document.createElement("div");
+        styleBtn.className = "style-btn";
+        styleBtn.innerHTML = "🎨";
+        styleBtn.onclick = (e) => {
+            e.stopPropagation();
+            openColorPicker(btn);
+        };
+        btn.appendChild(styleBtn);
+
         // Add remove button
         const removeBtn = document.createElement("div");
         removeBtn.className = "remove-btn";
@@ -31,7 +50,7 @@
         };
         btn.appendChild(removeBtn);
         
-        // Mobile tap to show remove btn
+        // Mobile tap to show actions
         btn.onclick = (e) => {
             document.querySelectorAll('.kb-btn.show-actions').forEach(b => {
                 if (b !== btn) b.classList.remove('show-actions');
@@ -64,7 +83,7 @@
             let hasItems = false;
             rowArr.forEach(item => {
                 if (item.text) {
-                    rowEl.appendChild(createButtonElement(item.text, true));
+                    rowEl.appendChild(createButtonElement(item.text, true, item.style));
                     hasItems = true;
                 }
             });
@@ -177,6 +196,27 @@
         document.getElementById('addBtnModalVeil').style.display = 'flex';
     };
 
+    let currentStyleBtn = null;
+    window.openColorPicker = function(btn) {
+        currentStyleBtn = btn;
+        document.getElementById('colorPickerModalVeil').style.display = 'flex';
+    };
+
+    window.setBtnStyle = function(style) {
+        if (!currentStyleBtn) return;
+        
+        // Remove existing style classes
+        currentStyleBtn.classList.remove('btn-primary', 'btn-success', 'btn-danger', 'btn-secondary', 'btn-default');
+        
+        // Set new style
+        if (style && style !== 'default') {
+            currentStyleBtn.classList.add(`btn-${style}`);
+        }
+        
+        currentStyleBtn.dataset.style = style;
+        document.getElementById('colorPickerModalVeil').style.display = 'none';
+    };
+
     function initSortables() {
         const sortableOptions = {
             group: "shared",
@@ -232,7 +272,11 @@
             const rowData = [];
             row.querySelectorAll(".kb-btn").forEach(btn => {
                 if (btn.dataset.key) {
-                    rowData.push({ text: btn.dataset.key });
+                    const btnObj = { text: btn.dataset.key };
+                    if (btn.dataset.style && btn.dataset.style !== 'default') {
+                        btnObj.style = btn.dataset.style;
+                    }
+                    rowData.push(btnObj);
                 }
             });
             // Only add non-empty rows

@@ -224,8 +224,9 @@
     min-width: 120px;
 }
 
-#unused-keys .kb-btn .remove-btn {
-    display: none; /* No remove button in unused area */
+#unused-keys .kb-btn .remove-btn,
+#unused-keys .kb-btn .style-btn {
+    display: none; /* No remove/style buttons in unused area */
 }
 
 .sortable-fallback {
