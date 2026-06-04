@@ -198,6 +198,8 @@ class ServiceMonitor
     {
         if ($invoice['uuid'] != null || $userData['data_limit_reset'] != "no_reset")
             return;
+        if (empty($panel_info['inbound_deactive']) || strpos($panel_info['inbound_deactive'], '*') === false)
+            return;
         $inbound = explode("*", $panel_info['inbound_deactive']);
         update("invoice", "uuid", json_encode($userData['uuid']), "id_invoice", $invoice['id_invoice']);
         $proxies = [];
