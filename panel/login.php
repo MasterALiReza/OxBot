@@ -74,6 +74,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/mobile_optimizations.css">
   <script>(function () { var t = localStorage.getItem('panel-theme') || 'navy'; document.documentElement.setAttribute('data-theme', t); var c = { navy: '#0F172A', purple: '#180D2E', emerald: '#0A1F1C', sunset: '#1A0D0D', slate: '#080808', light: '#F1F5F9', linen: '#FAF7F2', mint: '#F0FDF4', lavender: '#FAF5FF' }; var m = document.getElementById('mtc'); if (m && c[t]) m.content = c[t]; })();</script>
+  <style>
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+    .input-icon {
+        position: absolute;
+        right: 12px;
+        color: var(--dim);
+        display: flex;
+        align-items: center;
+        pointer-events: none;
+        transition: color var(--tf);
+        z-index: 2;
+    }
+    .input-with-icon {
+        padding-right: 38px !important;
+        width: 100%;
+    }
+    .input-wrapper:focus-within .input-icon {
+        color: var(--ac);
+    }
+    /* Modern Auth Box Styling */
+    .auth-box {
+        background: rgba(var(--glass-base-rgb, 30, 41, 59), 0.45) !important;
+        backdrop-filter: blur(18px) saturate(120%) !important;
+        -webkit-backdrop-filter: blur(18px) saturate(120%) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: 20px !important;
+        padding: 32px !important;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+    }
+    [data-theme=light] .auth-box, [data-theme=linen] .auth-box, [data-theme=mint] .auth-box, [data-theme=lavender] .auth-box {
+        background: rgba(255, 255, 255, 0.75) !important;
+        border: 1.5px solid rgba(0, 0, 0, 0.08) !important;
+        box-shadow: 0 12px 40px rgba(15, 23, 42, 0.05) !important;
+    }
+    .auth-bottom {
+        font-weight: 500;
+        color: var(--mute);
+    }
+    .auth-form .btn-primary {
+        height: 46px;
+        font-size: 0.92rem;
+        letter-spacing: 0.01em;
+    }
+    @media (max-width: 768px) {
+        .auth-box {
+            padding: 24px 20px !important;
+            border-radius: 16px !important;
+        }
+    }
+  </style>
 </head>
 
 <body>
@@ -99,18 +154,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <div class="notice notice-no" style="margin-bottom:20px"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
         <form class="auth-form" method="POST" autocomplete="on">
-          <?php ?>
           <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
           <div class="field">
             <label for="username"><?= $textbotlang['panel']['loginFooter'] ?></label>
-            <input type="text" id="username" name="username" class="input" placeholder="admin"
-              value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" autocomplete="username" required autofocus
-              maxlength="100">
+            <div class="input-wrapper">
+              <span class="input-icon"><?= icon('user', 16) ?></span>
+              <input type="text" id="username" name="username" class="input input-with-icon" placeholder="admin"
+                value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" autocomplete="username" required autofocus
+                maxlength="100">
+            </div>
           </div>
           <div class="field">
             <label for="password"><?= $textbotlang['panel']['loginErrorTitle'] ?></label>
-            <input type="password" id="password" name="password" class="input" placeholder="••••••••"
-              autocomplete="current-password" required maxlength="200">
+            <div class="input-wrapper">
+              <span class="input-icon"><?= icon('lock', 16) ?></span>
+              <input type="password" id="password" name="password" class="input input-with-icon" placeholder="••••••••"
+                autocomplete="current-password" required maxlength="200">
+            </div>
           </div>
           <button type="submit" class="btn btn-primary" id="loginBtn">
             <span id="loginText"><?= $textbotlang['panel']['loginShowPassword'] ?></span>

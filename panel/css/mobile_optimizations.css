@@ -463,3 +463,120 @@
         width: 100%;
     }
 }
+
+/* ==========================================================================
+   PREMIUM MOBILE DESIGN OVERRIDES (TOUCH TARGETS, GLASS SHEETS, ACTIVE PILLS)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    /* Premium bottom-nav with glowing active pill */
+    .bottom-nav {
+        background: rgba(var(--glass-base-rgb), 0.75) !important;
+        backdrop-filter: blur(20px) saturate(130%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(130%) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25) !important;
+        border-radius: 20px 20px 0 0 !important;
+        margin: 0 !important;
+        padding-bottom: max(8px, env(safe-area-inset-bottom, 8px)) !important;
+    }
+    
+    .bnav-item {
+        transition: transform var(--tf) cubic-bezier(0.34, 1.56, 0.64, 1), color var(--tf) !important;
+    }
+    .bnav-item.active {
+        color: var(--ac) !important;
+        transform: translateY(-2px) !important;
+    }
+    .bnav-item.active::before {
+        display: none !important; /* Hide old bar */
+    }
+    
+    /* Elegant bubble active indicator under icon */
+    .bnav-item.active::after {
+        content: "";
+        position: absolute;
+        bottom: 2px;
+        width: 5px;
+        height: 5px;
+        background: var(--ac);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--acg);
+        animation: fadeUp 0.3s ease-out;
+    }
+
+    /* Action buttons minimum touch target size */
+    .btn-sm.btn-icon, .icon-btn, .pager a, .pager span, .modal-x, .search-clear {
+        min-width: 44px !important;
+        min-height: 44px !important;
+        display: inline-grid !important;
+        place-items: center !important;
+    }
+    
+    /* Table cards redesign on mobile */
+    .tbl-wrap tr {
+        background: rgba(var(--glass-base-rgb), 0.2) !important;
+        border: 1px solid var(--bd) !important;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12) !important;
+        border-radius: 14px !important;
+        padding: 10px !important;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 16px !important;
+        border-right: 4px solid var(--bd) !important; /* Default RTL right border */
+        transition: transform var(--tf), border-color var(--tf) !important;
+    }
+    
+    /* Status indicators based on content or labels */
+    .tbl-wrap tr:has(.tag-ok, .success) {
+        border-right-color: var(--ok) !important;
+    }
+    .tbl-wrap tr:has(.tag-no, .danger) {
+        border-right-color: var(--no) !important;
+    }
+    .tbl-wrap tr:has(.tag-warn, .warning) {
+        border-right-color: var(--warn) !important;
+    }
+    .tbl-wrap tr:has(.tag-info) {
+        border-right-color: var(--ac) !important;
+    }
+    
+    /* Smooth touch slide for table cards */
+    .tbl-wrap tr:active {
+        transform: scale(0.985);
+        background: rgba(var(--glass-base-rgb), 0.3) !important;
+    }
+
+    .tbl-wrap td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+        padding: 12px 10px !important;
+    }
+    
+    /* Bottom Sheet slide-up styling for Modals */
+    .modal-veil {
+        background: rgba(0, 0, 0, 0.75) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        transition: opacity 0.3s ease-in-out !important;
+    }
+    .modal {
+        border-radius: 24px 24px 0 0 !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.4) !important;
+        transform: translateY(100%) !important;
+        transition: transform 0.4s cubic-bezier(0.1, 0.76, 0.55, 0.94) !important;
+    }
+    .modal-veil.open .modal {
+        transform: translateY(0) !important;
+    }
+    
+    /* Form fields mobile spacing */
+    .form-grid {
+        gap: 12px !important;
+    }
+    .field label {
+        margin-bottom: 4px;
+        font-size: 0.8rem;
+    }
+}
+

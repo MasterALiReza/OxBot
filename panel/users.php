@@ -213,21 +213,21 @@ include __DIR__ . '/inc/layout_head.php';
     color: var(--text);
 }
 .tab-item.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
+    color: var(--ac);
+    border-bottom-color: var(--ac);
 }
 .tab-item .badge {
-    background: var(--surface-2);
-    color: var(--text);
+    background: var(--sf2);
+    color: var(--text2);
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 0.75rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--bd);
 }
 .tab-item.active .badge {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
+    background: var(--ac);
+    color: #fff !important;
+    border-color: var(--ac);
 }
 </style>
 

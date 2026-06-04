@@ -477,9 +477,12 @@ if (!empty($bestSelling)) {
         const labels = <?= json_encode($chartLabels) ?>;
         const data = <?= json_encode($chartData) ?>;
 
+        const rootStyles = getComputedStyle(document.documentElement);
+        const accentColor = rootStyles.getPropertyValue('--ac').trim() || '#3b82f6';
+
         const gradient = salesCtx.getContext('2d').createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
-        gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+        gradient.addColorStop(0, accentColor + '40'); // 25% opacity hex
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         new Chart(salesCtx.getContext('2d'), {
             type: 'line',
@@ -488,11 +491,11 @@ if (!empty($bestSelling)) {
                 datasets: [{
                     label: 'درآمد',
                     data: data,
-                    borderColor: '#3b82f6', // Match reference blue line
+                    borderColor: accentColor,
                     backgroundColor: gradient,
                     borderWidth: 3,
                     pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#3b82f6',
+                    pointBorderColor: accentColor,
                     pointBorderWidth: 2,
                     pointRadius: 4,
                     pointHoverRadius: 6,
