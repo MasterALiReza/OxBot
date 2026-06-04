@@ -6,81 +6,282 @@ $title = 'ارسال پیام همگانی';
 require 'inc/layout_head.php';
 
 ?>
-<div class="card fade-in">
-    <div class="flex-between" style="margin-bottom: 20px;">
-        <h2><?= icon('send', 20) ?> ارسال پیام همگانی (Broadcast)</h2>
+
+<style>
+/* Mission Control Aesthetic for Broadcast */
+.broadcast-dashboard {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.bc-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--bd);
+}
+
+.bc-header h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bc-header p {
+    color: var(--dim);
+    font-size: 0.85rem;
+    margin-top: 6px;
+}
+
+.bc-alert {
+    background: var(--warns);
+    border: 1px solid var(--warn);
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--text);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.bc-alert-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--warn);
+    color: #000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.bc-alert-content h4 {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--warn);
+    margin-bottom: 4px;
+}
+
+.bc-alert-content p {
+    font-size: 0.8rem;
+    color: var(--text2);
+    margin: 0;
+}
+
+.bc-section {
+    background: var(--sf2);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    transition: all var(--tf);
+}
+
+.bc-section:hover {
+    border-color: var(--bds);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.bc-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bc-section-title svg {
+    color: var(--ac);
+}
+
+.bc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.bc-checkbox-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all var(--tf);
+}
+
+.bc-checkbox-wrapper:hover {
+    border-color: var(--ac);
+    background: var(--sf3);
+}
+
+.bc-checkbox-wrapper input[type="checkbox"] {
+    margin-top: 4px;
+    accent-color: var(--ac);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.bc-checkbox-text strong {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.bc-checkbox-text small {
+    color: var(--dim);
+    font-size: 0.75rem;
+}
+
+.bc-submit {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.bc-submit .btn {
+    padding: 14px 28px;
+    font-size: 1rem;
+    border-radius: 10px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .bc-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .bc-section {
+        padding: 16px;
+    }
+    
+    .bc-alert {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .bc-submit .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+
+<div class="broadcast-dashboard fade-in">
+    <div class="bc-header">
+        <h2><?= icon('radio', 24) ?> ایستگاه پیام‌رسانی (Broadcast)</h2>
+        <p>در این بخش می‌توانید به صورت همگانی برای گروه‌های مختلف کاربری ربات، پیام متنی ارسال کنید یا پیام‌های قبلی را از حالت پین خارج کنید.</p>
     </div>
 
     <?php if (is_file('../cronbot/info') || is_file('../cronbot/users.json')): ?>
-        <div class="alert alert-warn" style="margin-bottom: 20px;">
-            <?= icon('alert-triangle') ?> 
-            در حال حاضر یک عملیات ارسال پیام در ربات در جریان است. لطفاً تا پایان آن صبر کنید یا عملیات را لغو کنید.
+        <div class="bc-alert">
+            <div class="bc-alert-icon">
+                <?= icon('alert-triangle', 24) ?>
+            </div>
+            <div class="bc-alert-content">
+                <h4>عملیات در جریان است!</h4>
+                <p>در حال حاضر یک عملیات ارسال پیام در سرور ربات در حال انجام است. برای جلوگیری از تداخل، لطفاً تا پایان آن صبر کنید.</p>
+            </div>
         </div>
     <?php endif; ?>
 
     <form hx-post="ajax/broadcast_action.php" hx-swap="outerHTML" hx-indicator=".loader" id="broadcastForm">
         <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
         
-        <div class="grid" style="--cols: 2; margin-bottom: 20px;">
-            <div>
-                <label class="label">نوع ارسال</label>
-                <select class="input" name="type" id="messageType" onchange="toggleFields()">
-                    <option value="sendmessage">ارسال پیام متنی</option>
-                    <option value="unpinmessage">حذف پین پیام‌ها (Unpin)</option>
-                </select>
+        <!-- Section 1: Configuration -->
+        <div class="bc-section">
+            <div class="bc-section-title">
+                <?= icon('settings', 18) ?> پیکربندی عملیات
             </div>
-            
-            <div>
-                <label class="label">دکمه شیشه‌ای (فقط پیام متنی)</label>
-                <select class="input" name="btnmessage" id="btnmessage">
-                    <option value="none">بدون دکمه</option>
-                    <option value="buy">دکمه خرید (فروشگاه)</option>
-                    <option value="start">دکمه شروع</option>
-                    <option value="usertestbtn">دکمه حساب تست</option>
-                    <option value="helpbtn">دکمه راهنما</option>
-                    <option value="affiliatesbtn">دکمه همکاری در فروش</option>
-                    <option value="addbalance">دکمه افزایش موجودی</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="grid" style="--cols: 2; margin-bottom: 20px;">
-            <div>
-                <label class="label">مخاطبین (وضعیت خرید)</label>
-                <select class="input" name="target_users">
-                    <option value="all">همه کاربران</option>
-                    <option value="customer">کاربران دارای سرویس (خریداران)</option>
-                    <option value="nonecustomer">کاربران بدون سرویس</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="label">گروه کاربری (نقش)</label>
-                <select class="input" name="target_agent">
-                    <option value="all">همه نقش‌ها</option>
-                    <option value="f">کاربران عادی</option>
-                    <option value="n">نمایندگان</option>
-                    <option value="n2">نمایندگان ویژه</option>
-                </select>
+            <div class="bc-grid">
+                <div class="field">
+                    <label class="label">نوع فرمان</label>
+                    <select class="input select" name="type" id="messageType" onchange="toggleFields()">
+                        <option value="sendmessage">ارسال پیام جدید</option>
+                        <option value="unpinmessage">حذف پین تمامی پیام‌ها (Unpin)</option>
+                    </select>
+                </div>
+                
+                <div class="field">
+                    <label class="label">دکمه شیشه‌ای (فقط پیام متنی)</label>
+                    <select class="input select" name="btnmessage" id="btnmessage">
+                        <option value="none">بدون دکمه</option>
+                        <option value="buy">دکمه خرید سرویس (فروشگاه)</option>
+                        <option value="start">دکمه شروع مجدد ربات</option>
+                        <option value="usertestbtn">دکمه دریافت حساب تست</option>
+                        <option value="helpbtn">دکمه راهنما و پشتیبانی</option>
+                        <option value="affiliatesbtn">دکمه سیستم همکاری در فروش</option>
+                        <option value="addbalance">دکمه افزایش موجودی کیف پول</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div class="form-group" id="messageGroup" style="margin-bottom: 20px;">
-            <label class="label">متن پیام (پشتیبانی از HTML)</label>
-            <textarea class="input" name="message" rows="6" placeholder="متن پیام خود را بنویسید..."></textarea>
+        <!-- Section 2: Targeting -->
+        <div class="bc-section">
+            <div class="bc-section-title">
+                <?= icon('users', 18) ?> جامعه هدف (Targeting)
+            </div>
+            <div class="bc-grid">
+                <div class="field">
+                    <label class="label">بر اساس وضعیت اشتراک</label>
+                    <select class="input select" name="target_users">
+                        <option value="all">همه کاربران ربات</option>
+                        <option value="customer">فقط مشتریان (دارای سرویس فعال)</option>
+                        <option value="nonecustomer">فقط کاربران عادی (بدون سرویس)</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label class="label">بر اساس سطح دسترسی (نقش)</label>
+                    <select class="input select" name="target_agent">
+                        <option value="all">تمام نقش‌ها</option>
+                        <option value="f">کاربران عادی</option>
+                        <option value="n">نمایندگان فروش</option>
+                        <option value="n2">نمایندگان ویژه (VIP)</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
-        <div class="form-group" style="margin-bottom: 20px;">
-            <label class="label" style="display: flex; align-items: center; gap: 8px;">
+        <!-- Section 3: Content -->
+        <div class="bc-section" id="messageGroup">
+            <div class="bc-section-title">
+                <?= icon('message-square', 18) ?> محتوای پیام
+            </div>
+            <div class="field" style="margin-bottom: 20px;">
+                <label class="label">متن پیام (پشتیبانی کامل از HTML و استایل‌های تلگرام)</label>
+                <textarea class="input textarea" name="message" rows="7" placeholder="متن پیام جذاب و اطلاع‌رسانی خود را اینجا بنویسید..."></textarea>
+            </div>
+
+            <label class="bc-checkbox-wrapper">
                 <input type="checkbox" name="pingmessage" value="yes">
-                پین شدن پیام در ربات (Pin)
+                <div class="bc-checkbox-text">
+                    <strong>پین شدن پیام در ربات (Pin Message)</strong>
+                    <small>در صورت فعال بودن این گزینه، پیام بلافاصله پس از رسیدن به کاربر در صفحه چت او سنجاق (Pin) خواهد شد که باعث افزایش چشمگیر بازدید می‌شود.</small>
+                </div>
             </label>
-            <small class="text-muted block">در صورت فعال بودن، پس از ارسال پیام در چت کاربر پین خواهد شد.</small>
         </div>
 
-        <button type="submit" class="btn btn-primary" <?php if (is_file('../cronbot/info')) echo 'disabled'; ?>>
-            <?= icon('send', 16) ?> شروع ارسال همگانی
-        </button>
+        <div class="bc-submit">
+            <button type="submit" class="btn btn-primary" <?php if (is_file('../cronbot/info')) echo 'disabled'; ?>>
+                <?= icon('send', 18) ?> آغاز عملیات ارسال
+            </button>
+        </div>
     </form>
 </div>
 
@@ -89,13 +290,18 @@ function toggleFields() {
     var type = document.getElementById('messageType').value;
     var btn = document.getElementById('btnmessage');
     var msg = document.getElementById('messageGroup');
+    
     if (type === 'unpinmessage') {
         btn.disabled = true;
+        btn.style.opacity = '0.5';
         msg.style.opacity = '0.5';
+        msg.style.pointerEvents = 'none';
         msg.querySelector('textarea').disabled = true;
     } else {
         btn.disabled = false;
+        btn.style.opacity = '1';
         msg.style.opacity = '1';
+        msg.style.pointerEvents = 'auto';
         msg.querySelector('textarea').disabled = false;
     }
 }
