@@ -330,4 +330,118 @@ body::after {
     color: var(--ach) !important;
 }
 
+/* ========================================================================
+   OPTIMIZED NAVY (DARK) THEME — Premium contrast & depth calibration
+   ======================================================================== */
+[data-theme=navy] {
+    /* Deeper, more premium background layers */
+    --bg:   #0C1525;
+    --sf:   #1A2540;
+    --sf2:  #162035;
+    --sf3:  #1F2E4A;
+    --sfh:  #253558;
+    --hl:   #1C2A42;
+    /* Stronger border definition */
+    --bd:   #253550;
+    --bds:  #3A4F70;
+    /* Accent: slightly warmer cyan with more pop */
+    --ac:   #07C8E8;
+    --ach:  #2DDAF5;
+    --acs:  rgba(7, 200, 232, 0.14);
+    --acg:  rgba(7, 200, 232, 0.28);
+    /* Glass base */
+    --glass-base-rgb: 22, 32, 53;
+}
+
+/* ========================================================================
+   OPTIMIZED LIGHT THEME — Clean, airy, high-contrast professional look
+   ======================================================================== */
+[data-theme=light] {
+    --bg:   #EFF3F8;
+    --sf:   #FFFFFF;
+    --sf2:  #F5F8FC;
+    --sf3:  #E8EEF5;
+    --sfh:  #D8E1EC;
+    --hl:   #ECF0F6;
+    --bd:   #C8D4E2;
+    --bds:  #A0B2C8;
+    --ac:   #0778A8;
+    --ach:  #055F8A;
+    --acs:  rgba(7, 120, 168, 0.11);
+    --acg:  rgba(7, 120, 168, 0.22);
+    --ok:   #0D6E34;
+    --oks:  rgba(13, 110, 52, 0.11);
+    --no:   #C0392B;
+    --nos:  rgba(192, 57, 43, 0.11);
+    --warn: #9A6000;
+    --warns:rgba(154, 96, 0, 0.11);
+    --text: #0D1F33;
+    --text2:#1A3048;
+    --mute: #374E65;
+    --dim:  #6B7F96;
+    --fade: #9AAFC5;
+    --glass-base-rgb: 240, 245, 252;
+}
+
+/* Fix light-theme glassmorphism cards with updated base */
+[data-theme=light] .card,
+[data-theme=light] .stat,
+[data-theme=light] .dash-card,
+[data-theme=light] .product-card,
+[data-theme=light] .bc-section,
+[data-theme=light] .confirm-box,
+[data-theme=light] .modal {
+    background: rgba(255, 255, 255, 0.78) !important;
+    border: 1.5px solid rgba(0, 0, 0, 0.07) !important;
+    box-shadow: 0 4px 24px 0 rgba(12, 28, 52, 0.07) !important;
+}
+
+/* ========================================================================
+   THEME QUICK TOGGLE BUTTON (topbar Sun/Moon button)
+   ======================================================================== */
+#theme-quick-toggle {
+    /* Subtle rotating glow on hover */
+    position: relative;
+    overflow: hidden;
+}
+#theme-quick-toggle:hover {
+    transform: rotate(20deg) scale(1.08) !important;
+    color: var(--ac) !important;
+    border-color: var(--ac) !important;
+    box-shadow: 0 0 12px var(--acg) !important;
+}
+/* Flash animation when clicked */
+#theme-quick-toggle:active {
+    transform: scale(0.88) !important;
+}
+
+/* Settings page: highlight the two primary themes */
+.theme-card[data-tk="navy"],
+.theme-card[data-tk="light"] {
+    border-color: var(--ac) !important;
+    box-shadow: 0 0 0 2px var(--acs) !important;
+    position: relative;
+}
+.theme-card[data-tk="navy"]::before,
+.theme-card[data-tk="light"]::before {
+    content: "پیش‌فرض";
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    background: var(--ac);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 99px;
+    opacity: .85;
+    pointer-events: none;
+}
+/* Remove badge if a non-default theme is active */
+.theme-card.active[data-tk="navy"]::before,
+.theme-card.active[data-tk="light"]::before {
+    content: "✓ فعال";
+    opacity: 1;
+}
 

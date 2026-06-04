@@ -21,18 +21,29 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
   <link rel="stylesheet" href="css/mobile_optimizations.css">
   <script>
     (function () {
-      var t = localStorage.getItem('panel-theme') || 'navy';
+      var _LIGHT = ['light', 'linen', 'mint', 'lavender'];
       var bg = {
         navy: '#0F172A', purple: '#180D2E', emerald: '#0A1F1C',
         sunset: '#1A0D0D', slate: '#080808', light: '#F1F5F9',
         linen: '#FAF7F2', mint: '#F0FDF4', lavender: '#FAF5FF'
       };
 
+      // Auto-detect on first visit using device preference
+      var saved = localStorage.getItem('panel-theme');
+      var t;
+      if (!saved) {
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        t = prefersDark ? 'navy' : 'light';
+        localStorage.setItem('panel-theme', t);
+      } else {
+        t = saved;
+      }
+
       var root = document.documentElement;
       root.style.backgroundColor = bg[t] || '#0F172A';
       root.setAttribute('data-theme', t);
-
-      root.style.colorScheme = (t === 'light' || t === 'linen' || t === 'mint' || t === 'lavender') ? 'light' : 'dark';
+      var isLight = _LIGHT.indexOf(t) >= 0;
+      root.style.colorScheme = isLight ? 'light' : 'dark';
       var mtc = document.getElementById('mtc');
       if (mtc && bg[t]) mtc.content = bg[t];
       if (localStorage.getItem('panel-sb-collapsed') === '1' && window.innerWidth > 768)
@@ -211,9 +222,30 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           </div>
         </div>
         <div class="topbar-tools">
+          <button id="theme-quick-toggle" class="icon-btn" onclick="toggleDarkLight()" title="تغییر تم" aria-label="تغییر تم روشن/تیره"
+            style="position:relative;overflow:hidden;transition:background var(--tf),transform var(--tf)">
+            <!-- Icon injected by applyTheme() on load -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
           <a href="logout.php" class="icon-btn"
             title="<?= $textbotlang['panel']['layoutPageTitleLogout'] ?>"><?= icon('logout', 16) ?></a>
         </div>
+        <script>
+        // Sync toggle icon with current theme immediately after DOM ready
+        (function(){
+          var _LIGHT = ['light','linen','mint','lavender'];
+          var t = localStorage.getItem('panel-theme') || 'navy';
+          var isLight = _LIGHT.indexOf(t) >= 0;
+          var btn = document.getElementById('theme-quick-toggle');
+          if (btn) {
+            btn.setAttribute('data-dark', isLight ? '0' : '1');
+            btn.title = isLight ? 'تم تیره' : 'تم روشن';
+            btn.innerHTML = isLight
+              ? '<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+              : '<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+          }
+        }());
+        </script>
       </header>
       <main class="content">
         <?php

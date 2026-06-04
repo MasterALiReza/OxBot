@@ -68,7 +68,49 @@ include __DIR__ . '/inc/layout_head.php';
 
 <?php if ($tab === 'appearance'): ?>
 
-    <div class="card fade-up">
+    <!-- System Auto Theme Quick Panel -->
+    <div class="card fade-up" style="margin-bottom:14px">
+        <div class="card-head">
+            <div>
+                <div class="card-title">انتخاب سریع تم</div>
+                <div class="card-subtitle">بر اساس تنظیمات دستگاه خود انتخاب کنید یا به صورت دستی تغییر دهید</div>
+            </div>
+        </div>
+        <div class="card-body" style="display:flex;gap:10px;flex-wrap:wrap;align-items:stretch">
+            <!-- Auto-detect button -->
+            <button onclick="autoDetectTheme()" class="btn btn-ghost"
+                id="btnAutoTheme"
+                style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 20px;flex:1;min-width:140px;border-radius:12px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                    <path d="M2 12h20"/>
+                </svg>
+                <span style="font-size:.82rem;font-weight:700">خودکار (سیستم)</span>
+                <span style="font-size:.7rem;color:var(--mute);text-align:center">بر اساس تنظیمات دستگاه</span>
+            </button>
+            <!-- Manual dark toggle -->
+            <button onclick="toggleDarkLight()" class="btn btn-ghost"
+                id="btnToggleTheme"
+                style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 20px;flex:1;min-width:140px;border-radius:12px">
+                <svg id="toggleThemeIcon" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/>
+                    <line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+                <span id="toggleThemeLabel" style="font-size:.82rem;font-weight:700">تم روشن</span>
+                <span style="font-size:.7rem;color:var(--mute);text-align:center">تغییر تیره/روشن</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="card fade-up d1">
         <div class="card-head">
             <div>
                 <div class="card-title"><?= $textbotlang['panel']['settingsHeading'] ?></div>
@@ -77,7 +119,8 @@ include __DIR__ . '/inc/layout_head.php';
         </div>
         <div class="card-body">
             <div
-                style="font-size:.75rem;font-weight:700;color:var(--mute);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">
+                style="font-size:.75rem;font-weight:700;color:var(--mute);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 <?= $textbotlang['panel']['settingsThemeLabel'] ?></div>
             <div class="theme-grid" style="margin-bottom:20px">
                 <?php foreach ($themes as $key => $theme):
@@ -95,7 +138,8 @@ include __DIR__ . '/inc/layout_head.php';
                 <?php endforeach; ?>
             </div>
             <div
-                style="font-size:.75rem;font-weight:700;color:var(--mute);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">
+                style="font-size:.75rem;font-weight:700;color:var(--mute);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 <?= $textbotlang['panel']['settingsSecuritySection'] ?></div>
             <div class="theme-grid">
                 <?php foreach ($themes as $key => $theme):

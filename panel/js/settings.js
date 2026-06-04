@@ -5,7 +5,48 @@ window.pickTheme = function (t) {
     });
     var nameEl = document.querySelector('[data-tk="' + t + '"] .theme-name');
     toast(window.t('jsThemeActivated', { name: (nameEl ? nameEl.textContent : t) }), 'info', 2200);
+    syncToggleBtn();
 };
+
+// Auto-detect theme based on device preference
+window.autoDetectTheme = function () {
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var t = prefersDark
+        ? (localStorage.getItem('panel-theme-dark') || 'navy')
+        : (localStorage.getItem('panel-theme-light') || 'light');
+    applyTheme(t);
+    document.querySelectorAll('.theme-card').forEach(function (c) {
+        c.classList.toggle('active', c.dataset.tk === t);
+    });
+    var nameEl = document.querySelector('[data-tk="' + t + '"] .theme-name');
+    toast('تم خودکار: ' + (nameEl ? nameEl.textContent : t), 'info', 2400);
+    syncToggleBtn();
+    // Briefly highlight the auto button
+    var btn = document.getElementById('btnAutoTheme');
+    if (btn) {
+        btn.style.borderColor = 'var(--ac)';
+        btn.style.color = 'var(--ac)';
+        setTimeout(function () {
+            btn.style.borderColor = '';
+            btn.style.color = '';
+        }, 1400);
+    }
+};
+
+// Sync the toggle label/icon on the settings page
+function syncToggleBtn() {
+    var _LIGHT = ['light', 'linen', 'mint', 'lavender'];
+    var cur = localStorage.getItem('panel-theme') || 'navy';
+    var isLight = _LIGHT.indexOf(cur) >= 0;
+    var lbl = document.getElementById('toggleThemeLabel');
+    var ico = document.getElementById('toggleThemeIcon');
+    if (lbl) lbl.textContent = isLight ? 'تم تیره' : 'تم روشن';
+    if (ico) {
+        ico.innerHTML = isLight
+            ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+            : '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    }
+}
 
 window.setSidebarMode = function (collapsed) {
     localStorage.setItem('panel-sb-collapsed', collapsed ? '1' : '0');
@@ -69,4 +110,7 @@ window.checkPwStr = function (val) {
     var collapsed = localStorage.getItem('panel-sb-collapsed') === '1';
     var btn = document.getElementById(collapsed ? 'modeCollapsed' : 'modeExpanded');
     if (btn) { btn.style.borderColor = 'var(--ac)'; btn.style.color = 'var(--ac)'; }
+
+    // Sync the settings-page toggle button state
+    syncToggleBtn();
 }());
