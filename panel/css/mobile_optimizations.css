@@ -22,12 +22,69 @@
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 140px;
 }
 .dash-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 30px rgba(0,0,0,0.06);
     border-color: var(--ac);
 }
+
+/* Dashboard Card Internals */
+.dash-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: row-reverse;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.dash-card-title {
+    font-size: 1.15rem;
+    color: var(--cf);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+    width: 100%;
+}
+
+.dash-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: row-reverse;
+    margin-top: auto;
+}
+
+.dash-card-pill {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.dash-card-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ct);
+    line-height: 1;
+}
+
+.dash-card-value-flex {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+.dash-card-unit {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--cf);
+}
+
 .icon-glow {
     display: inline-flex;
     align-items: center;
@@ -246,10 +303,6 @@
     }
     
     /* 6. Dashboard Cards */
-    .dash-card {
-        padding: 16px !important;
-    }
-
     .stats {
         /* 2x2 grid on mobile */
         grid-template-columns: 1fr 1fr !important;
@@ -260,21 +313,57 @@
         grid-column: span 2 !important;
     }
 
-    .stats .dash-card {
-        padding: 12px !important;
+    .dash-card {
+        padding: 14px 12px !important;
+        min-height: 100px;
+        border-radius: 12px;
     }
 
-    .stats .dash-card > div:first-child {
-        margin-bottom: 10px !important;
+    .dash-card-header {
+        margin-bottom: 12px;
+        flex-direction: row-reverse;
+        align-items: center;
+        gap: 6px;
     }
 
-    .stats .dash-card > div:first-child > div:first-child {
-        font-size: 0.8rem !important; /* Smaller titles on mobile */
+    .dash-card-header .icon-glow {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+    }
+    
+    .dash-card-header .icon-glow svg {
+        width: 16px;
+        height: 16px;
     }
 
-    .stats .dash-card > div:nth-child(2) {
-        font-size: 1.5rem !important; /* Smaller numbers */
-        margin-bottom: 8px !important;
+    .dash-card-title {
+        font-size: 0.95rem;
+    }
+
+    .dash-card-footer {
+        flex-direction: row-reverse;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .dash-card-value {
+        font-size: 1.15rem;
+        align-self: auto;
+    }
+    
+    .dash-card-value-flex {
+        align-self: auto;
+    }
+
+    .dash-card-footer .status-pill {
+        padding: 3px 8px;
+        font-size: 0.65rem;
+    }
+    
+    .dash-card-footer .status-pill svg {
+        width: 10px;
+        height: 10px;
     }
     
     /* 7. Spacing adjustments */

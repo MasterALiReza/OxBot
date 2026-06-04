@@ -63,69 +63,69 @@ include __DIR__ . '/inc/layout_head.php';
 <!-- Top Statistics Cards -->
 <div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
     
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">کل درخواست‌ها</div>
+            <div class="dash-card-title">کل درخواست‌ها</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <span class="status-pill neutral" style="padding: 4px 10px;">تراکنش دستی ثبت شده</span>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($globalTotal) ?>
             </div>
         </div>
     </div>
     
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-amber">
                 <?= icon('clock', 20) ?>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">در انتظار انجام</div>
+            <div class="dash-card-title">در انتظار انجام</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <span class="status-pill warning" style="padding: 4px 10px;">نیازمند بررسی</span>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($globalPending) ?>
             </div>
         </div>
     </div>
     
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-emerald">
                 <?= icon('check-circle', 20) ?>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">انجام شده</div>
+            <div class="dash-card-title">انجام شده</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <span class="status-pill success" style="padding: 4px 10px;">موفق</span>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($globalDone) ?>
             </div>
         </div>
     </div>
     
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-red">
                 <?= icon('x-circle', 20) ?>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">رد شده</div>
+            <div class="dash-card-title">رد شده</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <span class="status-pill danger" style="padding: 4px 10px;">لغو شده</span>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($globalReject) ?>
             </div>
         </div>

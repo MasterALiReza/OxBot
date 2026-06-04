@@ -645,99 +645,7 @@ if (!empty($bestSelling)) {
     margin-bottom: 24px;
 }
 
-.dash-card {
-    position: relative;
-    overflow: hidden;
-    background: var(--bg);
-    border: 1px solid var(--bd);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 140px;
-}
-.dash-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
-}
 
-.dash-card-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.dash-card-title {
-    font-size: 1.25rem;
-    color: var(--cf);
-    font-weight: 700;
-}
-
-.dash-card-footer {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-top: auto;
-}
-
-.dash-card-pill {
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
-.dash-card-value {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--ct);
-    line-height: 1;
-}
-
-.dash-card-value-flex {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-}
-.dash-card-unit {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--cf);
-}
-
-.icon-glow {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    margin-bottom: 0px;
-}
-.icon-glow svg {
-    width: 24px;
-    height: 24px;
-}
-.bg-purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
-.bg-blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-.bg-emerald { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-.bg-orange { background: rgba(249, 115, 22, 0.1); color: #f97316; }
-
-.status-pill {
-    padding: 6px 12px;
-    border-radius: 50px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-}
-.status-pill.success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-.status-pill.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-.status-pill.danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-.status-pill.neutral { background: rgba(100, 116, 139, 0.1); color: #64748b; }
-.panel-pill { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
 
 /* Table enhancements */
 .tbl-sm th {
@@ -766,58 +674,7 @@ if (!empty($bestSelling)) {
         margin-bottom: 16px;
     }
     
-    .dash-card {
-        padding: 14px 12px;
-        min-height: 100px;
-        border-radius: 12px;
-    }
 
-    .dash-card-header {
-        margin-bottom: 12px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .icon-glow {
-        width: 32px;
-        height: 32px;
-        border-radius: 10px;
-    }
-    
-    .icon-glow svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    .dash-card-title {
-        font-size: 0.95rem;
-    }
-
-    .dash-card-footer {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .dash-card-value {
-        font-size: 1.1rem;
-        align-self: flex-end;
-    }
-    
-    .dash-card-value-flex {
-        align-self: flex-end;
-    }
-
-    .status-pill {
-        padding: 3px 8px;
-        font-size: 0.65rem;
-    }
-    
-    .status-pill svg {
-        width: 10px;
-        height: 10px;
-    }
 }
 </style>
 

@@ -116,15 +116,15 @@ include __DIR__ . '/inc/layout_head.php';
 <div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
 
     <!-- Stat 1: Total Revenue -->
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-emerald">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">جمع تراکنش‌های موفق</div>
+            <div class="dash-card-title">جمع تراکنش‌های موفق</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <span class="status-pill success" style="padding: 4px 10px;">از ابتدا</span>
             </div>
             <div style="display: flex; align-items: baseline; gap: 6px;">
@@ -139,33 +139,33 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
 
     <!-- Stat 2: Total Transactions -->
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">تعداد کل تراکنش‌ها</div>
+            <div class="dash-card-title">تعداد کل تراکنش‌ها</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <span class="status-pill neutral" style="padding: 4px 10px;">رکورد تراکنش</span>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($total) ?>
             </div>
         </div>
     </div>
 
     <!-- Stat 3: Today's Revenue -->
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-orange">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">درآمد موفق امروز</div>
+            <div class="dash-card-title">درآمد موفق امروز</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <?php if ($todaySuccess > 0): ?>
                     <span class="status-pill success" style="padding: 4px 10px;">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -187,22 +187,22 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
 
     <!-- Stat 4: Today's Count -->
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-amber">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">تراکنش‌های امروز</div>
+            <div class="dash-card-title">تراکنش‌های امروز</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <?php if ($todayCount > 0): ?>
                     <span class="status-pill warning" style="padding: 4px 10px;">جدید</span>
                 <?php else: ?>
                     <span class="status-pill neutral" style="padding: 4px 10px;">بدون تراکنش</span>
                 <?php endif; ?>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($todayCount) ?>
             </div>
         </div>

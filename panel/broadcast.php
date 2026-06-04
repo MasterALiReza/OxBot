@@ -307,3 +307,4 @@ function toggleFields() {
 }
 </script>
 <?php require 'inc/layout_foot.php'; ?>
+

@@ -80,52 +80,52 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
 <!-- Top Statistics Cards -->
 <div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
     
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-blue">
                 <?= icon('package', 20) ?>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">کل محصولات</div>
+            <div class="dash-card-title">کل محصولات</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <span class="status-pill neutral">محصول ثبت‌شده</span>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($totalProducts) ?>
             </div>
         </div>
     </div>
     
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-amber">
                 <?= icon('layers', 20) ?>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">دسته‌بندی‌ها</div>
+            <div class="dash-card-title">دسته‌بندی‌ها</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <span class="status-pill warning">دسته فعال</span>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($categoriesCount) ?>
             </div>
         </div>
     </div>
     
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-emerald">
                 <?= icon('server', 20) ?>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">پنل‌های متصل</div>
+            <div class="dash-card-title">پنل‌های متصل</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <span class="status-pill success">پنل متصل</span>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($panelsCount) ?>
             </div>
         </div>
