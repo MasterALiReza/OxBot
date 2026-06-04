@@ -379,6 +379,8 @@ include __DIR__ . '/inc/layout_head.php';
                                 <option value="onconecton">روشن</option>
                                 <option value="offconecton">خاموش</option>
                             </select>
+                            <button type="button" onclick="testCurrentPanelConnection()" style="margin-top:6px; font-size:12px; padding:5px 12px; border:1px solid var(--ac); border-radius:6px; background:transparent; color:var(--ac); cursor:pointer; width:100%;">🔌 تست اتصال با اطلاعات فعلی</button>
+                            <div id="inlineConnResult" style="display:none; margin-top:5px; font-size:12px; padding:5px 8px; border-radius:5px;"></div>
                         </div>
                         <div class="field-group sanaei-group">
                             <label>گروه‌بندی سنایی</label>
@@ -714,7 +716,10 @@ function togglePanelFields() {
     const sanaeiGroup = document.querySelector('.sanaei-group');
     const sanaeiFetcher = document.getElementById('sanaeiInboundsFetcher');
 
-    if (['MHSanaei-3.2', 'x-ui_single', 'alireza_single', 's_ui', 'marzneshin'].includes(panelType)) {
+    const typesWithInbound = ['MHSanaei-3.2', 'x-ui_single', 'alireza_single', 's_ui', 'marzneshin'];
+    const typesWithFetcher = ['MHSanaei-3.2', 'x-ui_single', 'alireza_single', 's_ui'];
+
+    if (typesWithInbound.includes(panelType)) {
         inboundGroup.style.display = 'block';
     } else {
         inboundGroup.style.display = 'none';
@@ -722,10 +727,12 @@ function togglePanelFields() {
 
     if (panelType === 'MHSanaei-3.2') {
         sanaeiGroup.style.display = 'block';
-        if (sanaeiFetcher) sanaeiFetcher.style.display = 'block';
     } else {
         sanaeiGroup.style.display = 'none';
-        if (sanaeiFetcher) sanaeiFetcher.style.display = 'none';
+    }
+
+    if (sanaeiFetcher) {
+        sanaeiFetcher.style.display = typesWithFetcher.includes(panelType) ? 'block' : 'none';
     }
 }
 
@@ -849,6 +856,49 @@ function closeTestConnModal() {
             loader.style.display = 'none';
             list.innerHTML = '<small style="color:var(--red)">خطا در ارتباط با سرور.</small>';
             console.error(err);
+        });
+    }
+
+    function testCurrentPanelConnection() {
+        const url = document.getElementById('panelUrl').value;
+        const user = document.getElementById('panelUsername').value;
+        const pass = document.getElementById('panelPassword').value;
+        const resultDiv = document.getElementById('inlineConnResult');
+
+        if (!url || !user || !pass) {
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = 'rgba(239,68,68,0.1)';
+            resultDiv.style.color = '#ef4444';
+            resultDiv.innerHTML = '❌ لطفاً آدرس، نام کاربری و رمز عبور را در تب «اصلی» وارد کنید.';
+            return;
+        }
+
+        resultDiv.style.display = 'block';
+        resultDiv.style.background = 'var(--bg-sec)';
+        resultDiv.style.color = 'var(--ts)';
+        resultDiv.innerHTML = '⏳ در حال تست اتصال...';
+
+        const formData = new FormData();
+        formData.append('url_panel', url);
+        formData.append('username_panel', user);
+        formData.append('password_panel', pass);
+
+        fetch('ajax/sanaei_inbounds.php', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                resultDiv.style.background = 'rgba(16,185,129,0.1)';
+                resultDiv.style.color = '#10b981';
+                resultDiv.innerHTML = '✅ اتصال موفق! پنل در دسترس است.' + (data.inbounds ? ' (' + data.inbounds.length + ' اینباند یافت شد)' : '');
+            } else {
+                resultDiv.style.background = 'rgba(239,68,68,0.1)';
+                resultDiv.style.color = '#ef4444';
+                resultDiv.innerHTML = '❌ خطا: ' + (data.msg || 'اتصال ناموفق');
+            }
+        }).catch(err => {
+            resultDiv.style.background = 'rgba(245,158,11,0.1)';
+            resultDiv.style.color = '#f59e0b';
+            resultDiv.innerHTML = '⚠️ خطای شبکه - ارتباط با سرور برقرار نشد.';
         });
     }
 </script>
