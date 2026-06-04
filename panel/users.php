@@ -187,6 +187,12 @@ include __DIR__ . '/inc/layout_head.php';
     margin-bottom: 24px;
     border-bottom: 1px solid var(--border);
     padding-bottom: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.tab-navigation::-webkit-scrollbar {
+    display: none;
 }
 .tab-item {
     display: flex;
@@ -200,6 +206,8 @@ include __DIR__ . '/inc/layout_head.php';
     border-bottom: 2px solid transparent;
     transition: all 0.2s ease;
     margin-bottom: -1px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 .tab-item:hover {
     color: var(--text);
