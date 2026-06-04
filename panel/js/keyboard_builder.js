@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+(function() {
     const telegramBoard = document.getElementById("telegram-board");
     const unusedKeysContainer = document.getElementById("unused-keys");
     const saveBtn = document.getElementById("save-keyboard-btn");
@@ -269,4 +269,4 @@ document.addEventListener("DOMContentLoaded", () => {
             saveBtn.disabled = false;
         }
     });
-});
+})();

@@ -456,7 +456,7 @@ if (!empty($bestSelling)) {
 ?>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     // Check if the theme is dark or light from CSS variables
     const isDark = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() === '#0f172a' || document.documentElement.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#94a3b8' : '#64748b';
@@ -634,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+})();
 </script>
 
 <style>
