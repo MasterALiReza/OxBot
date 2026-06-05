@@ -33,6 +33,7 @@ function require_auth(): void
         session_start();
     global $pdo;
     if (empty($_SESSION['admin_user'])) {
+        http_response_code(401);
         if (isset($_SERVER['HTTP_HX_REQUEST'])) {
             header('HX-Redirect: login.php');
         } else {
@@ -44,6 +45,7 @@ function require_auth(): void
         $admin = db_fetch($pdo, "SELECT id_admin FROM admin WHERE username = ?", [$_SESSION['admin_user']]);
         if (!$admin) {
             session_destroy();
+            http_response_code(401);
             if (isset($_SERVER['HTTP_HX_REQUEST'])) {
                 header('HX-Redirect: login.php');
             } else {
@@ -53,6 +55,7 @@ function require_auth(): void
         }
     } catch (Exception $e) {
         session_destroy();
+        http_response_code(401);
         if (isset($_SERVER['HTTP_HX_REQUEST'])) {
             header('HX-Redirect: login.php');
         } else {

@@ -47,10 +47,32 @@ document.body.addEventListener('htmx:beforeRequest', function (e) {
     _lb.start();
 });
 
+document.body.addEventListener('htmx:beforeSwap', function (evt) {
+    // If response status is 401/403 or contains login page identifiers, redirect whole window
+    var resp = evt.detail.xhr.responseText || '';
+    if (evt.detail.xhr.status === 401 || evt.detail.xhr.status === 403 || resp.indexOf('class="auth"') !== -1 || resp.indexOf('js/login.js') !== -1) {
+        evt.preventDefault();
+        window.location.href = 'login.php';
+    }
+});
+
 document.body.addEventListener('htmx:afterSwap', function (e) {
     _lb.done();
     closeSidebar();
 });
+
+// Heartbeat ping every 5 minutes (300000ms) to keep PHP session alive
+setInterval(function () {
+    fetch('ajax/ping.php')
+        .then(function (res) {
+            if (res.status === 401) {
+                window.location.href = 'login.php';
+            }
+        })
+        .catch(function (err) {
+            console.warn('Session ping failed:', err);
+        });
+}, 300000);
 
 var _TOAST_ICONS = {
     ok:   '<polyline points="20 6 9 17 4 12"/>',
