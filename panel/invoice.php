@@ -24,8 +24,8 @@ if ($status !== '') {
 $whereSQL = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
 try {
-  $total = db_count($pdo, "SELECT COUNT(*) FROM invoice $whereSQL", $params);
-  $invoices = db_fetchAll($pdo, "SELECT * FROM invoice $whereSQL ORDER BY time_sell DESC LIMIT $perPage OFFSET $offset", $params);
+  $total = db_count($pdo, "SELECT COUNT(*) FROM invoice i LEFT JOIN user u ON i.id_user = u.id $whereSQL", $params);
+  $invoices = db_fetchAll($pdo, "SELECT i.*, u.username, u.namecustom as name FROM invoice i LEFT JOIN user u ON i.id_user = u.id $whereSQL ORDER BY i.time_sell DESC LIMIT $perPage OFFSET $offset", $params);
 } catch (Exception $e) {
   $total = 0;
   $invoices = [];
@@ -164,22 +164,20 @@ include __DIR__ . '/inc/layout_head.php';
     </form>
   </div>
 
-  <div class="tbl-wrap">
+  <div class="tbl-wrap dash-orders">
     <table class="tbl-md">
       <thead>
         <tr>
-          <th>#</th>
-          <th><?= $textbotlang['panel']['invoiceColUser'] ?></th>
-          <th><?= $textbotlang['panel']['invoiceColProduct'] ?></th>
-          <th><?= $textbotlang['panel']['invoiceColPrice'] ?></th>
-          <th><?= $textbotlang['panel']['invoiceColDate'] ?></th>
-          <th><?= $textbotlang['panel']['invoiceColStatus'] ?></th>
+          <th><?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?></th>
+          <th><?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?></th>
+          <th><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?></th>
+          <th><?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?></th>
         </tr>
       </thead>
       <tbody>
         <?php if (empty($invoices)): ?>
           <tr>
-            <td colspan="6">
+            <td colspan="4">
               <div class="empty">
                 <svg class="ill" viewBox="0 0 160 120" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="30" y="15" width="100" height="90" rx="8" fill="var(--sf3)" />
@@ -195,16 +193,66 @@ include __DIR__ . '/inc/layout_head.php';
         <?php else:
           $i = $offset + 1;
           foreach ($invoices as $inv):
-            $st = $inv['Status'] ?? '';
-            [$cls, $lbl] = $statusMap[$st] ?? ['tag-plain', $st ?: '—'];
+            $rawStatus = strtolower(trim($inv['Status'] ?? ''));
+            // Use same status map as dashboard for consistency
+            $dashStatusMap = [
+                'active' => ['status-pill success', $textbotlang['panel']['dashStatusActive'] ?? 'فعال'],
+                'disabled' => ['status-pill danger', $textbotlang['panel']['panelsStatusInactive'] ?? 'غیرفعال'],
+                'unpaid' => ['status-pill neutral', $textbotlang['panel']['invoiceStatusUnpaid'] ?? 'پرداخت نشده'],
+                'end_of_time' => ['status-pill warning', $textbotlang['panel']['dashStatusExpired'] ?? 'پایان زمان'],
+                'end_of_volume' => ['status-pill danger', $textbotlang['panel']['dashStatusVolumeFinished'] ?? 'پایان حجم'],
+                'sendedwarn' => ['status-pill warning', $textbotlang['panel']['dashStatusWarning'] ?? 'اخطار'],
+                'send_on_hold' => ['status-pill neutral', $textbotlang['panel']['dashStatusWaiting'] ?? 'در انتظار'],
+            ];
+            [$pillClass, $label] = $dashStatusMap[$rawStatus] ?? ['status-pill neutral', $inv['Status'] ?? '—'];
             ?>
-            <tr>
-              <td data-label="#" class="cf"><?= $i++ ?></td>
-              <td data-label="<?= $textbotlang['panel']['invoiceColUser'] ?>"><span class="cm"><?= htmlspecialchars(eng_num($inv['id_user'] ?? '—')) ?></span></td>
-              <td data-label="<?= $textbotlang['panel']['invoiceColProduct'] ?>" class="cs"><?= htmlspecialchars(trunc($inv['name_product'] ?? '—', 28)) ?></td>
-              <td data-label="<?= $textbotlang['panel']['invoiceColPrice'] ?>" class="cn cs"><?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['invoiceColTrackingCode'] ?></span></td>
-              <td data-label="<?= $textbotlang['panel']['invoiceColDate'] ?>" class="cf"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></td>
-              <td data-label="<?= $textbotlang['panel']['invoiceColStatus'] ?>"><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
+            <tr style="border-bottom: 1px solid var(--bd);">
+                <td data-label="<?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?>" class="no-label">
+                    <div class="user-profile-cell" style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:8px;">
+                        <div class="user-avatar-info" style="display:flex; align-items:center; gap:8px;">
+                            <div class="avatar-icon" style="background: rgba(var(--ac-rgb), 0.1); color: var(--ac); padding: 6px; border-radius: 50%; display:flex; align-items:center; justify-content:center;">
+                                <?= icon('user', 18) ?>
+                            </div>
+                            <span class="profile-name" style="font-weight:600; font-size:0.95rem;">
+                                <?php if (!empty($inv['name'])): ?>
+                                    <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
+                                <?php elseif (!empty($inv['username'])): ?>
+                                    @<?= htmlspecialchars(trunc($inv['username'], 18)) ?>
+                                <?php else: ?>
+                                    <?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?>
+                                <?php endif; ?>
+                            </span>
+                        </div>
+                        <div class="profile-id-box" style="display:flex; align-items:center; gap:6px; font-size: 0.8rem; color: var(--mute); background:rgba(var(--glass-base-rgb),0.5); padding:4px 8px; border-radius:8px;">
+                            <?= icon('id-card', 14) ?>
+                            <span class="cf">آیدی کاربر :</span>
+                            <span class="cn" style="font-family:monospace; font-size:0.85rem;"><?= htmlspecialchars($inv['id_user']) ?></span>
+                        </div>
+                    </div>
+                </td>
+                <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?>" class="cs">
+                    <?= htmlspecialchars($inv['name_product'] ?? '—') ?>
+                </td>
+                <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>" class="cn dash-responsive-amount" style="white-space:nowrap; font-weight:500;">
+                    <div class="desktop-amount">
+                        <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
+                    </div>
+                    <div class="mobile-amount-date" style="display:none; justify-content:space-between; width:100%; align-items:center; flex-wrap:wrap; padding-top:12px; border-top:1px dashed var(--bd); margin-top:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="color:var(--mute); font-size:0.85rem;" class="cf"><?= icon('wallet', 14) ?> مبلغ :</span>
+                            <span class="cn" style="font-weight:600; font-size:1.1rem; color:var(--ac);">
+                                <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.8rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
+                            </span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--mute);">
+                            <span class="cf"><?= icon('clock', 14) ?> تاریخ سفارش :</span>
+                            <span class="cn" style="font-weight:500; color:var(--fg);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></span>
+                        </div>
+                    </div>
+                </td>
+                <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?>">
+                    <span class="<?= $pillClass ?>"><?= $label ?></span>
+                </td>
             </tr>
           <?php endforeach; endif; ?>
       </tbody>
