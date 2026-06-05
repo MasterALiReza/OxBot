@@ -15,6 +15,52 @@
     letter-spacing: 0.03em !important;
 }
 
+/* Dashboard Profile cell layout (Desktop & Mobile) */
+.user-profile-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+    text-align: right;
+    direction: rtl;
+}
+
+.user-profile-cell .user-avatar-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.user-profile-cell .avatar-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(148, 163, 184, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cf);
+    flex-shrink: 0;
+}
+
+.user-profile-cell .profile-name {
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-profile-cell .profile-id {
+    font-size: 0.8rem;
+    color: var(--mute);
+    line-height: 1.2;
+    font-weight: 500;
+}
+
 /* Global Stat/Dashboard Cards */
 /* Global Stat/Dashboard Cards */
 .dash-card {
@@ -822,6 +868,67 @@
     }
     .topbar-left .menu-toggle {
         display: grid !important;
+    }
+
+    /* 7. Dashboard Mobile Card Layout Improvements */
+    .tbl-wrap.dash-orders td[data-label="کاربر"] {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        order: 2 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+    .tbl-wrap.dash-orders td[data-label="مبلغ"] {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        order: 3 !important;
+        border-bottom: none !important;
+    }
+
+    .tbl-wrap.dash-users td[data-label="نام"] {
+        flex: 1 1 65% !important;
+        width: 65% !important;
+        order: 1 !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        justify-content: flex-start !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    .tbl-wrap.dash-users td[data-label="نام"]::before {
+        display: none !important;
+    }
+    .tbl-wrap.dash-users td[data-label="گروه"] {
+        order: -1 !important;
+        position: absolute !important;
+        top: 12px;
+        left: 12px;
+        width: auto !important;
+        border-bottom: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .tbl-wrap.dash-users td[data-label="گروه"]::before {
+        display: none !important;
+    }
+    .tbl-wrap.dash-users td[data-label="موجودی"] {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        order: 2 !important;
+        border-bottom: none !important;
+    }
+    
+    /* In dashboard users card, user profile subtitle should stack vertically to look premium */
+    .tbl-wrap.dash-users .user-profile-cell {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
+    }
+    .tbl-wrap.dash-users .user-profile-cell .profile-id {
+        font-size: 0.75rem !important;
+        color: var(--mute) !important;
+        margin-top: 2px !important;
+        padding-right: 40px !important; /* Align perfectly with Name under avatar in RTL */
     }
 }
 

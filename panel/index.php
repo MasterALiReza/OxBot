@@ -277,7 +277,7 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
             <a href="invoice.php" class="btn-link" style="font-size:.78rem"><?= $textbotlang['panel']['dashViewAll'] ?></a>
         </div>
-        <div class="tbl-wrap">
+        <div class="tbl-wrap dash-orders">
             <table class="tbl-sm">
                 <thead>
                     <tr>
@@ -311,37 +311,27 @@ include __DIR__ . '/inc/layout_head.php';
                             [$pillClass, $label] = $statusMap[$rawStatus] ?? ['status-pill neutral', $inv['Status'] ?? '—'];
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
-                                <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="no-label" style="padding-top: 12px; padding-bottom: 12px;">
-                                    <div style="display:flex; align-items:center; justify-content: space-between; width: 100%;">
-                                        <div style="display:flex; align-items:center; gap:8px;">
-                                            <div style="width:32px;height:32px;border-radius:50%;background:rgba(148, 163, 184, 0.1);display:flex;align-items:center;justify-content:center;color:var(--cf);">
+                                <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="no-label">
+                                    <div class="user-profile-cell">
+                                        <div class="user-avatar-info">
+                                            <div class="avatar-icon">
                                                 <?= icon('user', 16) ?>
                                             </div>
-                                            <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                                                <span class="cs" style="font-weight:600; line-height:1.2; text-align: right;">
-                                                    <?php if (!empty($inv['name'])): ?>
-                                                        <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
-                                                    <?php elseif (!empty($inv['username'])): ?>
-                                                        @<?= htmlspecialchars(trunc($inv['username'], 18)) ?>
-                                                    <?php else: ?>
-                                                        <?= $textbotlang['panel']['dashColUser'] ?>
-                                                    <?php endif; ?>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div style="display:flex; align-items:center;">
-                                            <span class="mobile-only-label" style="font-size: 0.75rem; color: var(--cf); font-weight: 600; margin-left: 4px;">:</span>
-                                            <span class="cm" style="font-size:0.8rem; color:var(--ct); font-weight: 600; line-height:1.2; direction: ltr;">
-                                                <?= htmlspecialchars($inv['id_user']) ?>
+                                            <span class="profile-name">
+                                                <?php if (!empty($inv['name'])): ?>
+                                                    <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
+                                                <?php elseif (!empty($inv['username'])): ?>
+                                                    @<?= htmlspecialchars(trunc($inv['username'], 18)) ?>
+                                                <?php else: ?>
+                                                    <?= $textbotlang['panel']['dashColUser'] ?>
+                                                <?php endif; ?>
                                             </span>
                                         </div>
+                                        <span class="profile-id cm"><?= htmlspecialchars(eng_num($inv['id_user'])) ?></span>
                                     </div>
                                 </td>
-                                <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?>" class="cs no-label">
-                                    <div style="display:flex; align-items:center; justify-content: space-between; width: 100%;">
-                                        <span class="mobile-only-label" style="font-size: 0.75rem; color: var(--cf); font-weight: 600;"><?= $textbotlang['panel']['dashColProduct'] ?>:</span>
-                                        <span style="font-weight:600; color:var(--ct); white-space:normal; overflow-wrap:break-word; word-break:break-word; text-align: left; max-width: 70%; line-height: 1.4;"><?= htmlspecialchars($inv['name_product'] ?? '—') ?></span>
-                                    </div>
+                                <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?>" class="cs">
+                                    <?= htmlspecialchars($inv['name_product'] ?? '—') ?>
                                 </td>
                                 <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?>" class="cn" style="white-space:nowrap; font-weight:500;">
                                     <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?></span>
@@ -363,7 +353,7 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
             <a href="users.php" class="btn-link" style="font-size:.78rem"><?= $textbotlang['panel']['dashViewAll2'] ?></a>
         </div>
-        <div class="tbl-wrap">
+        <div class="tbl-wrap dash-users">
             <table class="tbl-sm">
                 <thead>
                     <tr>
@@ -395,30 +385,23 @@ include __DIR__ . '/inc/layout_head.php';
                             else $roleClass .= 'neutral';
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
-                                <td data-label="<?= $textbotlang['panel']['dashColName'] ?>" class="no-label" style="padding-top: 12px; padding-bottom: 12px;">
-                                    <div style="display:flex; align-items:center; justify-content: space-between; width: 100%;">
-                                        <div style="display:flex; align-items:center; gap:8px;">
-                                            <div style="width:32px;height:32px;border-radius:50%;background:rgba(148, 163, 184, 0.1);display:flex;align-items:center;justify-content:center;color:var(--cf);">
+                                <td data-label="<?= $textbotlang['panel']['dashColName'] ?>" class="no-label">
+                                    <div class="user-profile-cell">
+                                        <div class="user-avatar-info">
+                                            <div class="avatar-icon">
                                                 <?= icon('user', 16) ?>
                                             </div>
-                                            <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                                                <span class="cs" style="font-weight:600; line-height:1.2; text-align: right;">
-                                                    <?php if ($name): ?>
-                                                        <?= htmlspecialchars(trunc($name, 14)) ?>
-                                                    <?php elseif ($uname): ?>
-                                                        @<?= htmlspecialchars(trunc($uname, 12)) ?>
-                                                    <?php else: ?>
-                                                        <?= $textbotlang['panel']['dashColName'] ?>
-                                                    <?php endif; ?>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div style="display:flex; align-items:center;">
-                                            <span class="mobile-only-label" style="font-size: 0.75rem; color: var(--cf); font-weight: 600; margin-left: 4px;">:</span>
-                                            <span class="cm cf" style="font-size:0.8rem; font-weight:600; line-height:1.2; direction: ltr;">
-                                                <?= htmlspecialchars($u['id']) ?>
+                                            <span class="profile-name">
+                                                <?php if ($name): ?>
+                                                    <?= htmlspecialchars(trunc($name, 14)) ?>
+                                                <?php elseif ($uname): ?>
+                                                    @<?= htmlspecialchars(trunc($uname, 12)) ?>
+                                                <?php else: ?>
+                                                    <?= $textbotlang['panel']['dashColName'] ?>
+                                                <?php endif; ?>
                                             </span>
                                         </div>
+                                        <span class="profile-id cm"><?= htmlspecialchars(eng_num($u['id'])) ?></span>
                                     </div>
                                 </td>
                                 <td data-label="<?= $textbotlang['panel']['dashColBalance'] ?>" class="cn" style="white-space:nowrap; font-weight:500;">

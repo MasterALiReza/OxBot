@@ -336,7 +336,7 @@ include __DIR__ . '/inc/layout_head.php';
                         ?>
                         <tr>
                             <td class="cf" data-label="#"><?= $i++ ?></td>
-                            <td data-label="<?= $textbotlang['panel']['usersColId'] ?>"><span class="cm"><?= htmlspecialchars($u['id']) ?></span></td>
+                            <td data-label="<?= $textbotlang['panel']['usersColId'] ?>"><span class="cm"><?= htmlspecialchars(eng_num($u['id'])) ?></span></td>
                             <td data-label="<?= $textbotlang['panel']['usersColUsername'] ?>">
                                 <?php if ($uname): ?>
                                     <span class="cm" style="color:var(--ac)">@<?= htmlspecialchars($uname) ?></span>
