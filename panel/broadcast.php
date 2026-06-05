@@ -352,11 +352,12 @@ $histories = $history_stmt->fetchAll(PDO::FETCH_ASSOC);
     </form>
     
     <!-- Section 4: History -->
-    <?php if (count($histories) > 0): ?>
     <div class="bc-section" style="margin-top: 40px;">
         <div class="bc-section-title">
             <?= icon('clock', 18) ?> تاریخچه پیام‌های اخیر
         </div>
+        
+        <?php if (count($histories) > 0): ?>
         <table class="bc-history-table">
             <thead>
                 <tr>
@@ -391,8 +392,13 @@ $histories = $history_stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <?php else: ?>
+        <div style="text-align: center; padding: 30px; color: var(--dim); background: var(--sf); border-radius: 12px; border: 1px dashed var(--bd);">
+            <?= icon('inbox', 32) ?>
+            <p style="margin-top: 12px;">هنوز هیچ پیام همگانی ارسال نکرده‌اید. پیام‌های ارسالی شما در اینجا ذخیره خواهند شد.</p>
+        </div>
+        <?php endif; ?>
     </div>
-    <?php endif; ?>
 </div>
 
 <script>
