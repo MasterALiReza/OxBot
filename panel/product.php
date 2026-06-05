@@ -78,7 +78,7 @@ $categoriesCount = count(array_unique(array_filter(array_column($products, 'cate
 $panelsCount = count(array_unique(array_filter(array_column($products, 'Location'))));
 ?>
 <!-- Top Statistics Cards -->
-<div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
+<div class="stats fade-up" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px;">
     
     <div class="dash-card">
         <div class="dash-card-header">
@@ -135,7 +135,7 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
 
 <div class="card fade-up d1">
   <?php if (empty($products)): ?>
-    <div class="empty" style="padding:60px 20px">
+    <div class="empty" style="padding:48px 20px">
       <svg class="ill" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="40" y="30" width="120" height="100" rx="12" fill="var(--surface-3)" />
         <rect x="56" y="50" width="88" height="12" rx="6" fill="var(--border-strong)" />
@@ -152,14 +152,14 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
   <?php else: ?>
     <div class="toolbar">
       <div class="toolbar-title">فهرست محصولات <small>(<?= count($products) ?>)</small></div>
-      <div class="toolbar-end" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-        <select class="select" id="filter-category" style="width:auto; min-width:140px; padding: 8px 12px 8px 30px; font-size: 0.8rem;">
+      <div class="toolbar-end" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <select class="select" id="filter-category" style="width:auto;min-width:140px;">
             <option value="all">همه دسته‌بندی‌ها</option>
             <?php foreach (array_unique(array_filter(array_column($products, 'category'))) as $cat): ?>
                 <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
             <?php endforeach; ?>
         </select>
-        <select class="select" id="filter-panel" style="width:auto; min-width:140px; padding: 8px 12px 8px 30px; font-size: 0.8rem;">
+        <select class="select" id="filter-panel" style="width:auto;min-width:140px;">
             <option value="all">همه سرورها/پنل‌ها</option>
             <?php foreach (array_unique(array_filter(array_column($products, 'Location'))) as $loc): ?>
                 <option value="<?= htmlspecialchars($loc) ?>"><?= htmlspecialchars($loc) ?></option>
@@ -235,7 +235,7 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
 </div>
 
 <div class="modal-veil" id="addModal">
-  <div class="modal">
+  <div class="modal" style="max-width:540px">
     <div class="modal-head">
       <h3>افزودن محصول جدید</h3>
       <button class="modal-x" onclick="closeModal('addModal')"><?= icon('close', 14) ?></button>
@@ -327,7 +327,7 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
 </div>
 
 <div class="modal-veil" id="editModal">
-  <div class="modal">
+  <div class="modal" style="max-width:540px">
     <div class="modal-head">
       <h3>ویرایش محصول</h3>
       <button class="modal-x" onclick="closeModal('editModal')"><?= icon('close', 14) ?></button>

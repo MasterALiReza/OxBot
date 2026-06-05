@@ -168,11 +168,56 @@ try {
     error_log('panels_manage.php: ' . $e->getMessage());
 }
 
+$totalPanels = count($panels);
+$activePanels = 0;
+$marzbanPanels = 0;
+$sanaeiPanels = 0;
+
+foreach ($panels as $p) {
+    if (($p['status'] ?? '') === 'active') $activePanels++;
+    $t = $p['type'] ?? '';
+    if ($t === 'marzban') $marzbanPanels++;
+    if ($t === 'MHSanaei-3.2') $sanaeiPanels++;
+}
+
 $pageTitle = $textbotlang['panel']['panelsManageTitle'];
 $pageLede = $textbotlang['panel']['panelsManageSubtitle'];
 $activeNav = 'panels_manage';
 include __DIR__ . '/inc/layout_head.php';
 ?>
+
+<div class="stats fade-up" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
+            <div class="icon-glow bg-blue"><?= icon('layers', 20) ?></div>
+            <div class="dash-card-title">کل پنل‌ها</div>
+        </div>
+        <div class="dash-card-footer">
+            <div class="dash-card-pill"><span class="status-pill neutral">Total</span></div>
+            <div class="dash-card-value"><?= number_format($totalPanels) ?></div>
+        </div>
+    </div>
+    <div class="dash-card">
+        <div class="dash-card-header">
+            <div class="icon-glow bg-emerald"><?= icon('check-circle', 20) ?></div>
+            <div class="dash-card-title">پنل‌های فعال</div>
+        </div>
+        <div class="dash-card-footer">
+            <div class="dash-card-pill"><span class="status-pill success">Active</span></div>
+            <div class="dash-card-value"><?= number_format($activePanels) ?></div>
+        </div>
+    </div>
+    <div class="dash-card">
+        <div class="dash-card-header">
+            <div class="icon-glow bg-purple"><?= icon('server', 20) ?></div>
+            <div class="dash-card-title">مرزبان / سنایی</div>
+        </div>
+        <div class="dash-card-footer">
+            <div class="dash-card-pill"><span class="status-pill panel-pill">Main Types</span></div>
+            <div class="dash-card-value-flex"><span class="dash-card-value"><?= number_format($marzbanPanels) ?></span> <span class="dash-card-unit">/ <?= number_format($sanaeiPanels) ?></span></div>
+        </div>
+    </div>
+</div>
 
 <div class="card fade-up">
     <div class="toolbar">

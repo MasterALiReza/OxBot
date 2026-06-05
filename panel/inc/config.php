@@ -33,19 +33,31 @@ function require_auth(): void
         session_start();
     global $pdo;
     if (empty($_SESSION['admin_user'])) {
-        header('Location: login.php');
+        if (isset($_SERVER['HTTP_HX_REQUEST'])) {
+            header('HX-Redirect: login.php');
+        } else {
+            header('Location: login.php');
+        }
         exit;
     }
     try {
         $admin = db_fetch($pdo, "SELECT id_admin FROM admin WHERE username = ?", [$_SESSION['admin_user']]);
         if (!$admin) {
             session_destroy();
-            header('Location: login.php');
+            if (isset($_SERVER['HTTP_HX_REQUEST'])) {
+                header('HX-Redirect: login.php');
+            } else {
+                header('Location: login.php');
+            }
             exit;
         }
     } catch (Exception $e) {
         session_destroy();
-        header('Location: login.php');
+        if (isset($_SERVER['HTTP_HX_REQUEST'])) {
+            header('HX-Redirect: login.php');
+        } else {
+            header('Location: login.php');
+        }
         exit;
     }
 }

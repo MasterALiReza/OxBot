@@ -61,7 +61,7 @@ include __DIR__ . '/inc/layout_head.php';
 ?>
 
 <!-- Top Statistics Cards -->
-<div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
+<div class="stats fade-up" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px;">
     
     <div class="dash-card">
         <div class="dash-card-header">
@@ -175,7 +175,7 @@ include __DIR__ . '/inc/layout_head.php';
         <?php if (empty($services)): ?>
           <tr>
             <td colspan="8">
-              <div class="empty">
+              <div class="empty" style="padding:48px 20px">
                 <svg class="ill" viewBox="0 0 180 140" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="30" y="30" width="120" height="80" rx="10" fill="var(--sf3)" />
                   <rect x="50" y="50" width="40" height="40" rx="6" fill="var(--bds)" />

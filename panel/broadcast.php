@@ -10,18 +10,18 @@ require 'inc/layout_head.php';
 <style>
 /* Mission Control Aesthetic for Broadcast */
 .broadcast-dashboard {
-    max-width: 760px;
+    max-width: 880px;
     margin: 0 auto;
 }
 
 .bc-header {
-    margin-bottom: 24px;
-    padding-bottom: 16px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
     border-bottom: 1px solid var(--bd);
 }
 
 .bc-header h2 {
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     font-weight: 800;
     color: var(--text);
     display: flex;
@@ -31,27 +31,27 @@ require 'inc/layout_head.php';
 
 .bc-header p {
     color: var(--dim);
-    font-size: 0.85rem;
-    margin-top: 6px;
+    font-size: 0.95rem;
+    margin-top: 8px;
 }
 
 .bc-alert {
     background: var(--warns);
     border: 1px solid var(--warn);
-    padding: 16px 20px;
-    border-radius: 12px;
-    margin-bottom: 24px;
+    padding: 20px 24px;
+    border-radius: 16px;
+    margin-bottom: 30px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
     color: var(--text);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     animation: pulse 2s infinite ease-in-out;
 }
 
 .bc-alert-icon {
-    width: 48px;
-    height: 48px;
+    width: 54px;
+    height: 54px;
     background: var(--warn);
     color: #000;
     border-radius: 50%;
@@ -62,14 +62,14 @@ require 'inc/layout_head.php';
 }
 
 .bc-alert-content h4 {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 800;
     color: var(--warn);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .bc-alert-content p {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--text2);
     margin: 0;
 }
@@ -77,25 +77,26 @@ require 'inc/layout_head.php';
 .bc-section {
     background: var(--sf2);
     border: 1px solid var(--bd);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 30px;
     transition: all var(--tf);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.02);
 }
 
 .bc-section:hover {
     border-color: var(--bds);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
 }
 
 .bc-section-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--text);
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .bc-section-title svg {
@@ -105,17 +106,17 @@ require 'inc/layout_head.php';
 .bc-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 24px;
 }
 
 .bc-checkbox-wrapper {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 18px;
+    padding: 20px;
     background: var(--sf);
     border: 1.5px solid var(--bd);
-    border-radius: 12px;
+    border-radius: 14px;
     cursor: pointer;
     transition: all var(--tf);
 }
@@ -123,42 +124,50 @@ require 'inc/layout_head.php';
 .bc-checkbox-wrapper:hover {
     border-color: var(--ac);
     background: var(--sf3);
-    box-shadow: 0 0 14px var(--acs);
+    box-shadow: 0 0 16px var(--acs);
 }
 
 .bc-checkbox-wrapper input[type="checkbox"] {
     margin: 0;
     accent-color: var(--ac);
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     cursor: pointer;
     flex-shrink: 0;
 }
 
 .bc-checkbox-text strong {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: var(--text);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .bc-checkbox-text small {
     color: var(--dim);
-    font-size: 0.75rem;
-    line-height: 1.5;
+    font-size: 0.8rem;
+    line-height: 1.6;
     display: block;
 }
 
 .bc-submit {
     display: flex;
     justify-content: flex-start;
-    margin-top: 30px;
+    margin-top: 36px;
 }
 
 .bc-submit .btn {
-    padding: 14px 28px;
-    font-size: 1rem;
-    border-radius: 10px;
+    padding: 16px 36px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px var(--acs);
+    transition: all var(--tf);
+}
+
+.bc-submit .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--acs);
 }
 
 /* Mobile Adjustments */

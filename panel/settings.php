@@ -249,17 +249,17 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
             <div class="kv-list">
                 <div class="kv">
-                    <span class="kv-key"><?= $textbotlang['panel']['settingsThemePreviewLabel'] ?></span>
+                    <span class="kv-key"><?= $textbotlang['panel']['settingsCurrentAdmin'] ?? 'نام کاربری' ?></span>
                     <span class="kv-val"><?= htmlspecialchars($_SESSION['admin_user']) ?></span>
                 </div>
                 <div class="kv">
-                    <span class="kv-key"><?= $textbotlang['panel']['settingsApplyThemeBtn'] ?></span>
+                    <span class="kv-key"><?= $textbotlang['panel']['settingsLoginTime'] ?? 'زمان ورود' ?></span>
                     <span class="kv-val">
                         <?= isset($_SESSION['login_time']) ? date('Y/m/d H:i:s', $_SESSION['login_time']) : '—' ?>
                     </span>
                 </div>
                 <div class="kv">
-                    <span class="kv-key"><?= $textbotlang['panel']['settingsSidebarToggleLabel'] ?></span>
+                    <span class="kv-key"><?= $textbotlang['panel']['settingsIPAddress'] ?? 'آدرس IP' ?></span>
                     <span class="kv-val cm"><?= htmlspecialchars($_SERVER['REMOTE_ADDR'] ?? '—') ?></span>
                 </div>
             </div>

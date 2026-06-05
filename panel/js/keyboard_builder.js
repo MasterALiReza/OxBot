@@ -1,4 +1,4 @@
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     const telegramBoard = document.getElementById("telegram-board");
     const unusedKeysContainer = document.getElementById("unused-keys");
     const saveBtn = document.getElementById("save-keyboard-btn");
@@ -12,7 +12,9 @@
     renderUnusedKeys(data.keylist);
     renderActiveKeyboard(data.userlist);
     ensureEmptyRowAtBottom();
-    initSortables();
+    
+    // Defer Sortable init until everything is fully rendered and styled
+    setTimeout(initSortables, 50);
 
     function createButtonElement(keyName, isActive = false, btnStyle = null) {
         const btn = document.createElement("div");
@@ -301,4 +303,4 @@
             saveBtn.disabled = false;
         }
     });
-})();
+});

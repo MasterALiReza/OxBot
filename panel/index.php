@@ -115,8 +115,6 @@ include __DIR__ . '/inc/layout_head.php';
 ?>
 
 <!-- Include Chart.js -->
-<script src="js/chart.min.js"></script>
-
 <!-- Top Statistics Cards -->
 <div class="stats dash-stats fade-up">
     
@@ -474,6 +472,9 @@ if (!empty($bestSelling)) {
     }
     const salesCtx = document.getElementById('salesChart');
     if (salesCtx) {
+        if (window.salesChartInstance) {
+            window.salesChartInstance.destroy();
+        }
         const labels = <?= json_encode($chartLabels) ?>;
         const data = <?= json_encode($chartData) ?>;
 
@@ -484,7 +485,7 @@ if (!empty($bestSelling)) {
         gradient.addColorStop(0, accentColor + '40'); // 25% opacity hex
         gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-        new Chart(salesCtx.getContext('2d'), {
+        window.salesChartInstance = new Chart(salesCtx.getContext('2d'), {
             type: 'line',
             data: {
                 labels: labels,
@@ -564,11 +565,14 @@ if (!empty($bestSelling)) {
     // 2. Best Selling Bar Chart
     const bestCtx = document.getElementById('bestSellingChart');
     if (bestCtx) {
+        if (window.bestChartInstance) {
+            window.bestChartInstance.destroy();
+        }
         const bsLabels = <?= json_encode($bestSellingLabels) ?>;
         const bsData = <?= json_encode($bestSellingData) ?>;
         const bsColors = <?= json_encode($bestSellingColors) ?>;
 
-        new Chart(bestCtx.getContext('2d'), {
+        window.bestChartInstance = new Chart(bestCtx.getContext('2d'), {
             type: 'bar',
             data: {
                 labels: bsLabels,

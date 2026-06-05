@@ -69,11 +69,11 @@ $activeNav = 'keyboard';
 include __DIR__ . '/inc/layout_head.php';
 ?>
 
+<link rel="stylesheet" href="css/keyboard_builder.css">
 <script src="js/sortable.min.js"></script>
 <script>
     window.KEYBOARD_INITIAL_DATA = <?= json_encode($initial_data) ?>;
 </script>
-<link rel="stylesheet" href="css/keyboard_builder.css">
 
 <div class="card fade-up">
     <div class="card-head" style="flex-wrap: wrap; gap: 10px;">
