@@ -163,43 +163,31 @@
         
         const unusedBtns = unusedKeysContainer.querySelectorAll('.kb-btn');
         if (unusedBtns.length === 0) {
-            addBtnList.innerHTML = "<p style='color:#64748b; font-size:14px; width:100%;'>دکمه‌ای برای افزودن وجود ندارد.</p>";
+            addBtnList.innerHTML = "<p style='color:var(--mute); font-size:14px; width:100%; text-align:center;'>دکمه‌ای برای افزودن وجود ندارد.</p>";
         } else {
             unusedBtns.forEach(btn => {
                 const clone = btn.cloneNode(true);
                 const rmBtn = clone.querySelector('.remove-btn');
                 if (rmBtn) rmBtn.remove();
                 
-                clone.style.cursor = "pointer";
-                clone.style.flex = "0 0 auto";
-                clone.style.minWidth = "120px";
-                clone.style.background = "#f8fafc";
-                clone.style.border = "1px dashed #cbd5e1";
-                clone.style.color = "#64748b";
+                clone.classList.add('kb-btn-clone');
                 
                 clone.onclick = () => {
-                    // Reset styles when added back to row
-                    btn.style.flex = "";
-                    btn.style.minWidth = "";
-                    btn.style.background = "";
-                    btn.style.border = "";
-                    btn.style.color = "";
-                    
                     row.appendChild(btn); 
-                    document.getElementById('addBtnModalVeil').style.display = 'none';
+                    closeModal('addBtnModalVeil');
                     ensureEmptyRowAtBottom();
                 };
                 addBtnList.appendChild(clone);
             });
         }
         
-        document.getElementById('addBtnModalVeil').style.display = 'flex';
+        openModal('addBtnModalVeil');
     };
 
     let currentStyleBtn = null;
     window.openColorPicker = function(btn) {
         currentStyleBtn = btn;
-        document.getElementById('colorPickerModalVeil').style.display = 'flex';
+        openModal('colorPickerModalVeil');
     };
 
     window.setBtnStyle = function(style) {
@@ -214,7 +202,7 @@
         }
         
         currentStyleBtn.dataset.style = style;
-        document.getElementById('colorPickerModalVeil').style.display = 'none';
+        closeModal('colorPickerModalVeil');
     };
 
     function initSortables() {

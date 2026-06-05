@@ -118,30 +118,43 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Add Button Modal -->
-<div id="addBtnModalVeil" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:var(--card-bg, #fff); color:var(--text-color, #334155); padding:20px; border-radius:12px; width:90%; max-width:350px; text-align:center; border: 1px solid var(--border-color);">
-        <h4 style="margin-top:0;">انتخاب دکمه جدید</h4>
-        <p style="font-size:12px; color:var(--text-muted, #64748b);">یک دکمه از لیست زیر انتخاب کنید:</p>
-        <div id="addBtnList" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px; justify-content:center; max-height:250px; overflow-y:auto; padding-bottom:10px;">
+<div class="modal-veil" id="addBtnModalVeil">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-head">
+            <h3>انتخاب دکمه جدید</h3>
+            <button class="modal-x" onclick="closeModal('addBtnModalVeil')"><?= icon('close', 14) ?></button>
         </div>
-        <button onclick="document.getElementById('addBtnModalVeil').style.display='none'" style="margin-top:20px; width:100%; padding:10px; border-radius:8px; border:none; background:var(--input-bg, #e2e8f0); color:inherit; font-family:inherit; cursor:pointer; font-weight:bold;">انصراف</button>
+        <div class="modal-body">
+            <p style="font-size:13px; color:var(--mute); margin-bottom:15px; text-align:center;">یک دکمه از لیست زیر جهت افزودن به ردیف کیبورد انتخاب کنید:</p>
+            <div id="addBtnList" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; max-height:250px; overflow-y:auto; padding:5px 0;">
+                <!-- Unused buttons cloned dynamically -->
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn btn-ghost" style="width:100%; justify-content:center;" onclick="closeModal('addBtnModalVeil')">انصراف</button>
+        </div>
     </div>
 </div>
 
 <!-- Color Picker Modal -->
-<div id="colorPickerModalVeil" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:var(--card-bg, #fff); color:var(--text-color, #334155); padding:20px; border-radius:12px; width:90%; max-width:350px; text-align:center; border: 1px solid var(--border-color);">
-        <h4 style="margin-top:0;">تغییر رنگ دکمه</h4>
-        <p style="font-size:12px; color:var(--text-muted, #64748b); margin-bottom:15px;">یک رنگ تلگرامی برای این دکمه انتخاب کنید:</p>
-        
-        <div style="display:flex; flex-direction:column; gap:10px;">
-            <button class="kb-btn btn-primary" onclick="setBtnStyle('primary')" style="width:100%; border-radius:8px; border:none; padding:12px; cursor:pointer; font-family: inherit;">آبی (Primary)</button>
-            <button class="kb-btn btn-success" onclick="setBtnStyle('success')" style="width:100%; border-radius:8px; border:none; padding:12px; cursor:pointer; font-family: inherit;">سبز (Success)</button>
-            <button class="kb-btn btn-danger" onclick="setBtnStyle('danger')" style="width:100%; border-radius:8px; border:none; padding:12px; cursor:pointer; font-family: inherit;">قرمز (Danger)</button>
-            <button class="kb-btn btn-secondary" onclick="setBtnStyle('default')" style="width:100%; border-radius:8px; border:1px solid #cbd5e1; padding:12px; cursor:pointer; font-family: inherit; color: #333;">پیش‌فرض (Default)</button>
+<div class="modal-veil" id="colorPickerModalVeil">
+    <div class="modal" style="max-width:400px">
+        <div class="modal-head">
+            <h3>تغییر رنگ دکمه</h3>
+            <button class="modal-x" onclick="closeModal('colorPickerModalVeil')"><?= icon('close', 14) ?></button>
         </div>
-
-        <button onclick="document.getElementById('colorPickerModalVeil').style.display='none'" style="margin-top:20px; width:100%; padding:10px; border-radius:8px; border:none; background:var(--input-bg, #e2e8f0); color:inherit; font-family:inherit; cursor:pointer; font-weight:bold;">انصراف</button>
+        <div class="modal-body">
+            <p style="font-size:13px; color:var(--mute); margin-bottom:20px; text-align:center;">یک رنگ تلگرامی برای این دکمه انتخاب کنید:</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <button class="btn btn-primary" onclick="setBtnStyle('primary')" style="justify-content:center;">آبی (Primary)</button>
+                <button class="btn btn-ok" onclick="setBtnStyle('success')" style="justify-content:center;">سبز (Success)</button>
+                <button class="btn btn-no" onclick="setBtnStyle('danger')" style="justify-content:center;">قرمز (Danger)</button>
+                <button class="btn btn-ghost" onclick="setBtnStyle('default')" style="justify-content:center;">پیش‌فرض (Default)</button>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button type="button" class="btn btn-ghost" style="width:100%; justify-content:center;" onclick="closeModal('colorPickerModalVeil')">انصراف</button>
+        </div>
     </div>
 </div>
 
