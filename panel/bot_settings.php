@@ -476,7 +476,7 @@ include __DIR__ . '/inc/layout_head.php';
 }
 .arvan-main-tab-btn.active {
     background: var(--ac);
-    color: #fff;
+    color: var(--btn-ac-text, #fff);
     border-color: var(--ac);
     box-shadow: 0 4px 15px var(--acs);
 }
@@ -519,11 +519,11 @@ include __DIR__ . '/inc/layout_head.php';
 }
 .arvan-sub-tab-btn.active {
     background: var(--ac);
-    color: #fff;
+    color: var(--btn-ac-text, #fff);
     font-weight: 600;
 }
 .arvan-sub-tab-btn:hover:not(.active) {
-    background: var(--bd);
+    background: var(--sf3);
     color: var(--text);
 }
 
@@ -728,7 +728,7 @@ include __DIR__ . '/inc/layout_head.php';
     }
     .arvan-sub-tab-btn.active {
         background: var(--ac);
-        color: #fff !important;
+        color: var(--btn-ac-text, #fff) !important;
         border-color: var(--ac) !important;
     }
     .card-head {

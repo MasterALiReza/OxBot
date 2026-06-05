@@ -53,6 +53,9 @@ if(count($userid) == 0){
     if(isset($info['id_admin'])){
     deletemessage($info['id_admin'], $info['id_message']);
     sendmessage($info['id_admin'], $textbotlang['hardcoded']['bulkMessageDone'], null, 'HTML');
+    
+    $pdo->query("UPDATE broadcast_history SET status = 'completed' WHERE status IN ('in_progress', 'pending')");
+    
     unlink('info');
     unlink('users.json');
     }
@@ -158,6 +161,40 @@ for ($i = 0; $i < 20; $i++) {
         $meesage = forwardMessage($info['id_admin'], $info['message'], $iduser->id);
         if ($meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
             pinmessage($iduser->id, $meesage['result']['message_id']);
+        }
+    } elseif ($info['type'] == "forwardlink") {
+        $link = $info['message'];
+        $from_chat_id = '';
+        $message_id = '';
+        
+        if (preg_match('/t\.me\/c\/(\d+)\/(\d+)/', $link, $matches)) {
+            $from_chat_id = '-100' . $matches[1];
+            $message_id = $matches[2];
+        } elseif (preg_match('/t\.me\/([a-zA-Z0-9_]+)\/(\d+)/', $link, $matches)) {
+            $from_chat_id = '@' . $matches[1];
+            $message_id = $matches[2];
+        }
+        
+        if ($from_chat_id && $message_id) {
+            $meesage = telegram('copyMessage', [
+                'chat_id' => $iduser->id,
+                'from_chat_id' => $from_chat_id,
+                'message_id' => $message_id
+            ]);
+            
+            if (isset($meesage['ok']) && $meesage['ok'] == false && strpos($meesage['description'], 'Forbidden: bot was blocked by the user') !== false) {
+                $invoicecount = select("invoice", "*", "id_user", $iduser->id, "count");
+                $userinfo = select("user", "Balance", "id", $iduser->id, "select");
+                if ($invoicecount == 0 && $userinfo['Balance'] == 0) {
+                    $Id_user = $iduser->id;
+                    $stmt = $pdo->prepare("DELETE FROM user WHERE id = '$Id_user'");
+                    $stmt->execute();
+                }
+            }
+            
+            if (isset($meesage['ok']) && $meesage['ok'] && ($info['pingmessage'] == "yes" || $isAdminOrOwner)) {
+                pinmessage($iduser->id, $meesage['result']['message_id']);
+            }
         }
     }
 }

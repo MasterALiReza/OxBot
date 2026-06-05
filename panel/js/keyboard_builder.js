@@ -1,5 +1,10 @@
-document.addEventListener('DOMContentLoaded', function() {
+function initKeyboardBuilder() {
     const telegramBoard = document.getElementById("telegram-board");
+    if (!telegramBoard) return; // Exit if not on the keyboard page
+    
+    if (telegramBoard.dataset.initialized === "true") return; // Prevent double initialization
+    telegramBoard.dataset.initialized = "true";
+
     const unusedKeysContainer = document.getElementById("unused-keys");
     const saveBtn = document.getElementById("save-keyboard-btn");
     
@@ -252,55 +257,64 @@ document.addEventListener('DOMContentLoaded', function() {
         rowSortables.push(sortable);
     }
 
-    saveBtn.addEventListener("click", async () => {
-        saveBtn.innerText = "در حال ذخیره...";
-        saveBtn.disabled = true;
+    // Only attach event listener once
+    if (!saveBtn.dataset.listenerAttached) {
+        saveBtn.dataset.listenerAttached = 'true';
+        saveBtn.addEventListener("click", async () => {
+            saveBtn.innerText = "در حال ذخیره...";
+            saveBtn.disabled = true;
 
-        const keyboardData = [];
-        
-        document.querySelectorAll(".telegram-row").forEach(row => {
-            const rowData = [];
-            row.querySelectorAll(".kb-btn").forEach(btn => {
-                if (btn.dataset.key) {
-                    const btnObj = { text: btn.dataset.key };
-                    if (btn.dataset.style && btn.dataset.style !== 'default') {
-                        btnObj.style = btn.dataset.style;
+            const keyboardData = [];
+            
+            document.querySelectorAll(".telegram-row").forEach(row => {
+                const rowData = [];
+                row.querySelectorAll(".kb-btn").forEach(btn => {
+                    if (btn.dataset.key) {
+                        const btnObj = { text: btn.dataset.key };
+                        if (btn.dataset.style && btn.dataset.style !== 'default') {
+                            btnObj.style = btn.dataset.style;
+                        }
+                        rowData.push(btnObj);
                     }
-                    rowData.push(btnObj);
+                });
+                // Only add non-empty rows
+                if (rowData.length > 0) {
+                    keyboardData.push(rowData);
                 }
             });
-            // Only add non-empty rows
-            if (rowData.length > 0) {
-                keyboardData.push(rowData);
+
+            try {
+                const response = await fetch("", { // Post to same page (keyboard.php)
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(keyboardData)
+                });
+                
+                if (response.ok) {
+                    // Flash success
+                    saveBtn.style.background = "#059669";
+                    saveBtn.innerText = "ذخیره شد!";
+                    setTimeout(() => {
+                        saveBtn.style.background = "";
+                        saveBtn.innerText = "ذخیره تغییرات";
+                        saveBtn.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error("Server response not OK");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("خطا در ذخیره‌سازی");
+                saveBtn.innerText = "ذخیره تغییرات";
+                saveBtn.disabled = false;
             }
         });
+    }
+}
 
-        try {
-            const response = await fetch("", { // Post to same page (keyboard.php)
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(keyboardData)
-            });
-            
-            if (response.ok) {
-                // Flash success
-                saveBtn.style.background = "#059669";
-                saveBtn.innerText = "ذخیره شد!";
-                setTimeout(() => {
-                    saveBtn.style.background = "";
-                    saveBtn.innerText = "ذخیره تغییرات";
-                    saveBtn.disabled = false;
-                }, 2000);
-            } else {
-                throw new Error("Server response not OK");
-            }
-        } catch (error) {
-            console.error(error);
-            alert("خطا در ذخیره‌سازی");
-            saveBtn.innerText = "ذخیره تغییرات";
-            saveBtn.disabled = false;
-        }
-    });
-});
+// Run on normal load, HTMX swap, and execute immediately in case it's injected by HTMX
+document.addEventListener('DOMContentLoaded', initKeyboardBuilder);
+document.addEventListener('htmx:afterSwap', initKeyboardBuilder);
+initKeyboardBuilder();

@@ -15,11 +15,21 @@ $btnmessage = $_POST['btnmessage'] ?? 'none';
 $target_users = $_POST['target_users'] ?? 'all';
 $target_agent = $_POST['target_agent'] ?? 'all';
 $message = trim($_POST['message'] ?? '');
+$channel_link = trim($_POST['channel_link'] ?? '');
 $pingmessage = isset($_POST['pingmessage']) ? 'yes' : 'no';
 
 if ($type === 'sendmessage' && empty($message)) {
     echo '<div class="alert alert-warn">لطفا متن پیام را وارد کنید.</div>';
     exit;
+}
+
+if ($type === 'forwardlink' && empty($channel_link)) {
+    echo '<div class="alert alert-warn">لطفا لینک کانال را وارد کنید.</div>';
+    exit;
+}
+
+if ($type === 'forwardlink') {
+    $message = $channel_link;
 }
 
 // Fetch admin id
@@ -48,7 +58,7 @@ if (!empty($where)) {
 }
 
 $users = db_fetchAll($pdo, $sql, $params);
-if (empty($users)) {
+if (empty($users) && $type !== 'unpinmessage') {
     echo '<div class="alert alert-warn">هیچ کاربری با این شرایط یافت نشد.</div>';
     exit;
 }
@@ -61,6 +71,7 @@ foreach ($admin_rows as $row) {
         $admin_ids[] = (string)$row['id_admin'];
     }
 }
+global $adminnumber;
 if (isset($adminnumber) && $adminnumber !== '') {
     $admin_ids[] = (string)$adminnumber;
 }
@@ -93,6 +104,19 @@ $info = [
 
 file_put_contents('../../cronbot/users.json', json_encode($formatted_users));
 file_put_contents('../../cronbot/info', json_encode($info));
+
+// Log into broadcast_history
+$msg_type_db = ($type === 'forwardlink') ? 'forwardlink' : (($type === 'sendmessage') ? 'text' : 'unpin');
+if ($msg_type_db !== 'unpin') {
+    $hist_stmt = $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, status, created_at) VALUES (?, ?, ?, ?, 'pending', ?)");
+    $hist_stmt->execute([
+        $id_admin,
+        $msg_type_db,
+        $message,
+        $target_users,
+        time()
+    ]);
+}
 
 echo '<div class="alert alert-success">عملیات با موفقیت تنظیم شد و در پس‌زمینه ارسال خواهد شد. ' . count($formatted_users) . ' کاربر هدف‌گذاری شدند.</div>';
 echo '<script>setTimeout(() => window.location.reload(), 2500);</script>';

@@ -825,6 +825,12 @@ elseif ($datain == "systemsms") {
                 ['text' => $textbotlang['keyboard']['broadcastForward'], 'callback_data' => 'typeservice-forwardmessage'],
             ],
             [
+                ['text' => 'ارسال با لینک کانال', 'callback_data' => 'typeservice-forwardlink'],
+            ],
+            [
+                ['text' => 'تاریخچه پیام‌های ارسالی', 'callback_data' => 'broadcasthistory'],
+            ],
+            [
                 ['text' => $textbotlang['keyboard']['inactiveDays'], 'callback_data' => 'typeservice-xdaynotmessage'],
             ],
             [
@@ -836,6 +842,41 @@ elseif ($datain == "systemsms") {
         ]
     ]);
     Editmessagetext($from_id, $message_id, $textbotlang['users']['selectoption'], $listbtn);
+} elseif ($datain == "broadcasthistory") {
+    $history_stmt = $pdo->prepare("SELECT * FROM broadcast_history ORDER BY id DESC LIMIT 5");
+    $history_stmt->execute();
+    $histories = $history_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($histories)) {
+        $listbtn = json_encode([
+            'inline_keyboard' => [
+                [
+                    ['text' => $textbotlang['keyboard']['backToPrev'], 'callback_data' => 'systemsms'],
+                ],
+            ]
+        ]);
+        Editmessagetext($from_id, $message_id, "هیچ تاریخچه‌ای یافت نشد.", $listbtn);
+    } else {
+        $text = "📚 تاریخچه ۵ ارسال اخیر:\n\n";
+        foreach ($histories as $h) {
+            $status = $h['status'] == 'completed' ? 'پایان یافته' : 'در جریان';
+            $type = $h['message_type'] == 'text' ? 'متنی' : 'لینک کانال';
+            $date = jdate('Y/m/d H:i', $h['created_at']);
+            
+            $content_preview = mb_substr(strip_tags($h['content']), 0, 30) . '...';
+            
+            $text .= "🔹 نوع: $type\n👥 هدف: {$h['target_audience']}\nوضعیت: $status\nتاریخ: $date\nمحتوا: $content_preview\n\n";
+        }
+        $text .= "برای استفاده مجدد از این پیام‌ها به پنل مدیریت تحت وب مراجعه کنید.";
+        $listbtn = json_encode([
+            'inline_keyboard' => [
+                [
+                    ['text' => $textbotlang['keyboard']['backToPrev'], 'callback_data' => 'systemsms'],
+                ],
+            ]
+        ]);
+        Editmessagetext($from_id, $message_id, $text, $listbtn);
+    }
 } elseif (preg_match('/^typeservice-(\w+)/', $datain, $dataget)) {
     $type = $dataget[1];
     savedata("clear", "typeservice", $type);
@@ -926,7 +967,7 @@ elseif ($datain == "systemsms") {
         Editmessagetext($from_id, $message_id, $textbotlang['Admin']['adminphp']['msg_panel_user_message'], json_encode($list_panel));
         return;
     }
-    if ($userdata['typeservice'] == "xdaynotmessage" or $userdata['typeservice'] == "sendmessage" or $userdata['typeservice'] == "forwardmessage") {
+    if ($userdata['typeservice'] == "xdaynotmessage" or $userdata['typeservice'] == "sendmessage" or $userdata['typeservice'] == "forwardmessage" or $userdata['typeservice'] == "forwardlink") {
         $listbtn = json_encode([
             'inline_keyboard' => [
                 [
@@ -957,7 +998,7 @@ elseif ($datain == "systemsms") {
         return;
     }
     savedata("save", "selectpanel", $typeoanel);
-    if ($userdata['typeservice'] == "xdaynotmessage" or $userdata['typeservice'] == "sendmessage" or $userdata['typeservice'] == "forwardmessage") {
+    if ($userdata['typeservice'] == "xdaynotmessage" or $userdata['typeservice'] == "sendmessage" or $userdata['typeservice'] == "forwardmessage" or $userdata['typeservice'] == "forwardlink") {
         $listbtn = json_encode([
             'inline_keyboard' => [
                 [
@@ -1010,7 +1051,7 @@ elseif ($datain == "systemsms") {
             ],
         ]
     ]);
-    if ($userdata['typeservice'] == "forwardmessage") {
+    if ($userdata['typeservice'] == "forwardmessage" or $userdata['typeservice'] == "forwardlink") {
         step("gettextSystemMessage", $from_id);
         sendmessage($from_id, $textbotlang['Admin']['adminphp']['ask_send_message'], $backadmin, 'HTML');
         return;
@@ -1056,6 +1097,13 @@ elseif ($datain == "systemsms") {
     }
     if ($userdata['typeservice'] == "forwardmessage") {
         savedata("save", "message", $message_id);
+    } elseif ($userdata['typeservice'] == "forwardlink") {
+        if ($text) {
+            savedata("save", "message", $text);
+        } else {
+            sendmessage($from_id, "لطفاً لینک کانال را وارد کنید:", $backadmin, 'HTML');
+            return;
+        }
     } elseif ($userdata['typeservice'] == "xdaynotmessage") {
         if ($text) {
             savedata("save", "message", $text);
@@ -1075,6 +1123,7 @@ elseif ($datain == "systemsms") {
         "xdaynotmessage" => $textbotlang['Admin']['adminphp']['msg_user_day_2'],
         "sendmessage" => $textbotlang['keyboard']['broadcastSend'],
         "forwardmessage" => $textbotlang['keyboard']['broadcastForward'],
+        "forwardlink" => "ارسال با لینک کانال",
         "unpinmessage" => $textbotlang['Admin']['adminphp']['btn_message_1']
     ][$userdata['typeservice']];
     $typeservice = [
@@ -1175,7 +1224,13 @@ elseif ($datain == "systemsms") {
         ));
         file_put_contents("cronbot/users.json", $userslist);
         file_put_contents('cronbot/info', $data);
-    } elseif ($typeservice == "forwardmessage") {
+        
+        $msg_type = "text";
+        $content = $userdata['message'];
+        $audience = "ارسال به: $typeusermessage (نماینده: $agent)";
+        $pdo->prepare("INSERT INTO broadcast_history (message_type, content, target_audience, created_at, status) VALUES (?, ?, ?, ?, 'in_progress')")
+            ->execute([$msg_type, $content, $audience, time()]);
+    } elseif ($typeservice == "forwardmessage" || $typeservice == "forwardlink") {
         if ($agent == "all") {
             if ($typeusermessage == "all") {
                 $userslist = json_encode(select("user", "id", "User_Status", "Active", "fetchAll"));
@@ -1216,13 +1271,19 @@ elseif ($datain == "systemsms") {
         $message_id = Editmessagetext($from_id, $message_id, $textbotlang['Admin']['adminphp']['ok_1'], $cancelmessage);
         $data = json_encode(array(
             "id_admin" => $from_id,
-            'type' => "forwardmessage",
+            'type' => $typeservice,
             "id_message" => $message_id['result']['message_id'],
             "message" => $userdata['message'],
             "pingmessage" => $userdata['typepinmessage'],
         ));
         file_put_contents("cronbot/users.json", $userslist);
         file_put_contents('cronbot/info', $data);
+
+        $msg_type = $typeservice == 'forwardlink' ? 'forwardlink' : 'text';
+        $content = $userdata['message'];
+        $audience = "ارسال به: $typeusermessage (نماینده: $agent)";
+        $pdo->prepare("INSERT INTO broadcast_history (message_type, content, target_audience, created_at, status) VALUES (?, ?, ?, ?, 'in_progress')")
+            ->execute([$msg_type, $content, $audience, time()]);
     } elseif ($typeservice == "xdaynotmessage") {
         $timedaystamp = intval($userdata['daynoyuse']) * 86400;
         $timenouser = time() - $timedaystamp;

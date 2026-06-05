@@ -5,6 +5,11 @@ require_auth();
 $title = 'ارسال پیام همگانی';
 require 'inc/layout_head.php';
 
+// Fetch Broadcast History
+$history_stmt = $pdo->prepare("SELECT * FROM broadcast_history ORDER BY id DESC LIMIT 10");
+$history_stmt->execute();
+$histories = $history_stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <style>
@@ -170,6 +175,42 @@ require 'inc/layout_head.php';
     box-shadow: 0 8px 24px var(--acs);
 }
 
+/* History Table Styles */
+.bc-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.bc-history-table th,
+.bc-history-table td {
+    padding: 12px;
+    text-align: right;
+    border-bottom: 1px solid var(--bd);
+    font-size: 0.9rem;
+}
+
+.bc-history-table th {
+    color: var(--dim);
+    font-weight: 600;
+    background: var(--sf);
+}
+
+.bc-history-table tr:hover {
+    background: var(--sf3);
+}
+
+.bc-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.badge-text { background: var(--acs); color: var(--ac); }
+.badge-link { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+.badge-audience { background: rgba(155, 89, 182, 0.2); color: #9b59b6; }
+
 /* Mobile Adjustments */
 @media (max-width: 768px) {
     .bc-grid {
@@ -191,13 +232,18 @@ require 'inc/layout_head.php';
         width: 100%;
         justify-content: center;
     }
+    
+    .bc-history-table {
+        display: block;
+        overflow-x: auto;
+    }
 }
 </style>
 
 <div class="broadcast-dashboard fade-in">
     <div class="bc-header">
         <h2><?= icon('radio', 24) ?> ایستگاه پیام‌رسانی (Broadcast)</h2>
-        <p>در این بخش می‌توانید به صورت همگانی برای گروه‌های مختلف کاربری ربات، پیام متنی ارسال کنید یا پیام‌های قبلی را از حالت پین خارج کنید.</p>
+        <p>در این بخش می‌توانید به صورت همگانی برای گروه‌های مختلف کاربری ربات، پیام متنی ارسال کنید، از لینک کانال پیام را کپی کنید یا پیام‌های قبلی را از حالت پین خارج کنید.</p>
     </div>
 
     <?php if (is_file('../cronbot/info') || is_file('../cronbot/users.json')): ?>
@@ -224,7 +270,8 @@ require 'inc/layout_head.php';
                 <div class="field">
                     <label class="label">نوع فرمان</label>
                     <select class="input select" name="type" id="messageType" onchange="toggleFields()">
-                        <option value="sendmessage">ارسال پیام جدید</option>
+                        <option value="sendmessage">ارسال پیام متنی جدید</option>
+                        <option value="forwardlink">ارسال با لینک پست کانال</option>
                         <option value="unpinmessage">حذف پین تمامی پیام‌ها (Unpin)</option>
                     </select>
                 </div>
@@ -252,7 +299,7 @@ require 'inc/layout_head.php';
             <div class="bc-grid">
                 <div class="field">
                     <label class="label">بر اساس وضعیت اشتراک</label>
-                    <select class="input select" name="target_users">
+                    <select class="input select" name="target_users" id="targetUsers">
                         <option value="all">همه کاربران ربات</option>
                         <option value="customer">فقط مشتریان (دارای سرویس فعال)</option>
                         <option value="nonecustomer">فقط کاربران عادی (بدون سرویس)</option>
@@ -261,7 +308,7 @@ require 'inc/layout_head.php';
 
                 <div class="field">
                     <label class="label">بر اساس سطح دسترسی (نقش)</label>
-                    <select class="input select" name="target_agent">
+                    <select class="input select" name="target_agent" id="targetAgent">
                         <option value="all">تمام نقش‌ها</option>
                         <option value="f">کاربران عادی</option>
                         <option value="n">نمایندگان فروش</option>
@@ -276,13 +323,20 @@ require 'inc/layout_head.php';
             <div class="bc-section-title">
                 <?= icon('message-square', 18) ?> محتوای پیام
             </div>
-            <div class="field" style="margin-bottom: 20px;">
+            
+            <div class="field" id="textGroup" style="margin-bottom: 20px;">
                 <label class="label">متن پیام (پشتیبانی کامل از HTML و استایل‌های تلگرام)</label>
-                <textarea class="input textarea" name="message" rows="7" placeholder="متن پیام جذاب و اطلاع‌رسانی خود را اینجا بنویسید..."></textarea>
+                <textarea class="input textarea" name="message" id="messageText" rows="7" placeholder="متن پیام جذاب و اطلاع‌رسانی خود را اینجا بنویسید..."></textarea>
+            </div>
+            
+            <div class="field" id="linkGroup" style="display: none; margin-bottom: 20px;">
+                <label class="label">لینک پست کانال تلگرام</label>
+                <input type="text" class="input" name="channel_link" id="channelLink" placeholder="مثال: https://t.me/MyChannel/123" dir="ltr">
+                <small style="color:var(--dim); display:block; margin-top:5px;">ربات حتماً باید در این کانال عضو (یا ادمین) باشد تا بتواند پیام را کپی کند و ایموجی‌ها حفظ شوند.</small>
             </div>
 
             <label class="bc-checkbox-wrapper">
-                <input type="checkbox" name="pingmessage" value="yes">
+                <input type="checkbox" name="pingmessage" value="yes" id="pingmessage">
                 <div class="bc-checkbox-text">
                     <strong>پین شدن پیام در ربات (Pin Message)</strong>
                     <small>در صورت فعال بودن این گزینه، پیام بلافاصله پس از رسیدن به کاربر در صفحه چت او سنجاق (Pin) خواهد شد که باعث افزایش چشمگیر بازدید می‌شود.</small>
@@ -296,6 +350,49 @@ require 'inc/layout_head.php';
             </button>
         </div>
     </form>
+    
+    <!-- Section 4: History -->
+    <?php if (count($histories) > 0): ?>
+    <div class="bc-section" style="margin-top: 40px;">
+        <div class="bc-section-title">
+            <?= icon('clock', 18) ?> تاریخچه پیام‌های اخیر
+        </div>
+        <table class="bc-history-table">
+            <thead>
+                <tr>
+                    <th>محتوا / لینک</th>
+                    <th>نوع</th>
+                    <th>جامعه هدف</th>
+                    <th>وضعیت</th>
+                    <th>زمان ارسال</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach($histories as $history): ?>
+                <tr>
+                    <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= htmlspecialchars($history['content']) ?>">
+                        <?= htmlspecialchars($history['content']) ?>
+                    </td>
+                    <td>
+                        <?php if($history['message_type'] == 'text'): ?>
+                            <span class="bc-badge badge-text">متنی</span>
+                        <?php else: ?>
+                            <span class="bc-badge badge-link">لینک کانال</span>
+                        <?php endif; ?>
+                    </td>
+                    <td><span class="bc-badge badge-audience"><?= htmlspecialchars($history['target_audience']) ?></span></td>
+                    <td><?= $history['status'] == 'completed' ? 'پایان یافته' : 'در جریان' ?></td>
+                    <td dir="ltr" style="text-align:center;"><?= jdate('Y/m/d H:i', $history['created_at']) ?></td>
+                    <td>
+                        <button type="button" class="btn btn-sm" onclick="reuseBroadcast(<?= htmlspecialchars(json_encode($history)) ?>)" style="padding: 4px 10px; font-size: 0.8rem; background: var(--sf3); border: 1px solid var(--bd);">استفاده مجدد</button>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
 </div>
 
 <script>
@@ -303,21 +400,47 @@ function toggleFields() {
     var type = document.getElementById('messageType').value;
     var btn = document.getElementById('btnmessage');
     var msg = document.getElementById('messageGroup');
+    var textGroup = document.getElementById('textGroup');
+    var linkGroup = document.getElementById('linkGroup');
     
     if (type === 'unpinmessage') {
         btn.disabled = true;
         btn.style.opacity = '0.5';
-        msg.style.opacity = '0.5';
-        msg.style.pointerEvents = 'none';
-        msg.querySelector('textarea').disabled = true;
+        msg.style.display = 'none';
+    } else if (type === 'forwardlink') {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        msg.style.display = 'block';
+        msg.style.opacity = '1';
+        textGroup.style.display = 'none';
+        linkGroup.style.display = 'block';
     } else {
         btn.disabled = false;
         btn.style.opacity = '1';
+        msg.style.display = 'block';
         msg.style.opacity = '1';
-        msg.style.pointerEvents = 'auto';
-        msg.querySelector('textarea').disabled = false;
+        textGroup.style.display = 'block';
+        linkGroup.style.display = 'none';
     }
 }
+
+function reuseBroadcast(data) {
+    if (data.message_type === 'text') {
+        document.getElementById('messageType').value = 'sendmessage';
+        document.getElementById('messageText').value = data.content;
+    } else {
+        document.getElementById('messageType').value = 'forwardlink';
+        document.getElementById('channelLink').value = data.content;
+    }
+    
+    document.getElementById('targetUsers').value = data.target_audience;
+    document.getElementById('targetAgent').value = 'all'; // Default
+    
+    toggleFields();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', toggleFields);
 </script>
 <?php require 'inc/layout_foot.php'; ?>
-
