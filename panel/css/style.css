@@ -1060,13 +1060,31 @@ body::after {
 }
 
 /* Dashboard Amount/Date Responsive Layout */
-.mobile-amount-date { display: none; }
+.mobile-amount-date { display: none !important; }
 @media (max-width: 768px) {
-    .desktop-amount { display: none !important; }
-    .mobile-amount-date { display: flex !important; }
-    .dash-responsive-amount::before { display: none !important; }
+    /* Full width for Dashboard Cards (higher specificity to override mobile_optimizations) */
+    div.tbl-wrap.dash-orders td, div.tbl-wrap.dash-users td {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+    }
+    
+    div.tbl-wrap.dash-orders td > .user-profile-cell, div.tbl-wrap.dash-users td > .user-profile-cell {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    .tbl-wrap td > .desktop-amount { display: none !important; }
+    .tbl-wrap td > .mobile-amount-date { display: flex !important; }
+    .tbl-wrap td.dash-responsive-amount::before { display: none !important; }
     
     /* Make sure profile-id box and avatar align well */
-    .user-profile-cell { flex-direction: row !important; flex-wrap: wrap; }
+    .tbl-wrap td > .user-profile-cell { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; width: 100% !important; }
     .tbl-wrap td.no-label { padding-top: 10px !important; padding-bottom: 10px !important; }
 }

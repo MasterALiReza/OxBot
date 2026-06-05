@@ -312,7 +312,7 @@
         display: inline-block !important;
     }
 
-    .tbl-wrap td > div {
+    .tbl-wrap td > div:not(.user-profile-cell):not(.mobile-amount-date):not(.desktop-amount) {
         display: inline-flex !important; /* Keep avatar and text compact on the left */
         align-items: center !important;
         gap: 10px !important;
