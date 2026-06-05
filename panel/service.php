@@ -223,7 +223,7 @@ include __DIR__ . '/inc/layout_head.php';
             ?>
             <tr>
               <td data-label="#" class="cf"><?= $i++ ?></td>
-              <td data-label="<?= $textbotlang['panel']['serviceDetailUser'] ?? 'کاربر' ?>" class="cm"><?= htmlspecialchars($s['id_user'] ?? '—') ?></td>
+              <td data-label="<?= $textbotlang['panel']['serviceDetailUser'] ?? 'کاربر' ?>"><span class="cm"><?= htmlspecialchars($s['id_user'] ?? '—') ?></span></td>
               <td data-label="<?= $textbotlang['panel']['userColUsername'] ?? 'یوزرنیم' ?>">
                 <?= !empty($s['username']) ? '<span class="cm" style="color:var(--ac)">@' . htmlspecialchars(trunc($s['username'], 18)) . '</span>' : '<span class="cf">—</span>' ?>
               </td>

@@ -81,7 +81,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
         const e2p = s => s.replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
         function walk(node) {
             if (node.nodeType === 3) {
-                if(node.parentElement && node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE' && node.parentElement.tagName !== 'TEXTAREA') {
+                if(node.parentElement && node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE' && node.parentElement.tagName !== 'TEXTAREA' && (!node.parentElement.closest || (!node.parentElement.closest('.en-num') && !node.parentElement.closest('.cm') && !node.parentElement.closest('.cell-mono')))) {
                     node.nodeValue = e2p(node.nodeValue);
                 }
             } else if (node.nodeType === 1) {

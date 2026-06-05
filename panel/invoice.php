@@ -200,7 +200,7 @@ include __DIR__ . '/inc/layout_head.php';
             ?>
             <tr>
               <td data-label="#" class="cf"><?= $i++ ?></td>
-              <td data-label="<?= $textbotlang['panel']['invoiceColUser'] ?>" class="cm"><?= htmlspecialchars($inv['id_user'] ?? '—') ?></td>
+              <td data-label="<?= $textbotlang['panel']['invoiceColUser'] ?>"><span class="cm"><?= htmlspecialchars($inv['id_user'] ?? '—') ?></span></td>
               <td data-label="<?= $textbotlang['panel']['invoiceColProduct'] ?>" class="cs"><?= htmlspecialchars(trunc($inv['name_product'] ?? '—', 28)) ?></td>
               <td data-label="<?= $textbotlang['panel']['invoiceColPrice'] ?>" class="cn cs"><?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['invoiceColTrackingCode'] ?></span></td>
               <td data-label="<?= $textbotlang['panel']['invoiceColDate'] ?>" class="cf"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></td>

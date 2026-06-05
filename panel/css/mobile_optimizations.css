@@ -6,10 +6,13 @@
 
 
 /* Global LTR font direction fixes for usernames/codes */
-.cm {
+.cm, .cell-mono, .en-num {
     direction: ltr !important;
     display: inline-block !important;
     unicode-bidi: isolate !important;
+    font-family: var(--mono) !important;
+    font-variant-numeric: tabular-nums !important;
+    letter-spacing: 0.03em !important;
 }
 
 /* Global Stat/Dashboard Cards */
@@ -272,15 +275,18 @@
     }
 
     /* Custom Header layout for Name cell to make it look like real cards */
-    .tbl-wrap td[data-label="نام"] {
+    .tbl-wrap td[data-label="نام"],
+    .tbl-wrap td[data-label="نام پنل"] {
         justify-content: flex-start !important;
         flex: 1 1 100% !important;
         width: 100% !important;
     }
-    .tbl-wrap td[data-label="نام"]::before {
+    .tbl-wrap td[data-label="نام"]::before,
+    .tbl-wrap td[data-label="نام پنل"]::before {
         display: none !important;
     }
     .tbl-wrap td[data-label="نام"] > div,
+    .tbl-wrap td[data-label="نام پنل"] > div,
     .tbl-wrap td[data-label="کاربر"] > div {
         display: flex !important;
         width: 100%;
@@ -604,10 +610,12 @@
     /* 2. Hide labels for cells where it is redundant */
     .tbl-wrap td.no-label::before,
     .tbl-wrap td[data-label="نام"]::before,
+    .tbl-wrap td[data-label="نام پنل"]::before,
     .tbl-wrap td[data-label="شناسه تراکنش"]::before,
     .tbl-wrap td[data-label="محصول"]::before,
     .tbl-wrap td[data-label="یوزرنیم"]::before,
     .tbl-wrap td[data-label="آدرس"]::before,
+    .tbl-wrap td[data-label="آدرس پنل"]::before,
     .tbl-wrap td[data-label="عملیات"]::before,
     .tbl-wrap td[data-label="Actions"]::before,
     .tbl-wrap td[data-label="#"]::before {
@@ -738,7 +746,8 @@
     }
 
     /* 7. Specific layout ordering and sizing for SERVER MANAGEMENT cards (panels_manage.php) */
-    .tbl-wrap td[data-label="نام"] {
+    .tbl-wrap td[data-label="نام"],
+    .tbl-wrap td[data-label="نام پنل"] {
         order: 1 !important;
         flex: 1 1 65% !important;
         width: 65% !important;
@@ -750,11 +759,13 @@
         margin-bottom: 8px !important;
     }
 
-    .tbl-wrap td[data-label="نوع پنل"] {
+    .tbl-wrap td[data-label="نوع پنل"],
+    .tbl-wrap td[data-label="نوع"] {
         order: 3 !important;
     }
 
-    .tbl-wrap td[data-label="آدرس"] {
+    .tbl-wrap td[data-label="آدرس"],
+    .tbl-wrap td[data-label="آدرس پنل"] {
         order: 4 !important;
         flex: 1 1 100% !important;
         width: 100% !important;
@@ -763,7 +774,8 @@
         justify-content: flex-start !important;
     }
     
-    .tbl-wrap td[data-label="آدرس"] a {
+    .tbl-wrap td[data-label="آدرس"] a,
+    .tbl-wrap td[data-label="آدرس پنل"] a {
         max-width: 100% !important;
     }
 

@@ -2260,7 +2260,7 @@
             "serviceDetailStatus": "وضعیت",
             "serviceDetailTitle": "نوع",
             "serviceDetailType": "قیمت",
-            "serviceDetailUser": "مقدار",
+            "serviceDetailUser": "کاربر",
             "serviceExtraTimeLabel": "افزایش زمان",
             "serviceExtraVolumeLabel": "افزایش حجم",
             "serviceNoManualServiceYet": "هنوز سرویس دستی ثبت نشده",
