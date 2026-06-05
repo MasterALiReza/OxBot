@@ -654,7 +654,7 @@ body::after {
 [data-theme=linen] .arvan-sub-tab-btn.active,
 [data-theme=mint] .arvan-sub-tab-btn.active,
 [data-theme=lavender] .arvan-sub-tab-btn.active {
-    color: var(--ac) !important;
+    color: #fff !important;
 }
 
 /* arvan-main-tab-btn active: ensure text is white in dark themes */
