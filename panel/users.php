@@ -293,7 +293,7 @@ include __DIR__ . '/inc/layout_head.php';
         </form>
     </div>
 
-    <div class="tbl-wrap dash-orders">
+    <div class="tbl-wrap dash-unified">
         <table class="tbl-xl">
             <thead>
                 <tr>
@@ -356,58 +356,67 @@ include __DIR__ . '/inc/layout_head.php';
                                 </div>
                             </td>
                             <td data-label="<?= $textbotlang['panel']['usersColContactInfo'] ?? 'اطلاعات تماس' ?>">
-                                <div style="display:flex; flex-direction:column; gap:8px;">
-                                    <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-                                        <span style="color:var(--mute)"><?= icon('phone', 14) ?></span>
-                                        <span class="cm cf"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
-                                    </div>
-                                    <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem;">
-                                        <span style="color:var(--mute)"><?= icon('calendar', 14) ?></span>
-                                        <span class="cf"><?= safe_date($u['register'] ?? null) ?></span>
+                                <div class="dash-unified-content">
+                                    <span class="mobile-label"><?= $textbotlang['panel']['usersColContactInfo'] ?? 'اطلاعات تماس' ?>:</span>
+                                    <div style="display:flex; flex-direction:column; gap:8px;">
+                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
+                                            <span style="color:var(--mute)"><?= icon('phone', 14) ?></span>
+                                            <span class="cm cf"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
+                                        </div>
+                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem;">
+                                            <span style="color:var(--mute)"><?= icon('calendar', 14) ?></span>
+                                            <span class="cf"><?= safe_date($u['register'] ?? null) ?></span>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td data-label="<?= $textbotlang['panel']['usersColFinancial'] ?? 'مالی و امتیاز' ?>">
-                                <div style="display:flex; flex-direction:column; gap:8px;">
-                                    <div style="display:flex; align-items:center; gap:6px;">
-                                        <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
-                                        <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
-                                            <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
-                                        </span>
-                                    </div>
-                                    <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-                                        <span style="color:var(--warn)"><?= icon('star', 14) ?></span>
-                                        <span class="cn"><?= (int) ($u['score'] ?? 0) > 0 ? number_format((int) ($u['score'] ?? 0)) : '<span class="cf">—</span>' ?></span>
+                                <div class="dash-unified-content">
+                                    <span class="mobile-label"><?= $textbotlang['panel']['usersColFinancial'] ?? 'مالی و امتیاز' ?>:</span>
+                                    <div style="display:flex; flex-direction:column; gap:8px;">
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                                            <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
+                                                <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
+                                            </span>
+                                        </div>
+                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
+                                            <span style="color:var(--warn)"><?= icon('star', 14) ?></span>
+                                            <span class="cn"><?= (int) ($u['score'] ?? 0) > 0 ? number_format((int) ($u['score'] ?? 0)) : '<span class="cf">—</span>' ?></span>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td data-label="<?= $textbotlang['panel']['usersColStatusActions'] ?? 'وضعیت و عملیات' ?>">
-                                <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; flex-wrap:wrap;">
-                                    <div style="display:flex; gap:6px; align-items:center;">
-                                        <?php if ($isBlocked): ?>
-                                            <span class="status-pill danger">مسدود</span>
-                                        <?php else: ?>
-                                            <span class="status-pill <?= $agent === 'n2' ? 'warning' : ($agent === 'n' ? 'info' : 'success') ?>"><?= user_role_label($agent) ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div style="display:flex; gap:4px">
-                                        <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn btn-ghost btn-sm btn-icon"
-                                            title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
-                                            <?= icon('eye', 14) ?>
-                                        </a>
-                                        <?php if ($isBlocked): ?>
-                                            <a href="user_action.php?action=unblock&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
-                                                class="btn btn-ok btn-sm btn-icon" title="<?= $textbotlang['panel']['usersUnblockBtn'] ?>"
-                                                data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id']) ?>">
-                                                <?= icon('check', 13) ?>
+                                <div class="dash-unified-content">
+                                    <span class="mobile-label"><?= $textbotlang['panel']['usersColStatusActions'] ?? 'وضعیت و عملیات' ?>:</span>
+                                    <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+                                        <div style="display:flex; gap:6px; align-items:center;">
+                                            <?php if ($isBlocked): ?>
+                                                <span class="status-pill danger">مسدود</span>
+                                            <?php else: ?>
+                                                <span class="status-pill <?= $agent === 'n2' ? 'warning' : ($agent === 'n' ? 'info' : 'success') ?>"><?= user_role_label($agent) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div style="display:flex; gap:4px">
+                                            <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn btn-ghost btn-sm btn-icon"
+                                                title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
+                                                <?= icon('eye', 14) ?>
                                             </a>
-                                        <?php else: ?>
-                                            <a href="user_action.php?action=block&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
-                                                class="btn btn-no btn-sm btn-icon" title="<?= $textbotlang['panel']['usersBlockBtn'] ?>"
-                                                data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id']) ?>">
-                                                <?= icon('block', 13) ?>
-                                            </a>
-                                        <?php endif; ?>
+                                            <?php if ($isBlocked): ?>
+                                                <a href="user_action.php?action=unblock&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
+                                                    class="btn btn-ok btn-sm btn-icon" title="<?= $textbotlang['panel']['usersUnblockBtn'] ?>"
+                                                    data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id']) ?>">
+                                                    <?= icon('check', 13) ?>
+                                                </a>
+                                            <?php else: ?>
+                                                <a href="user_action.php?action=block&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
+                                                    class="btn btn-no btn-sm btn-icon" title="<?= $textbotlang['panel']['usersBlockBtn'] ?>"
+                                                    data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id']) ?>">
+                                                    <?= icon('block', 13) ?>
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -494,7 +503,7 @@ include __DIR__ . '/inc/layout_head.php';
         </form>
     </div>
 
-    <div class="tbl-wrap dash-orders">
+    <div class="tbl-wrap dash-unified">
         <table class="tbl-xl" id="adminsTbl">
             <thead>
                 <tr>
@@ -550,31 +559,37 @@ include __DIR__ . '/inc/layout_head.php';
                             </div>
                         </td>
                         <td data-label="دسترسی و وضعیت">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <span class="status-pill <?= $rc['color'] === '#22c55e' ? 'success' : ($rc['color'] === '#f59e0b' ? 'warning' : 'info') ?>"><?= $rc['label'] ?></span>
-                                <?php if ($isMe): ?>
-                                    <span class="status-pill success" style="opacity:0.8; padding: 3px 8px;">آنلاین</span>
-                                <?php else: ?>
-                                    <span class="status-pill neutral" style="opacity:0.8; padding: 3px 8px;">فعال</span>
-                                <?php endif; ?>
+                            <div class="dash-unified-content">
+                                <span class="mobile-label">دسترسی و وضعیت:</span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="status-pill <?= $rc['color'] === '#22c55e' ? 'success' : ($rc['color'] === '#f59e0b' ? 'warning' : 'info') ?>"><?= $rc['label'] ?></span>
+                                    <?php if ($isMe): ?>
+                                        <span class="status-pill success" style="opacity:0.8; padding: 3px 8px;">آنلاین</span>
+                                    <?php else: ?>
+                                        <span class="status-pill neutral" style="opacity:0.8; padding: 3px 8px;">فعال</span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </td>
                         <td data-label="عملیات">
-                            <div style="display:flex;gap:4px">
-                                <button class="btn btn-ghost btn-sm btn-icon" title="ویرایش"
-                                    onclick='openEditModal(<?= htmlspecialchars(json_encode([
-                                        "id"       => $ad['id_admin'],
-                                        "username" => $ad['username'],
-                                        "rule"     => $ad['rule'],
-                                    ]), ENT_QUOTES) ?>)'>
-                                    <?= icon('edit', 14) ?>
-                                </button>
-                                <?php if (!$isMe): ?>
-                                <button class="btn btn-no btn-sm btn-icon" title="حذف"
-                                    onclick="deleteAdmin('<?= htmlspecialchars($ad['id_admin']) ?>', '<?= htmlspecialchars($ad['username']) ?>')">
-                                    <?= icon('trash', 14) ?>
-                                </button>
-                                <?php endif; ?>
+                            <div class="dash-unified-content">
+                                <span class="mobile-label">عملیات:</span>
+                                <div style="display:flex;gap:4px">
+                                    <button class="btn btn-ghost btn-sm btn-icon" title="ویرایش"
+                                        onclick='openEditModal(<?= htmlspecialchars(json_encode([
+                                            "id"       => $ad['id_admin'],
+                                            "username" => $ad['username'],
+                                            "rule"     => $ad['rule'],
+                                        ]), ENT_QUOTES) ?>)'>
+                                        <?= icon('edit', 14) ?>
+                                    </button>
+                                    <?php if (!$isMe): ?>
+                                    <button class="btn btn-no btn-sm btn-icon" title="حذف"
+                                        onclick="deleteAdmin('<?= htmlspecialchars($ad['id_admin']) ?>', '<?= htmlspecialchars($ad['username']) ?>')">
+                                        <?= icon('trash', 14) ?>
+                                    </button>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </td>
                     </tr>

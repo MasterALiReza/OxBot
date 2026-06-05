@@ -1008,7 +1008,8 @@
     
     /* In dashboard users and orders cards, user profile subtitle should stack vertically to look premium */
     .tbl-wrap.dash-users .user-profile-cell,
-    .tbl-wrap.dash-orders .user-profile-cell {
+    .tbl-wrap.dash-orders .user-profile-cell,
+    .tbl-wrap.dash-unified .user-profile-cell {
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 4px !important;
@@ -1017,17 +1018,83 @@
         font-weight: 800 !important;
         font-size: 1.05rem !important;
     }
-    .tbl-wrap.dash-orders .user-profile-cell .profile-name {
+    .tbl-wrap.dash-orders .user-profile-cell .profile-name,
+    .tbl-wrap.dash-unified .user-profile-cell .profile-name {
         font-weight: 600 !important;
         font-size: 0.95rem !important;
         color: var(--fg) !important;
     }
     .tbl-wrap.dash-users .user-profile-cell .profile-id,
-    .tbl-wrap.dash-orders .user-profile-cell .profile-id {
+    .tbl-wrap.dash-orders .user-profile-cell .profile-id,
+    .tbl-wrap.dash-unified .user-profile-cell .profile-id-box {
         font-size: 0.75rem !important;
         color: var(--mute) !important;
         margin-top: 2px !important;
         padding-right: 32px !important; /* Align perfectly with Name under avatar in RTL */
+    }
+
+    /* 8. Unified Dash Tables (users.php, etc.) */
+    .tbl-wrap.dash-unified tr {
+        border-radius: 16px !important;
+        padding: 16px !important;
+        box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05) !important;
+        gap: 16px !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        border: 1px solid var(--bd) !important;
+        margin-bottom: 12px !important;
+        flex-direction: column !important;
+    }
+    
+    .tbl-wrap.dash-unified td {
+        border-bottom: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+    
+    .tbl-wrap.dash-unified td::before {
+        display: none !important; /* We use custom labels inside the cell */
+    }
+    
+    /* Order of columns on mobile */
+    .tbl-wrap.dash-unified td:nth-of-type(1) { 
+        order: 1 !important; 
+        background: rgba(128, 128, 128, 0.04) !important;
+        border: 1px solid rgba(128, 128, 128, 0.08) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+    }
+    [data-theme="dark"] .tbl-wrap.dash-unified td:nth-of-type(1) {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .tbl-wrap.dash-unified td:nth-of-type(2) { order: 2 !important; }
+    .tbl-wrap.dash-unified td:nth-of-type(3) { order: 3 !important; }
+    .tbl-wrap.dash-unified td:nth-of-type(4) { order: 4 !important; }
+    .tbl-wrap.dash-unified td:nth-of-type(5) { order: 5 !important; }
+
+    /* Mobile specific inner layouts */
+    .mobile-label {
+        display: block !important;
+        font-size: 0.85rem !important;
+        color: var(--mute) !important;
+        font-weight: 500 !important;
+        margin-top: 2px !important;
+    }
+    
+    .dash-unified-content {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .dash-unified-content > div:last-child {
+        text-align: right;
     }
 }
 
