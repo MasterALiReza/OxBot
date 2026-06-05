@@ -213,6 +213,16 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
     <div class="main">
       <header class="topbar">
         <div class="topbar-left">
+          <style>
+            @media (max-width: 768px) {
+              .sb-toggle { display: none !important; }
+              .menu-toggle { display: flex !important; align-items: center; justify-content: center; }
+            }
+            @media (min-width: 769px) {
+              .menu-toggle { display: none !important; }
+              .sb-toggle { display: flex !important; align-items: center; justify-content: center; }
+            }
+          </style>
           <button class="icon-btn menu-toggle" onclick="openSidebar()"><?= icon('menu', 18) ?></button>
           <button class="icon-btn sb-toggle" onclick="toggleSidebar()"><?= icon('menu', 17) ?></button>
           <div>
