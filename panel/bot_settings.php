@@ -456,7 +456,8 @@ include __DIR__ . '/inc/layout_head.php';
     display: flex;
     gap: 15px;
     overflow-x: auto;
-    padding-bottom: 5px;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
 }
 .arvan-main-tab-btn {
     display: flex;
@@ -466,7 +467,7 @@ include __DIR__ . '/inc/layout_head.php';
     background: var(--sf);
     border: 1px solid var(--bd);
     border-radius: 12px;
-    color: var(--mute);
+    color: var(--text2);
     cursor: pointer;
     transition: all 0.2s;
     font-size: 0.95rem;
@@ -477,48 +478,87 @@ include __DIR__ . '/inc/layout_head.php';
     background: var(--ac);
     color: #fff;
     border-color: var(--ac);
+    box-shadow: 0 4px 15px var(--acs);
 }
 .arvan-main-tab-btn:hover:not(.active) {
     background: var(--bg);
 }
 
+.arvan-tab-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--sf);
+    border-radius: 16px;
+    border: 1px solid var(--bd);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    overflow: hidden;
+}
+
+.arvan-sidebar {
+    background: var(--sf2);
+    border-bottom: 1px solid var(--bd);
+}
+
 .arvan-sub-tabs {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
     overflow-x: auto;
-    padding-bottom: 5px;
-    border-bottom: 1px solid var(--bd);
+    padding: 10px 15px;
+    gap: 5px;
 }
 .arvan-sub-tab-btn {
     padding: 10px 18px;
     background: transparent;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-radius: 8px;
     color: var(--text2);
     cursor: pointer;
     transition: all 0.2s;
     font-size: 0.9rem;
     white-space: nowrap;
     outline: none;
-    margin-bottom: -1px;
 }
 .arvan-sub-tab-btn.active {
-    color: var(--ac);
-    border-bottom-color: var(--ac);
-    font-weight: bold;
+    background: var(--ac);
+    color: #fff;
+    font-weight: 600;
 }
 .arvan-sub-tab-btn:hover:not(.active) {
-    color: var(--ac);
+    background: var(--bd);
+    color: var(--text);
 }
 
-.arvan-content {
+.arvan-content-area {
     flex: 1;
     min-width: 0;
+    padding: 25px;
 }
+
+@media (min-width: 768px) {
+    .arvan-tab-card {
+        flex-direction: row;
+        min-height: 500px;
+    }
+    .arvan-sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        border-bottom: none;
+        border-left: 1px solid var(--bd);
+    }
+    .arvan-sub-tabs {
+        flex-direction: column;
+        padding: 20px 10px;
+        gap: 8px;
+        overflow-x: visible;
+    }
+    .arvan-sub-tab-btn {
+        text-align: right;
+        padding: 12px 15px;
+    }
+}
+
 .arvan-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 20px;
 }
 .toggle-field {
@@ -762,10 +802,10 @@ input:checked + .arvan-slider:before {
         <?php foreach ($schema as $key => $tab_data): ?>
             <div class="arvan-tab-content" id="tab-content-<?= $key ?>" style="display: <?= $tab === $key ? 'block' : 'none' ?>;">
                 
-                <div class="card" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
-                    <!-- Sub Tabs -->
-                    <div class="card-head" style="padding: 0 20px; border-bottom: 1px solid var(--bd);">
-                        <div class="arvan-sub-tabs" style="margin-bottom: 0; border-bottom: none; padding-top: 15px;">
+                <div class="arvan-tab-card">
+                    <!-- Sidebar Sub Tabs -->
+                    <div class="arvan-sidebar">
+                        <div class="arvan-sub-tabs">
                             <?php $isFirstSec = true; foreach ($tab_data['sections'] as $section_title => $fields): ?>
                                 <?php 
                                     $isActiveSec = false;
@@ -780,7 +820,7 @@ input:checked + .arvan-slider:before {
                         </div>
                     </div>
                     
-                    <div class="card-body" style="padding: 25px;">
+                    <div class="arvan-content-area">
                         <?php $isFirstSec = true; foreach ($tab_data['sections'] as $section_title => $fields): ?>
                             <?php 
                                 $isActiveSec = false;
@@ -789,6 +829,7 @@ input:checked + .arvan-slider:before {
                                 elseif ($tab !== $key && $isFirstSec && !isset($schema[$key]['sections'][$sec])) $isActiveSec = true;
                             ?>
                             <div class="arvan-section-content" data-tab="<?= $key ?>" data-sec="<?= htmlspecialchars($section_title) ?>" style="display: <?= $isActiveSec ? 'block' : 'none' ?>;">
+                                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--text);"><?= htmlspecialchars($section_title) ?></h3>
                                 <div class="arvan-grid">
                                     <?php foreach($fields as $f): ?>
                                         <?php if($f['type'] === 'select'): 

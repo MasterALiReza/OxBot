@@ -52,6 +52,7 @@ if ($setting['inlinebtnmain'] == "oninline" && !empty($keyboardRows)) {
     $trace_keyboard = $keyboardRows;
     foreach ($trace_keyboard as $key => $callback_set) {
         foreach ($callback_set as $keyboard_key => $keyboard) {
+            unset($trace_keyboard[$key][$keyboard_key]['style']); // Strip style key
             if ($keyboard['text'] == "text_sell") {
                 $trace_keyboard[$key][$keyboard_key]['callback_data'] = "buy";
             }
@@ -111,6 +112,11 @@ if ($setting['inlinebtnmain'] == "oninline" && !empty($keyboardRows)) {
     }
     $keyboard = ['keyboard' => [], 'resize_keyboard' => true];
     $keyboardcustom = $keyboardRows;
+    foreach ($keyboardcustom as $rKey => $rRow) {
+        foreach ($rRow as $bKey => $bBtn) {
+            unset($keyboardcustom[$rKey][$bKey]['style']); // Strip style key
+        }
+    }
     $keyboardcustom = json_decode(strtr(strval(json_encode($keyboardcustom)), $replacements), true);
     $keyboardcustom[] = $temp_addtional_key;
     $keyboard['keyboard'] = $keyboardcustom;
