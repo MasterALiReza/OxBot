@@ -1058,3 +1058,15 @@ body::after {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.1);
 }
+
+/* Dashboard Amount/Date Responsive Layout */
+.mobile-amount-date { display: none; }
+@media (max-width: 768px) {
+    .desktop-amount { display: none !important; }
+    .mobile-amount-date { display: flex !important; }
+    .dash-responsive-amount::before { display: none !important; }
+    
+    /* Make sure profile-id box and avatar align well */
+    .user-profile-cell { flex-direction: row !important; flex-wrap: wrap; }
+    .tbl-wrap td.no-label { padding-top: 10px !important; padding-bottom: 10px !important; }
+}
