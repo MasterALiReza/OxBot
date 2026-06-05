@@ -350,7 +350,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                         <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--mute);">
                                             <span class="cf"><?= icon('calendar', 14) ?> تاریخ سفارش :</span>
-                                            <span class="cn" style="font-weight:500; color:var(--fg);"><?= jdate('d F Y', $inv['time_sell'] ?? time()) ?></span>
+                                            <span class="cn" style="font-weight:500; color:var(--fg);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></span>
                                         </div>
                                     </div>
                                 </td>
@@ -439,7 +439,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                         <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--mute);">
                                             <span class="cf"><?= icon('clock', 14) ?> تاریخ عضویت :</span>
-                                            <span class="cn" style="font-weight:500; color:var(--fg);"><?= jdate('d F Y', $u['register'] ?? time()) ?></span>
+                                            <span class="cn" style="font-weight:500; color:var(--fg);"><?= safe_date($u['register'] ?? null, 'Y/m/d H:i') ?></span>
                                         </div>
                                     </div>
                                 </td>
