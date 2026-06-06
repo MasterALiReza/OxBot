@@ -66,7 +66,7 @@ include __DIR__ . '/inc/layout_head.php';
     <div class="dash-card">
         <div class="dash-card-header">
             <div class="icon-glow bg-blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                <?= icon('activity', 20) ?>
             </div>
             <div class="dash-card-title">کل درخواست‌ها</div>
         </div>
@@ -243,13 +243,14 @@ include __DIR__ . '/inc/layout_head.php';
                   </div>
               </td>
               <td data-label="مبلغ">
-                  <div style="font-weight:700; color:var(--text); font-size:0.95rem; text-align:right;">
+                  <div style="font-weight:700; color:var(--text); font-size:0.95rem; text-align:right; display:flex; align-items:center; gap:6px;">
+                      <span style="color:var(--ts);"><?= icon('wallet', 14) ?></span>
                       <span class="cn" dir="ltr"><?= number_format((int) ($s['price'] ?? 0)) ?></span> <span class="cf" style="font-size:0.75rem; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span>
                   </div>
               </td>
               <td data-label="تاریخ ثبت">
                   <div style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; justify-content:flex-start; gap:4px;">
-                      <?= icon('calendar', 14) ?> <span class="cf" dir="ltr"><?= safe_date($s['time'] ?? null, 'Y/m/d') ?></span>
+                      <?= icon('calendar', 14) ?> <span class="cf" dir="ltr"><?= safe_date($s['time'] ?? null, 'Y/m/d H:i') ?></span>
                   </div>
               </td>
               <td data-label="وضعیت" style="text-align:center;">
@@ -258,19 +259,19 @@ include __DIR__ . '/inc/layout_head.php';
               <td data-label="عملیات" style="text-align:center;">
                 <?php if (($s['status'] ?? '') === 'pending'): ?>
                   <div style="display: flex; gap: 6px; justify-content:center;">
-                    <button type="button" class="btn" style="background:var(--emerald); color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;"
+                    <button type="button" class="btn" style="background:rgba(16, 185, 129, 0.1); color:var(--emerald); border:1px solid rgba(16, 185, 129, 0.2); padding:6px 12px; border-radius:8px; font-size:0.8rem; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:4px;"
                             hx-post="ajax/service_action.php"
                             hx-vals='{"action": "done", "id": "<?= $s['id'] ?>", "_csrf": "<?= csrf_token() ?>"}'
                             hx-target="closest tr"
                             hx-swap="outerHTML">
-                      تایید
+                      <?= icon('check', 14) ?> تایید
                     </button>
-                    <button type="button" class="btn" style="background:var(--red); color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;"
+                    <button type="button" class="btn" style="background:rgba(239, 68, 68, 0.1); color:var(--red); border:1px solid rgba(239, 68, 68, 0.2); padding:6px 12px; border-radius:8px; font-size:0.8rem; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:4px;"
                             hx-post="ajax/service_action.php"
                             hx-vals='{"action": "reject", "id": "<?= $s['id'] ?>", "_csrf": "<?= csrf_token() ?>"}'
                             hx-target="closest tr"
                             hx-swap="outerHTML">
-                      رد
+                      <?= icon('x', 14) ?> رد
                     </button>
                   </div>
                 <?php else: ?>
