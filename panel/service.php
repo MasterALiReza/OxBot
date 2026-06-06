@@ -233,11 +233,11 @@ include __DIR__ . '/inc/layout_head.php';
                 </div>
               </td>
               <td data-label="سرویس">
-                  <div class="desktop-vertical-stack mobile-flex-row" style="text-align:right; align-items:flex-start;">
+                  <div style="display:flex; flex-direction:column; align-items:flex-start; gap:4px; text-align:right;">
                       <div style="display:flex; align-items:center; gap:6px; color:var(--text); font-size: 0.85rem; font-weight:600;">
                           <?= icon('package', 14) ?> <?= htmlspecialchars($typeLabel) ?>
                       </div>
-                      <span class="cn" style="font-size:0.8rem; color:var(--mute); margin-top:4px; display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($valStr) ?>" dir="ltr">
+                      <span class="cn" style="font-size:0.8rem; color:var(--mute); display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($valStr) ?>" dir="ltr">
                           <?= htmlspecialchars(trunc($valStr, 40)) ?>
                       </span>
                   </div>

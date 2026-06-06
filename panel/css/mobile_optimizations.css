@@ -1314,7 +1314,8 @@
     /* Fix User Profile stacking on mobile */
     .tbl-wrap.dash-users .user-profile-cell,
     .tbl-wrap.dash-orders .user-profile-cell,
-    .tbl-wrap.dash-unified .user-profile-cell {
+    .tbl-wrap.dash-unified .user-profile-cell,
+    .tbl-wrap.dash-services .user-profile-cell {
         flex-direction: row !important;
         align-items: center !important;
         gap: 12px !important;
@@ -1322,7 +1323,8 @@
     
     .tbl-wrap.dash-users .user-profile-cell .profile-id-box,
     .tbl-wrap.dash-orders .user-profile-cell .profile-id-box,
-    .tbl-wrap.dash-unified .user-profile-cell .profile-id-box {
+    .tbl-wrap.dash-unified .user-profile-cell .profile-id-box,
+    .tbl-wrap.dash-services .user-profile-cell .profile-id-box {
         padding-right: 0 !important;
     }
     
@@ -1591,12 +1593,14 @@
     .tbl-wrap.dash-services td:nth-child(6) { order: 6 !important; }
     .tbl-wrap.dash-services td {
         display: flex !important;
-        justify-content: space-between !important;
+        justify-content: flex-start !important;
         align-items: center;
         border-bottom: 1px dashed var(--bd) !important;
+        padding: 12px 14px !important;
+        gap: 8px;
     }
     .tbl-wrap.dash-services td::before {
-        content: attr(data-label);
+        content: attr(data-label) ":";
         font-weight: 600;
         color: var(--mute);
     }
@@ -1622,7 +1626,7 @@
         display: none !important;
     }
     .tbl-wrap.dash-services td[data-label="عملیات"] {
-        justify-content: space-between !important;
+        justify-content: flex-start !important;
         background: rgba(128,128,128,0.02) !important;
         border-radius: 8px !important;
         margin-top: 8px !important;
