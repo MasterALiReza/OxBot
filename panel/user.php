@@ -593,7 +593,10 @@ include __DIR__ . '/inc/layout_head.php';
                                     ?>
                                     <tr style="border-bottom: 1px solid var(--bd);">
                                         <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?>" class="cs" style="text-align:right;">
-                                            <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['name_product'] ?? '—') ?></span>
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <span style="color:var(--mute); display:flex; align-items:center;"><?= icon('box', 16) ?></span>
+                                                <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['name_product'] ?? '—') ?></span>
+                                            </div>
                                         </td>
                                         <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>" class="cn desktop-text-center" style="text-align:right;">
                                             <div class="dash-unified-content mobile-flex-between" style="align-items: center; gap: 8px;">
@@ -703,8 +706,8 @@ include __DIR__ . '/inc/layout_head.php';
                                               </div>
                                           </td>
                                         <td data-label="<?= $textbotlang['panel']['userColPaymentMethod'] ?>" class="cs" style="text-align:right;">
-                                            <div class="dash-unified-content" style="align-items: center; justify-content: space-between; width: 100%;">
-                                                <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['userColPaymentMethod'] ?>:</span>
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <span style="color:var(--mute); display:flex; align-items:center;"><?= icon('credit-card', 16) ?></span>
                                                 <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($method) ?></span>
                                             </div>
                                         </td>
