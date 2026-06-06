@@ -1789,3 +1789,97 @@
     }
 }
 
+/* --- Panels Management Mobile Optimization --- */
+@media (max-width: 768px) {
+    .admin-panels-table-wrap {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+    }
+    .admin-panels-table {
+        display: block !important;
+    }
+    .admin-panels-table thead {
+        display: none !important;
+    }
+    .admin-panels-table tbody {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+    .admin-panels-table tr {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        background: rgba(128,128,128,0.02) !important;
+        padding: 16px !important;
+        border-radius: 16px !important;
+        border: 1px solid var(--bd) !important;
+        position: relative !important;
+        box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05) !important;
+        align-items: center !important;
+    }
+    .admin-panels-table td {
+        display: block !important;
+        border: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+    .admin-panels-table td::before {
+        display: none !important;
+    }
+
+    /* Column # (ID) */
+    .admin-panels-table td:nth-child(1) {
+        display: none !important;
+    }
+
+    /* Status Label (Absolute Top Left in RTL means left:16px) */
+    .admin-panels-table td:nth-child(5) {
+        position: absolute !important;
+        top: 16px !important;
+        left: 16px !important; 
+        order: 0 !important;
+    }
+
+    /* Name (Full Width, Large) */
+    .admin-panels-table td:nth-child(2) {
+        order: 1 !important;
+        width: 100% !important;
+        font-size: 1.15rem !important;
+        margin-bottom: 12px !important;
+        padding-bottom: 12px !important;
+        border-bottom: 1px dashed rgba(128,128,128,0.2) !important;
+    }
+
+    /* URL */
+    .admin-panels-table td:nth-child(3) {
+        order: 2 !important;
+        width: 100% !important;
+        background: var(--bg-sec) !important;
+        padding: 10px 12px !important;
+        border-radius: 10px !important;
+        margin-bottom: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    /* Type */
+    .admin-panels-table td:nth-child(4) {
+        order: 3 !important;
+        width: 100% !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Actions (Full Width Bottom) */
+    .admin-panels-table td:nth-child(6) {
+        order: 4 !important;
+        width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        border-top: 1px solid var(--bd) !important;
+        padding-top: 12px !important;
+        margin-top: 4px !important;
+    }
+}
+
+

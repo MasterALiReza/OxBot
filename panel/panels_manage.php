@@ -231,8 +231,8 @@ include __DIR__ . '/inc/layout_head.php';
         </div>
     </div>
 
-    <div class="tbl-wrap">
-        <table class="tbl-xl">
+    <div class="tbl-wrap admin-panels-table-wrap">
+        <table class="tbl-xl admin-panels-table">
             <thead>
                 <tr>
                     <th style="width:36px">#</th>
@@ -284,14 +284,25 @@ include __DIR__ . '/inc/layout_head.php';
                         ?>
                         <tr>
                             <td data-label="#" class="cf"><?= $i++ ?></td>
-                            <td data-label="<?= $textbotlang['panel']['panelsColName'] ?>" class="cs" style="font-weight:600"><?= htmlspecialchars($p['name_panel'] ?? '—') ?></td>
+                            <td data-label="<?= $textbotlang['panel']['panelsColName'] ?>" class="cs" style="font-weight:600">
+                                <div style="display:flex;align-items:center;gap:8px">
+                                    <?= icon('server', 18) ?>
+                                    <?= htmlspecialchars($p['name_panel'] ?? '—') ?>
+                                </div>
+                            </td>
                             <td data-label="<?= $textbotlang['panel']['panelsColUrl'] ?>">
-                                <a href="<?= htmlspecialchars($p['url_panel'] ?? '#') ?>" target="_blank" style="color:var(--ac);text-decoration:none;display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;vertical-align:middle;">
-                                    <?= htmlspecialchars($p['url_panel'] ?? '—') ?>
-                                </a>
+                                <div style="display:flex;align-items:center;gap:6px">
+                                    <span style="color:var(--ts)"><?= icon('link', 14) ?></span>
+                                    <a href="<?= htmlspecialchars($p['url_panel'] ?? '#') ?>" target="_blank" style="color:var(--ac);text-decoration:none;display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;vertical-align:middle;font-size:0.9rem;">
+                                        <?= htmlspecialchars($p['url_panel'] ?? '—') ?>
+                                    </a>
+                                </div>
                             </td>
                             <td data-label="<?= $textbotlang['panel']['panelsColType'] ?>">
-                                <span class="tag tag-plain" style="text-transform:uppercase"><?= htmlspecialchars($type) ?></span>
+                                <div style="display:flex;align-items:center;gap:6px">
+                                    <span style="color:var(--ts)"><?= icon('layers', 14) ?></span>
+                                    <span class="tag tag-plain" style="text-transform:uppercase"><?= htmlspecialchars($type) ?></span>
+                                </div>
                             </td>
                             <td data-label="<?= $textbotlang['panel']['panelsColStatus'] ?>">
                                 <?php if ($isActive): ?>
@@ -323,19 +334,48 @@ include __DIR__ . '/inc/layout_head.php';
 <!-- Add/Edit Panel Modal -->
 <div id="panelModalVeil" class="modal-veil">
     <div class="modal" style="max-width:650px;width:95%">
-        <div class="modal-head">
-            <h3 id="panelModalTitle">مدیریت پنل</h3>
-            <button type="button" class="modal-x" onclick="closePanelModal()">
+        <div class="modal-head" style="border-bottom:none; padding-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div class="icon-glow" style="color:var(--ac);background:rgba(var(--ac-rgb, 59,130,246), 0.1);padding:8px;border-radius:12px;">
+                    <?= icon('layers', 20) ?>
+                </div>
+                <h3 id="panelModalTitle" style="margin:0;font-size:1.2rem;font-weight:700;">مدیریت پنل</h3>
+            </div>
+            <button type="button" class="modal-x" onclick="closePanelModal()" style="background:var(--bg-sec);border-radius:50%;padding:6px;transition:all 0.3s;">
                 <?= icon('x', 16) ?>
             </button>
         </div>
         
-        <div class="tabs-nav" style="display:flex;gap:5px;padding:0 20px;border-bottom:1px solid var(--border);overflow-x:auto;">
-            <button type="button" class="tab-btn active" onclick="switchTab('tab-general')">اصلی</button>
-            <button type="button" class="tab-btn" onclick="switchTab('tab-inbounds')">اینباند</button>
-            <button type="button" class="tab-btn" onclick="switchTab('tab-users')">کاربران</button>
-            <button type="button" class="tab-btn" onclick="switchTab('tab-tests')">تست و تمدید</button>
-            <button type="button" class="tab-btn" onclick="switchTab('tab-prices')">قیمت‌ها</button>
+        <div class="tabs-nav-wrapper" style="padding:0 20px 15px; border-bottom:1px solid var(--bd);">
+            <div class="tabs-nav" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;">
+                <button type="button" class="tab-btn active" onclick="switchTab('tab-general')" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
+                    <?= icon('settings', 16) ?> اصلی
+                </button>
+                <button type="button" class="tab-btn" onclick="switchTab('tab-inbounds')" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
+                    <?= icon('link', 16) ?> اینباند
+                </button>
+                <button type="button" class="tab-btn" onclick="switchTab('tab-users')" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
+                    <?= icon('users', 16) ?> کاربران
+                </button>
+                <button type="button" class="tab-btn" onclick="switchTab('tab-tests')" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
+                    <?= icon('clock', 16) ?> تست و تمدید
+                </button>
+                <button type="button" class="tab-btn" onclick="switchTab('tab-prices')" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
+                    <?= icon('credit-card', 16) ?> قیمت‌ها
+                </button>
+            </div>
+            <style>
+                .tabs-nav::-webkit-scrollbar { display: none; }
+                .tab-btn { background: var(--bg-sec); color: var(--ts); border: 1px solid transparent; cursor:pointer; }
+                .tab-btn:hover { background: var(--bg); color: var(--fg); border-color: var(--bd); }
+                .tab-btn.active { background: rgba(var(--ac-rgb, 59,130,246), 0.1) !important; color: var(--ac) !important; border-color: rgba(var(--ac-rgb, 59,130,246), 0.2) !important; }
+                .field-group label { display:flex; align-items:center; gap:6px; font-weight:600; color:var(--fg); margin-bottom:8px; font-size:0.9rem; }
+                .field-group .input { border-radius: 12px; background: var(--bg-sec); border: 1px solid var(--bd); padding: 10px 14px; transition: all 0.3s; }
+                .field-group .input:focus { border-color: var(--ac); box-shadow: 0 0 0 3px rgba(var(--ac-rgb, 59,130,246), 0.15); background: var(--bg); outline:none; }
+                @media (max-width: 600px) {
+                    .field-grid { grid-template-columns: 1fr !important; }
+                }
+            </style>
         </div>
 
         <form method="post" action="panels_manage.php">
