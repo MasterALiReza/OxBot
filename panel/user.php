@@ -178,6 +178,19 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
 </div>
 
+<style>
+@media (max-width: 768px) {
+    .dash-orders td {
+        justify-content: flex-start !important;
+        gap: 12px !important;
+    }
+    .dash-orders td::before {
+        min-width: 80px;
+        color: var(--mute) !important;
+    }
+}
+</style>
+
 <div class="profile-grid u-profile-grid">
 
     <div class="u-sidebar" style="display:flex;flex-direction:column;gap:12px">
@@ -185,7 +198,7 @@ include __DIR__ . '/inc/layout_head.php';
         <div class="card fade-up">
             <div class="profile-head">
                 <div class="profile-avatar"><?= htmlspecialchars($initials) ?></div>
-                <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+                <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
                     <span style="font-weight:700; font-size:1.15rem; color:var(--text);">
                         <?= $fullName ? htmlspecialchars($fullName) : 'بدون نام' ?>
                     </span>
@@ -475,6 +488,7 @@ include __DIR__ . '/inc/layout_head.php';
                             <tr>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?></th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?></th>
+                                <th style="text-align:right;">تاریخ ثبت</th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?></th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?></th>
                             </tr>
@@ -482,7 +496,7 @@ include __DIR__ . '/inc/layout_head.php';
                         <tbody>
                             <?php if (empty($invoices)): ?>
                                 <tr>
-                                    <td colspan="4">
+                                    <td colspan="5">
                                         <div class="empty" style="padding:30px">
                                             <p><?= $textbotlang['panel']['userColId'] ?></p>
                                         </div>
@@ -505,17 +519,17 @@ include __DIR__ . '/inc/layout_head.php';
                                             <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['name_product'] ?? '—') ?></span>
                                         </td>
                                         <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>" class="cn" style="text-align:right;">
-                                            <div style="display:flex; flex-direction:column; gap:6px; padding: 4px 0; align-items:flex-start;">
-                                                <div style="display:flex; align-items:center; gap:6px;">
-                                                    <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
-                                                    <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
-                                                        <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">تومان</span>
-                                                    </span>
-                                                </div>
-                                                <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--mute);">
-                                                    <span class="cf"><?= icon('calendar', 14) ?></span>
-                                                    <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d H:i') ?></span>
-                                                </div>
+                                            <div style="display:flex; align-items:center; gap:6px;">
+                                                <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                                                <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
+                                                    <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">تومان</span>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td data-label="تاریخ ثبت" style="text-align:right;">
+                                            <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--mute);">
+                                                <span class="cf"><?= icon('calendar', 14) ?></span>
+                                                <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d H:i') ?></span>
                                             </div>
                                         </td>
                                         <td data-label="<?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?>" class="cn cf" style="text-align:right;">
@@ -537,6 +551,7 @@ include __DIR__ . '/inc/layout_head.php';
                         <thead>
                             <tr>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['userColPrice'] ?></th>
+                                <th style="text-align:right;">تاریخ تراکنش</th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['userColPaymentMethod'] ?></th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?></th>
                             </tr>
@@ -544,7 +559,7 @@ include __DIR__ . '/inc/layout_head.php';
                         <tbody>
                             <?php if (empty($payments)): ?>
                                 <tr>
-                                    <td colspan="3">
+                                    <td colspan="4">
                                         <div class="empty" style="padding:30px">
                                             <p><?= $textbotlang['panel']['userAffiliateCountLabel'] ?></p>
                                         </div>
