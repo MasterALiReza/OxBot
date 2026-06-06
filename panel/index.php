@@ -103,7 +103,7 @@ try {
         ORDER BY i.time_sell DESC 
         LIMIT 6
     ");
-    $recentUsers = db_fetchAll($pdo, "SELECT * FROM user ORDER BY register DESC LIMIT 6");
+    $recentUsers = db_fetchAll($pdo, "SELECT * FROM user ORDER BY register DESC LIMIT 8");
 } catch (Exception $e) {
     error_log('index.php recent query error: ' . $e->getMessage());
 }
@@ -789,6 +789,16 @@ if (!empty($bestSelling)) {
 .status-pill.warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 .status-pill.neutral { background: rgba(148, 163, 184, 0.15); color: var(--mute); }
 .status-pill.panel-pill { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+/* Dashboard Tables fix horizontal scroll */
+.dash-orders .tbl-sm, .dash-users .tbl-sm {
+    min-width: 100% !important;
+}
+.dash-orders th, .dash-users th,
+.dash-orders td, .dash-users td {
+    padding: 12px 10px !important;
+    white-space: normal !important;
+}
 
 /* Table enhancements */
 .tbl-sm th {
