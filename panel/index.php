@@ -222,7 +222,7 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Charts Grid -->
-<div class="dash-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+<div class="dash-grid-2" style="margin-bottom: 24px;">
     
     <!-- Sales Chart -->
     <div class="card fade-up">
@@ -266,7 +266,7 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Tables Grid -->
-<div class="dash-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+<div class="dash-grid-2" style="margin-bottom: 20px;">
     
     <!-- Recent Orders -->
     <div class="card fade-up">
@@ -282,10 +282,10 @@ include __DIR__ . '/inc/layout_head.php';
                 <thead>
                     <tr>
                         <th style="text-align:right;"><?= $textbotlang['panel']['dashColUser'] ?></th>
-                        <th style="text-align:right;"><?= $textbotlang['panel']['dashColProduct'] ?></th>
-                        <th style="text-align:right;"><?= $textbotlang['panel']['dashColAmount'] ?></th>
-                        <th style="text-align:right;">تاریخ ثبت</th>
-                        <th style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?></th>
+                        <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColProduct'] ?></th>
+                        <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColAmount'] ?></th>
+                        <th class="desktop-text-center" style="text-align:right;">تاریخ ثبت</th>
+                        <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -319,17 +319,23 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                         <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
                                             <span class="profile-name" style="font-weight:700; font-size:0.95rem; color:var(--text);">
-                                                <?php if (!empty($inv['name'])): ?>
-                                                    <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
-                                                <?php elseif (!empty($inv['username'])): ?>
-                                                    <span class="cm" dir="ltr" style="display:inline-block;">@<?= htmlspecialchars(trunc($inv['username'], 18)) ?></span>
+                                                <?php 
+                                                $displayName = trim($inv['name'] ?? '');
+                                                if ($displayName === 'none') $displayName = '';
+                                                $displayUname = trim($inv['username'] ?? '');
+                                                if ($displayUname === 'none') $displayUname = '';
+                                                
+                                                if (!empty($displayName)): ?>
+                                                    <?= htmlspecialchars(trunc($displayName, 18)) ?>
+                                                <?php elseif (!empty($displayUname)): ?>
+                                                    <span class="cm" dir="ltr" style="display:inline-block;">@<?= htmlspecialchars(trunc($displayUname, 18)) ?></span>
                                                 <?php else: ?>
-                                                    <span style="opacity:0.8;"><?= $textbotlang['panel']['dashColUser'] ?></span>
+                                                    <span style="opacity:0.8;">کاربر بی‌نام</span>
                                                 <?php endif; ?>
                                             </span>
                                             <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem;">
-                                                <?php if (!empty($inv['username']) && !empty($inv['name'])): ?>
-                                                    <span class="cm" style="color:var(--ac); direction:ltr; display:inline-block; font-weight:600;">@<?= htmlspecialchars($inv['username']) ?></span>
+                                                <?php if (!empty($displayName) && !empty($displayUname)): ?>
+                                                    <span class="cm" style="color:var(--ac); direction:ltr; display:inline-block; font-weight:600;">@<?= htmlspecialchars(trunc($displayUname, 12)) ?></span>
                                                     <span style="color:var(--bd);">|</span>
                                                 <?php endif; ?>
                                                 <div class="profile-id-box" style="display:flex; align-items:center; gap:4px; color: var(--mute);">
@@ -340,24 +346,32 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                     </div>
                                 </td>
-                                <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?>" class="cs" style="text-align:right;">
-                                    <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['name_product'] ?? '—') ?></span>
+                                <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?>" class="cs desktop-text-center" style="text-align:right;">
+                                    <div class="desktop-vertical-stack">
+                                        <span class="icon-span hide-on-mobile" style="color:var(--mute)"><?= icon('package', 14) ?></span>
+                                        <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['name_product'] ?? '—') ?></span>
+                                    </div>
                                 </td>
-                                <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?>" class="cn" style="text-align:right;">
-                                    <div style="display:flex; align-items:center; gap:6px;">
-                                        <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                                <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?>" class="cn desktop-text-center" style="text-align:right;">
+                                    <div class="desktop-vertical-stack">
+                                        <span class="icon-span" style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
                                         <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
                                             <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?></span>
                                         </span>
                                     </div>
                                 </td>
-                                <td data-label="تاریخ ثبت" style="text-align:right;">
-                                    <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--mute);">
-                                        <span class="cf"><?= icon('calendar', 14) ?></span>
+                                <td data-label="تاریخ ثبت" class="desktop-text-center" style="text-align:right;">
+                                    <div class="desktop-vertical-stack">
+                                        <span class="icon-span" style="color:var(--mute)"><?= icon('calendar', 14) ?></span>
                                         <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d H:i') ?></span>
                                     </div>
                                 </td>
-                                <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?>" style="text-align:right;"><span class="<?= $pillClass ?>"><?= $label ?></span></td>
+                                <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?>" class="desktop-text-center" style="text-align:right;">
+                                    <div class="desktop-vertical-stack">
+                                        <span class="icon-span hide-on-mobile" style="color:var(--mute)"><?= icon('check-circle', 14) ?></span>
+                                        <span class="<?= $pillClass ?>"><?= $label ?></span>
+                                    </div>
+                                </td>
                             </tr>
                         <?php endforeach; endif; ?>
                 </tbody>
@@ -379,7 +393,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <thead>
                     <tr>
                         <th><?= $textbotlang['panel']['dashColName'] ?></th>
-                        <th><?= $textbotlang['panel']['dashColBalance'] ?></th>
+                        <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColBalance'] ?></th>
                         <th><?= $textbotlang['panel']['dashColGroup'] ?></th>
                     </tr>
                 </thead>
@@ -434,18 +448,18 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                     </div>
                                 </td>
-                                <td data-label="<?= $textbotlang['panel']['dashColBalance'] ?>" class="cn">
-                                    <div class="dash-unified-content" style="align-items: center;">
+                                <td data-label="<?= $textbotlang['panel']['dashColBalance'] ?>" class="cn desktop-text-center">
+                                    <div class="dash-unified-content" style="align-items: center; justify-content: center;">
                                         <span class="mobile-label" style="display:none;">موجودی و تاریخ عضویت:</span>
-                                        <div style="display:flex;align-items:center;gap:8px; flex-wrap:wrap;">
-                                            <div style="display:flex; align-items:center; gap:4px;">
-                                                <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                                        <div style="display:flex;align-items:center;gap:12px; flex-wrap:wrap; justify-content: center;">
+                                            <div class="desktop-vertical-stack">
+                                                <span class="icon-span" style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
                                                 <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
                                                     <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort2'] ?></span>
                                                 </span>
                                             </div>
                                             <span style="color:var(--bd);">|</span>
-                                            <div style="display:flex; align-items:center; gap:4px; font-size:0.85rem; color:var(--mute);">
+                                            <div class="desktop-vertical-stack" style="font-size:0.85rem; color:var(--mute);">
                                                 <span class="cf"><?= icon('clock', 14) ?></span>
                                                 <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($u['register'] ?? null, 'Y/m/d H:i') ?></span>
                                             </div>

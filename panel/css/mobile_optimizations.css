@@ -1268,4 +1268,52 @@
     }
 }
 
+/* Responsive Dash Grid 2 (wraps to 1 column on smaller desktops/tablets) */
+.dash-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 1200px) {
+    .dash-grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Desktop Vertical Stack styling for table cells */
+@media (min-width: 769px) {
+    .desktop-text-center {
+        text-align: center !important;
+    }
+    
+    .desktop-vertical-stack {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+    
+    .desktop-vertical-stack .icon-span,
+    .desktop-vertical-stack span[style*="color:var(--mute)"] {
+        margin-bottom: 2px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .desktop-vertical-stack {
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+}
+
+
 
