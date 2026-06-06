@@ -156,25 +156,22 @@ include __DIR__ . '/inc/layout_head.php';
     </form>
   </div>
 
-  <div class="tbl-wrap">
+  <div class="tbl-wrap dash-services">
     <table class="tbl-lg">
       <thead>
         <tr>
-          <th>#</th>
           <th><?= $textbotlang['panel']['serviceDetailUser'] ?? 'کاربر' ?></th>
-          <th><?= $textbotlang['panel']['userColUsername'] ?? 'یوزرنیم' ?></th>
-          <th><?= $textbotlang['panel']['serviceColType'] ?? 'نوع' ?></th>
-          <th><?= $textbotlang['panel']['serviceColAmount'] ?? 'مقدار' ?></th>
-          <th><?= $textbotlang['panel']['serviceColPrice'] ?? 'قیمت' ?></th>
-          <th><?= $textbotlang['panel']['serviceColDate'] ?? 'تاریخ' ?></th>
-          <th><?= $textbotlang['panel']['serviceColStatus'] ?? 'وضعیت' ?></th>
-          <th><?= $textbotlang['panel']['serviceColActions'] ?? 'عملیات' ?></th>
+          <th style="text-align:right;"><?= $textbotlang['panel']['serviceColType'] ?? 'سرویس' ?></th>
+          <th style="text-align:right;"><?= $textbotlang['panel']['serviceColPrice'] ?? 'مبلغ' ?></th>
+          <th style="text-align:right;"><?= $textbotlang['panel']['serviceColDate'] ?? 'تاریخ ثبت' ?></th>
+          <th style="text-align:center;"><?= $textbotlang['panel']['serviceColStatus'] ?? 'وضعیت' ?></th>
+          <th style="text-align:center;"><?= $textbotlang['panel']['serviceColActions'] ?? 'عملیات' ?></th>
         </tr>
       </thead>
       <tbody>
         <?php if (empty($services)): ?>
           <tr>
-            <td colspan="8">
+            <td colspan="6">
               <div class="empty" style="padding:48px 20px">
                 <svg class="ill" viewBox="0 0 180 140" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="30" y="30" width="120" height="80" rx="10" fill="var(--sf3)" />
@@ -222,27 +219,53 @@ include __DIR__ . '/inc/layout_head.php';
             if ($valStr === '' || $valStr === '[]' || $valStr === '{}') $valStr = '—';
             ?>
             <tr>
-              <td data-label="#" class="cf"><?= $i++ ?></td>
-              <td data-label="<?= $textbotlang['panel']['serviceDetailUser'] ?? 'کاربر' ?>"><span class="cm"><?= htmlspecialchars(eng_num($s['id_user'] ?? '—')) ?></span></td>
-              <td data-label="<?= $textbotlang['panel']['userColUsername'] ?? 'یوزرنیم' ?>">
-                <?= !empty($s['username']) ? '<span class="cm" style="color:var(--ac)">@' . htmlspecialchars(trunc($s['username'], 18)) . '</span>' : '<span class="cf">—</span>' ?>
+              <td data-label="کاربر">
+                <div class="user-profile-cell" style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px; border-radius:50%; background:var(--ac-light); color:var(--ac); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px; flex-shrink:0;">
+                        <?= mb_strtoupper(mb_substr($s['username'] ?: 'U', 0, 1, 'UTF-8'), 'UTF-8') ?>
+                    </div>
+                    <div style="display:flex; flex-direction:column;">
+                        <span class="profile-name" style="font-weight:600; color:var(--text); font-size:0.9rem;"><?= !empty($s['username']) ? htmlspecialchars(trunc($s['username'], 18)) : 'بدون یوزرنیم' ?></span>
+                        <div class="profile-id-box" style="display:flex; align-items:center; gap:4px; color:var(--mute); font-size:0.75rem; margin-top:2px;">
+                            <?= icon('user', 12) ?> <span><?= htmlspecialchars(eng_num($s['id_user'] ?? '—')) ?></span>
+                        </div>
+                    </div>
+                </div>
               </td>
-              <td data-label="<?= $textbotlang['panel']['serviceColType'] ?? 'نوع' ?>" style="font-size:.82rem;color:var(--text2)"><?= htmlspecialchars($typeLabel) ?></td>
-              <td data-label="<?= $textbotlang['panel']['serviceColAmount'] ?? 'مقدار' ?>" class="cn" style="font-size:.82rem; direction:ltr; text-align:right"><?= htmlspecialchars(trunc($valStr, 40)) ?></td>
-              <td data-label="<?= $textbotlang['panel']['serviceColPrice'] ?? 'قیمت' ?>" class="cn cs"><?= number_format((int) ($s['price'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span></td>
-              <td data-label="<?= $textbotlang['panel']['serviceColDate'] ?? 'تاریخ' ?>" class="cf"><?= safe_date($s['time'] ?? null, 'Y/m/d') ?></td>
-              <td data-label="<?= $textbotlang['panel']['serviceColStatus'] ?? 'وضعیت' ?>"><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
-              <td data-label="<?= $textbotlang['panel']['serviceColActions'] ?? 'عملیات' ?>">
+              <td data-label="سرویس">
+                  <div class="desktop-vertical-stack mobile-flex-row">
+                      <div style="display:flex; align-items:center; gap:6px; color:var(--text); font-size: 0.85rem; font-weight:600;">
+                          <?= icon('package', 14) ?> <?= htmlspecialchars($typeLabel) ?>
+                      </div>
+                      <span class="cn" style="font-size:0.8rem; color:var(--mute); margin-top:4px; display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($valStr) ?>">
+                          <?= htmlspecialchars(trunc($valStr, 40)) ?>
+                      </span>
+                  </div>
+              </td>
+              <td data-label="مبلغ">
+                  <div class="cn" style="font-weight:700; color:var(--text); font-size:0.95rem;">
+                      <?= number_format((int) ($s['price'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span>
+                  </div>
+              </td>
+              <td data-label="تاریخ ثبت">
+                  <div class="cf" style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:4px;">
+                      <?= icon('calendar', 14) ?> <?= safe_date($s['time'] ?? null, 'Y/m/d') ?>
+                  </div>
+              </td>
+              <td data-label="وضعیت" style="text-align:center;">
+                  <span class="tag <?= $cls ?>"><?= $lbl ?></span>
+              </td>
+              <td data-label="عملیات" style="text-align:center;">
                 <?php if (($s['status'] ?? '') === 'pending'): ?>
-                  <div style="display: flex; gap: 6px;">
-                    <button type="button" class="btn" style="background:var(--emerald); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:0.8rem; cursor:pointer;"
+                  <div style="display: flex; gap: 6px; justify-content:center;">
+                    <button type="button" class="btn" style="background:var(--emerald); color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;"
                             hx-post="ajax/service_action.php"
                             hx-vals='{"action": "done", "id": "<?= $s['id'] ?>", "_csrf": "<?= csrf_token() ?>"}'
                             hx-target="closest tr"
                             hx-swap="outerHTML">
                       تایید
                     </button>
-                    <button type="button" class="btn" style="background:var(--red); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:0.8rem; cursor:pointer;"
+                    <button type="button" class="btn" style="background:var(--red); color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer; font-weight:600;"
                             hx-post="ajax/service_action.php"
                             hx-vals='{"action": "reject", "id": "<?= $s['id'] ?>", "_csrf": "<?= csrf_token() ?>"}'
                             hx-target="closest tr"
@@ -251,7 +274,7 @@ include __DIR__ . '/inc/layout_head.php';
                     </button>
                   </div>
                 <?php else: ?>
-                  <span class="cf">—</span>
+                  <span class="cf" style="color:var(--mute);">—</span>
                 <?php endif; ?>
               </td>
             </tr>
