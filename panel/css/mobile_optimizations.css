@@ -1309,7 +1309,7 @@
         justify-content: center !important;
         text-align: center !important;
         gap: 6px !important;
-        width: 100% !important;
+        /* Removed width: 100% to prevent excessive stacking on desktop */
     }
     
     .desktop-vertical-stack .icon-span,
@@ -1409,6 +1409,7 @@
     .tbl-wrap.dash-orders td:nth-child(4) .desktop-vertical-stack {
         justify-content: center !important;
         width: 100% !important;
+        height: 100% !important; /* Ensure they stretch equally to align vertically */
     }
 
     /* Orders - Status Pill */
@@ -1432,7 +1433,7 @@
     }
     
     /* Users - Info and Actions: 100% width */
-    .tbl-wrap.dash-users td:nth-child(2), .tbl-wrap.dash-users td:nth-child(3) {
+    .tbl-wrap.dash-users td:nth-child(2) {
         flex: 1 1 100% !important;
         width: 100% !important;
         max-width: 100% !important;
@@ -1443,6 +1444,20 @@
         justify-content: flex-start !important;
         text-align: right !important;
         margin-bottom: 12px !important;
+    }
+
+    /* Users - Group Pill: Absolute */
+    .tbl-wrap.dash-users td:nth-child(3) {
+        position: absolute !important;
+        top: 14px !important;
+        left: 14px !important; /* RTL top-left */
+        margin: 0 !important;
+        padding: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        flex: none !important;
+        border: none !important;
+        background: transparent !important;
     }
 }
 
