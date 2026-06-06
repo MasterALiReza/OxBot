@@ -16,6 +16,21 @@
 }
 
 /* Dashboard Profile cell layout (Desktop & Mobile) */
+/* Stats & Dashboard Grids (Desktop & Mobile) */
+.dash-grid, .dash-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+@media (max-width: 640px) {
+    .dash-grid, .dash-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 16px !important;
+    }
+}
+
 .user-profile-cell {
     display: flex;
     align-items: center;

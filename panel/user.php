@@ -163,8 +163,9 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="dash-card-pill">
                 <span class="status-pill neutral">کیف پول</span>
             </div>
-            <div class="dash-card-value">
-                <?= number_format($balance) ?> <small style="font-size:0.72rem; opacity:0.8;">تومان</small>
+            <div class="dash-card-value-flex">
+                <span class="dash-card-value cn"><?= number_format($balance) ?></span>
+                <span class="dash-card-unit cf">تومان</span>
             </div>
         </div>
     </div>
@@ -180,10 +181,14 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="dash-card-pill">
                 <span class="status-pill neutral"><?= count($invoices) ?> سفارش</span>
             </div>
-            <div class="dash-card-value">
-                <?= $totalSpent >= 1_000_000
-                    ? number_format($totalSpent / 1_000_000, 1) . ' <small style="font-size:0.72rem; opacity:0.8;">م ت</small>'
-                    : number_format($totalSpent) . ' <small style="font-size:0.72rem; opacity:0.8;">تومان</small>' ?>
+            <div class="dash-card-value-flex">
+                <?php if ($totalSpent >= 1_000_000): ?>
+                    <span class="dash-card-value cn"><?= number_format($totalSpent / 1_000_000, 1) ?></span>
+                    <span class="dash-card-unit cf">م ت</span>
+                <?php else: ?>
+                    <span class="dash-card-value cn"><?= number_format($totalSpent) ?></span>
+                    <span class="dash-card-unit cf">تومان</span>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -203,8 +208,8 @@ include __DIR__ . '/inc/layout_head.php';
                     <span class="status-pill neutral">بدون منقضی</span>
                 <?php endif; ?>
             </div>
-            <div class="dash-card-value">
-                <?= $activeServices ?>
+            <div class="dash-card-value-flex">
+                <span class="dash-card-value cn"><?= $activeServices ?></span>
             </div>
         </div>
     </div>
@@ -220,8 +225,9 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="dash-card-pill">
                 <span class="status-pill neutral"><?= $paidCount ?> از <?= count($payments) ?> موفق</span>
             </div>
-            <div class="dash-card-value">
-                <?= $convRate ?>%
+            <div class="dash-card-value-flex">
+                <span class="dash-card-value cn"><?= $convRate ?></span>
+                <span class="dash-card-unit cf">%</span>
             </div>
         </div>
     </div>
