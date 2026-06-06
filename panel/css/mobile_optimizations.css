@@ -1317,7 +1317,11 @@
 
 /* Premium Mobile Dashboard Layout for Orders and Users */
 @media (max-width: 768px) {
-    .dash-orders tr, .dash-users tr {
+    .hide-on-mobile {
+        display: none !important;
+    }
+
+    .tbl-wrap.dash-orders tr, .tbl-wrap.dash-users tr {
         display: flex !important;
         flex-wrap: wrap !important;
         padding: 16px 14px !important;
@@ -1326,7 +1330,7 @@
         position: relative !important;
     }
     
-    .dash-orders td, .dash-users td {
+    .tbl-wrap.dash-orders td, .tbl-wrap.dash-users td {
         border-bottom: none !important;
         padding: 0 !important;
         min-height: auto !important;
@@ -1336,12 +1340,13 @@
     }
     
     /* Remove text labels since we use icons / layout context */
-    .dash-orders td::before, .dash-users td::before {
+    .tbl-wrap.dash-orders td::before, .tbl-wrap.dash-users td::before {
         display: none !important;
+        content: none !important;
     }
     
     /* User Profile Row: 100% width, border bottom */
-    .dash-orders td:nth-child(1), .dash-users td:nth-child(1) {
+    .tbl-wrap.dash-orders td:nth-child(1), .tbl-wrap.dash-users td:nth-child(1) {
         flex: 1 1 100% !important;
         width: 100% !important;
         padding-bottom: 12px !important;
@@ -1350,50 +1355,78 @@
         justify-content: flex-start !important;
     }
     
+    /* Fix User Profile stacking on mobile */
+    .tbl-wrap.dash-users .user-profile-cell,
+    .tbl-wrap.dash-orders .user-profile-cell,
+    .tbl-wrap.dash-unified .user-profile-cell {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+    
+    .tbl-wrap.dash-users .user-profile-cell .profile-id-box,
+    .tbl-wrap.dash-orders .user-profile-cell .profile-id-box,
+    .tbl-wrap.dash-unified .user-profile-cell .profile-id-box {
+        padding-right: 0 !important;
+    }
+    
     /* Orders - Product: 100% width */
-    .dash-orders td:nth-child(2) {
+    .tbl-wrap.dash-orders td:nth-child(2) {
         flex: 1 1 100% !important;
         width: 100% !important;
         justify-content: flex-start !important;
     }
     
     /* Orders - Amount and Date: 50% width, side by side */
-    .dash-orders td:nth-child(3), .dash-orders td:nth-child(4) {
+    .tbl-wrap.dash-orders td:nth-child(3), .tbl-wrap.dash-orders td:nth-child(4) {
         flex: 1 1 calc(50% - 6px) !important;
         width: calc(50% - 6px) !important;
+        max-width: calc(50% - 6px) !important;
         background: rgba(var(--glass-base-rgb), 0.3) !important;
         border: 1px solid var(--bd) !important;
         padding: 8px 10px !important;
         border-radius: 10px !important;
         justify-content: center !important;
+        text-align: center !important;
+    }
+    
+    .tbl-wrap.dash-orders td:nth-child(3) .desktop-vertical-stack,
+    .tbl-wrap.dash-orders td:nth-child(4) .desktop-vertical-stack {
+        justify-content: center !important;
+        width: 100% !important;
     }
 
     /* Orders - Status Pill */
-    .dash-orders td:nth-child(5) {
+    .tbl-wrap.dash-orders td:nth-child(5) {
         position: absolute !important;
-        top: 14px;
-        left: 14px; /* RTL top-left */
+        top: 14px !important;
+        left: 14px !important; /* RTL top-left */
         margin: 0 !important;
         padding: 0 !important;
+        width: auto !important;
+        flex: none !important;
     }
-    .dash-orders td:nth-child(5) .desktop-vertical-stack {
+    .tbl-wrap.dash-orders td:nth-child(5) .desktop-vertical-stack {
         display: flex !important;
         flex-direction: row !important;
         margin: 0 !important;
         padding: 0 !important;
     }
-    .dash-orders td:nth-child(5) .icon-span {
+    .tbl-wrap.dash-orders td:nth-child(5) .icon-span {
         display: none !important; /* Hide the extra icon in the pill container on mobile since pill has its own */
     }
     
     /* Users - Balance and Group: 50% width, side by side */
-    .dash-users td:nth-child(2), .dash-users td:nth-child(3) {
+    .tbl-wrap.dash-users td:nth-child(2), .tbl-wrap.dash-users td:nth-child(3) {
         flex: 1 1 calc(50% - 6px) !important;
         width: calc(50% - 6px) !important;
+        max-width: calc(50% - 6px) !important;
         background: rgba(var(--glass-base-rgb), 0.3) !important;
         border: 1px solid var(--bd) !important;
         padding: 8px 10px !important;
         border-radius: 10px !important;
         justify-content: center !important;
+        text-align: center !important;
     }
 }
+
