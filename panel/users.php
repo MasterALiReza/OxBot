@@ -371,32 +371,22 @@ include __DIR__ . '/inc/layout_head.php';
                             </td>
 
                             <td data-label="جزئیات و مالی" class="no-label" style="vertical-align: top; padding-top:20px; text-align:right;">
-                                <div style="display:flex; flex-direction:column; gap:18px; width:100%;">
-                                    <div style="display:flex; justify-content:flex-start; align-items:center; flex-wrap:wrap; gap:16px;">
-                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-                                            <span style="color:var(--mute); font-weight:600;">اطلاعات تماس :</span>
-                                            <span class="cm cf" style="color:var(--text); font-weight:600;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
-                                        </div>
-                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-                                            <span style="color:var(--mute); font-weight:600;">تاریخ عضویت :</span>
-                                            <span class="cf" style="color:var(--text); font-weight:600;"><?= safe_date($u['register'] ?? null) ?></span>
-                                        </div>
-                                    </div>
+                                <div style="display:grid; grid-template-columns: max-content 1fr; gap:12px 16px; align-items:center; font-size:0.85rem; width:100%;">
+                                    <span style="color:var(--mute); font-weight:600;">اطلاعات تماس :</span>
+                                    <span class="cm cf" style="color:var(--text); font-weight:600;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
 
-                                    <div style="display:flex; justify-content:flex-start; align-items:center; flex-wrap:wrap; gap:16px;">
-                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-                                            <span style="color:var(--mute); font-weight:600;">کیف پول کاربر :</span>
-                                            <span class="cn" style="font-weight:700; font-size:1rem; color:var(--ac);">
-                                                <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">ت</span>
-                                            </span>
-                                        </div>
-                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-                                            <span style="color:var(--mute); font-weight:600;">امتیاز کاربر :</span>
-                                            <div style="display:flex; align-items:center; gap:4px; font-weight:700; color:var(--warn); font-size:1rem;">
-                                                <span class="cn"><?= (int) ($u['score'] ?? 0) ?></span>
-                                                <?= icon('star', 16) ?>
-                                            </div>
-                                        </div>
+                                    <span style="color:var(--mute); font-weight:600;">تاریخ عضویت :</span>
+                                    <span class="cf" style="color:var(--text); font-weight:600;"><?= safe_date($u['register'] ?? null) ?></span>
+
+                                    <span style="color:var(--mute); font-weight:600;">کیف پول کاربر :</span>
+                                    <span class="cn" style="font-weight:700; font-size:1rem; color:var(--ac);">
+                                        <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">ت</span>
+                                    </span>
+
+                                    <span style="color:var(--mute); font-weight:600;">امتیاز کاربر :</span>
+                                    <div style="display:flex; align-items:center; gap:4px; font-weight:700; color:var(--warn); font-size:1rem;">
+                                        <span class="cn"><?= (int) ($u['score'] ?? 0) ?></span>
+                                        <?= icon('star', 16) ?>
                                     </div>
                                 </div>
                             </td>

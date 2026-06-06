@@ -268,7 +268,7 @@ include __DIR__ . '/inc/layout_head.php';
               <td data-label="#" style="color:var(--text-dim)"><?= $i++ ?></td>
               <td data-label="کاربر"><span class="cell-mono"><?= htmlspecialchars(eng_num($p['id_user'] ?? '—')) ?></span></td>
               <td data-label="شناسه تراکنش">
-                <span class="cell-mono" style="color:var(--accent)"><?= htmlspecialchars(eng_num(trunc((string) ($p['id_order'] ?? '—'), 18))) ?></span>
+                <span class="cell-mono" style="color:var(--ac)"><?= htmlspecialchars(eng_num(trunc((string) ($p['id_order'] ?? '—'), 18))) ?></span>
               </td>
               <td data-label="مبلغ" class="cell-strong cell-num"><?= number_format((int) ($p['price'] ?? 0)) ?> <span style="color:var(--text-dim);font-weight:400;font-size:.72rem">تومان</span></td>
               <td data-label="روش پرداخت" style="font-size:.8rem"><?= htmlspecialchars($method) ?></td>
