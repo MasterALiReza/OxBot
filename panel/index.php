@@ -101,7 +101,7 @@ try {
         FROM invoice i 
         LEFT JOIN user u ON i.id_user = u.id 
         ORDER BY i.time_sell DESC 
-        LIMIT 6
+        LIMIT 8
     ");
     $recentUsers = db_fetchAll($pdo, "SELECT * FROM user ORDER BY register DESC LIMIT 8");
 } catch (Exception $e) {
