@@ -2611,15 +2611,19 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         return;
     }
     savedata("clear", "name_product", $text);
-    sendmessage($from_id, $textbotlang['Admin']['agent']['setAgentProduct'], $backadmin, 'HTML');
+    sendmessage($from_id, $textbotlang['Admin']['agent']['setAgentProduct'], $keyboardAgentProduct, 'HTML');
     step('get_agent', $from_id);
 } elseif ($user['step'] == "get_agent") {
-    $agent = ["n", "f", "n2"];
-    if (!in_array($text, $agent)) {
-        sendmessage($from_id, $textbotlang['Admin']['agent']['invalidValue'], $backadmin, 'HTML');
+    $agent_map = [
+        $textbotlang['keyboard']['normalUser'] => "f",
+        $textbotlang['keyboard']['normalAgent'] => "n",
+        $textbotlang['keyboard']['advancedAgent'] => "n2"
+    ];
+    if (!array_key_exists($text, $agent_map)) {
+        sendmessage($from_id, $textbotlang['Admin']['agent']['invalidValue'], $keyboardAgentProduct, 'HTML');
         return;
     }
-    savedata("save", "agent", $text);
+    savedata("save", "agent", $agent_map[$text]);
     sendmessage($from_id, $textbotlang['Admin']['Product']['serviceLocation'], $json_list_marzban_panel, 'HTML');
     step('get_location', $from_id);
 } elseif ($user['step'] == "get_location") {

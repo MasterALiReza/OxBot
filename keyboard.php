@@ -385,6 +385,14 @@ $shopkeyboard = json_encode([
     ],
     'resize_keyboard' => true
 ]);
+$keyboardAgentProduct = json_encode([
+    'keyboard' => [
+        [['text' => $textbotlang['keyboard']['normalUser']]],
+        [['text' => $textbotlang['keyboard']['normalAgent']], ['text' => $textbotlang['keyboard']['advancedAgent']]],
+        [['text' => $textbotlang['Admin']['backAdminBtn']], ['text' => $textbotlang['Admin']['backMenuBtn']]]
+    ],
+    'resize_keyboard' => true
+]);
 $keyboard_Category_manage = json_encode([
     'keyboard' => [
         [['text' => $textbotlang['keyboard']['addCategory']], ['text' => $textbotlang['keyboard']['deleteCategory']]],
