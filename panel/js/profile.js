@@ -1,6 +1,6 @@
 window.switchTab = function (name) {
-    var panes = { orders: 'paneOrders', pay: 'panePay', refs: 'paneRefs' };
-    var tabs = { orders: 'tabOrders', pay: 'tabPay', refs: 'tabRefs' };
+    var panes = { invs: 'paneOrders', pay: 'panePay', refs: 'paneRefs' };
+    var tabs = { invs: 'tabInvs', pay: 'tabPay', refs: 'tabRefs' };
 
     Object.values(panes).forEach(function (id) {
         var el = document.getElementById(id);

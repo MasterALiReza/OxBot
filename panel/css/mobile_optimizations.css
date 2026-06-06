@@ -1333,8 +1333,9 @@
         justify-content: flex-start !important;
     }
     
-    /* Orders - Amount and Date: 100% width, stacked */
-    .tbl-wrap.dash-orders td:nth-child(3), .tbl-wrap.dash-orders td:nth-child(4) {
+    /* Orders and Users - Info columns: 100% width, stacked */
+    .tbl-wrap.dash-orders td:nth-child(3), .tbl-wrap.dash-orders td:nth-child(4),
+    .tbl-wrap.dash-users td:nth-child(2), .tbl-wrap.dash-users td:nth-child(3) {
         flex: 1 1 100% !important;
         width: 100% !important;
         max-width: 100% !important;
@@ -1348,12 +1349,15 @@
         margin-bottom: 8px !important;
     }
     
-    .tbl-wrap.dash-orders td:nth-child(4) {
+    .tbl-wrap.dash-orders td:nth-child(4),
+    .tbl-wrap.dash-users td:nth-child(3) {
         margin-bottom: 0 !important;
     }
     
     .tbl-wrap.dash-orders td:nth-child(3) .desktop-vertical-stack,
-    .tbl-wrap.dash-orders td:nth-child(4) .desktop-vertical-stack {
+    .tbl-wrap.dash-orders td:nth-child(4) .desktop-vertical-stack,
+    .tbl-wrap.dash-users td:nth-child(2) .desktop-vertical-stack,
+    .tbl-wrap.dash-users td:nth-child(3) .desktop-vertical-stack {
         justify-content: space-between !important;
         width: 100% !important;
     }
@@ -1378,33 +1382,8 @@
         display: none !important; /* Hide the extra icon in the pill container on mobile since pill has its own */
     }
     
-    /* Users - Info and Actions: 100% width */
-    .tbl-wrap.dash-users td:nth-child(2) {
-        flex: 1 1 100% !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
-        border-radius: 0 !important;
-        justify-content: flex-start !important;
-        text-align: right !important;
-        margin-bottom: 12px !important;
-    }
-    
-    .tbl-wrap.dash-users td:nth-child(2) .dash-unified-content {
-        background: rgba(var(--glass-base-rgb), 0.3) !important;
-        border: 1px solid var(--bd) !important;
-        padding: 12px 14px !important;
-        border-radius: 12px !important;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
     /* Users - Group Pill: Absolute */
-    .tbl-wrap.dash-users td:nth-child(3) {
+    .tbl-wrap.dash-users td:nth-child(4) {
         position: absolute !important;
         top: 14px !important;
         left: 14px !important; /* RTL top-left */

@@ -404,13 +404,14 @@ include __DIR__ . '/inc/layout_head.php';
                     <tr>
                         <th><?= $textbotlang['panel']['dashColName'] ?></th>
                         <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColBalance'] ?></th>
-                        <th><?= $textbotlang['panel']['dashColGroup'] ?></th>
+                        <th class="desktop-text-center" style="text-align:right;">تاریخ عضویت</th>
+                        <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColGroup'] ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($recentUsers)): ?>
                         <tr>
-                            <td colspan="3" class="no-label">
+                            <td colspan="4" class="no-label">
                                 <div class="empty" style="padding:24px"><p><?= $textbotlang['panel']['dashNoUsersYet'] ?></p></div>
                             </td>
                         </tr>
@@ -458,31 +459,28 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                     </div>
                                 </td>
-                                <td data-label="<?= $textbotlang['panel']['dashColBalance'] ?>" class="cn desktop-text-center">
-                                    <div class="dash-unified-content" style="align-items: center; justify-content: center; width:100%;">
-                                        <div style="display:flex;align-items:center;gap:12px; flex-wrap:wrap; justify-content: center; width:100%;">
-                                            <div class="desktop-vertical-stack mobile-flex-between">
-                                                <div style="display:flex; align-items:center; gap:6px;">
-                                                    <span class="icon-span" style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
-                                                    <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;">موجودی کاربر:</span>
-                                                </div>
-                                                <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
-                                                    <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort2'] ?></span>
-                                                </span>
-                                            </div>
-                                            <span class="hide-on-mobile" style="color:var(--bd);">|</span>
-                                            <div class="desktop-vertical-stack mobile-flex-between" style="font-size:0.85rem; color:var(--mute);">
-                                                <div style="display:flex; align-items:center; gap:6px;">
-                                                    <span class="icon-span" style="color:var(--mute)"><?= icon('clock', 14) ?></span>
-                                                    <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;">تاریخ عضویت:</span>
-                                                </div>
-                                                <span class="cn" style="font-weight:500; color:var(--text); display:inline-flex; align-items:center; gap:12px;">
-                                                    <span><?= safe_date($u['register'] ?? null, 'Y/m/d') ?></span>
-                                                    <span style="opacity:0.2; font-size:0.85em;">|</span>
-                                                    <span style="opacity:0.8; font-size:0.95em;"><?= safe_date($u['register'] ?? null, 'H:i') ?></span>
-                                                </span>
-                                            </div>
+                                <td data-label="<?= $textbotlang['panel']['dashColBalance'] ?>" class="cn desktop-text-center" style="text-align:right;">
+                                    <div class="desktop-vertical-stack mobile-flex-between">
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <span class="icon-span" style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                                            <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;">موجودی کاربر:</span>
                                         </div>
+                                        <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
+                                            <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort2'] ?></span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td data-label="تاریخ عضویت" class="desktop-text-center" style="text-align:right;">
+                                    <div class="desktop-vertical-stack mobile-flex-between" style="font-size:0.85rem; color:var(--mute);">
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <span class="icon-span" style="color:var(--mute)"><?= icon('clock', 14) ?></span>
+                                            <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;">تاریخ عضویت:</span>
+                                        </div>
+                                        <span class="cn" style="font-weight:500; color:var(--text); display:inline-flex; align-items:center; gap:12px;">
+                                            <span><?= safe_date($u['register'] ?? null, 'Y/m/d') ?></span>
+                                            <span style="opacity:0.2; font-size:0.85em;">|</span>
+                                            <span style="opacity:0.8; font-size:0.95em;"><?= safe_date($u['register'] ?? null, 'H:i') ?></span>
+                                        </span>
                                     </div>
                                 </td>
                                 <td data-label="<?= $textbotlang['panel']['dashColGroup'] ?>">

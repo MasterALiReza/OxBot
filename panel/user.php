@@ -306,19 +306,27 @@ include __DIR__ . '/inc/layout_head.php';
                         <span style="font-weight:600; font-size:0.9rem;"><?= htmlspecialchars($fullName) ?></span>
                     </div>
                 <?php endif; ?>
-                <?php if (!empty($user['number']) && $user['number'] !== 'none'): ?>
-                    <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
-                        <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('phone', 14) ?> موبایل:</span>
-                        <span class="cm" style="direction: ltr; font-weight:600; font-size:0.9rem;"><?= htmlspecialchars($user['number']) ?></span>
-                    </div>
-                <?php endif; ?>
                 <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
-                    <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('wallet', 14) ?> کیف پول:</span>
-                    <span class="cn" style="font-weight:700; font-size:1rem; color:var(--ac);"><?= number_format($balance) ?> <span class="cf" style="font-size:0.75rem">تومان</span></span>
+                    <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('phone', 14) ?> اطلاعات تماس:</span>
+                    <span class="cm" style="direction: ltr; font-weight:600; font-size:0.9rem;">
+                        <?= (!empty($user['number']) && $user['number'] !== 'none') ? htmlspecialchars($user['number']) : '—' ?>
+                    </span>
                 </div>
                 <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
-                    <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('calendar', 14) ?> تاریخ خرید:</span>
-                    <span class="cn" style="font-weight:600; font-size:0.9rem;"><?= safe_date($user['register'] ?? null, 'Y/m/d H:i') ?></span>
+                    <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('calendar', 14) ?> تاریخ عضویت:</span>
+                    <span class="cn" style="font-weight:600; font-size:0.9rem;"><?= safe_date($user['register'] ?? null, 'Y/m/d') ?></span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
+                    <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('wallet', 14) ?> کیف پول کاربر:</span>
+                    <span class="cn" style="font-weight:700; font-size:1rem; color:var(--ac);"><?= number_format($balance) ?> <span class="cf" style="font-size:0.75rem">ت</span></span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
+                    <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('star', 14) ?> امتیاز کاربر:</span>
+                    <span class="cn" style="font-weight:600; font-size:1.05rem;"><?= number_format((int) ($user['score'] ?? 0)) ?></span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
+                    <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('award', 14) ?> نوع کاربری:</span>
+                    <span class="cn" style="font-weight:600; font-size:0.9rem;"><?= user_role_label($user['agent'] ?? 'f') ?></span>
                 </div>
                 <?php if (!empty($user['affiliates']) && $user['affiliates'] !== '0'): ?>
                     <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
@@ -330,12 +338,6 @@ include __DIR__ . '/inc/layout_head.php';
                     <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
                         <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('users', 14) ?> زیرمجموعه‌ها:</span>
                         <span class="cn" style="font-weight:600; font-size:0.9rem;"><?= number_format((int) $user['affiliatescount']) ?> <span class="cf" style="font-size:0.8rem">نفر</span></span>
-                    </div>
-                <?php endif; ?>
-                <?php if ((int) ($user['score'] ?? 0) > 0): ?>
-                    <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
-                        <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('star', 14) ?> امتیاز کاربر:</span>
-                        <span class="cn" style="color:var(--warn); font-weight:600; font-size:1.05rem;"><?= number_format((int) $user['score']) ?></span>
                     </div>
                 <?php endif; ?>
                 <?php if (!empty($user['expire'])): ?>
@@ -562,7 +564,8 @@ include __DIR__ . '/inc/layout_head.php';
                         <thead>
                             <tr>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?></th>
-                                <th style="text-align:right;">مبلغ و تاریخ</th>
+                                <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?></th>
+                                <th class="desktop-text-center" style="text-align:right;">تاریخ</th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?></th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?></th>
                             </tr>
@@ -592,27 +595,36 @@ include __DIR__ . '/inc/layout_head.php';
                                         <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?>" class="cs" style="text-align:right;">
                                             <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['name_product'] ?? '—') ?></span>
                                         </td>
-                                        <td data-label="مبلغ و تاریخ" class="cn" style="text-align:right;">
-                                            <div class="dash-unified-content" style="align-items: center;">
-                                                <span class="mobile-label" style="display:none;">مبلغ و تاریخ:</span>
-                                                <div style="display:flex;align-items:center;gap:8px; flex-wrap:wrap;">
-                                                    <div style="display:flex; align-items:center; gap:4px;">
-                                                        <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
-                                                        <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
-                                                            <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">تومان</span>
-                                                        </span>
-                                                    </div>
-                                                    <span style="color:var(--bd);">|</span>
-                                                    <div style="display:flex; align-items:center; gap:4px; font-size:0.85rem; color:var(--mute);">
-                                                        <span class="cf"><?= icon('calendar', 14) ?></span>
-                                                        <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d H:i') ?></span>
-                                                    </div>
+                                        <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>" class="cn desktop-text-center" style="text-align:right;">
+                                            <div class="dash-unified-content mobile-flex-between" style="align-items: center; gap: 8px;">
+                                                <div style="display:flex; align-items:center; gap:6px;">
+                                                    <span class="icon-span" style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                                                    <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>:</span>
                                                 </div>
+                                                <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
+                                                    <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">تومان</span>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td data-label="تاریخ" class="desktop-text-center" style="text-align:right;">
+                                            <div class="dash-unified-content mobile-flex-between" style="align-items: center; gap: 8px;">
+                                                <div style="display:flex; align-items:center; gap:6px;">
+                                                    <span class="icon-span" style="color:var(--mute)"><?= icon('calendar', 14) ?></span>
+                                                    <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;">تاریخ:</span>
+                                                </div>
+                                                <span class="cn" style="font-weight:500; color:var(--text); display:inline-flex; align-items:center; gap:12px;">
+                                                    <span><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></span>
+                                                    <span style="opacity:0.2; font-size:0.85em;">|</span>
+                                                    <span style="opacity:0.8; font-size:0.95em;"><?= safe_date($inv['time_sell'] ?? null, 'H:i') ?></span>
+                                                </span>
                                             </div>
                                         </td>
                                         <td data-label="<?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?>" class="cn cf" style="text-align:right;">
-                                            <div class="dash-unified-content" style="align-items: center; justify-content: space-between; width: 100%;">
-                                                <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?>:</span>
+                                            <div class="dash-unified-content mobile-flex-between" style="align-items: center; gap: 8px;">
+                                                <div style="display:flex; align-items:center; gap:6px;">
+                                                    <span class="icon-span" style="color:var(--mute)"><?= icon('hard-drive', 14) ?></span>
+                                                    <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?>:</span>
+                                                </div>
                                                 <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['Volume'] ?? 'نامشخص') ?></span>
                                             </div>
                                         </td>
@@ -631,7 +643,8 @@ include __DIR__ . '/inc/layout_head.php';
                     <table class="tbl-md">
                         <thead>
                             <tr>
-                                <th style="text-align:right;">مبلغ و تاریخ</th>
+                                <th style="text-align:right;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?></th>
+                                <th style="text-align:right;">تاریخ</th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['userColPaymentMethod'] ?></th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?></th>
                             </tr>
@@ -674,24 +687,30 @@ include __DIR__ . '/inc/layout_head.php';
                                     $method = $methodLabels[$p['Payment_Method'] ?? ''] ?? ($p['Payment_Method'] ?? '—');
                                     ?>
                                     <tr style="border-bottom: 1px solid var(--bd);">
-                                        <td data-label="مبلغ و تاریخ" class="cn" style="text-align:right;">
-                                            <div class="dash-unified-content" style="align-items: center;">
-                                                <span class="mobile-label" style="display:none;">مبلغ و تاریخ تراکنش:</span>
-                                                <div style="display:flex;align-items:center;gap:8px; flex-wrap:wrap;">
-                                                    <div style="display:flex; align-items:center; gap:4px;">
-                                                        <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
-                                                        <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
-                                                            <?= number_format((int) ($p['price'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">تومان</span>
-                                                        </span>
-                                                    </div>
-                                                    <span style="color:var(--bd);">|</span>
-                                                    <div style="display:flex; align-items:center; gap:4px; font-size:0.85rem; color:var(--mute);">
-                                                        <span class="cf"><?= icon('calendar', 14) ?></span>
-                                                        <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($p['time'] ?? null, 'Y/m/d H:i') ?></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
+                                        <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>" class="cn desktop-text-center" style="text-align:right;">
+                                              <div class="dash-unified-content mobile-flex-between" style="align-items: center; gap: 8px;">
+                                                  <div style="display:flex; align-items:center; gap:6px;">
+                                                      <span class="icon-span" style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                                                      <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>:</span>
+                                                  </div>
+                                                  <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
+                                                      <?= number_format((int) ($p['price'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">تومان</span>
+                                                  </span>
+                                              </div>
+                                          </td>
+                                          <td data-label="تاریخ" class="desktop-text-center" style="text-align:right;">
+                                              <div class="dash-unified-content mobile-flex-between" style="align-items: center; gap: 8px;">
+                                                  <div style="display:flex; align-items:center; gap:6px;">
+                                                      <span class="icon-span" style="color:var(--mute)"><?= icon('calendar', 14) ?></span>
+                                                      <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;">تاریخ:</span>
+                                                  </div>
+                                                  <span class="cn" style="font-weight:500; color:var(--text); display:inline-flex; align-items:center; gap:12px;">
+                                                      <span><?= safe_date($p['time'] ?? null, 'Y/m/d') ?></span>
+                                                      <span style="opacity:0.2; font-size:0.85em;">|</span>
+                                                      <span style="opacity:0.8; font-size:0.95em;"><?= safe_date($p['time'] ?? null, 'H:i') ?></span>
+                                                  </span>
+                                              </div>
+                                          </td>
                                         <td data-label="<?= $textbotlang['panel']['userColPaymentMethod'] ?>" class="cs" style="text-align:right;">
                                             <div class="dash-unified-content" style="align-items: center; justify-content: space-between; width: 100%;">
                                                 <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['userColPaymentMethod'] ?>:</span>
@@ -1095,6 +1114,6 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
 </div>
 
-<script src="js/profile.js"></script>
+<script src="js/profile.js?v=<?= time() ?>"></script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>

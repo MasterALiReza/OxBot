@@ -172,7 +172,8 @@ include __DIR__ . '/inc/layout_head.php';
         <tr>
           <th style="text-align:right;"><?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?></th>
           <th style="text-align:right;"><?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?></th>
-          <th style="text-align:right;">مبلغ و تاریخ</th>
+          <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?></th>
+          <th class="desktop-text-center" style="text-align:right;">تاریخ ثبت</th>
           <th style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?></th>
         </tr>
       </thead>
@@ -240,22 +241,28 @@ include __DIR__ . '/inc/layout_head.php';
                 <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?>" class="cs" style="text-align:right;">
                     <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['name_product'] ?? '—') ?></span>
                 </td>
-                <td data-label="مبلغ و تاریخ" class="cn" style="text-align:right;">
-                    <div class="dash-unified-content" style="align-items: center;">
-                        <span class="mobile-label" style="display:none;">مبلغ و تاریخ:</span>
-                        <div style="display:flex;align-items:center;gap:8px; flex-wrap:wrap;">
-                            <div style="display:flex; align-items:center; gap:4px;">
-                                <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
-                                <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
-                                    <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
-                                </span>
-                            </div>
-                            <span style="color:var(--bd);">|</span>
-                            <div style="display:flex; align-items:center; gap:4px; font-size:0.85rem; color:var(--mute);">
-                                <span class="cf"><?= icon('calendar', 14) ?></span>
-                                <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d H:i') ?></span>
-                            </div>
+                <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>" class="cn desktop-text-center" style="text-align:right;">
+                    <div class="desktop-vertical-stack mobile-flex-between">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span class="icon-span" style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                            <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>:</span>
                         </div>
+                        <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
+                            <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
+                        </span>
+                    </div>
+                </td>
+                <td data-label="تاریخ ثبت" class="desktop-text-center" style="text-align:right;">
+                    <div class="desktop-vertical-stack mobile-flex-between" style="font-size:0.85rem; color:var(--mute);">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span class="icon-span" style="color:var(--mute)"><?= icon('calendar', 14) ?></span>
+                            <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;">تاریخ ثبت:</span>
+                        </div>
+                        <span class="cn" style="font-weight:500; color:var(--text); display:inline-flex; align-items:center; gap:12px;">
+                            <span><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></span>
+                            <span style="opacity:0.2; font-size:0.85em;">|</span>
+                            <span style="opacity:0.8; font-size:0.95em;"><?= safe_date($inv['time_sell'] ?? null, 'H:i') ?></span>
+                        </span>
                     </div>
                 </td>
                 <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?>" style="text-align:right;">
