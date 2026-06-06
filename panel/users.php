@@ -365,7 +365,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                         <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
                                             <span style="color:var(--mute); font-weight:600;">شناسه کاربر :</span>
-                                            <span class="cn" style="font-family:monospace; font-weight:600; font-size:0.95rem; color:var(--text);"><?= htmlspecialchars($u['id']) ?></span>
+                                            <span class="cn" style="font-weight:600; font-size:0.95rem; color:var(--text);"><?= htmlspecialchars($u['id']) ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -548,8 +548,8 @@ include __DIR__ . '/inc/layout_head.php';
                                 </div>
                                 <div class="profile-id-box" style="display:flex; align-items:center; gap:6px; font-size: 0.8rem; color: var(--mute); background:rgba(var(--glass-base-rgb),0.5); padding:4px 8px; border-radius:8px;">
                                     <?= icon('id-card', 14) ?>
-                                    <span class="cf">شناسه تلگرام :</span>
-                                    <span class="cm" style="font-weight:600; font-size:0.85rem;"><?= htmlspecialchars($ad['id_admin']) ?></span>
+                                    <span class="cf">شناسه کاربر :</span>
+                                    <span class="cm" style="font-weight:600; font-size:0.85rem; direction:ltr; display:inline-block;"><?= htmlspecialchars($ad['id_admin']) ?></span>
                                 </div>
                             </div>
                         </td>
@@ -607,11 +607,12 @@ include __DIR__ . '/inc/layout_head.php';
                 <input type="hidden" name="action" value="add">
                 <div class="form-grid">
                     <div class="field full">
-                        <label>شناسه عددی تلگرام <span style="color:var(--accent)">*</span></label>
-                        <input type="text" name="id_admin" id="add-id" class="input"
-                            placeholder="مثال: 123456789" required
-                            pattern="\d+" title="فقط عدد مجاز است">
-                        <small style="color:var(--mute);margin-top:4px;display:block">شناسه عددی کاربر در تلگرام</small>
+                        <label>شناسه عددی کاربر <span style="color:var(--accent)">*</span></label>
+                        <div class="input-with-icon">
+                            <?= icon('hash', 18) ?>
+                            <input type="number" name="id_admin" class="input" placeholder="مثال: 12345678" required>
+                        </div>
+                        <small style="color:var(--mute);margin-top:4px;display:block">شناسه عددی یکتای کاربر در ربات</small>
                     </div>
                     <div class="field">
                         <label>نام کاربری پنل <span style="color:var(--accent)">*</span></label>
@@ -668,7 +669,7 @@ include __DIR__ . '/inc/layout_head.php';
 
                 <div class="form-grid">
                     <div class="field full">
-                        <label>شناسه تلگرام</label>
+                        <label>شناسه کاربر</label>
                         <input type="text" id="edit-id-show" class="input" disabled
                             style="opacity:.6;cursor:not-allowed;background:var(--surface-2)">
                     </div>

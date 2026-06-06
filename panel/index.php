@@ -335,7 +335,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                         <div class="profile-id-box" style="display:flex; align-items:center; gap:6px; font-size: 0.75rem; color: var(--mute); background:var(--bg); border: 1px solid var(--bd); padding:4px 12px; border-radius:99px;">
                                             <?= icon('hash', 14) ?>
-                                            <span class="cn" style="font-family:monospace; font-size:0.85rem;"><?= htmlspecialchars($inv['id_user']) ?></span>
+                                            <span class="cn" style="font-size:0.85rem;"><?= htmlspecialchars($inv['id_user']) ?></span>
                                         </div>
                                     </div>
                                 </td>
@@ -428,7 +428,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                         <div class="profile-id-box" style="display:flex; align-items:center; gap:6px; font-size: 0.75rem; color: var(--mute); background:var(--sf2); border: 1px solid var(--bd); padding:4px 8px; border-radius:8px;">
                                             <?= icon('hash', 14) ?>
-                                            <span class="cn" style="font-family:monospace; font-size:0.8rem;"><?= htmlspecialchars($u['id']) ?></span>
+                                            <span class="cn" style="font-size:0.8rem;"><?= htmlspecialchars($u['id']) ?></span>
                                         </div>
                                     </div>
                                 </td>
