@@ -1,12 +1,12 @@
 (function () {
     var t = localStorage.getItem('panel-theme') || 'navy';
     var bg = {
-        navy: '#0F172A', purple: '#180D2E', emerald: '#0A1F1C',
-        sunset: '#1A0D0D', slate: '#080808', light: '#F1F5F9',
+        navy: '#1D3557', purple: '#1D3557', emerald: '#1D3557',
+        sunset: '#1D3557', slate: '#1D3557', light: '#F1F5F9',
         linen: '#FAF7F2', mint: '#F0FDF4', lavender: '#FAF5FF'
     };
     var root = document.documentElement;
-    root.style.backgroundColor = bg[t] || '#0F172A';
+    root.style.backgroundColor = bg[t] || '#1D3557';
     root.setAttribute('data-theme', t);
     root.style.colorScheme = (t === 'light' || t === 'linen' || t === 'mint' || t === 'lavender') ? 'light' : 'dark';
     var mtc = document.getElementById('mtc');

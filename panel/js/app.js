@@ -211,8 +211,8 @@ document.body.addEventListener('htmx:confirm', function(e) {
 });
 
 var _THEME_BG = {
-    navy: '#0F172A', purple: '#180D2E', emerald: '#0A1F1C',
-    sunset: '#1A0D0D', slate: '#080808', light: '#F1F5F9',
+    navy: '#1D3557', purple: '#1D3557', emerald: '#1D3557',
+    sunset: '#1D3557', slate: '#1D3557', light: '#F1F5F9',
     linen: '#FAF7F2', mint: '#F0FDF4', lavender: '#FAF5FF'
 };
 var _LIGHT_THEMES = ['light', 'linen', 'mint', 'lavender'];
@@ -220,7 +220,7 @@ var _LIGHT_THEMES = ['light', 'linen', 'mint', 'lavender'];
 window.applyTheme = function (t) {
     var root = document.documentElement;
     root.setAttribute('data-theme', t);
-    root.style.backgroundColor = _THEME_BG[t] || '#0F172A';
+    root.style.backgroundColor = _THEME_BG[t] || '#1D3557';
     var isLight = _LIGHT_THEMES.indexOf(t) >= 0;
     root.style.colorScheme = isLight ? 'light' : 'dark';
     localStorage.setItem('panel-theme', t);

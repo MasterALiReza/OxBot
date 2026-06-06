@@ -12,7 +12,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <meta name="theme-color" content="#0F172A" id="mtc">
+  <meta name="theme-color" content="#1D3557" id="mtc">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,8 +23,8 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
     (function () {
       var _LIGHT = ['light', 'linen', 'mint', 'lavender'];
       var bg = {
-        navy: '#0F172A', purple: '#180D2E', emerald: '#0A1F1C',
-        sunset: '#1A0D0D', slate: '#080808', light: '#F1F5F9',
+        navy: '#1D3557', purple: '#1D3557', emerald: '#1D3557',
+        sunset: '#1D3557', slate: '#1D3557', light: '#F1F5F9',
         linen: '#FAF7F2', mint: '#F0FDF4', lavender: '#FAF5FF'
       };
 
@@ -40,7 +40,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
       }
 
       var root = document.documentElement;
-      root.style.backgroundColor = bg[t] || '#0F172A';
+      root.style.backgroundColor = bg[t] || '#1D3557';
       root.setAttribute('data-theme', t);
       var isLight = _LIGHT.indexOf(t) >= 0;
       root.style.colorScheme = isLight ? 'light' : 'dark';
@@ -68,6 +68,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           }
         }
       }
+      return s;
     };
   </script>
   <script src="js/chart.min.js"></script>
