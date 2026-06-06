@@ -557,7 +557,7 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
 
             <div id="paneOrders">
-                <div class="tbl-wrap dash-orders">
+                <div class="tbl-wrap dash-user-orders">
                     <table class="tbl-lg">
                         <thead>
                             <tr>
@@ -611,7 +611,10 @@ include __DIR__ . '/inc/layout_head.php';
                                             </div>
                                         </td>
                                         <td data-label="<?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?>" class="cn cf" style="text-align:right;">
-                                            <?= htmlspecialchars($inv['Volume'] ?? '—') ?>
+                                            <div class="dash-unified-content" style="align-items: center; justify-content: space-between; width: 100%;">
+                                                <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?>:</span>
+                                                <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['Volume'] ?? 'نامشخص') ?></span>
+                                            </div>
                                         </td>
                                         <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?>" style="text-align:right;">
                                             <span class="tag <?= $tagClass ?>"><?= $label ?></span>
@@ -690,7 +693,10 @@ include __DIR__ . '/inc/layout_head.php';
                                             </div>
                                         </td>
                                         <td data-label="<?= $textbotlang['panel']['userColPaymentMethod'] ?>" class="cs" style="text-align:right;">
-                                            <?= htmlspecialchars($method) ?>
+                                            <div class="dash-unified-content" style="align-items: center; justify-content: space-between; width: 100%;">
+                                                <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['userColPaymentMethod'] ?>:</span>
+                                                <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($method) ?></span>
+                                            </div>
                                         </td>
                                         <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?>" style="text-align:right;">
                                             <span class="tag <?= $tagClass ?>"><?= $label ?></span>
@@ -704,7 +710,7 @@ include __DIR__ . '/inc/layout_head.php';
 
             <?php if (count($referrals) > 0): ?>
                 <div id="paneRefs" style="display:none">
-                    <div class="tbl-wrap dash-orders">
+                    <div class="tbl-wrap dash-users">
                         <table class="tbl-md">
                             <thead>
                                 <tr>

@@ -1003,72 +1003,7 @@
     }
     .tbl-wrap.dash-orders td[data-label="وضعیت"]::before { display: none !important; }
 
-    /* Transactions Card Layout (user.php) */
-    .tbl-wrap.dash-pays tr {
-        border-radius: 16px !important;
-        padding: 16px !important;
-        box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05) !important;
-        gap: 0 !important;
-        border: 1px solid var(--bd) !important;
-        margin-bottom: 12px !important;
-    }
-    .tbl-wrap.dash-pays td[data-label="مبلغ"] {
-        order: 1 !important;
-        flex: 1 1 45% !important;
-        width: 45% !important;
-        font-size: 1.05rem !important;
-        font-weight: 800 !important;
-        color: var(--ac) !important;
-        border-bottom: none !important;
-        padding: 8px !important;
-        margin-bottom: 8px !important;
-        background: rgba(16, 185, 129, 0.04) !important;
-        border-radius: 8px !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        justify-content: center !important;
-        gap: 4px !important;
-    }
-    .tbl-wrap.dash-pays td[data-label="مبلغ"]::before {
-        margin-bottom: 0 !important;
-    }
-    .tbl-wrap.dash-pays td[data-label="تاریخ تراکنش"] {
-        order: 2 !important;
-        flex: 1 1 45% !important;
-        width: 45% !important;
-        margin-bottom: 8px !important;
-        background: rgba(128, 128, 128, 0.04) !important;
-        border-radius: 8px !important;
-        padding: 8px !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        justify-content: center !important;
-        gap: 4px !important;
-    }
-    .tbl-wrap.dash-pays td[data-label="تاریخ تراکنش"]::before {
-        margin-bottom: 0 !important;
-    }
-    .tbl-wrap.dash-pays td[data-label="روش پرداخت"] {
-        order: 3 !important;
-        flex: 1 1 100% !important;
-        width: 100% !important;
-        justify-content: space-between !important;
-        margin-bottom: 8px !important;
-        border-top: 1px dashed rgba(128,128,128,0.1) !important;
-        padding-top: 12px !important;
-    }
-    .tbl-wrap.dash-pays td[data-label="وضعیت"] {
-        order: -1 !important;
-        position: absolute !important;
-        top: 16px;
-        left: 16px;
-        width: auto !important;
-        border-bottom: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    .tbl-wrap.dash-pays td[data-label="وضعیت"]::before { display: none !important; }
-    
+
     /* Broadcast History Card Layout (broadcast.php) */
     .tbl-wrap.dash-bc-history tr {
         border-radius: 16px !important;
@@ -1459,5 +1394,126 @@
         border: none !important;
         background: transparent !important;
     }
-}
+    /* User Profile - Invoices (user.php) */
+    .tbl-wrap.dash-user-orders tr {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        padding: 16px 14px !important;
+        gap: 12px !important;
+        position: relative !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05) !important;
+        border: 1px solid var(--bd) !important;
+        margin-bottom: 12px !important;
+    }
+    .tbl-wrap.dash-user-orders td {
+        border-bottom: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+        flex: none !important;
+    }
+    .tbl-wrap.dash-user-orders td::before {
+        display: none !important;
+        content: none !important;
+    }
 
+    .tbl-wrap.dash-user-orders td:nth-child(1) {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        font-size: 1.05rem !important;
+        font-weight: 800 !important;
+        color: var(--fg) !important;
+        border-bottom: 1px dashed rgba(128,128,128,0.2) !important;
+        padding-bottom: 12px !important;
+        padding-left: 80px !important;
+        margin-bottom: 4px !important;
+        justify-content: flex-start !important;
+    }
+
+    .tbl-wrap.dash-user-orders td:nth-child(2) {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+    .tbl-wrap.dash-user-orders td:nth-child(2) .dash-unified-content {
+        width: 100%;
+        background: rgba(var(--glass-base-rgb), 0.3) !important;
+        border: 1px solid var(--bd) !important;
+        padding: 12px !important;
+        border-radius: 12px !important;
+        justify-content: space-between !important;
+    }
+
+    .tbl-wrap.dash-user-orders td:nth-child(3) {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+        background: rgba(128, 128, 128, 0.04) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+    }
+
+    .tbl-wrap.dash-user-orders td:nth-child(4) {
+        position: absolute !important;
+        top: 14px !important;
+        left: 14px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: auto !important;
+    }
+
+    /* User Profile - Transactions (user.php) */
+    .tbl-wrap.dash-pays tr {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        padding: 16px 14px !important;
+        gap: 12px !important;
+        position: relative !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05) !important;
+        border: 1px solid var(--bd) !important;
+        margin-bottom: 12px !important;
+    }
+    .tbl-wrap.dash-pays td {
+        border-bottom: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+        flex: none !important;
+    }
+    .tbl-wrap.dash-pays td::before {
+        display: none !important;
+        content: none !important;
+    }
+    
+    .tbl-wrap.dash-pays td:nth-child(1) {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+        background: rgba(16, 185, 129, 0.04) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+        padding-left: 80px !important; /* Space for absolute pill */
+    }
+    .tbl-wrap.dash-pays td:nth-child(1) .dash-unified-content {
+        width: 100%;
+        justify-content: space-between !important;
+    }
+    
+    .tbl-wrap.dash-pays td:nth-child(2) {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+        background: rgba(128, 128, 128, 0.04) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+    }
+    
+    .tbl-wrap.dash-pays td:nth-child(3) {
+        position: absolute !important;
+        top: 14px !important;
+        left: 14px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: auto !important;
+    }
+}
