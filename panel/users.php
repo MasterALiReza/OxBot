@@ -372,7 +372,7 @@ include __DIR__ . '/inc/layout_head.php';
                             </td>
 
                             <td data-label="جزئیات و مالی" class="no-label" style="vertical-align: top; padding-top:20px; padding-bottom: 8px;">
-                                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; width:100%;">
+                                <div class="users-details-grid">
                                     
                                     <div style="background: rgba(128,128,128,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; justify-content: center;">
                                         <div style="display:flex; align-items:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
