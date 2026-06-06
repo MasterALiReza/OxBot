@@ -2878,7 +2878,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     step('home', $from_id);
 } elseif ($text == $textbotlang['keyboard']['editProduct'] && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['Admin']['Product']['removeLocation'], $list_marzban_panel_edit_product, 'HTML');
-} elseif (preg_match('/locationedit_(\w+)/', $datain, $dataget)) {
+} elseif (preg_match('/^locationedit_(.+)/', $datain, $dataget)) {
     $location = $dataget[1];
     $location = $location == "all" ? "/all" : $location;
     update("user", "Processing_value_one", $location, "id", $from_id);
