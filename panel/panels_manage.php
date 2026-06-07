@@ -70,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $limit_panel = trim($_POST['limit_panel'] ?? 'unlimited');
     $sublink = trim($_POST['sublink'] ?? 'onsublink');
     $config = trim($_POST['config'] ?? 'offconfig');
+    $qr_wgd = trim($_POST['qr_wgd'] ?? 'offqrwgd');
     
     $Methodextend = trim($_POST['Methodextend'] ?? $textbotlang['keyboard']['resetVolumeTime']);
     $status_extend = trim($_POST['status_extend'] ?? 'on_extend');
@@ -103,12 +104,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $code_panel = '7e' . ($max_num + 1);
 
             db_query($pdo, "INSERT INTO marzban_panel 
-                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group, mainvolume, maxvolume, maintime, maxtime, customvolume, priceextravolume, pricecustomvolume, pricecustomtime, priceextratime, val_usertest, time_usertest) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, qr_wgd, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group, mainvolume, maxvolume, maintime, maxtime, customvolume, priceextravolume, pricecustomvolume, pricecustomtime, priceextratime, val_usertest, time_usertest) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
                 [
                     $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $code_panel,
                     $MethodUsername, $inboundstatus, $inbound_deactive, $agent, $inboundid, $conecton, $Methodextend,
-                    $namecustom, $limit_panel, $TestAccount, $sublink, $config, $on_hold_test, $subvip, $changeloc,
+                    $namecustom, $limit_panel, $TestAccount, $sublink, $config, $qr_wgd, $on_hold_test, $subvip, $changeloc,
                     $status_extend, $priceChangeloc, $sanaei_group, $mainvolume, $maxvolume, $maintime, $maxtime,
                     $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime, $priceextratime, $val_usertest, $time_usertest
                 ]
@@ -125,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             db_query($pdo, "UPDATE marzban_panel SET 
                 name_panel = ?, url_panel = ?, username_panel = ?, password_panel = ?, type = ?, status = ?, agent = ?, 
                 MethodUsername = ?, inboundstatus = ?, inbound_deactive = ?, inboundid = ?, conecton = ?, Methodextend = ?,
-                namecustom = ?, limit_panel = ?, TestAccount = ?, sublink = ?, config = ?, on_hold_test = ?, subvip = ?,
+                namecustom = ?, limit_panel = ?, TestAccount = ?, sublink = ?, config = ?, qr_wgd = ?, on_hold_test = ?, subvip = ?,
                 changeloc = ?, status_extend = ?, priceChangeloc = ?, sanaei_group = ?, mainvolume = ?, maxvolume = ?,
                 maintime = ?, maxtime = ?, customvolume = ?, priceextravolume = ?, pricecustomvolume = ?, pricecustomtime = ?,
                 priceextratime = ?, val_usertest = ?, time_usertest = ?
@@ -133,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 [
                     $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $agent,
                     $MethodUsername, $inboundstatus, $inbound_deactive, $inboundid, $conecton, $Methodextend,
-                    $namecustom, $limit_panel, $TestAccount, $sublink, $config, $on_hold_test, $subvip,
+                    $namecustom, $limit_panel, $TestAccount, $sublink, $config, $qr_wgd, $on_hold_test, $subvip,
                     $changeloc, $status_extend, $priceChangeloc, $sanaei_group, $mainvolume, $maxvolume,
                     $maintime, $maxtime, $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime,
                     $priceextratime, $val_usertest, $time_usertest, $id
@@ -270,7 +271,7 @@ include __DIR__ . '/inc/layout_head.php';
                             'inboundstatus' => $p['inboundstatus'], 'inbound_deactive' => $p['inbound_deactive'],
                             'conecton' => $p['conecton'], 'MethodUsername' => $p['MethodUsername'],
                             'namecustom' => $p['namecustom'], 'limit_panel' => $p['limit_panel'],
-                            'sublink' => $p['sublink'], 'config' => $p['config'],
+                            'sublink' => $p['sublink'], 'config' => $p['config'], 'qr_wgd' => $p['qr_wgd'],
                             'Methodextend' => $p['Methodextend'], 'status_extend' => $p['status_extend'],
                             'TestAccount' => $p['TestAccount'], 'val_usertest' => $p['val_usertest'],
                             'time_usertest' => $p['time_usertest'], 'on_hold_test' => $p['on_hold_test'],
@@ -531,6 +532,13 @@ include __DIR__ . '/inc/layout_head.php';
                             <select name="config" id="panelConfig" class="input">
                                 <option value="onconfig">بله</option>
                                 <option value="offconfig">خیر</option>
+                            </select>
+                        </div>
+                        <div class="field-group" id="qrWgdContainer" style="display:none;">
+                            <label>ارسال بارکد WGDashboard</label>
+                            <select name="qr_wgd" id="panelQrWgd" class="input">
+                                <option value="onqrwgd">بله</option>
+                                <option value="offqrwgd">خیر</option>
                             </select>
                         </div>
                         <div class="field-group">
@@ -848,6 +856,7 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelLimitPanel').value = 'unlimited';
         document.getElementById('panelSublink').value = 'onsublink';
         document.getElementById('panelConfig').value = 'offconfig';
+        document.getElementById('panelQrWgd').value = 'offqrwgd';
         document.getElementById('panelChangeloc').value = 'offchangeloc';
         document.getElementById('panelSubvip').value = 'offsubvip';
         
@@ -889,6 +898,7 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelLimitPanel').value = data.limit_panel || 'unlimited';
         document.getElementById('panelSublink').value = data.sublink || 'onsublink';
         document.getElementById('panelConfig').value = data.config || 'offconfig';
+        document.getElementById('panelQrWgd').value = data.qr_wgd || 'offqrwgd';
         document.getElementById('panelChangeloc').value = data.changeloc || 'offchangeloc';
         document.getElementById('panelSubvip').value = data.subvip || 'offsubvip';
         

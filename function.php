@@ -1821,6 +1821,7 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
             }
         }
     }
+
     if ($STATUS_SEND_MESSAGE_PHOTO) {
         if ($panel_info['type'] == "WGDashboard") {
             $urlimage = "{$panel_info['inboundid']}_{$invoice_id}.conf";
@@ -1833,6 +1834,20 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
                 'parse_mode' => "HTML",
             ]);
             unlink($urlimage);
+
+            if (($panel_info['qr_wgd'] ?? 'offqrwgd') === 'onqrwgd') {
+                $qrUrlimage = "$user_id$invoice_id.png";
+                $qrCode = createqrcode($out_put_qrcode);
+                file_put_contents($qrUrlimage, $qrCode->getString());
+                addBackgroundImage($qrUrlimage, $qrCode, $image);
+                telegram('sendphoto', [
+                    'chat_id' => $user_id,
+                    'photo' => new CURLFile($qrUrlimage),
+                    'caption' => "📱 بارکد کانفیگ",
+                    'parse_mode' => "HTML",
+                ]);
+                unlink($qrUrlimage);
+            }
         } else {
             $urlimage = "$user_id$invoice_id.png";
             $qrCode = createqrcode($out_put_qrcode);

@@ -715,6 +715,7 @@ if (in_array($text, $textadmin) || $datain == "admin") {
     }
     $sublink = "onsublink";
     $configstatus = "offconfig";
+    $qr_wgd = "offqrwgd";
     $MethodUsername = $textbotlang['keyboard']['numericIdRandom'];
     $status = "active";
     $ONTestAccount = "ONTestAccount";
@@ -751,11 +752,12 @@ if (in_array($text, $textadmin) || $datain == "admin") {
     $statusextend = "on_extend";
     $subvip = "offsubvip";
     $stauts_on_holed = "1";
-    $stmt = $pdo->prepare("INSERT INTO marzban_panel (code_panel,name_panel,sublink,config,MethodUsername,TestAccount,status,limit_panel,namecustom,Methodextend,type,conecton,inboundid,agent,inbound_deactive,inboundstatus,url_panel,username_panel,password_panel,time_usertest,val_usertest,linksubx,priceextravolume,priceextratime,pricecustomvolume,pricecustomtime,mainvolume,maxvolume,maintime,maxtime,status_extend,subvip,changeloc,customvolume,on_hold_test,version_panel) VALUES (:code_panel,:name_panel,:sublink,:config,:MethodUsername,:TestAccount,:status,:limit_panel,:namecustom,:Methodextend,:type,:conecton,:inboundid,:agent,:inbound_deactive,:inboundstatus,:url_panel,:username_panel,:password_panel,:val_usertest,:time_usertest,:linksubx,:priceextravolume,:priceextratime,:pricecustomvolume,:pricecustomtime,:mainvolume,:maxvolume,:maintime,:maxtime,:status_extend,:subvip,:changeloc,:customvolume,:on_hold_test,'0')");
+    $stmt = $pdo->prepare("INSERT INTO marzban_panel (code_panel,name_panel,sublink,config,qr_wgd,MethodUsername,TestAccount,status,limit_panel,namecustom,Methodextend,type,conecton,inboundid,agent,inbound_deactive,inboundstatus,url_panel,username_panel,password_panel,time_usertest,val_usertest,linksubx,priceextravolume,priceextratime,pricecustomvolume,pricecustomtime,mainvolume,maxvolume,maintime,maxtime,status_extend,subvip,changeloc,customvolume,on_hold_test,version_panel) VALUES (:code_panel,:name_panel,:sublink,:config,:qr_wgd,:MethodUsername,:TestAccount,:status,:limit_panel,:namecustom,:Methodextend,:type,:conecton,:inboundid,:agent,:inbound_deactive,:inboundstatus,:url_panel,:username_panel,:password_panel,:val_usertest,:time_usertest,:linksubx,:priceextravolume,:priceextratime,:pricecustomvolume,:pricecustomtime,:mainvolume,:maxvolume,:maintime,:maxtime,:status_extend,:subvip,:changeloc,:customvolume,:on_hold_test,'0')");
     $stmt->bindParam(':code_panel', $randomString);
     $stmt->bindParam(':name_panel', $userdata['namepanel'], PDO::PARAM_STR);
     $stmt->bindParam(':sublink', $sublink);
     $stmt->bindParam(':config', $configstatus);
+    $stmt->bindParam(':qr_wgd', $qr_wgd);
     $stmt->bindParam(':MethodUsername', $MethodUsername);
     $stmt->bindParam(':TestAccount', $ONTestAccount);
     $stmt->bindParam(':status', $status);
@@ -9624,6 +9626,17 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             ['text' => $textbotlang['keyboard']['sendSubLink'], 'callback_data' => "none"],
         ];
     }
+    if ($panel['type'] == "WGDashboard") {
+        $statusqrwgd = [
+            'onqrwgd' => $textbotlang['Admin']['Status']['statuson'],
+            'offqrwgd' => $textbotlang['Admin']['Status']['statusoff']
+        ][$panel['qr_wgd']] ?? $textbotlang['Admin']['Status']['statusoff'];
+        
+        $Bot_Status['inline_keyboard'][] = [
+            ['text' => $statusqrwgd, 'callback_data' => "editpanel-qrwgd-{$panel['qr_wgd']}-{$panel['code_panel']}"],
+            ['text' => "ارسال بارکد WGDashboard", 'callback_data' => "none"],
+        ];
+    }
     if (in_array($panel['type'], ['marzban', "x-ui_single", "MHSanaei-3.2", "marzneshin"])) {
         $Bot_Status['inline_keyboard'][] = [
             ['text' => $statusconnecton, 'callback_data' => "editpanel-connecton-{$panel['conecton']}-{$panel['code_panel']}"],
@@ -9743,6 +9756,13 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             $valuenew = "onsubvip";
         }
         update("marzban_panel", "subvip", $valuenew, "code_panel", $code_panel);
+    } elseif ($type == "qrwgd") {
+        if ($value == "onqrwgd") {
+            $valuenew = "offqrwgd";
+        } else {
+            $valuenew = "onqrwgd";
+        }
+        update("marzban_panel", "qr_wgd", $valuenew, "code_panel", $code_panel);
     } elseif ($type == "customstatusf") {
         $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
         $customvlume = json_decode($panel['customvolume'], true);
@@ -9895,6 +9915,17 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
         $Bot_Status['inline_keyboard'][] = [
             ['text' => $statussublink, 'callback_data' => "editpanel-sublink-{$panel['sublink']}-{$panel['code_panel']}"],
             ['text' => $textbotlang['keyboard']['sendSubLink'], 'callback_data' => "none"],
+        ];
+    }
+    if ($panel['type'] == "WGDashboard") {
+        $statusqrwgd = [
+            'onqrwgd' => $textbotlang['Admin']['Status']['statuson'],
+            'offqrwgd' => $textbotlang['Admin']['Status']['statusoff']
+        ][$panel['qr_wgd']] ?? $textbotlang['Admin']['Status']['statusoff'];
+        
+        $Bot_Status['inline_keyboard'][] = [
+            ['text' => $statusqrwgd, 'callback_data' => "editpanel-qrwgd-{$panel['qr_wgd']}-{$panel['code_panel']}"],
+            ['text' => "ارسال بارکد WGDashboard", 'callback_data' => "none"],
         ];
     }
     if (in_array($panel['type'], ['marzban', "x-ui_single", "MHSanaei-3.2", "marzneshin"])) {
