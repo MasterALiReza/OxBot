@@ -258,7 +258,7 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         </div>
     <?php endif; ?>
 
-    <form hx-post="ajax/broadcast_action.php" hx-swap="outerHTML" hx-indicator=".loader" id="broadcastForm">
+    <form hx-post="ajax/broadcast_action.php" hx-swap="innerHTML" hx-indicator=".loader" id="broadcastForm">
         <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
         
         <!-- Section 1: Configuration -->
