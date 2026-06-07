@@ -4,8 +4,12 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../botapi.php';
 require_once __DIR__ . '/../function.php';
 $textbotlang = languagechange();
-if(!is_file('info'))return;
-if(!is_file('users.json'))return;
+$infoFile = __DIR__ . '/info';
+$usersFile = __DIR__ . '/users.json';
+
+if(!is_file($infoFile)) return;
+if(!is_file($usersFile)) return;
+
 
 // Load administrative and owner Telegram IDs
 $admin_ids = select("admin", "id_admin", null, null, "FETCH_COLUMN") ?: [];
@@ -15,15 +19,18 @@ if (isset($adminnumber) && $adminnumber !== '') {
 }
 $admin_ids = array_values(array_unique(array_filter($admin_ids)));
 
-$info = json_decode(file_get_contents('info'), true);
+$info = json_decode(file_get_contents($infoFile), true);
 if (!is_array($info)) {
     $info = [];
 }
 
+
 // Intercept new broadcast runs (e.g. from admin.php) and merge admins/owner
 if (!isset($info['admin_appended'])) {
-    $raw_userid = json_decode(file_get_contents('users.json'), true) ?: [];
+$raw_userid = json_decode(file_get_contents($usersFile), true) ?: [];
+
     $existing_ids = [];
+
     foreach ($raw_userid as $u) {
         if (is_array($u) && isset($u['id'])) {
             $existing_ids[] = (string)$u['id'];
@@ -42,12 +49,16 @@ if (!isset($info['admin_appended'])) {
         $new_userid_list[] = ['id' => $id];
     }
     
-    file_put_contents('users.json', json_encode($new_userid_list));
+    file_put_contents($usersFile, json_encode($new_userid_list));
     $info['admin_appended'] = true;
-    file_put_contents('info', json_encode($info));
+    file_put_contents($infoFile, json_encode($info));
+
+
 }
 
-$userid = json_decode(file_get_contents('users.json'));
+$userid = json_decode(file_get_contents($usersFile), true);
+
+
 $count = 0;
 if(count($userid) == 0){
     if(isset($info['id_admin'])){
@@ -56,8 +67,9 @@ if(count($userid) == 0){
     
     $pdo->query("UPDATE broadcast_history SET status = 'completed' WHERE status IN ('in_progress', 'pending')");
     
-    unlink('info');
-    unlink('users.json');
+unlink($infoFile);
+unlink($usersFile);
+
     }
     return;
     
@@ -224,4 +236,4 @@ for ($i = 0; $i < 150; $i++) {
     usleep(35000);
 }
 
-file_put_contents('users.json',json_encode($userid,true));
+file_put_contents($usersFile, json_encode($userid,true));
