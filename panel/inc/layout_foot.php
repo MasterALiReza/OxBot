@@ -14,6 +14,6 @@
 </div>
 
 <script src="js/htmx.min.js"></script>
-<script src="js/app.js"></script>
+<script src="js/app.js?v=<?= time() ?>"></script>
 </body>
 </html>

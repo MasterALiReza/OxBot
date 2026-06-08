@@ -349,8 +349,181 @@ window.initUI = function(context) {
 
 document.body.addEventListener('htmx:load', function(e) {
     initUI(e.detail.elt);
+    initBroadcastUI(e.detail.elt);
 });
 initUI(document);
+
+function initBroadcastUI(context) {
+    context = context || document;
+    if (!context.querySelector || !context.querySelector('#broadcastForm')) return;
+
+    window.toggleFields();
+    window.toggleBtnFields();
+}
+
+function setBroadcastFieldState(el, enabled, required) {
+    if (!el) return;
+    el.disabled = !enabled;
+    if (required) {
+        el.setAttribute('required', 'required');
+    } else {
+        el.removeAttribute('required');
+    }
+}
+
+window.toggleFields = function () {
+    var type = document.getElementById('messageType');
+    var btn = document.getElementById('btnmessage');
+    var msg = document.getElementById('messageGroup');
+    var textGroup = document.getElementById('textGroup');
+    var linkGroup = document.getElementById('linkGroup');
+    var messageText = document.getElementById('messageText');
+    var channelLink = document.getElementById('channelLink');
+    var pingmessage = document.getElementById('pingmessage');
+
+    if (!type || !btn || !msg || !textGroup || !linkGroup) return;
+
+    if (type.value === 'unpinmessage') {
+        btn.value = 'none';
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        msg.style.display = 'none';
+        if (pingmessage) pingmessage.checked = false;
+        setBroadcastFieldState(messageText, false, false);
+        setBroadcastFieldState(channelLink, false, false);
+    } else if (type.value === 'forwardlink') {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        msg.style.display = 'block';
+        msg.style.opacity = '1';
+        textGroup.style.display = 'none';
+        linkGroup.style.display = 'block';
+        setBroadcastFieldState(messageText, false, false);
+        setBroadcastFieldState(channelLink, true, true);
+    } else {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        msg.style.display = 'block';
+        msg.style.opacity = '1';
+        textGroup.style.display = 'block';
+        linkGroup.style.display = 'none';
+        setBroadcastFieldState(messageText, true, true);
+        setBroadcastFieldState(channelLink, false, false);
+    }
+
+    window.toggleBtnFields();
+};
+
+window.toggleBtnFields = function () {
+    var btn = document.getElementById('btnmessage');
+    var customUrlFields = document.getElementById('customUrlFields');
+    var customProductFields = document.getElementById('customProductFields');
+    var customBtnTextUrl = document.getElementById('customBtnTextUrl');
+    var customBtnLink = document.getElementById('customBtnLink');
+    var customBtnTextProd = document.getElementById('customBtnTextProd');
+    var customBtnCallback = document.getElementById('customBtnCallback');
+
+    if (!btn || !customUrlFields || !customProductFields) return;
+
+    var btnVal = btn.disabled ? 'none' : btn.value;
+    if (btnVal === 'custom_url') {
+        customUrlFields.style.display = 'block';
+        customProductFields.style.display = 'none';
+        setBroadcastFieldState(customBtnTextUrl, true, true);
+        setBroadcastFieldState(customBtnLink, true, true);
+        setBroadcastFieldState(customBtnTextProd, false, false);
+        setBroadcastFieldState(customBtnCallback, false, false);
+    } else if (btnVal === 'custom_product') {
+        customUrlFields.style.display = 'none';
+        customProductFields.style.display = 'block';
+        setBroadcastFieldState(customBtnTextUrl, false, false);
+        setBroadcastFieldState(customBtnLink, false, false);
+        setBroadcastFieldState(customBtnTextProd, true, true);
+        setBroadcastFieldState(customBtnCallback, true, true);
+    } else {
+        customUrlFields.style.display = 'none';
+        customProductFields.style.display = 'none';
+        setBroadcastFieldState(customBtnTextUrl, false, false);
+        setBroadcastFieldState(customBtnLink, false, false);
+        setBroadcastFieldState(customBtnTextProd, false, false);
+        setBroadcastFieldState(customBtnCallback, false, false);
+    }
+};
+
+window.reuseBroadcast = function (btn) {
+    if (!btn) return;
+    var data = JSON.parse(btn.getAttribute('data-history') || '{}');
+
+    if (data.message_type === 'text') {
+        document.getElementById('messageType').value = 'sendmessage';
+        document.getElementById('messageText').value = data.content || '';
+    } else if (data.message_type === 'forwardlink') {
+        document.getElementById('messageType').value = 'forwardlink';
+        document.getElementById('channelLink').value = data.content || '';
+    } else {
+        document.getElementById('messageType').value = 'unpinmessage';
+    }
+
+    document.getElementById('targetUsers').value = ['all', 'customer', 'nonecustomer'].indexOf(data.target_audience) >= 0 ? data.target_audience : 'all';
+    document.getElementById('targetAgent').value = 'all';
+
+    var btnmessage = document.getElementById('btnmessage');
+    btnmessage.value = data.button_type || 'none';
+    if (data.button_type === 'custom_url') {
+        document.getElementById('customBtnTextUrl').value = data.button_text || '';
+        document.getElementById('customBtnLink').value = data.button_data || '';
+    } else if (data.button_type === 'custom_product') {
+        document.getElementById('customBtnTextProd').value = data.button_text || '';
+        document.getElementById('customBtnCallback').value = data.button_data || '';
+    }
+
+    window.toggleFields();
+    window.toggleBtnFields();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+document.body.addEventListener('change', function (e) {
+    if (e.target && e.target.id === 'messageType') {
+        window.toggleFields();
+    } else if (e.target && e.target.id === 'btnmessage') {
+        window.toggleBtnFields();
+    }
+});
+
+document.body.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || form.id !== 'broadcastForm') return;
+
+    e.preventDefault();
+    window.toggleFields();
+
+    var feedback = document.getElementById('broadcastFeedback');
+    var submitBtn = document.getElementById('broadcastSubmitBtn');
+    if (submitBtn) submitBtn.disabled = true;
+    if (feedback) feedback.innerHTML = '<div class="alert alert-info">در حال ثبت عملیات...</div>';
+
+    fetch(form.getAttribute('hx-post') || form.getAttribute('action') || 'ajax/broadcast_action.php', {
+        method: 'POST',
+        body: new FormData(form),
+        credentials: 'same-origin',
+        headers: { 'HX-Request': 'true' }
+    })
+    .then(function (res) { return res.text(); })
+    .then(function (html) {
+        if (feedback) feedback.innerHTML = html;
+        Array.prototype.forEach.call((feedback || document).querySelectorAll('script'), function (script) {
+            try { Function(script.textContent)(); } catch (err) { console.error(err); }
+        });
+        if (submitBtn && html.indexOf('alert-success') === -1) {
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(function () {
+        if (feedback) feedback.innerHTML = '<div class="alert alert-danger">خطا در ارتباط با سرور. لطفا دوباره تلاش کنید.</div>';
+        if (submitBtn) submitBtn.disabled = false;
+    });
+}, true);
+initBroadcastUI(document);
 
 setTimeout(function () {
     document.querySelectorAll('.notice').forEach(function (n) {
