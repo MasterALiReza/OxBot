@@ -413,8 +413,10 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                         <td data-label="نوع">
                             <?php if($history['message_type'] == 'text'): ?>
                                 <span class="bc-badge badge-text">متنی</span>
-                            <?php else: ?>
+                            <?php elseif($history['message_type'] == 'forwardlink'): ?>
                                 <span class="bc-badge badge-link">لینک کانال</span>
+                            <?php else: ?>
+                                <span class="bc-badge badge-audience">Unpin</span>
                             <?php endif; ?>
                         </td>
                         <td data-label="جامعه هدف"><span class="bc-badge badge-audience"><?= htmlspecialchars($history['target_audience']) ?></span></td>
@@ -444,6 +446,16 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 </div>
 
 <script>
+function setFieldState(el, enabled, required) {
+    if (!el) return;
+    el.disabled = !enabled;
+    if (required) {
+        el.setAttribute('required', 'required');
+    } else {
+        el.removeAttribute('required');
+    }
+}
+
 function toggleFields() {
 
     var type = document.getElementById('messageType').value;
@@ -451,11 +463,18 @@ function toggleFields() {
     var msg = document.getElementById('messageGroup');
     var textGroup = document.getElementById('textGroup');
     var linkGroup = document.getElementById('linkGroup');
+    var messageText = document.getElementById('messageText');
+    var channelLink = document.getElementById('channelLink');
+    var pingmessage = document.getElementById('pingmessage');
     
     if (type === 'unpinmessage') {
+        btn.value = 'none';
         btn.disabled = true;
         btn.style.opacity = '0.5';
         msg.style.display = 'none';
+        if (pingmessage) pingmessage.checked = false;
+        setFieldState(messageText, false, false);
+        setFieldState(channelLink, false, false);
     } else if (type === 'forwardlink') {
         btn.disabled = false; // copyMessage supports inline keyboards!
         btn.style.opacity = '1';
@@ -463,6 +482,8 @@ function toggleFields() {
         msg.style.opacity = '1';
         textGroup.style.display = 'none';
         linkGroup.style.display = 'block';
+        setFieldState(messageText, false, false);
+        setFieldState(channelLink, true, true);
     } else {
         btn.disabled = false;
         btn.style.opacity = '1';
@@ -470,25 +491,50 @@ function toggleFields() {
         msg.style.opacity = '1';
         textGroup.style.display = 'block';
         linkGroup.style.display = 'none';
+        setFieldState(messageText, true, true);
+        setFieldState(channelLink, false, false);
     }
+
+    toggleBtnFields();
 }
 
 window.toggleFields = toggleFields;
 
 function toggleBtnFields() {
-    var btnVal = document.getElementById('btnmessage').value;
+    var btn = document.getElementById('btnmessage');
+    var btnVal = btn.value;
     var customUrlFields = document.getElementById('customUrlFields');
     var customProductFields = document.getElementById('customProductFields');
+    var customBtnTextUrl = document.getElementById('customBtnTextUrl');
+    var customBtnLink = document.getElementById('customBtnLink');
+    var customBtnTextProd = document.getElementById('customBtnTextProd');
+    var customBtnCallback = document.getElementById('customBtnCallback');
+
+    if (btn.disabled) {
+        btnVal = 'none';
+    }
     
     if (btnVal === 'custom_url') {
         customUrlFields.style.display = 'block';
         customProductFields.style.display = 'none';
+        setFieldState(customBtnTextUrl, true, true);
+        setFieldState(customBtnLink, true, true);
+        setFieldState(customBtnTextProd, false, false);
+        setFieldState(customBtnCallback, false, false);
     } else if (btnVal === 'custom_product') {
         customUrlFields.style.display = 'none';
         customProductFields.style.display = 'block';
+        setFieldState(customBtnTextUrl, false, false);
+        setFieldState(customBtnLink, false, false);
+        setFieldState(customBtnTextProd, true, true);
+        setFieldState(customBtnCallback, true, true);
     } else {
         customUrlFields.style.display = 'none';
         customProductFields.style.display = 'none';
+        setFieldState(customBtnTextUrl, false, false);
+        setFieldState(customBtnLink, false, false);
+        setFieldState(customBtnTextProd, false, false);
+        setFieldState(customBtnCallback, false, false);
     }
 }
 
@@ -497,12 +543,14 @@ function reuseBroadcast(btn) {
     if (data.message_type === 'text') {
         document.getElementById('messageType').value = 'sendmessage';
         document.getElementById('messageText').value = data.content;
-    } else {
+    } else if (data.message_type === 'forwardlink') {
         document.getElementById('messageType').value = 'forwardlink';
         document.getElementById('channelLink').value = data.content;
+    } else {
+        document.getElementById('messageType').value = 'unpinmessage';
     }
     
-    document.getElementById('targetUsers').value = data.target_audience;
+    document.getElementById('targetUsers').value = ['all', 'customer', 'nonecustomer'].indexOf(data.target_audience) >= 0 ? data.target_audience : 'all';
     document.getElementById('targetAgent').value = 'all'; // Default
     
     // Restore button values if present in the data!

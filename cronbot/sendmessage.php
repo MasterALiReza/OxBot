@@ -10,6 +10,20 @@ $usersFile = __DIR__ . '/users.json';
 if(!is_file($infoFile)) return;
 if(!is_file($usersFile)) return;
 
+function broadcast_user_id($entry): ?string
+{
+    if (is_array($entry) && isset($entry['id'])) {
+        return (string) $entry['id'];
+    }
+    if (is_object($entry) && isset($entry->id)) {
+        return (string) $entry->id;
+    }
+    if (is_scalar($entry)) {
+        return (string) $entry;
+    }
+    return null;
+}
+
 
 // Load administrative and owner Telegram IDs
 $admin_ids = select("admin", "id_admin", null, null, "FETCH_COLUMN") ?: [];
@@ -57,6 +71,9 @@ $raw_userid = json_decode(file_get_contents($usersFile), true) ?: [];
 }
 
 $userid = json_decode(file_get_contents($usersFile), true);
+if (!is_array($userid)) {
+    $userid = [];
+}
 
 
 $count = 0;
@@ -163,35 +180,34 @@ for ($i = 0; $i < 150; $i++) {
     if (empty($userid)) {
         break;
     }
-    $iduser = array_shift($userid);
-    if (!isset($iduser->id)) {
+    $iduser = broadcast_user_id(array_shift($userid));
+    if ($iduser === null || $iduser === '') {
         continue;
     }
     
-    $isAdminOrOwner = in_array((string)$iduser->id, $admin_ids);
+    $isAdminOrOwner = in_array((string)$iduser, $admin_ids);
 
     if ($info['type'] == "unpinmessage") {
-        unpinmessage($iduser->id);
+        unpinmessage($iduser);
     } elseif ($info['type'] == "sendmessage" or $info['type'] == "xdaynotmessage") {
-        $meesage = sendmessage($iduser->id, $info['message'], $custom_keyboard, 'HTML');
+        $meesage = sendmessage($iduser, $info['message'], $custom_keyboard, 'HTML');
 
         if (isset($meesage['ok']) && $meesage['ok'] == false and $meesage['description'] == "Forbidden: bot was blocked by the user") {
-            $invoicecount = select("invoice", "*", "id_user", $iduser->id, "count");
-            $userinfo = select("user", "Balance", "id", $iduser->id, "select");
+            $invoicecount = select("invoice", "*", "id_user", $iduser, "count");
+            $userinfo = select("user", "Balance", "id", $iduser, "select");
             if ($invoicecount == 0 and $userinfo['Balance'] == 0) {
-                $Id_user = $iduser->id;
-                $stmt = $pdo->prepare("DELETE FROM user WHERE id = '$Id_user'");
-                $stmt->execute();
+                $stmt = $pdo->prepare("DELETE FROM user WHERE id = ?");
+                $stmt->execute([$iduser]);
             }
         }
 
         if (isset($meesage['ok']) && $meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
-            pinmessage($iduser->id, $meesage['result']['message_id']);
+            pinmessage($iduser, $meesage['result']['message_id']);
         }
     } elseif ($info['type'] == "forwardmessage") {
-        $meesage = forwardMessage($info['id_admin'], $info['message'], $iduser->id);
+        $meesage = forwardMessage($info['id_admin'], $info['message'], $iduser);
         if (isset($meesage['ok']) && $meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
-            pinmessage($iduser->id, $meesage['result']['message_id']);
+            pinmessage($iduser, $meesage['result']['message_id']);
         }
     } elseif ($info['type'] == "forwardlink") {
         $link = $info['message'];
@@ -208,7 +224,7 @@ for ($i = 0; $i < 150; $i++) {
         
         if ($from_chat_id && $message_id) {
             $copy_params = [
-                'chat_id' => $iduser->id,
+                'chat_id' => $iduser,
                 'from_chat_id' => $from_chat_id,
                 'message_id' => $message_id
             ];
@@ -218,17 +234,16 @@ for ($i = 0; $i < 150; $i++) {
             $meesage = telegram('copyMessage', $copy_params);
             
             if (isset($meesage['ok']) && $meesage['ok'] == false && strpos($meesage['description'], 'Forbidden: bot was blocked by the user') !== false) {
-                $invoicecount = select("invoice", "*", "id_user", $iduser->id, "count");
-                $userinfo = select("user", "Balance", "id", $iduser->id, "select");
+                $invoicecount = select("invoice", "*", "id_user", $iduser, "count");
+                $userinfo = select("user", "Balance", "id", $iduser, "select");
                 if ($invoicecount == 0 && $userinfo['Balance'] == 0) {
-                    $Id_user = $iduser->id;
-                    $stmt = $pdo->prepare("DELETE FROM user WHERE id = '$Id_user'");
-                    $stmt->execute();
+                    $stmt = $pdo->prepare("DELETE FROM user WHERE id = ?");
+                    $stmt->execute([$iduser]);
                 }
             }
             
             if (isset($meesage['ok']) && $meesage['ok'] && ($info['pingmessage'] == "yes" || $isAdminOrOwner)) {
-                pinmessage($iduser->id, $meesage['result']['message_id']);
+                pinmessage($iduser, $meesage['result']['message_id']);
             }
         }
     }
@@ -236,4 +251,4 @@ for ($i = 0; $i < 150; $i++) {
     usleep(35000);
 }
 
-file_put_contents($usersFile, json_encode($userid,true));
+file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));

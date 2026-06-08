@@ -8,9 +8,47 @@ try {
 
     $info_path = __DIR__ . '/../../cronbot/info';
     $users_path = __DIR__ . '/../../cronbot/users.json';
+    $history_id = null;
+    $created_users_file = false;
+    $created_info_file = false;
+
+    function broadcast_feedback(string $type, string $message): void
+    {
+        echo '<div class="alert alert-' . htmlspecialchars($type, ENT_QUOTES, 'UTF-8') . '">' . $message . '</div>';
+    }
+
+    function ensure_broadcast_history_schema(PDO $pdo): void
+    {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS broadcast_history (
+            id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            admin_id VARCHAR(200) NULL,
+            message_type VARCHAR(50) NOT NULL,
+            content TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+            target_audience VARCHAR(100) NOT NULL,
+            status VARCHAR(50) NOT NULL,
+            created_at VARCHAR(50) NOT NULL,
+            pin_message TINYINT(1) DEFAULT 0,
+            button_type VARCHAR(50) DEFAULT NULL,
+            button_text VARCHAR(100) DEFAULT NULL,
+            button_data VARCHAR(255) DEFAULT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+        $columns = $pdo->query("SHOW COLUMNS FROM broadcast_history")->fetchAll(PDO::FETCH_COLUMN);
+        $addColumn = function (string $name, string $definition) use ($pdo, $columns): void {
+            if (!in_array($name, $columns, true)) {
+                $pdo->exec("ALTER TABLE broadcast_history ADD COLUMN {$definition}");
+            }
+        };
+
+        $addColumn('admin_id', 'admin_id VARCHAR(200) NULL AFTER id');
+        $addColumn('pin_message', 'pin_message TINYINT(1) DEFAULT 0');
+        $addColumn('button_type', 'button_type VARCHAR(50) DEFAULT NULL');
+        $addColumn('button_text', 'button_text VARCHAR(100) DEFAULT NULL');
+        $addColumn('button_data', 'button_data VARCHAR(255) DEFAULT NULL');
+    }
 
     if (is_file($info_path) || is_file($users_path)) {
-        echo '<div class="alert alert-warn">یک عملیات ارسال در حال اجراست. ابتدا باید آن را لغو کنید یا تا پایان آن منتظر بمانید.</div>';
+        broadcast_feedback('warn', 'یک عملیات ارسال در حال اجراست. ابتدا باید آن را لغو کنید یا تا پایان آن منتظر بمانید.');
         exit;
     }
 
@@ -22,25 +60,67 @@ try {
     $channel_link = trim($_POST['channel_link'] ?? '');
     $pingmessage = isset($_POST['pingmessage']) ? 'yes' : 'no';
 
-    if ($type === 'sendmessage' && empty($message)) {
-        echo '<div class="alert alert-warn">لطفا متن پیام را وارد کنید.</div>';
+    $allowed_types = ['sendmessage', 'forwardlink', 'unpinmessage'];
+    $allowed_buttons = ['none', 'custom_url', 'custom_product', 'buy', 'start', 'usertestbtn', 'helpbtn', 'affiliatesbtn', 'addbalance'];
+    $allowed_targets = ['all', 'customer', 'nonecustomer'];
+    $allowed_agents = ['all', 'f', 'n', 'n2'];
+
+    if (!in_array($type, $allowed_types, true)) {
+        broadcast_feedback('warn', 'نوع عملیات نامعتبر است.');
+        exit;
+    }
+    if (!in_array($btnmessage, $allowed_buttons, true)) {
+        broadcast_feedback('warn', 'نوع دکمه انتخاب شده نامعتبر است.');
+        exit;
+    }
+    if (!in_array($target_users, $allowed_targets, true) || !in_array($target_agent, $allowed_agents, true)) {
+        broadcast_feedback('warn', 'جامعه هدف انتخاب شده معتبر نیست.');
         exit;
     }
 
-    if ($type === 'forwardlink' && empty($channel_link)) {
-        echo '<div class="alert alert-warn">لطفا لینک کانال را وارد کنید.</div>';
+    if ($type === 'unpinmessage') {
+        $btnmessage = 'none';
+        $pingmessage = 'no';
+        $message = 'Unpin all pinned messages';
+    }
+
+    if ($type === 'sendmessage' && $message === '') {
+        broadcast_feedback('warn', 'لطفا متن پیام را وارد کنید.');
         exit;
     }
 
     if ($type === 'forwardlink') {
+        if ($channel_link === '') {
+            broadcast_feedback('warn', 'لطفا لینک کانال را وارد کنید.');
+            exit;
+        }
+        if (!preg_match('~^(?:https?://)?t\.me/(?:c/\d+|[a-zA-Z0-9_]+)/\d+(?:\?.*)?$~', $channel_link)) {
+            broadcast_feedback('warn', 'فرمت لینک پست کانال معتبر نیست. نمونه: https://t.me/MyChannel/123');
+            exit;
+        }
         $message = $channel_link;
     }
 
-    // Fetch admin id
+    $custom_btn_text_url = trim($_POST['custom_btn_text_url'] ?? '');
+    $custom_btn_link = trim($_POST['custom_btn_link'] ?? '');
+    $custom_btn_text_prod = trim($_POST['custom_btn_text_prod'] ?? '');
+    $custom_btn_callback = trim($_POST['custom_btn_callback'] ?? '');
+
+    if ($btnmessage === 'custom_url') {
+        if ($custom_btn_text_url === '' || $custom_btn_link === '' || !filter_var($custom_btn_link, FILTER_VALIDATE_URL)) {
+            broadcast_feedback('warn', 'برای دکمه لینک شخصی، متن دکمه و یک URL معتبر وارد کنید.');
+            exit;
+        }
+    } elseif ($btnmessage === 'custom_product') {
+        if ($custom_btn_text_prod === '' || $custom_btn_callback === '') {
+            broadcast_feedback('warn', 'برای دکمه محصول/دسته، متن دکمه و مقصد را انتخاب کنید.');
+            exit;
+        }
+    }
+
     $admin = db_fetch($pdo, "SELECT id_admin FROM admin WHERE username = ?", [$_SESSION['admin_user']]);
     $id_admin = $admin['id_admin'] ?? 1;
 
-    // Build query
     $where = [];
     $params = [];
 
@@ -49,7 +129,6 @@ try {
         $params[] = $target_agent;
     }
 
-    // target_users filtering (like in admin.php)
     if ($target_users === 'customer') {
         $where[] = "id IN (SELECT id_user FROM invoice)";
     } elseif ($target_users === 'nonecustomer') {
@@ -57,58 +136,46 @@ try {
     }
 
     $sql = "SELECT id FROM user";
-    if (!empty($where)) {
+    if ($where) {
         $sql .= " WHERE " . implode(" AND ", $where);
     }
 
     $users = db_fetchAll($pdo, $sql, $params);
-    if (empty($users) && $type !== 'unpinmessage') {
-        echo '<div class="alert alert-warn">هیچ کاربری با این شرایط یافت نشد.</div>';
+    if (!$users && $type !== 'unpinmessage') {
+        broadcast_feedback('warn', 'هیچ کاربری با این شرایط یافت نشد.');
         exit;
     }
 
-    // Fetch admin ids & owner to merge into the broadcast target list
     $admin_ids = [];
     $admin_rows = db_fetchAll($pdo, "SELECT id_admin FROM admin");
     foreach ($admin_rows as $row) {
         if (!empty($row['id_admin'])) {
-            $admin_ids[] = (string)$row['id_admin'];
+            $admin_ids[] = (string) $row['id_admin'];
         }
     }
     global $adminnumber;
     if (isset($adminnumber) && $adminnumber !== '') {
-        $admin_ids[] = (string)$adminnumber;
+        $admin_ids[] = (string) $adminnumber;
     }
 
     $all_ids = [];
     foreach ($users as $u) {
         if (!empty($u['id'])) {
-            $all_ids[] = (string)$u['id'];
+            $all_ids[] = (string) $u['id'];
         }
     }
+    $all_ids = array_values(array_unique(array_filter(array_merge($all_ids, $admin_ids))));
 
-    // Merge and deduplicate
-    $all_ids = array_merge($all_ids, $admin_ids);
-    $all_ids = array_values(array_unique(array_filter($all_ids)));
-
-    // Format exactly as the cron expects: an array of objects/arrays with 'id' property.
-    $formatted_users = [];
-    foreach ($all_ids as $id) {
-        $formatted_users[] = ['id' => $id];
+    if (!$all_ids) {
+        broadcast_feedback('warn', 'هیچ کاربری برای اجرای عملیات یافت نشد.');
+        exit;
     }
 
-    $custom_btn_text_url = trim($_POST['custom_btn_text_url'] ?? '');
-    $custom_btn_link = trim($_POST['custom_btn_link'] ?? '');
-    $custom_btn_text_prod = trim($_POST['custom_btn_text_prod'] ?? '');
-    $custom_btn_callback = trim($_POST['custom_btn_callback'] ?? '');
-
-    // Debug breadcrumb (visible in HTMX feedback)
-    echo '<div class="alert alert-info">Debug: request accepted. type=' . htmlspecialchars($type) . ', usersTarget=' . htmlspecialchars($target_users) . ', agent=' . htmlspecialchars($target_agent) . '</div>';
-
+    $formatted_users = array_map(static fn(string $id): array => ['id' => $id], $all_ids);
 
     $info = [
         'id_admin' => $id_admin,
-        'id_message' => 0, // Panel doesn't have a specific telegram message to edit for progress
+        'id_message' => 0,
         'type' => $type,
         'message' => $message,
         'pingmessage' => $pingmessage,
@@ -116,53 +183,72 @@ try {
         'custom_btn_text_url' => $custom_btn_text_url,
         'custom_btn_link' => $custom_btn_link,
         'custom_btn_text_prod' => $custom_btn_text_prod,
-        'custom_btn_callback' => $custom_btn_callback
+        'custom_btn_callback' => $custom_btn_callback,
     ];
 
-    file_put_contents($users_path, json_encode($formatted_users));
-    file_put_contents($info_path, json_encode($info));
+    ensure_broadcast_history_schema($pdo);
 
-    // Ensure columns exist for new button types
-    try { $pdo->exec("ALTER TABLE broadcast_history ADD COLUMN pin_message TINYINT(1) DEFAULT 0"); } catch (Exception $e) {}
-    try { $pdo->exec("ALTER TABLE broadcast_history ADD COLUMN button_type VARCHAR(50) DEFAULT NULL"); } catch (Exception $e) {}
-    try { $pdo->exec("ALTER TABLE broadcast_history ADD COLUMN button_text VARCHAR(100) DEFAULT NULL"); } catch (Exception $e) {}
-    try { $pdo->exec("ALTER TABLE broadcast_history ADD COLUMN button_data VARCHAR(255) DEFAULT NULL"); } catch (Exception $e) {}
-
-    // Log into broadcast_history
     $msg_type_db = ($type === 'forwardlink') ? 'forwardlink' : (($type === 'sendmessage') ? 'text' : 'unpin');
-    if ($msg_type_db !== 'unpin') {
-        $btn_txt = null;
-        $btn_dat = null;
-        if ($btnmessage === 'custom_url') {
-            $btn_txt = $custom_btn_text_url;
-            $btn_dat = $custom_btn_link;
-        } elseif ($btnmessage === 'custom_product') {
-            $btn_txt = $custom_btn_text_prod;
-            $btn_dat = $custom_btn_callback;
-        }
-        
-        $hist_stmt = $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, status, created_at, pin_message, button_type, button_text, button_data) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)");
-        $hist_stmt->execute([
-            $id_admin,
-            $msg_type_db,
-            $message,
-            $target_users,
-            time(),
-            $pingmessage === 'yes' ? 1 : 0,
-            $btnmessage,
-            $btn_txt,
-            $btn_dat
-        ]);
+    $button_text = null;
+    $button_data = null;
+    if ($btnmessage === 'custom_url') {
+        $button_text = $custom_btn_text_url;
+        $button_data = $custom_btn_link;
+    } elseif ($btnmessage === 'custom_product') {
+        $button_text = $custom_btn_text_prod;
+        $button_data = $custom_btn_callback;
     }
 
-    echo '<div class="alert alert-success">عملیات با موفقیت تنظیم شد و در پس‌زمینه ارسال خواهد شد. ' . count($formatted_users) . ' کاربر هدف‌گذاری شدند.</div>';
-    echo '<script>setTimeout(() => window.location.reload(), 2500);</script>';
+    $hist_stmt = $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, status, created_at, pin_message, button_type, button_text, button_data) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)");
+    $hist_stmt->execute([
+        $id_admin,
+        $msg_type_db,
+        $message,
+        $target_users,
+        time(),
+        $pingmessage === 'yes' ? 1 : 0,
+        $btnmessage,
+        $button_text,
+        $button_data,
+    ]);
+    $history_id = $pdo->lastInsertId();
 
+    $users_json = json_encode($formatted_users, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $info_json = json_encode($info, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($users_json === false || $info_json === false) {
+        throw new RuntimeException('Unable to encode broadcast payload.');
+    }
+
+    if (file_put_contents($users_path, $users_json, LOCK_EX) === false) {
+        throw new RuntimeException('Unable to write cronbot/users.json.');
+    }
+    $created_users_file = true;
+    if (file_put_contents($info_path, $info_json, LOCK_EX) === false) {
+        throw new RuntimeException('Unable to write cronbot/info.');
+    }
+    $created_info_file = true;
+
+    broadcast_feedback('success', 'عملیات با موفقیت تنظیم شد و در پس‌زمینه ارسال خواهد شد. ' . count($formatted_users) . ' کاربر هدف‌گذاری شدند.');
+    echo '<script>setTimeout(() => window.location.reload(), 2500);</script>';
 } catch (\Throwable $e) {
+    if (isset($history_id) && $history_id) {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM broadcast_history WHERE id = ?");
+            $stmt->execute([$history_id]);
+        } catch (\Throwable $ignored) {
+        }
+    }
+    if (!empty($created_info_file)) {
+        @unlink(__DIR__ . '/../../cronbot/info');
+    }
+    if (!empty($created_users_file)) {
+        @unlink(__DIR__ . '/../../cronbot/users.json');
+    }
+
     echo '<div class="alert alert-danger" style="background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; color: #e74c3c; padding: 20px; border-radius: 12px; margin-bottom: 20px;">';
     echo '<strong>خطا در اجرای عملیات:</strong><br>';
-    echo htmlspecialchars($e->getMessage()) . '<br>';
-    echo '<small>در فایل: ' . htmlspecialchars($e->getFile()) . ' خط ' . $e->getLine() . '</small>';
+    echo htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '<br>';
+    echo '<small>در فایل: ' . htmlspecialchars($e->getFile(), ENT_QUOTES, 'UTF-8') . ' خط ' . (int) $e->getLine() . '</small>';
     echo '</div>';
     exit;
 }
