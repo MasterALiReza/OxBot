@@ -492,17 +492,21 @@ document.body.addEventListener('change', function (e) {
 
 document.body.addEventListener('submit', function (e) {
     var form = e.target;
-    if (!form || form.id !== 'broadcastForm') return;
+	if (!form || form.id !== 'broadcastForm') return;
 
-    e.preventDefault();
-    window.toggleFields();
+	e.preventDefault();
+    e.stopPropagation();
+    if (typeof e.stopImmediatePropagation === 'function') {
+        e.stopImmediatePropagation();
+    }
+	window.toggleFields();
 
     var feedback = document.getElementById('broadcastFeedback');
     var submitBtn = document.getElementById('broadcastSubmitBtn');
     if (submitBtn) submitBtn.disabled = true;
     if (feedback) feedback.innerHTML = '<div class="alert alert-info">در حال ثبت عملیات...</div>';
 
-    fetch(form.getAttribute('hx-post') || form.getAttribute('action') || 'ajax/broadcast_action.php', {
+	fetch(form.getAttribute('action') || 'ajax/broadcast_action.php', {
         method: 'POST',
         body: new FormData(form),
         credentials: 'same-origin',
