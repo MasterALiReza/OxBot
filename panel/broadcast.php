@@ -242,18 +242,43 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         <p>در این بخش می‌توانید به صورت همگانی برای گروه‌های مختلف کاربری ربات، پیام متنی ارسال کنید، از لینک کانال پیام را کپی کنید یا پیام‌های قبلی را از حالت پین خارج کنید.</p>
     </div>
 
-    <?php
-    $info_path = __DIR__ . '/../cronbot/info';
-    $users_path = __DIR__ . '/../cronbot/users.json';
-    if (is_file($info_path) || is_file($users_path)): 
-    ?>
+	    <?php
+	    $info_path = __DIR__ . '/../cronbot/info';
+	    $users_path = __DIR__ . '/../cronbot/users.json';
+	    $cancel_path = __DIR__ . '/../cronbot/cancel_broadcast';
+	    $broadcast_running = is_file($info_path) || is_file($users_path);
+	    $cancel_pending = false;
+	    if (!$broadcast_running && is_file($cancel_path)) {
+	        $cancel_age = time() - (int) @filemtime($cancel_path);
+	        if ($cancel_age < 30) {
+	            $cancel_pending = true;
+	        } else {
+	            @unlink($cancel_path);
+	        }
+	    }
+	    if ($broadcast_running || $cancel_pending): 
+	    ?>
         <div class="bc-alert">
             <div class="bc-alert-icon">
                 <?= icon('alert-triangle', 24) ?>
             </div>
             <div class="bc-alert-content">
-                <h4>عملیات در جریان است!</h4>
-                <p>در حال حاضر یک عملیات ارسال پیام در سرور ربات در حال انجام است. برای جلوگیری از تداخل، لطفاً تا پایان آن صبر کنید.</p>
+                <?php if ($cancel_pending): ?>
+                    <h4>لغو عملیات در حال نهایی‌سازی است!</h4>
+                    <p>درخواست لغو ثبت شده است. چند ثانیه صبر کنید تا وضعیت کاملا پاکسازی شود.</p>
+                <?php endif; ?>
+                <?php if ($broadcast_running): ?>
+                    <form method="post" action="ajax/broadcast_cancel.php" hx-boost="false" id="cancelBroadcastForm" style="margin-bottom: 14px;">
+                        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                        <button type="submit" class="btn btn-no btn-sm" id="broadcastCancelBtn">
+                            <?= icon('close', 14) ?> لغو عملیات جاری
+                        </button>
+                    </form>
+                <?php endif; ?>
+                <?php if (!$cancel_pending): ?>
+                    <h4>عملیات در جریان است!</h4>
+                    <p>در حال حاضر یک عملیات ارسال پیام در سرور ربات در حال انجام است. برای جلوگیری از تداخل، لطفاً تا پایان آن صبر کنید یا عملیات را لغو کنید.</p>
+                <?php endif; ?>
             </div>
         </div>
     <?php endif; ?>
@@ -376,7 +401,7 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         </div>
 
         <div class="bc-submit">
-            <button type="submit" class="btn btn-primary" id="broadcastSubmitBtn" <?php if (is_file(__DIR__ . '/../cronbot/info')) echo 'disabled'; ?> >
+            <button type="submit" class="btn btn-primary" id="broadcastSubmitBtn" <?php if ($broadcast_running || $cancel_pending) echo 'disabled'; ?> >
                 <?= icon('send', 18) ?> آغاز عملیات ارسال
             </button>
         </div>
@@ -423,6 +448,8 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                         <td data-label="وضعیت">
                             <?php if($history['status'] == 'completed'): ?>
                                 <span class="status-pill success" style="font-size:0.8rem; padding:4px 8px;">پایان یافته</span>
+                            <?php elseif($history['status'] == 'cancelled'): ?>
+                                <span class="status-pill" style="font-size:0.8rem; padding:4px 8px; background:var(--nos); color:var(--no);">لغو شده</span>
                             <?php else: ?>
                                 <span class="status-pill warning" style="font-size:0.8rem; padding:4px 8px;">در جریان</span>
                             <?php endif; ?>

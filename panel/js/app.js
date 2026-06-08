@@ -492,13 +492,47 @@ document.body.addEventListener('change', function (e) {
 
 document.body.addEventListener('submit', function (e) {
     var form = e.target;
-	if (!form || form.id !== 'broadcastForm') return;
+	if (!form || (form.id !== 'broadcastForm' && form.id !== 'cancelBroadcastForm')) return;
 
 	e.preventDefault();
     e.stopPropagation();
     if (typeof e.stopImmediatePropagation === 'function') {
         e.stopImmediatePropagation();
     }
+
+    if (form.id === 'cancelBroadcastForm') {
+        if (!confirm('عملیات ارسال همگانی لغو شود؟ پیام‌هایی که قبلاً ارسال شده‌اند قابل برگشت نیستند.')) {
+            return;
+        }
+
+        var cancelFeedback = document.getElementById('broadcastFeedback');
+        var cancelBtn = document.getElementById('broadcastCancelBtn');
+        if (cancelBtn) cancelBtn.disabled = true;
+        if (cancelFeedback) cancelFeedback.innerHTML = '<div class="alert alert-info">در حال لغو عملیات...</div>';
+
+        fetch(form.getAttribute('action') || 'ajax/broadcast_cancel.php', {
+            method: 'POST',
+            body: new FormData(form),
+            credentials: 'same-origin',
+            headers: { 'HX-Request': 'true' }
+        })
+        .then(function (res) { return res.text(); })
+        .then(function (html) {
+            if (cancelFeedback) cancelFeedback.innerHTML = html;
+            Array.prototype.forEach.call((cancelFeedback || document).querySelectorAll('script'), function (script) {
+                try { Function(script.textContent)(); } catch (err) { console.error(err); }
+            });
+            if (cancelBtn && html.indexOf('alert-success') === -1) {
+                cancelBtn.disabled = false;
+            }
+        })
+        .catch(function () {
+            if (cancelFeedback) cancelFeedback.innerHTML = '<div class="alert alert-danger">خطا در ارتباط با سرور. لطفا دوباره تلاش کنید.</div>';
+            if (cancelBtn) cancelBtn.disabled = false;
+        });
+        return;
+    }
+
 	window.toggleFields();
 
     var feedback = document.getElementById('broadcastFeedback');

@@ -8,6 +8,7 @@ try {
 
     $info_path = __DIR__ . '/../../cronbot/info';
     $users_path = __DIR__ . '/../../cronbot/users.json';
+    $cancel_path = __DIR__ . '/../../cronbot/cancel_broadcast';
     $history_id = null;
     $created_users_file = false;
     $created_info_file = false;
@@ -45,6 +46,15 @@ try {
         $addColumn('button_type', 'button_type VARCHAR(50) DEFAULT NULL');
         $addColumn('button_text', 'button_text VARCHAR(100) DEFAULT NULL');
         $addColumn('button_data', 'button_data VARCHAR(255) DEFAULT NULL');
+    }
+
+    if (is_file($cancel_path) && !is_file($info_path) && !is_file($users_path)) {
+        $cancel_age = time() - (int) @filemtime($cancel_path);
+        if ($cancel_age < 30) {
+            broadcast_feedback('warn', 'لغو عملیات در حال نهایی‌سازی است. چند ثانیه دیگر دوباره تلاش کنید.');
+            exit;
+        }
+        @unlink($cancel_path);
     }
 
     if (is_file($info_path) || is_file($users_path)) {

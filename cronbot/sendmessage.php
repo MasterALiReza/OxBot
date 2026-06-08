@@ -6,6 +6,40 @@ require_once __DIR__ . '/../function.php';
 $textbotlang = languagechange();
 $infoFile = __DIR__ . '/info';
 $usersFile = __DIR__ . '/users.json';
+$cancelFile = __DIR__ . '/cancel_broadcast';
+
+function broadcast_cleanup_files(string $infoFile, string $usersFile, string $cancelFile): void
+{
+    if (is_file($infoFile)) {
+        @unlink($infoFile);
+    }
+    if (is_file($usersFile)) {
+        @unlink($usersFile);
+    }
+    if (is_file($cancelFile)) {
+        @unlink($cancelFile);
+    }
+}
+
+function broadcast_mark_cancelled(PDO $pdo): void
+{
+    $pdo->query("UPDATE broadcast_history SET status = 'cancelled' WHERE status IN ('in_progress', 'pending', 'cancelling')");
+}
+
+function broadcast_cancel_requested(string $cancelFile): bool
+{
+    return is_file($cancelFile);
+}
+
+if (broadcast_cancel_requested($cancelFile)) {
+    if (is_file($infoFile) || is_file($usersFile)) {
+        broadcast_mark_cancelled($pdo);
+        broadcast_cleanup_files($infoFile, $usersFile, $cancelFile);
+    } else {
+        @unlink($cancelFile);
+    }
+    return;
+}
 
 if(!is_file($infoFile)) return;
 if(!is_file($usersFile)) return;
@@ -177,6 +211,12 @@ if (isset($info['btnmessage']) && $info['btnmessage'] !== "none") {
 }
 
 for ($i = 0; $i < 150; $i++) {
+    if (broadcast_cancel_requested($cancelFile)) {
+        broadcast_mark_cancelled($pdo);
+        broadcast_cleanup_files($infoFile, $usersFile, $cancelFile);
+        return;
+    }
+
     if (empty($userid)) {
         break;
     }
@@ -249,6 +289,12 @@ for ($i = 0; $i < 150; $i++) {
     }
     
     usleep(35000);
+}
+
+if (broadcast_cancel_requested($cancelFile)) {
+    broadcast_mark_cancelled($pdo);
+    broadcast_cleanup_files($infoFile, $usersFile, $cancelFile);
+    return;
 }
 
 file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
