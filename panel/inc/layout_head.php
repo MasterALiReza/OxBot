@@ -130,73 +130,103 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
             <?= $textbotlang['panel']['layoutNavPayments'] ?></span></div>
       </div>
       <nav class="sidebar-nav">
-        <div class="nav-section">
-          <div class="nav-heading"><?= $textbotlang['panel']['layoutNavKeyboard'] ?></div>
+        <!-- داشبورد -->
+        <div class="nav-section" style="margin-bottom: 12px;">
           <a href="index.php" class="nav-item <?= $activeNav === 'dashboard' ? 'active' : '' ?>"
-            title="<?= $textbotlang['panel']['layoutPageTitleDashboard'] ?>">
-            <span class="nav-icon"><?= icon('dashboard') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutNavSettings'] ?></span>
+            title="<?= $textbotlang['panel']['layoutPageTitleDashboard'] ?? 'داشبورد' ?>">
+            <span class="nav-icon"><?= icon('dashboard') ?></span>
+            <span class="nav-label"><?= $textbotlang['panel']['layoutPageTitleDashboard'] ?? 'داشبورد' ?></span>
           </a>
         </div>
-        <div class="nav-section">
-          <div class="nav-heading"><?= $textbotlang['panel']['layoutNavLogout'] ?></div>
-          <a href="users.php" class="nav-item <?= $activeNav === 'users' ? 'active' : '' ?>"
-            title="<?= $textbotlang['panel']['layoutPageTitleUsers'] ?>">
-            <span class="nav-icon"><?= icon('users') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutMenuSectionMain'] ?></span>
-          </a>
 
-          <a href="broadcast.php" class="nav-item <?= $activeNav === 'broadcast' ? 'active' : '' ?>"
-            title="ارسال پیام همگانی">
-            <span class="nav-icon"><?= icon('send') ?></span><span
-              class="nav-label">پیام همگانی</span>
-          </a>
-          <a href="invoice.php" class="nav-item <?= $activeNav === 'invoice' ? 'active' : '' ?>"
-            title="<?= $textbotlang['panel']['layoutPageTitleInvoice'] ?>">
-            <span class="nav-icon"><?= icon('invoice') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutMenuSectionManagement'] ?></span>
-          </a>
-          <a href="service.php" class="nav-item <?= $activeNav === 'service' ? 'active' : '' ?>"
-            title="<?= $textbotlang['panel']['layoutPageTitleService'] ?>">
-            <span class="nav-icon"><?= icon('server') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutMenuSectionFinancial'] ?></span>
-          </a>
-          <a href="product.php" class="nav-item <?= $activeNav === 'product' ? 'active' : '' ?>"
-            title="<?= $textbotlang['panel']['layoutPageTitleProduct'] ?>">
-            <span class="nav-icon"><?= icon('package') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutMenuSectionSystem'] ?></span>
-          </a>
-          <a href="payment.php" class="nav-item <?= $activeNav === 'payment' ? 'active' : '' ?>"
-            title="<?= $textbotlang['panel']['layoutPageTitlePayment'] ?>">
-            <span class="nav-icon"><?= icon('card') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutSearchBoxPlaceholder'] ?></span>
-          </a>
-          <a href="panels_manage.php" class="nav-item <?= $activeNav === 'panels_manage' ? 'active' : '' ?>"
-            title="<?= $textbotlang['panel']['layoutPageTitlePanels'] ?>">
-            <span class="nav-icon"><?= icon('server') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutNavPanels'] ?></span>
-          </a>
-          <a href="bot_settings.php" class="nav-item <?= $activeNav === 'bot_settings' ? 'active' : '' ?>"
-            title="<?= $textbotlang['panel']['layoutPageTitleBotSettings'] ?>">
-            <span class="nav-icon"><?= icon('cpu') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutNavBotSettings'] ?></span>
-          </a>
-          <a href="keyboard.php" class="nav-item <?= $activeNav === 'keyboard' ? 'active' : '' ?>"
-            title="<?= $textbotlang['panel']['layoutPageTitleKeyboard'] ?>">
-            <span class="nav-icon"><?= icon('sliders') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutThemeToggleLabel'] ?></span>
-          </a>
-        </div>
         <div class="nav-section">
-          <div class="nav-heading"><?= $textbotlang['panel']['layoutSidebarToggleLabel'] ?></div>
-          <a href="settings.php" class="nav-item <?= $activeNav === 'settings' ? 'active' : '' ?>"
-            title="<?= $textbotlang['panel']['layoutPageTitleSettings'] ?>">
-            <span class="nav-icon"><?= icon('settings') ?></span><span
-              class="nav-label">پیکربندی پنل</span>
-          </a>
-          <a href="logout.php" class="nav-item" title="<?= $textbotlang['panel']['layoutPageTitleLogout'] ?>">
-            <span class="nav-icon"><?= icon('logout') ?></span><span
-              class="nav-label"><?= $textbotlang['panel']['layoutNotificationsLabel'] ?></span>
+          <!-- مدیریت کاربران -->
+          <div class="nav-group <?= in_array($activeNav, ['users', 'broadcast']) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= in_array($activeNav, ['users', 'broadcast']) ? 'active' : '' ?>">
+              <div class="nav-group-title">
+                <span class="nav-icon"><?= icon('users') ?></span>
+                <span class="nav-label">مدیریت کاربران</span>
+              </div>
+              <svg class="nav-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div class="nav-sub">
+              <a href="users.php" class="nav-sub-item <?= $activeNav === 'users' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleUsers'] ?? 'لیست کاربران' ?>">
+                <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutMenuSectionMain'] ?? 'لیست کاربران' ?>
+              </a>
+              <a href="broadcast.php" class="nav-sub-item <?= $activeNav === 'broadcast' ? 'active' : '' ?>" title="ارسال پیام همگانی">
+                <div class="nav-sub-dot"></div>پیام همگانی
+              </a>
+            </div>
+          </div>
+
+          <!-- فروشگاه و خدمات -->
+          <div class="nav-group <?= in_array($activeNav, ['product', 'service', 'panels_manage']) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= in_array($activeNav, ['product', 'service', 'panels_manage']) ? 'active' : '' ?>">
+              <div class="nav-group-title">
+                <span class="nav-icon"><?= icon('package') ?></span>
+                <span class="nav-label">فروشگاه و محصولات</span>
+              </div>
+              <svg class="nav-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div class="nav-sub">
+              <a href="product.php" class="nav-sub-item <?= $activeNav === 'product' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleProduct'] ?? 'محصولات' ?>">
+                <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutMenuSectionSystem'] ?? 'محصولات' ?>
+              </a>
+              <a href="service.php" class="nav-sub-item <?= $activeNav === 'service' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleService'] ?? 'خدمات' ?>">
+                <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutMenuSectionFinancial'] ?? 'خدمات' ?>
+              </a>
+              <a href="panels_manage.php" class="nav-sub-item <?= $activeNav === 'panels_manage' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitlePanels'] ?? 'مدیریت پنل‌ها' ?>">
+                <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutNavPanels'] ?? 'مدیریت پنل‌ها' ?>
+              </a>
+            </div>
+          </div>
+
+          <!-- مالی و سفارشات -->
+          <div class="nav-group <?= in_array($activeNav, ['invoice', 'payment']) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= in_array($activeNav, ['invoice', 'payment']) ? 'active' : '' ?>">
+              <div class="nav-group-title">
+                <span class="nav-icon"><?= icon('card') ?></span>
+                <span class="nav-label">مالی و سفارشات</span>
+              </div>
+              <svg class="nav-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div class="nav-sub">
+              <a href="invoice.php" class="nav-sub-item <?= $activeNav === 'invoice' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleInvoice'] ?? 'سفارشات' ?>">
+                <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutMenuSectionManagement'] ?? 'سفارشات' ?>
+              </a>
+              <a href="payment.php" class="nav-sub-item <?= $activeNav === 'payment' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitlePayment'] ?? 'پرداختی‌ها' ?>">
+                <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutSearchBoxPlaceholder'] ?? 'پرداختی‌ها' ?>
+              </a>
+            </div>
+          </div>
+
+          <!-- تنظیمات -->
+          <div class="nav-group <?= in_array($activeNav, ['bot_settings', 'keyboard', 'settings']) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= in_array($activeNav, ['bot_settings', 'keyboard', 'settings']) ? 'active' : '' ?>">
+              <div class="nav-group-title">
+                <span class="nav-icon"><?= icon('settings') ?></span>
+                <span class="nav-label">تنظیمات</span>
+              </div>
+              <svg class="nav-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div class="nav-sub">
+              <a href="bot_settings.php" class="nav-sub-item <?= $activeNav === 'bot_settings' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleBotSettings'] ?? 'تنظیمات ربات' ?>">
+                <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutNavBotSettings'] ?? 'تنظیمات ربات' ?>
+              </a>
+              <a href="keyboard.php" class="nav-sub-item <?= $activeNav === 'keyboard' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleKeyboard'] ?? 'چیدمان کیبورد' ?>">
+                <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutThemeToggleLabel'] ?? 'چیدمان کیبورد' ?>
+              </a>
+              <a href="settings.php" class="nav-sub-item <?= $activeNav === 'settings' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleSettings'] ?? 'پیکربندی پنل' ?>">
+                <div class="nav-sub-dot"></div>پیکربندی پنل
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-section" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--bd);">
+          <a href="logout.php" class="nav-item" title="<?= $textbotlang['panel']['layoutPageTitleLogout'] ?? 'خروج از حساب' ?>">
+            <span class="nav-icon"><?= icon('logout') ?></span>
+            <span class="nav-label"><?= $textbotlang['panel']['layoutNotificationsLabel'] ?? 'خروج از حساب' ?></span>
           </a>
         </div>
       </nav>

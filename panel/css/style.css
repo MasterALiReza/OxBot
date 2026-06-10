@@ -1318,8 +1318,126 @@ button:disabled,
     *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
-    }
+}
 }
 
+/* ========================================================================
+   COLLAPSIBLE SIDEBAR MENUS
+   ======================================================================== */
+.nav-group {
+    margin-bottom: 4px;
+}
+.nav-group-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 10px 12px;
+    font-size: .85rem;
+    color: var(--mute);
+    font-weight: 500;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all var(--tf);
+    font-family: inherit;
+    position: relative;
+}
+.nav-group-btn:hover {
+    background: var(--sf3);
+    color: var(--text);
+    transform: translateX(-2px);
+}
+.nav-group.open .nav-group-btn {
+    color: var(--ach);
+    background: var(--acs);
+}
+.nav-group.open .nav-group-btn .nav-icon {
+    color: var(--ac);
+    opacity: 1;
+}
+.nav-group-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+.nav-group-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform var(--tm) cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.6;
+}
+.nav-group.open .nav-group-arrow {
+    transform: rotate(90deg);
+    opacity: 1;
+    color: var(--ac);
+}
+.nav-sub {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height var(--ts) ease-in-out, opacity var(--tm) ease;
+    opacity: 0;
+}
+.nav-group.open .nav-sub {
+    max-height: 400px;
+    opacity: 1;
+    margin-top: 4px;
+}
+.nav-sub-item {
+    padding: 9px 10px 9px 40px;
+    font-size: .8rem;
+    color: var(--dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px;
+    transition: all var(--tf);
+    margin: 1px 0;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.nav-sub-item:hover {
+    color: var(--text);
+    background: var(--sf2);
+    transform: translateX(-2px);
+}
+.nav-sub-item.active {
+    color: var(--ac);
+    font-weight: 700;
+    background: transparent;
+}
+.nav-sub-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.4;
+    transition: all var(--tf);
+}
+.nav-sub-item:hover .nav-sub-dot {
+    opacity: 0.8;
+}
+.nav-sub-item.active .nav-sub-dot {
+    opacity: 1;
+    box-shadow: 0 0 8px var(--acg);
+    transform: scale(1.2);
+}
+
+/* Ensure collapsed sidebar behavior applies correctly to nav groups */
+.sidebar.collapsed .nav-group-arrow {
+    display: none;
+}
+.sidebar.collapsed .nav-group-btn {
+    justify-content: center;
+    padding: 10px 0;
+}
+.sidebar.collapsed .nav-group-title .nav-label {
+    display: none;
+}
+.sidebar.collapsed .nav-sub {
+    display: none;
+}

@@ -361,7 +361,7 @@ function initBroadcastUI(context) {
     window.toggleBtnFields();
 }
 
-function setBroadcastFieldState(el, enabled, required) {
+window.setBroadcastFieldState = function(el, enabled, required) {
     if (!el) return;
     el.disabled = !enabled;
     if (required) {
@@ -369,7 +369,49 @@ function setBroadcastFieldState(el, enabled, required) {
     } else {
         el.removeAttribute('required');
     }
-}
+};
+
+window.setDynamicFieldsState = function(enabled, required) {
+    document.querySelectorAll('.dyn-btn-text').forEach(el => window.setBroadcastFieldState(el, enabled, required));
+    document.querySelectorAll('.dyn-btn-link').forEach(el => window.setBroadcastFieldState(el, enabled, required));
+};
+
+window.addDynamicButton = function(text, link, color) {
+    var container = document.getElementById('dynamicButtonsContainer');
+    if (!container) return;
+    var row = document.createElement('div');
+    row.className = 'dynamic-button-row';
+    row.style.display = 'flex';
+    row.style.gap = '10px';
+    row.style.alignItems = 'center';
+    row.style.marginBottom = '10px';
+    
+    var t = text ? text.replace(/"/g, '&quot;') : '';
+    var l = link ? link.replace(/"/g, '&quot;') : '';
+    var c = color || 'default';
+    
+    row.innerHTML = `
+        <input type="text" class="input dyn-btn-text" name="custom_btn_text_url[]" placeholder="متن دکمه" value="${t}" style="flex: 2;" required>
+        <input type="url" class="input dyn-btn-link" name="custom_btn_link[]" placeholder="لینک" dir="ltr" value="${l}" style="flex: 3;" required>
+        <select class="input dyn-btn-color" name="custom_btn_color[]" style="flex: 1; padding: 0 5px;">
+            <option value="default" ${c === 'default' ? 'selected' : ''}>پیش‌فرض</option>
+            <option value="primary" ${c === 'primary' ? 'selected' : ''}>آبی (Primary)</option>
+            <option value="success" ${c === 'success' ? 'selected' : ''}>سبز (Success)</option>
+            <option value="danger" ${c === 'danger' ? 'selected' : ''}>قرمز (Danger)</option>
+        </select>
+        <button type="button" class="btn btn-sm" onclick="window.removeDynamicButton(this)" style="background:var(--nos); color:var(--no); border:none; border-radius:8px; padding:8px;">❌</button>
+    `;
+    container.appendChild(row);
+};
+
+window.removeDynamicButton = function(btn) {
+    var rows = document.querySelectorAll('.dynamic-button-row');
+    if (rows.length > 1) {
+        btn.closest('.dynamic-button-row').remove();
+    } else {
+        alert('حداقل یک دکمه باید وجود داشته باشد.');
+    }
+};
 
 window.toggleFields = function () {
     var type = document.getElementById('messageType');
@@ -389,8 +431,8 @@ window.toggleFields = function () {
         btn.style.opacity = '0.5';
         msg.style.display = 'none';
         if (pingmessage) pingmessage.checked = false;
-        setBroadcastFieldState(messageText, false, false);
-        setBroadcastFieldState(channelLink, false, false);
+        window.setBroadcastFieldState(messageText, false, false);
+        window.setBroadcastFieldState(channelLink, false, false);
     } else if (type.value === 'forwardlink') {
         btn.disabled = false;
         btn.style.opacity = '1';
@@ -398,8 +440,8 @@ window.toggleFields = function () {
         msg.style.opacity = '1';
         textGroup.style.display = 'none';
         linkGroup.style.display = 'block';
-        setBroadcastFieldState(messageText, false, false);
-        setBroadcastFieldState(channelLink, true, true);
+        window.setBroadcastFieldState(messageText, false, false);
+        window.setBroadcastFieldState(channelLink, true, true);
     } else {
         btn.disabled = false;
         btn.style.opacity = '1';
@@ -407,8 +449,8 @@ window.toggleFields = function () {
         msg.style.opacity = '1';
         textGroup.style.display = 'block';
         linkGroup.style.display = 'none';
-        setBroadcastFieldState(messageText, true, true);
-        setBroadcastFieldState(channelLink, false, false);
+        window.setBroadcastFieldState(messageText, true, true);
+        window.setBroadcastFieldState(channelLink, false, false);
     }
 
     window.toggleBtnFields();
@@ -418,8 +460,6 @@ window.toggleBtnFields = function () {
     var btn = document.getElementById('btnmessage');
     var customUrlFields = document.getElementById('customUrlFields');
     var customProductFields = document.getElementById('customProductFields');
-    var customBtnTextUrl = document.getElementById('customBtnTextUrl');
-    var customBtnLink = document.getElementById('customBtnLink');
     var customBtnTextProd = document.getElementById('customBtnTextProd');
     var customBtnCallback = document.getElementById('customBtnCallback');
 
@@ -429,24 +469,24 @@ window.toggleBtnFields = function () {
     if (btnVal === 'custom_url') {
         customUrlFields.style.display = 'block';
         customProductFields.style.display = 'none';
-        setBroadcastFieldState(customBtnTextUrl, true, true);
-        setBroadcastFieldState(customBtnLink, true, true);
-        setBroadcastFieldState(customBtnTextProd, false, false);
-        setBroadcastFieldState(customBtnCallback, false, false);
+        window.setDynamicFieldsState(true, true);
+        if (document.getElementById('dynamicButtonsContainer') && document.getElementById('dynamicButtonsContainer').children.length === 0) {
+            window.addDynamicButton();
+        }
+        window.setBroadcastFieldState(customBtnTextProd, false, false);
+        window.setBroadcastFieldState(customBtnCallback, false, false);
     } else if (btnVal === 'custom_product') {
         customUrlFields.style.display = 'none';
         customProductFields.style.display = 'block';
-        setBroadcastFieldState(customBtnTextUrl, false, false);
-        setBroadcastFieldState(customBtnLink, false, false);
-        setBroadcastFieldState(customBtnTextProd, true, true);
-        setBroadcastFieldState(customBtnCallback, true, true);
+        window.setDynamicFieldsState(false, false);
+        window.setBroadcastFieldState(customBtnTextProd, true, true);
+        window.setBroadcastFieldState(customBtnCallback, true, true);
     } else {
         customUrlFields.style.display = 'none';
         customProductFields.style.display = 'none';
-        setBroadcastFieldState(customBtnTextUrl, false, false);
-        setBroadcastFieldState(customBtnLink, false, false);
-        setBroadcastFieldState(customBtnTextProd, false, false);
-        setBroadcastFieldState(customBtnCallback, false, false);
+        window.setDynamicFieldsState(false, false);
+        window.setBroadcastFieldState(customBtnTextProd, false, false);
+        window.setBroadcastFieldState(customBtnCallback, false, false);
     }
 };
 
@@ -469,9 +509,24 @@ window.reuseBroadcast = function (btn) {
 
     var btnmessage = document.getElementById('btnmessage');
     btnmessage.value = data.button_type || 'none';
-    if (data.button_type === 'custom_url') {
-        document.getElementById('customBtnTextUrl').value = data.button_text || '';
-        document.getElementById('customBtnLink').value = data.button_data || '';
+    
+    var container = document.getElementById('dynamicButtonsContainer');
+    if (container) container.innerHTML = '';
+    
+    if (data.button_type === 'custom_url' || data.button_type === 'custom_url_dynamic') {
+        btnmessage.value = 'custom_url';
+        if (data.button_type === 'custom_url_dynamic' && data.button_data) {
+            try {
+                var btns = JSON.parse(data.button_data);
+                if (Array.isArray(btns)) {
+                    btns.forEach(function(b) {
+                        window.addDynamicButton(b.text, b.url, b.color);
+                    });
+                }
+            } catch(e) {}
+        } else {
+             window.addDynamicButton(data.button_text || '', data.button_data || '');
+        }
     } else if (data.button_type === 'custom_product') {
         document.getElementById('customBtnTextProd').value = data.button_text || '';
         document.getElementById('customBtnCallback').value = data.button_data || '';
@@ -571,3 +626,16 @@ setTimeout(function () {
         setTimeout(function () { n.remove(); }, 420);
     });
 }, 5500);
+
+// Collapsible Sidebar logic
+document.body.addEventListener('click', function(e) {
+    var groupBtn = e.target.closest('.nav-group-btn');
+    if (groupBtn) {
+        var group = groupBtn.closest('.nav-group');
+        group.classList.toggle('open');
+        // Optionally close other groups
+        // document.querySelectorAll('.nav-group').forEach(function(g) {
+        //     if (g !== group) g.classList.remove('open');
+        // });
+    }
+});

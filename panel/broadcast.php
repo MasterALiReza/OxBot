@@ -327,17 +327,19 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
                 <div class="field" id="customProductFields" style="display: none;">
                     <label class="label">متن دکمه و انتخاب محصول/دسته</label>
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <input type="text" class="input" name="custom_btn_text_prod" id="customBtnTextProd" placeholder="متن دکمه (مثال: خرید سرویس)" style="flex: 2; min-width: 150px;">
-                        <select class="input select" id="customBtnCategory" style="flex: 1.5; min-width: 150px;" onchange="updateProductDropdown()">
-                            <option value="">-- همه دسته‌ها --</option>
-                            <?php foreach($categories as $cat): ?>
-                                <option value="<?= htmlspecialchars($cat['id']) ?>" data-name="<?= htmlspecialchars($cat['remark'] ?? '') ?>"><?= htmlspecialchars($cat['remark'] ?? 'بدون نام') ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <select class="input select" name="custom_btn_callback" id="customBtnCallback" style="flex: 2; min-width: 180px;">
-                            <option value="">-- ابتدا انتخاب کنید --</option>
-                        </select>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <input type="text" class="input" name="custom_btn_text_prod" id="customBtnTextProd" placeholder="متن دکمه (مثال: خرید سرویس)" style="width: 100%;">
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <select class="input select" id="customBtnCategory" style="flex: 1.5; min-width: 150px;" onchange="updateProductDropdown()">
+                                <option value="store_main">فروشگاه اصلی (همه دسته‌ها)</option>
+                                <?php foreach($categories as $cat): ?>
+                                    <option value="<?= htmlspecialchars($cat['id']) ?>" data-name="<?= htmlspecialchars($cat['remark'] ?? '') ?>">دسته: <?= htmlspecialchars($cat['remark'] ?? 'بدون نام') ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <select class="input select" name="custom_btn_callback" id="customBtnCallback" style="flex: 2; min-width: 180px;">
+                                <option value="buy">-- هدایت به فروشگاه --</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -354,10 +356,15 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                         
                         prodSelect.innerHTML = '';
                         
-                        if (catId) {
+                        if (catId === 'store_main' || !catId) {
+                            var opt = document.createElement('option');
+                            opt.value = 'buy';
+                            opt.text = '🛒 هدایت به فروشگاه اصلی';
+                            prodSelect.appendChild(opt);
+                        } else {
                             var optCat = document.createElement('option');
                             optCat.value = 'categorynames_' + catId;
-                            optCat.text = '📁 هدایت به دسته (' + selectedCatOpt.text + ')';
+                            optCat.text = '📁 هدایت به کل این دسته';
                             prodSelect.appendChild(optCat);
                             
                             var foundProducts = false;
@@ -526,189 +533,5 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     </div>
 </div>
 
-<script>
-function setFieldState(el, enabled, required) {
-    if (!el) return;
-    el.disabled = !enabled;
-    if (required) {
-        el.setAttribute('required', 'required');
-    } else {
-        el.removeAttribute('required');
-    }
-}
 
-function setDynamicFieldsState(enabled, required) {
-    document.querySelectorAll('.dyn-btn-text').forEach(el => setFieldState(el, enabled, required));
-    document.querySelectorAll('.dyn-btn-link').forEach(el => setFieldState(el, enabled, required));
-}
-
-function addDynamicButton() {
-    var container = document.getElementById('dynamicButtonsContainer');
-    var row = document.createElement('div');
-    row.className = 'dynamic-button-row';
-    row.style.display = 'flex';
-    row.style.gap = '10px';
-    row.style.alignItems = 'center';
-    row.style.marginBottom = '10px';
-    row.innerHTML = `
-        <input type="text" class="input dyn-btn-text" name="custom_btn_text_url[]" placeholder="متن دکمه" style="flex: 2;" required>
-        <input type="url" class="input dyn-btn-link" name="custom_btn_link[]" placeholder="لینک" dir="ltr" style="flex: 3;" required>
-        <select class="input dyn-btn-color" name="custom_btn_color[]" style="flex: 1; padding: 0 5px;">
-            <option value="default">پیش‌فرض</option>
-            <option value="primary">آبی (Primary)</option>
-            <option value="success">سبز (Success)</option>
-            <option value="danger">قرمز (Danger)</option>
-        </select>
-        <button type="button" class="btn btn-sm" onclick="removeDynamicButton(this)" style="background:var(--nos); color:var(--no); border:none; border-radius:8px; padding:8px;">❌</button>
-    `;
-    container.appendChild(row);
-}
-
-function removeDynamicButton(btn) {
-    var rows = document.querySelectorAll('.dynamic-button-row');
-    if (rows.length > 1) {
-        btn.closest('.dynamic-button-row').remove();
-    } else {
-        alert('حداقل یک دکمه باید وجود داشته باشد.');
-    }
-}
-
-function toggleFields() {
-
-    var type = document.getElementById('messageType').value;
-    var btn = document.getElementById('btnmessage');
-    var msg = document.getElementById('messageGroup');
-    var textGroup = document.getElementById('textGroup');
-    var linkGroup = document.getElementById('linkGroup');
-    var messageText = document.getElementById('messageText');
-    var channelLink = document.getElementById('channelLink');
-    var pingmessage = document.getElementById('pingmessage');
-    
-    if (type === 'unpinmessage') {
-        btn.value = 'none';
-        btn.disabled = true;
-        btn.style.opacity = '0.5';
-        msg.style.display = 'none';
-        if (pingmessage) pingmessage.checked = false;
-        setFieldState(messageText, false, false);
-        setFieldState(channelLink, false, false);
-    } else if (type === 'forwardlink') {
-        btn.disabled = false; // copyMessage supports inline keyboards!
-        btn.style.opacity = '1';
-        msg.style.display = 'block';
-        msg.style.opacity = '1';
-        textGroup.style.display = 'none';
-        linkGroup.style.display = 'block';
-        setFieldState(messageText, false, false);
-        setFieldState(channelLink, true, true);
-    } else {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        msg.style.display = 'block';
-        msg.style.opacity = '1';
-        textGroup.style.display = 'block';
-        linkGroup.style.display = 'none';
-        setFieldState(messageText, true, true);
-        setFieldState(channelLink, false, false);
-    }
-
-    toggleBtnFields();
-}
-
-window.toggleFields = toggleFields;
-
-function toggleBtnFields() {
-    var btn = document.getElementById('btnmessage');
-    var btnVal = btn.value;
-    var customUrlFields = document.getElementById('customUrlFields');
-    var customProductFields = document.getElementById('customProductFields');
-    var customBtnTextProd = document.getElementById('customBtnTextProd');
-    var customBtnCallback = document.getElementById('customBtnCallback');
-
-    if (btn.disabled) {
-        btnVal = 'none';
-    }
-    
-    if (btnVal === 'custom_url') {
-        customUrlFields.style.display = 'block';
-        customProductFields.style.display = 'none';
-        setDynamicFieldsState(true, true);
-        if (document.getElementById('dynamicButtonsContainer').children.length === 0) {
-            addDynamicButton();
-        }
-        setFieldState(customBtnTextProd, false, false);
-        setFieldState(customBtnCallback, false, false);
-    } else if (btnVal === 'custom_product') {
-        customUrlFields.style.display = 'none';
-        customProductFields.style.display = 'block';
-        setFieldState(customBtnTextProd, true, true);
-        setFieldState(customBtnCallback, true, true);
-    } else {
-        customUrlFields.style.display = 'none';
-        customProductFields.style.display = 'none';
-        setDynamicFieldsState(false, false);
-        setFieldState(customBtnTextProd, false, false);
-        setFieldState(customBtnCallback, false, false);
-    }
-}
-
-function reuseBroadcast(btn) {
-    var data = JSON.parse(btn.getAttribute('data-history'));
-    if (data.message_type === 'text') {
-        document.getElementById('messageType').value = 'sendmessage';
-        document.getElementById('messageText').value = data.content;
-    } else if (data.message_type === 'forwardlink') {
-        document.getElementById('messageType').value = 'forwardlink';
-        document.getElementById('channelLink').value = data.content;
-    } else {
-        document.getElementById('messageType').value = 'unpinmessage';
-    }
-    
-    document.getElementById('targetUsers').value = ['all', 'customer', 'nonecustomer'].indexOf(data.target_audience) >= 0 ? data.target_audience : 'all';
-    document.getElementById('targetAgent').value = 'all'; // Default
-    
-    // Restore button values if present in the data!
-    if (data.button_type) {
-        document.getElementById('btnmessage').value = data.button_type;
-        if (data.button_type === 'custom_url' || data.button_type === 'custom_url_dynamic') {
-            document.getElementById('dynamicButtonsContainer').innerHTML = ''; // Clear rows
-            try {
-                var buttons = JSON.parse(data.button_data);
-                if (!Array.isArray(buttons)) throw new Error("Not an array");
-                buttons.forEach(function(b) {
-                    addDynamicButton();
-                    var lastRow = document.querySelector('.dynamic-button-row:last-child');
-                    lastRow.querySelector('.dyn-btn-text').value = b.text || '';
-                    lastRow.querySelector('.dyn-btn-link').value = b.url || '';
-                    if (b.color) {
-                        lastRow.querySelector('.dyn-btn-color').value = b.color;
-                    }
-                });
-            } catch(e) {
-                // Fallback for old single button records
-                addDynamicButton();
-                var firstRow = document.querySelector('.dynamic-button-row');
-                firstRow.querySelector('.dyn-btn-text').value = data.button_text || '';
-                firstRow.querySelector('.dyn-btn-link').value = data.button_data || '';
-            }
-        } else if (data.button_type === 'custom_product') {
-            document.getElementById('customBtnTextProd').value = data.button_text || '';
-            document.getElementById('customBtnCallback').value = data.button_data || '';
-        }
-    } else {
-        document.getElementById('btnmessage').value = 'none';
-    }
-    
-    toggleFields();
-    toggleBtnFields();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Initialize on load
- document.addEventListener('DOMContentLoaded', function() {
-
-    toggleFields();
-    toggleBtnFields();
-});
-</script>
 <?php require 'inc/layout_foot.php'; ?>
