@@ -41,7 +41,9 @@ var _lb = (function () {
     return { start: start, done: done };
 }());
 
+if (!window.__appListenersAdded) {
 window.addEventListener('load', function () { _lb.done(); });
+}
 
 function getSkeletonHTML(path) {
     var isDashboard = path.includes('index.php') || path === '' || path === '/' || (!path.includes('.php') && !path.includes('?'));
@@ -105,6 +107,7 @@ function getSkeletonHTML(path) {
     return html;
 }
 
+if (!window.__appListenersAdded) {
 document.body.addEventListener('htmx:beforeRequest', function (e) {
     _lb.start();
     
@@ -116,10 +119,12 @@ document.body.addEventListener('htmx:beforeRequest', function (e) {
             var targetPath = e.detail.requestConfig.path || '';
             content.innerHTML = getSkeletonHTML(targetPath);
             window.scrollTo({ top: 0, behavior: 'instant' });
+}
         }
     }
 });
 
+if (!window.__appListenersAdded) {
 document.body.addEventListener('htmx:beforeSwap', function (evt) {
     // If response status is 401/403 or contains login page identifiers, redirect whole window
     var resp = evt.detail.xhr.responseText || '';
@@ -128,13 +133,17 @@ document.body.addEventListener('htmx:beforeSwap', function (evt) {
         window.location.href = 'login.php';
     }
 });
+}
 
+if (!window.__appListenersAdded) {
 document.body.addEventListener('htmx:afterSwap', function (e) {
     _lb.done();
     closeSidebar();
 });
+}
 
 // Heartbeat ping every 5 minutes (300000ms) to keep PHP session alive
+if (!window.__appListenersAdded) {
 setInterval(function () {
     fetch('ajax/ping.php')
         .then(function (res) {
@@ -146,6 +155,7 @@ setInterval(function () {
             console.warn('Session ping failed:', err);
         });
 }, 300000);
+}
 
 var _TOAST_ICONS = {
     ok:   '<polyline points="20 6 9 17 4 12"/>',
@@ -192,21 +202,18 @@ window.closeConfirm = function () {
     _confirmCb = null;
 };
 
-document.getElementById('confirm-ok').addEventListener('click', function () {
-    document.getElementById('confirm-veil').classList.remove('open');
-    if (_confirmCb) { var cb = _confirmCb; _confirmCb = null; cb(); }
-});
 
-document.getElementById('confirm-veil').addEventListener('click', function (e) {
-    if (e.target === this) closeConfirm();
-});
 
+
+
+if (!window.__appListenersAdded) {
 document.body.addEventListener('htmx:confirm', function(e) {
     if(e.detail.elt.hasAttribute('data-confirm')) {
         e.preventDefault();
         showConfirm(e.detail.elt.getAttribute('data-confirm') || t('jsConfirmDefault'), function() {
             e.detail.issueRequest();
         });
+}
     }
 });
 
@@ -282,15 +289,25 @@ function closeSidebar() {
     }
 }());
 
-var _backdrop = document.getElementById('backdrop');
-if (_backdrop) _backdrop.addEventListener('click', closeSidebar);
-
-var _swipeSb = document.getElementById('sidebar');
-if (_swipeSb) {
-    var _swipeX = 0;
-    _swipeSb.addEventListener('touchstart', function (e) { _swipeX = e.touches[0].clientX; }, { passive: true });
-    _swipeSb.addEventListener('touchmove',  function (e) { if (e.touches[0].clientX - _swipeX > 40) closeSidebar(); }, { passive: true });
-}
+window.bindDynamicElements = function() {
+    var _backdrop = document.getElementById('backdrop');
+    if (_backdrop) {
+        _backdrop.removeEventListener('click', closeSidebar);
+        _backdrop.addEventListener('click', closeSidebar);
+    }
+    var _swipeSb = document.getElementById('sidebar');
+    if (_swipeSb) {
+        var _swipeX = 0;
+        _swipeSb.removeEventListener('touchstart', _swipeSb._ts);
+        _swipeSb.removeEventListener('touchmove', _swipeSb._tm);
+        _swipeSb._ts = function (e) { _swipeX = e.touches[0].clientX; };
+        _swipeSb._tm = function (e) { if (e.touches[0].clientX - _swipeX > 40) closeSidebar(); };
+        _swipeSb.addEventListener('touchstart', _swipeSb._ts, { passive: true });
+        _swipeSb.addEventListener('touchmove', _swipeSb._tm, { passive: true });
+    }
+    
+};
+window.bindDynamicElements();
 
 window.openModal = function (id) {
     var m = document.getElementById(id);
@@ -305,9 +322,11 @@ document.querySelectorAll('.modal-veil').forEach(function (v) {
     v.addEventListener('click', function (e) { if (e.target === v) v.classList.remove('open'); });
 });
 
+if (!window.__appListenersAdded) {
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         document.querySelectorAll('.modal-veil.open').forEach(function (m) { m.classList.remove('open'); });
+}
         closeSidebar();
         closeConfirm();
     }
@@ -347,10 +366,13 @@ window.initUI = function(context) {
     });
 };
 
+if (!window.__appListenersAdded) {
 document.body.addEventListener('htmx:load', function(e) {
     initUI(e.detail.elt);
+    if(window.bindDynamicElements) window.bindDynamicElements();
     initBroadcastUI(e.detail.elt);
 });
+}
 initUI(document);
 
 function initBroadcastUI(context) {
@@ -537,6 +559,7 @@ window.reuseBroadcast = function (btn) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+if (!window.__appListenersAdded) {
 document.body.addEventListener('change', function (e) {
     if (e.target && e.target.id === 'messageType') {
         window.toggleFields();
@@ -544,7 +567,9 @@ document.body.addEventListener('change', function (e) {
         window.toggleBtnFields();
     }
 });
+}
 
+if (!window.__appListenersAdded) {
 document.body.addEventListener('submit', function (e) {
     var form = e.target;
 	if (!form || (form.id !== 'broadcastForm' && form.id !== 'cancelBroadcastForm')) return;
@@ -577,6 +602,7 @@ document.body.addEventListener('submit', function (e) {
             Array.prototype.forEach.call((cancelFeedback || document).querySelectorAll('script'), function (script) {
                 try { Function(script.textContent)(); } catch (err) { console.error(err); }
             });
+}
             if (cancelBtn && html.indexOf('alert-success') === -1) {
                 cancelBtn.disabled = false;
             }
@@ -628,7 +654,16 @@ setTimeout(function () {
 }, 5500);
 
 // Collapsible Sidebar logic
+if (!window.__appListenersAdded) {
 document.body.addEventListener('click', function(e) {
+    if (e.target.closest('#confirm-ok')) {
+        var veil = document.getElementById('confirm-veil');
+        if(veil) veil.classList.remove('open');
+        if (_confirmCb) { var cb = _confirmCb; _confirmCb = null; cb(); }
+    }
+    if (e.target.id === 'confirm-veil') {
+        closeConfirm();
+    }
     var groupBtn = e.target.closest('.nav-group-btn');
     if (groupBtn) {
         var group = groupBtn.closest('.nav-group');
@@ -639,3 +674,6 @@ document.body.addEventListener('click', function(e) {
         // });
     }
 });
+}
+
+window.__appListenersAdded = true;
