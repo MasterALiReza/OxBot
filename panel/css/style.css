@@ -706,7 +706,7 @@ body::after, body::before {
     );
 }
 
-@keyframes shimmer {
+/* ========================================================================
    GLASS-BASE-RGB: ensure all dark themes have this var set
    ======================================================================== */
 :root, [data-theme=navy]    { --glass-base-rgb: 12, 21, 37;  }
@@ -718,7 +718,6 @@ body::after, body::before {
 [data-theme=linen]          { --glass-base-rgb: 250, 247, 242; }
 [data-theme=mint]           { --glass-base-rgb: 240, 253, 244; }
 [data-theme=lavender]       { --glass-base-rgb: 250, 245, 255; }
-
 /* ========================================================================
    BOT_SETTINGS & PANELS_MANAGE â€” Global .arvan-* fixes
    These classes are used in bot_settings.php and panels_manage.php
