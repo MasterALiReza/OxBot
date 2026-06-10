@@ -31,8 +31,12 @@ try {
             pin_message TINYINT(1) DEFAULT 0,
             button_type VARCHAR(50) DEFAULT NULL,
             button_text VARCHAR(100) DEFAULT NULL,
-            button_data VARCHAR(255) DEFAULT NULL
+            button_data TEXT DEFAULT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+        try {
+            $pdo->exec("ALTER TABLE broadcast_history MODIFY COLUMN button_data TEXT");
+        } catch (PDOException $e) {}
 
         $columns = $pdo->query("SHOW COLUMNS FROM broadcast_history")->fetchAll(PDO::FETCH_COLUMN);
         $addColumn = function (string $name, string $definition) use ($pdo, $columns): void {
@@ -232,7 +236,7 @@ try {
         $target_users,
         time(),
         $pingmessage === 'yes' ? 1 : 0,
-        $btnmessage,
+        $button_type,
         $button_text,
         $button_data,
     ]);

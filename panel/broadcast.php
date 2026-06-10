@@ -508,7 +508,7 @@ function addDynamicButton() {
 function removeDynamicButton(btn) {
     var rows = document.querySelectorAll('.dynamic-button-row');
     if (rows.length > 1) {
-        btn.parentElement.remove();
+        btn.closest('.dynamic-button-row').remove();
     } else {
         alert('حداقل یک دکمه باید وجود داشته باشد.');
     }
@@ -574,13 +574,14 @@ function toggleBtnFields() {
         customUrlFields.style.display = 'block';
         customProductFields.style.display = 'none';
         setDynamicFieldsState(true, true);
+        if (document.getElementById('dynamicButtonsContainer').children.length === 0) {
+            addDynamicButton();
+        }
         setFieldState(customBtnTextProd, false, false);
         setFieldState(customBtnCallback, false, false);
     } else if (btnVal === 'custom_product') {
         customUrlFields.style.display = 'none';
         customProductFields.style.display = 'block';
-        setFieldState(customBtnTextUrl, false, false);
-        setFieldState(customBtnLink, false, false);
         setFieldState(customBtnTextProd, true, true);
         setFieldState(customBtnCallback, true, true);
     } else {

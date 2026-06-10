@@ -1,4 +1,6 @@
 <?php
+ignore_user_abort(true);
+set_time_limit(0);
 date_default_timezone_set('Asia/Tehran');
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../botapi.php';
