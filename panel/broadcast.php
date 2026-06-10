@@ -327,22 +327,77 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
                 <div class="field" id="customProductFields" style="display: none;">
                     <label class="label">متن دکمه و انتخاب محصول/دسته</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="text" class="input" name="custom_btn_text_prod" id="customBtnTextProd" placeholder="متن (مثال: تخفیف ویژه 1 ماهه)" style="flex: 1;">
-                        <select class="input select" name="custom_btn_callback" id="customBtnCallback" style="flex: 2;">
-                            <optgroup label="دسته‌بندی‌ها">
-                                <?php foreach($categories as $cat): ?>
-                                    <option value="categorynames_<?= htmlspecialchars($cat['id']) ?>"><?= htmlspecialchars($cat['remark'] ?? 'بدون نام') ?></option>
-                                <?php endforeach; ?>
-                            </optgroup>
-                            <optgroup label="محصولات">
-                                <?php foreach($products as $prod): ?>
-                                    <option value="prodcutservices_<?= htmlspecialchars($prod['id']) ?>"><?= htmlspecialchars($prod['name_product'] ?? 'بدون نام') ?> (<?= htmlspecialchars($prod['Location'] ?? '') ?>)</option>
-                                <?php endforeach; ?>
-                            </optgroup>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <input type="text" class="input" name="custom_btn_text_prod" id="customBtnTextProd" placeholder="متن دکمه (مثال: خرید سرویس)" style="flex: 2; min-width: 150px;">
+                        <select class="input select" id="customBtnCategory" style="flex: 1.5; min-width: 150px;" onchange="updateProductDropdown()">
+                            <option value="">-- همه دسته‌ها --</option>
+                            <?php foreach($categories as $cat): ?>
+                                <option value="<?= htmlspecialchars($cat['id']) ?>" data-name="<?= htmlspecialchars($cat['remark'] ?? '') ?>"><?= htmlspecialchars($cat['remark'] ?? 'بدون نام') ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select class="input select" name="custom_btn_callback" id="customBtnCallback" style="flex: 2; min-width: 180px;">
+                            <option value="">-- ابتدا انتخاب کنید --</option>
                         </select>
                     </div>
                 </div>
+
+                <script>
+                    var allProducts = <?= json_encode($products) ?>;
+                    function updateProductDropdown() {
+                        var catSelect = document.getElementById('customBtnCategory');
+                        var prodSelect = document.getElementById('customBtnCallback');
+                        if (!catSelect || !prodSelect) return;
+                        
+                        var selectedCatOpt = catSelect.options[catSelect.selectedIndex];
+                        var catId = selectedCatOpt.value;
+                        var catName = selectedCatOpt.getAttribute('data-name');
+                        
+                        prodSelect.innerHTML = '';
+                        
+                        if (catId) {
+                            var optCat = document.createElement('option');
+                            optCat.value = 'categorynames_' + catId;
+                            optCat.text = '📁 هدایت به دسته (' + selectedCatOpt.text + ')';
+                            prodSelect.appendChild(optCat);
+                            
+                            var foundProducts = false;
+                            allProducts.forEach(function(prod) {
+                                if (prod.category === catName) {
+                                    var optProd = document.createElement('option');
+                                    optProd.value = 'prodcutservices_' + prod.id;
+                                    optProd.text = '📦 ' + (prod.name_product || 'بدون نام') + ' (' + (prod.Location || '') + ')';
+                                    prodSelect.appendChild(optProd);
+                                    foundProducts = true;
+                                }
+                            });
+                            
+                            if(!foundProducts) {
+                                var optNone = document.createElement('option');
+                                optNone.value = 'categorynames_' + catId;
+                                optNone.text = '🚫 این دسته محصولی ندارد';
+                                prodSelect.appendChild(optNone);
+                            }
+                        } else {
+                            var optEmpty = document.createElement('option');
+                            optEmpty.value = '';
+                            optEmpty.text = '-- یک محصول انتخاب کنید --';
+                            prodSelect.appendChild(optEmpty);
+                            
+                            allProducts.forEach(function(prod) {
+                                var optProd = document.createElement('option');
+                                optProd.value = 'prodcutservices_' + prod.id;
+                                optProd.text = '📦 ' + (prod.name_product || 'بدون نام') + ' (' + (prod.Location || '') + ')';
+                                prodSelect.appendChild(optProd);
+                            });
+                        }
+                    }
+                    
+                    document.addEventListener('DOMContentLoaded', function() {
+                        if(typeof allProducts !== 'undefined'){
+                            updateProductDropdown();
+                        }
+                    });
+                </script>
             </div>
         </div>
 
