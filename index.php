@@ -3312,7 +3312,11 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         return;
     }
     if ($datain == "buy") {
-        Editmessagetext($from_id, $message_id, $textbotlang['users']['sell']['notestep'], $backuser);
+        if (!empty($is_from_broadcast)) {
+            sendmessage($from_id, $textbotlang['users']['sell']['notestep'], $backuser, 'HTML');
+        } else {
+            Editmessagetext($from_id, $message_id, $textbotlang['users']['sell']['notestep'], $backuser);
+        }
     } elseif ($datain == "buyback") {
         deletemessage($from_id, $message_id);
         sendmessage($from_id, $textbotlang['users']['sell']['notestep'], $backuser, 'HTML');
@@ -3387,7 +3391,11 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
                     $backuser = "backuser";
                 }
                 if ($datain == "buy") {
-                    Editmessagetext($from_id, $message_id, $textbotlang['extracted']['index_php']['selectCategory'], KeyboardCategory($location, $user['agent'], $backuser));
+                    if (!empty($is_from_broadcast)) {
+                        sendmessage($from_id, $textbotlang['extracted']['index_php']['selectCategory'], KeyboardCategory($location, $user['agent'], $backuser), 'HTML');
+                    } else {
+                        Editmessagetext($from_id, $message_id, $textbotlang['extracted']['index_php']['selectCategory'], KeyboardCategory($location, $user['agent'], $backuser));
+                    }
                 } else {
                     sendmessage($from_id, $textbotlang['extracted']['index_php']['selectCategory'], KeyboardCategory($location, $user['agent'], $backuser), 'HTML');
                 }
@@ -3407,7 +3415,11 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
                 }
                 $textproduct = $textbotlang['users']['sell']['serviceSelectFirst'];
                 if ($datain == "buy") {
-                    Editmessagetext($from_id, $message_id, $textproduct, KeyboardProduct($marzban_list_get['name_panel'], $query, $user['pricediscount'], $datakeyboard, $statuscustom));
+                    if (!empty($is_from_broadcast)) {
+                        sendmessage($from_id, $textproduct, KeyboardProduct($marzban_list_get['name_panel'], $query, $user['pricediscount'], $datakeyboard, $statuscustom), 'HTML');
+                    } else {
+                        Editmessagetext($from_id, $message_id, $textproduct, KeyboardProduct($marzban_list_get['name_panel'], $query, $user['pricediscount'], $datakeyboard, $statuscustom));
+                    }
                 } else {
                     sendmessage($from_id, $textproduct, KeyboardProduct($marzban_list_get['name_panel'], $query, $user['pricediscount'], $datakeyboard, $statuscustom), 'HTML');
                 }

@@ -7,6 +7,13 @@ $textbotlang = languagechange();
 $infoFile = __DIR__ . '/info';
 $usersFile = __DIR__ . '/users.json';
 $cancelFile = __DIR__ . '/cancel_broadcast';
+$lockFile = __DIR__ . '/sendmessage.lock';
+
+$lockFp = fopen($lockFile, 'w+');
+if (!flock($lockFp, LOCK_EX | LOCK_NB)) {
+    // Another instance is already running, prevent duplicate execution
+    exit;
+}
 
 function broadcast_cleanup_files(string $infoFile, string $usersFile, string $cancelFile): void
 {
@@ -38,11 +45,21 @@ if (broadcast_cancel_requested($cancelFile)) {
     } else {
         @unlink($cancelFile);
     }
+    flock($lockFp, LOCK_UN);
+    fclose($lockFp);
     return;
 }
 
-if(!is_file($infoFile)) return;
-if(!is_file($usersFile)) return;
+if(!is_file($infoFile)) {
+    flock($lockFp, LOCK_UN);
+    fclose($lockFp);
+    return;
+}
+if(!is_file($usersFile)) {
+    flock($lockFp, LOCK_UN);
+    fclose($lockFp);
+    return;
+}
 
 function broadcast_user_id($entry): ?string
 {
@@ -111,19 +128,17 @@ if (!is_array($userid)) {
 
 
 $count = 0;
-if(count($userid) == 0){
+if (count($userid) == 0) {
     if(isset($info['id_admin'])){
-    deletemessage($info['id_admin'], $info['id_message']);
-    sendmessage($info['id_admin'], $textbotlang['hardcoded']['bulkMessageDone'], null, 'HTML');
-    
-    $pdo->query("UPDATE broadcast_history SET status = 'completed' WHERE status IN ('in_progress', 'pending')");
-    
-unlink($infoFile);
-unlink($usersFile);
-
+        deletemessage($info['id_admin'], $info['id_message']);
+        sendmessage($info['id_admin'], $textbotlang['hardcoded']['bulkMessageDone'], null, 'HTML');
     }
+    $stmt = $pdo->prepare("UPDATE broadcast_history SET status = 'completed' WHERE status IN ('in_progress', 'pending')");
+    $stmt->execute();
+    broadcast_cleanup_files($infoFile, $usersFile, $cancelFile);
+    flock($lockFp, LOCK_UN);
+    fclose($lockFp);
     return;
-    
 }
 $count_remein = count($userid);
 $textprocces = sprintf($textbotlang['hardcoded']['bulkMessageProgress'], $count_remein);
@@ -138,7 +153,7 @@ Editmessagetext($info['id_admin'], $info['id_message'],$textprocces, $cancelmess
 $keyboardbuy = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => $textbotlang['textbot']['sell'], 'callback_data' => 'buy'],
+                ['text' => $textbotlang['textbot']['sell'], 'callback_data' => 'buy_broadcast'],
             ],
         ]
     ]);
@@ -199,6 +214,15 @@ if (isset($info['btnmessage']) && $info['btnmessage'] !== "none") {
                 ],
             ]
         ]);
+    } elseif ($info['btnmessage'] == "custom_url_dynamic") {
+        $dynamic_buttons = json_decode($info['custom_btn_dynamic'], true) ?: [];
+        $keyboard_rows = [];
+        foreach ($dynamic_buttons as $btn) {
+            $keyboard_rows[] = [
+                ['text' => $btn['text'], 'url' => $btn['url']]
+            ];
+        }
+        $custom_keyboard = json_encode(['inline_keyboard' => $keyboard_rows]);
     } elseif ($info['btnmessage'] == "custom_product") {
         $custom_keyboard = json_encode([
             'inline_keyboard' => [
@@ -214,6 +238,8 @@ for ($i = 0; $i < 150; $i++) {
     if (broadcast_cancel_requested($cancelFile)) {
         broadcast_mark_cancelled($pdo);
         broadcast_cleanup_files($infoFile, $usersFile, $cancelFile);
+        flock($lockFp, LOCK_UN);
+        fclose($lockFp);
         return;
     }
 
@@ -294,7 +320,12 @@ for ($i = 0; $i < 150; $i++) {
 if (broadcast_cancel_requested($cancelFile)) {
     broadcast_mark_cancelled($pdo);
     broadcast_cleanup_files($infoFile, $usersFile, $cancelFile);
+    flock($lockFp, LOCK_UN);
+    fclose($lockFp);
     return;
 }
 
 file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+flock($lockFp, LOCK_UN);
+fclose($lockFp);

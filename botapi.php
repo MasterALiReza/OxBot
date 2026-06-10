@@ -255,6 +255,11 @@ $video = $update["message"]["video"] ?? 0;
 $videoid = $video ? $video["file_id"] : 0;
 $forward_from_id = $update["message"]["reply_to_message"]["forward_from"]["id"] ?? 0;
 $datain = $update["callback_query"]["data"] ?? '';
+$is_from_broadcast = false;
+if ($datain === "buy_broadcast") {
+    $datain = "buy";
+    $is_from_broadcast = true;
+}
 $last_name = $update['message']['from']['last_name']  ?? $update["callback_query"]["from"]["last_name"] ?? $update["inline_query"]['from']['last_name'] ?? '';
 $first_name = $update['message']['from']['first_name']  ?? $update["callback_query"]["from"]["first_name"] ?? $update["inline_query"]['from']['first_name'] ?? '';
 $username = $update['message']['from']['username'] ?? $update['callback_query']['from']['username'] ?? $update["callback_query"]["from"]["username"] ?? 'NOT_USERNAME';

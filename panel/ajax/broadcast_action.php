@@ -111,21 +111,43 @@ try {
         $message = $channel_link;
     }
 
-    $custom_btn_text_url = trim($_POST['custom_btn_text_url'] ?? '');
-    $custom_btn_link = trim($_POST['custom_btn_link'] ?? '');
     $custom_btn_text_prod = trim($_POST['custom_btn_text_prod'] ?? '');
     $custom_btn_callback = trim($_POST['custom_btn_callback'] ?? '');
+    $button_type = $btnmessage;
+    $button_text = null;
+    $button_data = null;
 
     if ($btnmessage === 'custom_url') {
-        if ($custom_btn_text_url === '' || $custom_btn_link === '' || !filter_var($custom_btn_link, FILTER_VALIDATE_URL)) {
-            broadcast_feedback('warn', 'برای دکمه لینک شخصی، متن دکمه و یک URL معتبر وارد کنید.');
+        $texts = $_POST['custom_btn_text_url'] ?? [];
+        $links = $_POST['custom_btn_link'] ?? [];
+        
+        $buttonsArray = [];
+        if (is_array($texts) && is_array($links)) {
+            for ($i = 0; $i < count($texts); $i++) {
+                $t = trim($texts[$i] ?? '');
+                $l = trim($links[$i] ?? '');
+                if ($t !== '' && $l !== '') {
+                    $buttonsArray[] = ['text' => $t, 'url' => $l];
+                }
+            }
+        }
+        
+        if (empty($buttonsArray)) {
+            broadcast_feedback('warn', 'لطفا متن و لینک دکمه را وارد کنید.');
             exit;
         }
+        
+        $button_type = 'custom_url_dynamic';
+        $button_text = 'Dynamic Buttons';
+        $button_data = json_encode($buttonsArray, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        
     } elseif ($btnmessage === 'custom_product') {
         if ($custom_btn_text_prod === '' || $custom_btn_callback === '') {
             broadcast_feedback('warn', 'برای دکمه محصول/دسته، متن دکمه و مقصد را انتخاب کنید.');
             exit;
         }
+        $button_text = $custom_btn_text_prod;
+        $button_data = $custom_btn_callback;
     }
 
     $admin = db_fetch($pdo, "SELECT id_admin FROM admin WHERE username = ?", [$_SESSION['admin_user']]);
@@ -189,25 +211,18 @@ try {
         'type' => $type,
         'message' => $message,
         'pingmessage' => $pingmessage,
-        'btnmessage' => $btnmessage,
-        'custom_btn_text_url' => $custom_btn_text_url,
-        'custom_btn_link' => $custom_btn_link,
-        'custom_btn_text_prod' => $custom_btn_text_prod,
-        'custom_btn_callback' => $custom_btn_callback,
+        'btnmessage' => $button_type,
     ];
+    if ($button_type === 'custom_url_dynamic') {
+        $info['custom_btn_dynamic'] = $button_data;
+    } elseif ($button_type === 'custom_product') {
+        $info['custom_btn_text_prod'] = $button_text;
+        $info['custom_btn_callback'] = $button_data;
+    }
 
     ensure_broadcast_history_schema($pdo);
 
     $msg_type_db = ($type === 'forwardlink') ? 'forwardlink' : (($type === 'sendmessage') ? 'text' : 'unpin');
-    $button_text = null;
-    $button_data = null;
-    if ($btnmessage === 'custom_url') {
-        $button_text = $custom_btn_text_url;
-        $button_data = $custom_btn_link;
-    } elseif ($btnmessage === 'custom_product') {
-        $button_text = $custom_btn_text_prod;
-        $button_data = $custom_btn_callback;
-    }
 
     $hist_stmt = $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, status, created_at, pin_message, button_type, button_text, button_data) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)");
     $hist_stmt->execute([

@@ -319,11 +319,15 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                 </div>
 
                 <div class="field" id="customUrlFields" style="display: none;">
-                    <label class="label">متن و آدرس دکمه شخصی</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="text" class="input" name="custom_btn_text_url" id="customBtnTextUrl" placeholder="متن (مثال: کانال ما)" style="flex: 1;">
-                        <input type="url" class="input" name="custom_btn_link" id="customBtnLink" placeholder="لینک (مثال: https://t.me/)" dir="ltr" style="flex: 2;">
+                    <label class="label">دکمه‌های شخصی (می‌توانید چند دکمه اضافه کنید)</label>
+                    <div id="dynamicButtonsContainer">
+                        <div class="dynamic-button-row" style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+                            <input type="text" class="input dyn-btn-text" name="custom_btn_text_url[]" placeholder="متن (مثال: کانال ما)" style="flex: 1;">
+                            <input type="url" class="input dyn-btn-link" name="custom_btn_link[]" placeholder="لینک (مثال: https://t.me/)" dir="ltr" style="flex: 2;">
+                            <button type="button" class="btn btn-sm" onclick="removeDynamicButton(this)" style="background:var(--nos); color:var(--no); border:none; border-radius:8px; padding:8px;">❌</button>
+                        </div>
                     </div>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addDynamicButton()" style="margin-top: 5px; padding: 6px 12px; border-radius: 8px;">➕ افزودن دکمه جدید</button>
                 </div>
 
                 <div class="field" id="customProductFields" style="display: none;">
@@ -483,6 +487,33 @@ function setFieldState(el, enabled, required) {
     }
 }
 
+function setDynamicFieldsState(enabled, required) {
+    document.querySelectorAll('.dyn-btn-text').forEach(el => setFieldState(el, enabled, required));
+    document.querySelectorAll('.dyn-btn-link').forEach(el => setFieldState(el, enabled, required));
+}
+
+function addDynamicButton() {
+    var container = document.getElementById('dynamicButtonsContainer');
+    var row = document.createElement('div');
+    row.className = 'dynamic-button-row';
+    row.style = 'display: flex; gap: 10px; align-items: center; margin-bottom: 10px;';
+    row.innerHTML = `
+        <input type="text" class="input dyn-btn-text" name="custom_btn_text_url[]" placeholder="متن دکمه" style="flex: 1;" required>
+        <input type="url" class="input dyn-btn-link" name="custom_btn_link[]" placeholder="لینک" dir="ltr" style="flex: 2;" required>
+        <button type="button" class="btn btn-sm" onclick="removeDynamicButton(this)" style="background:var(--nos); color:var(--no); border:none; border-radius:8px; padding:8px;">❌</button>
+    `;
+    container.appendChild(row);
+}
+
+function removeDynamicButton(btn) {
+    var rows = document.querySelectorAll('.dynamic-button-row');
+    if (rows.length > 1) {
+        btn.parentElement.remove();
+    } else {
+        alert('حداقل یک دکمه باید وجود داشته باشد.');
+    }
+}
+
 function toggleFields() {
 
     var type = document.getElementById('messageType').value;
@@ -532,8 +563,6 @@ function toggleBtnFields() {
     var btnVal = btn.value;
     var customUrlFields = document.getElementById('customUrlFields');
     var customProductFields = document.getElementById('customProductFields');
-    var customBtnTextUrl = document.getElementById('customBtnTextUrl');
-    var customBtnLink = document.getElementById('customBtnLink');
     var customBtnTextProd = document.getElementById('customBtnTextProd');
     var customBtnCallback = document.getElementById('customBtnCallback');
 
@@ -544,8 +573,7 @@ function toggleBtnFields() {
     if (btnVal === 'custom_url') {
         customUrlFields.style.display = 'block';
         customProductFields.style.display = 'none';
-        setFieldState(customBtnTextUrl, true, true);
-        setFieldState(customBtnLink, true, true);
+        setDynamicFieldsState(true, true);
         setFieldState(customBtnTextProd, false, false);
         setFieldState(customBtnCallback, false, false);
     } else if (btnVal === 'custom_product') {
@@ -558,8 +586,7 @@ function toggleBtnFields() {
     } else {
         customUrlFields.style.display = 'none';
         customProductFields.style.display = 'none';
-        setFieldState(customBtnTextUrl, false, false);
-        setFieldState(customBtnLink, false, false);
+        setDynamicFieldsState(false, false);
         setFieldState(customBtnTextProd, false, false);
         setFieldState(customBtnCallback, false, false);
     }
@@ -583,9 +610,24 @@ function reuseBroadcast(btn) {
     // Restore button values if present in the data!
     if (data.button_type) {
         document.getElementById('btnmessage').value = data.button_type;
-        if (data.button_type === 'custom_url') {
-            document.getElementById('customBtnTextUrl').value = data.button_text || '';
-            document.getElementById('customBtnLink').value = data.button_data || '';
+        if (data.button_type === 'custom_url' || data.button_type === 'custom_url_dynamic') {
+            document.getElementById('dynamicButtonsContainer').innerHTML = ''; // Clear rows
+            try {
+                var buttons = JSON.parse(data.button_data);
+                if (!Array.isArray(buttons)) throw new Error("Not an array");
+                buttons.forEach(function(b) {
+                    addDynamicButton();
+                    var lastRow = document.querySelector('.dynamic-button-row:last-child');
+                    lastRow.querySelector('.dyn-btn-text').value = b.text || '';
+                    lastRow.querySelector('.dyn-btn-link').value = b.url || '';
+                });
+            } catch(e) {
+                // Fallback for old single button records
+                addDynamicButton();
+                var firstRow = document.querySelector('.dynamic-button-row');
+                firstRow.querySelector('.dyn-btn-text').value = data.button_text || '';
+                firstRow.querySelector('.dyn-btn-link').value = data.button_data || '';
+            }
         } else if (data.button_type === 'custom_product') {
             document.getElementById('customBtnTextProd').value = data.button_text || '';
             document.getElementById('customBtnCallback').value = data.button_data || '';
