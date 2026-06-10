@@ -359,12 +359,19 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                         if (catId === 'store_main' || !catId) {
                             var opt = document.createElement('option');
                             opt.value = 'buy';
-                            opt.text = '🛒 هدایت به فروشگاه اصلی';
+                            opt.text = '🛒 کل فروشگاه (منوی اصلی)';
                             prodSelect.appendChild(opt);
+                            
+                            allProducts.forEach(function(prod) {
+                                var optProd = document.createElement('option');
+                                optProd.value = 'prodcutservices_' + prod.id;
+                                optProd.text = '📦 ' + (prod.name_product || 'بدون نام') + ' (' + (prod.Location || '') + ')';
+                                prodSelect.appendChild(optProd);
+                            });
                         } else {
                             var optCat = document.createElement('option');
                             optCat.value = 'categorynames_' + catId;
-                            optCat.text = '📁 هدایت به کل این دسته';
+                            optCat.text = '📁 کل این دسته';
                             prodSelect.appendChild(optCat);
                             
                             var foundProducts = false;
@@ -384,18 +391,6 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                                 optNone.text = '🚫 این دسته محصولی ندارد';
                                 prodSelect.appendChild(optNone);
                             }
-                        } else {
-                            var optEmpty = document.createElement('option');
-                            optEmpty.value = '';
-                            optEmpty.text = '-- یک محصول انتخاب کنید --';
-                            prodSelect.appendChild(optEmpty);
-                            
-                            allProducts.forEach(function(prod) {
-                                var optProd = document.createElement('option');
-                                optProd.value = 'prodcutservices_' + prod.id;
-                                optProd.text = '📦 ' + (prod.name_product || 'بدون نام') + ' (' + (prod.Location || '') + ')';
-                                prodSelect.appendChild(optProd);
-                            });
                         }
                     }
                     

@@ -393,13 +393,13 @@ window.addDynamicButton = function(text, link, color) {
     row.innerHTML = `
         <input type="text" class="input dyn-btn-text" name="custom_btn_text_url[]" placeholder="متن دکمه" value="${t}" style="flex: 2;" required>
         <input type="url" class="input dyn-btn-link" name="custom_btn_link[]" placeholder="لینک" dir="ltr" value="${l}" style="flex: 3;" required>
-        <select class="input dyn-btn-color" name="custom_btn_color[]" style="flex: 1; padding: 0 5px;">
+        <select class="input select dyn-btn-color" name="custom_btn_color[]" style="flex: 1; min-width: 110px;">
             <option value="default" ${c === 'default' ? 'selected' : ''}>پیش‌فرض</option>
             <option value="primary" ${c === 'primary' ? 'selected' : ''}>آبی (Primary)</option>
             <option value="success" ${c === 'success' ? 'selected' : ''}>سبز (Success)</option>
             <option value="danger" ${c === 'danger' ? 'selected' : ''}>قرمز (Danger)</option>
         </select>
-        <button type="button" class="btn btn-sm" onclick="window.removeDynamicButton(this)" style="background:var(--nos); color:var(--no); border:none; border-radius:8px; padding:8px;">❌</button>
+        <button type="button" class="btn btn-sm" onclick="window.removeDynamicButton(this)" style="background:var(--nos); color:var(--no); border:none; border-radius:8px; padding:8px 12px; font-size: 16px;">❌</button>
     `;
     container.appendChild(row);
 };
