@@ -10,12 +10,12 @@ $history_stmt = $pdo->prepare("SELECT * FROM broadcast_history ORDER BY id DESC 
 $history_stmt->execute();
 $histories = $history_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch Categories and Products for inline buttons
-$categories_stmt = $pdo->query("SELECT * FROM category");
-$categories = $categories_stmt ? $categories_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
-
+// Fetch Products
 $products_stmt = $pdo->query("SELECT * FROM product");
 $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
+// Extract unique categories from products
+$categories = array_values(array_unique(array_filter(array_column($products, 'category'))));
 
 ?>
 
@@ -294,7 +294,7 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
             <div class="bc-grid">
                 <div class="field">
                     <label class="label">نوع فرمان</label>
-                    <select class="input select" name="type" id="messageType" onchange="toggleFields()">
+                    <select class="input select" name="type" id="messageType" onchange="bcToggleFields()">
                         <option value="sendmessage">ارسال پیام متنی جدید</option>
                         <option value="forwardlink">ارسال با لینک پست کانال</option>
                         <option value="unpinmessage">حذف پین تمامی پیام‌ها (Unpin)</option>
@@ -303,7 +303,7 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                 
                 <div class="field">
                     <label class="label">دکمه شیشه‌ای (اختیاری)</label>
-                    <select class="input select" name="btnmessage" id="btnmessage" onchange="toggleBtnFields()">
+                    <select class="input select" name="btnmessage" id="btnmessage" onchange="bcToggleBtnFields()">
                         <option value="none">بدون دکمه</option>
                         <option value="custom_url">لینک شخصی (آدرس اینترنتی)</option>
                         <option value="custom_product">لینک به دسته / محصول در ربات</option>
@@ -322,7 +322,7 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                     <label class="label">دکمه‌های شخصی (می‌توانید چند دکمه اضافه کنید)</label>
                     <div id="dynamicButtonsContainer">
                     </div>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="addDynamicButton()" style="margin-top: 5px; padding: 6px 12px; border-radius: 8px;">➕ افزودن دکمه جدید</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="bcAddDynamicButton()" style="margin-top: 5px; padding: 6px 12px; border-radius: 8px;">➕ افزودن دکمه جدید</button>
                 </div>
 
                 <div class="field" id="customProductFields" style="display: none;">
@@ -330,10 +330,10 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <input type="text" class="input" name="custom_btn_text_prod" id="customBtnTextProd" placeholder="متن دکمه (مثال: خرید سرویس)" style="width: 100%;">
                         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                            <select class="input select" id="customBtnCategory" style="flex: 1.5; min-width: 150px;" onchange="updateProductDropdown()">
+                            <select class="input select" id="customBtnCategory" style="flex: 1.5; min-width: 150px;" onchange="bcUpdateProductDropdown()">
                                 <option value="store_main">فروشگاه اصلی (همه دسته‌ها)</option>
                                 <?php foreach($categories as $cat): ?>
-                                    <option value="<?= htmlspecialchars($cat['id']) ?>" data-name="<?= htmlspecialchars($cat['remark'] ?? '') ?>">دسته: <?= htmlspecialchars($cat['remark'] ?? 'بدون نام') ?></option>
+                                    <option value="<?= htmlspecialchars($cat) ?>" data-name="<?= htmlspecialchars($cat) ?>">دسته: <?= htmlspecialchars($cat) ?></option>
                                 <?php endforeach; ?>
                             </select>
                             <select class="input select" name="custom_btn_callback" id="customBtnCallback" style="flex: 2; min-width: 180px;">
@@ -344,8 +344,9 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                 </div>
 
                 <script>
-                    var allProducts = <?= json_encode($products) ?>;
-                    function updateProductDropdown() {
+                    window.allProducts = <?= json_encode($products, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+                    window.bcUpdateProductDropdown = function() {
                         var catSelect = document.getElementById('customBtnCategory');
                         var prodSelect = document.getElementById('customBtnCallback');
                         if (!catSelect || !prodSelect) return;
@@ -362,12 +363,14 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                             opt.text = '🛒 کل فروشگاه (منوی اصلی)';
                             prodSelect.appendChild(opt);
                             
-                            allProducts.forEach(function(prod) {
-                                var optProd = document.createElement('option');
-                                optProd.value = 'prodcutservices_' + prod.id;
-                                optProd.text = '📦 ' + (prod.name_product || 'بدون نام') + ' (' + (prod.Location || '') + ')';
-                                prodSelect.appendChild(optProd);
-                            });
+                            if (window.allProducts) {
+                                window.allProducts.forEach(function(prod) {
+                                    var optProd = document.createElement('option');
+                                    optProd.value = 'prodcutservices_' + prod.id;
+                                    optProd.text = '📦 ' + (prod.name_product || 'بدون نام') + ' (' + (prod.Location || '') + ')';
+                                    prodSelect.appendChild(optProd);
+                                });
+                            }
                         } else {
                             var optCat = document.createElement('option');
                             optCat.value = 'categorynames_' + catId;
@@ -375,15 +378,17 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                             prodSelect.appendChild(optCat);
                             
                             var foundProducts = false;
-                            allProducts.forEach(function(prod) {
-                                if (prod.category === catName) {
-                                    var optProd = document.createElement('option');
-                                    optProd.value = 'prodcutservices_' + prod.id;
-                                    optProd.text = '📦 ' + (prod.name_product || 'بدون نام') + ' (' + (prod.Location || '') + ')';
-                                    prodSelect.appendChild(optProd);
-                                    foundProducts = true;
-                                }
-                            });
+                            if (window.allProducts) {
+                                window.allProducts.forEach(function(prod) {
+                                    if (prod.category == catName) {
+                                        var optProd = document.createElement('option');
+                                        optProd.value = 'prodcutservices_' + prod.id;
+                                        optProd.text = '📦 ' + (prod.name_product || 'بدون نام') + ' (' + (prod.Location || '') + ')';
+                                        prodSelect.appendChild(optProd);
+                                        foundProducts = true;
+                                    }
+                                });
+                            }
                             
                             if(!foundProducts) {
                                 var optNone = document.createElement('option');
@@ -392,13 +397,193 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                                 prodSelect.appendChild(optNone);
                             }
                         }
-                    }
-                    
-                    document.addEventListener('DOMContentLoaded', function() {
-                        if(typeof allProducts !== 'undefined'){
-                            updateProductDropdown();
+                    };
+
+                    window.bcSetFieldState = function(el, enabled, required) {
+                        if (!el) return;
+                        el.disabled = !enabled;
+                        if (required) {
+                            el.setAttribute('required', 'required');
+                        } else {
+                            el.removeAttribute('required');
                         }
-                    });
+                    };
+
+                    window.bcSetDynamicFieldsState = function(enabled, required) {
+                        document.querySelectorAll('.dyn-btn-text').forEach(function(el) { window.bcSetFieldState(el, enabled, required); });
+                        document.querySelectorAll('.dyn-btn-link').forEach(function(el) { window.bcSetFieldState(el, enabled, required); });
+                    };
+
+                    window.bcAddDynamicButton = function(text, link, color) {
+                        var container = document.getElementById('dynamicButtonsContainer');
+                        if (!container) return;
+                        var row = document.createElement('div');
+                        row.className = 'dynamic-button-row';
+                        row.style.display = 'flex';
+                        row.style.gap = '10px';
+                        row.style.alignItems = 'center';
+                        row.style.marginBottom = '10px';
+                        
+                        var t = text ? text.replace(/"/g, '&quot;') : '';
+                        var l = link ? link.replace(/"/g, '&quot;') : '';
+                        var c = color || 'default';
+                        
+                        row.innerHTML = `
+                            <input type="text" class="input dyn-btn-text" name="custom_btn_text_url[]" placeholder="متن دکمه" value="${t}" style="flex: 2;" required>
+                            <input type="url" class="input dyn-btn-link" name="custom_btn_link[]" placeholder="لینک" dir="ltr" value="${l}" style="flex: 3;" required>
+                            <select class="input select dyn-btn-color" name="custom_btn_color[]" style="flex: 1; min-width: 110px;">
+                                <option value="default" ${c === 'default' ? 'selected' : ''}>پیش‌فرض</option>
+                                <option value="primary" ${c === 'primary' ? 'selected' : ''}>آبی (Primary)</option>
+                                <option value="success" ${c === 'success' ? 'selected' : ''}>سبز (Success)</option>
+                                <option value="danger" ${c === 'danger' ? 'selected' : ''}>قرمز (Danger)</option>
+                            </select>
+                            <button type="button" class="btn btn-sm" onclick="window.bcRemoveDynamicButton(this)" style="background:var(--nos); color:var(--no); border:none; border-radius:8px; padding:8px 12px; font-size: 16px;">❌</button>
+                        `;
+                        container.appendChild(row);
+                    };
+
+                    window.bcRemoveDynamicButton = function(btn) {
+                        var rows = document.querySelectorAll('.dynamic-button-row');
+                        if (rows.length > 1) {
+                            btn.closest('.dynamic-button-row').remove();
+                        } else {
+                            alert('حداقل یک دکمه باید وجود داشته باشد.');
+                        }
+                    };
+
+                    window.bcToggleFields = function () {
+                        var type = document.getElementById('messageType');
+                        var btn = document.getElementById('btnmessage');
+                        var msg = document.getElementById('messageGroup');
+                        var textGroup = document.getElementById('textGroup');
+                        var linkGroup = document.getElementById('linkGroup');
+                        var messageText = document.getElementById('messageText');
+                        var channelLink = document.getElementById('channelLink');
+                        var pingmessage = document.getElementById('pingmessage');
+
+                        if (!type || !btn || !msg || !textGroup || !linkGroup) return;
+
+                        if (type.value === 'unpinmessage') {
+                            btn.value = 'none';
+                            btn.disabled = true;
+                            btn.style.opacity = '0.5';
+                            msg.style.display = 'none';
+                            if (pingmessage) pingmessage.checked = false;
+                            window.bcSetFieldState(messageText, false, false);
+                            window.bcSetFieldState(channelLink, false, false);
+                        } else if (type.value === 'forwardlink') {
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            msg.style.display = 'block';
+                            msg.style.opacity = '1';
+                            textGroup.style.display = 'none';
+                            linkGroup.style.display = 'block';
+                            window.bcSetFieldState(messageText, false, false);
+                            window.bcSetFieldState(channelLink, true, true);
+                        } else {
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            msg.style.display = 'block';
+                            msg.style.opacity = '1';
+                            textGroup.style.display = 'block';
+                            linkGroup.style.display = 'none';
+                            window.bcSetFieldState(messageText, true, true);
+                            window.bcSetFieldState(channelLink, false, false);
+                        }
+
+                        window.bcToggleBtnFields();
+                    };
+
+                    window.bcToggleBtnFields = function () {
+                        var btn = document.getElementById('btnmessage');
+                        var customUrlFields = document.getElementById('customUrlFields');
+                        var customProductFields = document.getElementById('customProductFields');
+                        var customBtnTextProd = document.getElementById('customBtnTextProd');
+                        var customBtnCallback = document.getElementById('customBtnCallback');
+
+                        if (!btn || !customUrlFields || !customProductFields) return;
+
+                        var btnVal = btn.disabled ? 'none' : btn.value;
+                        if (btnVal === 'custom_url') {
+                            customUrlFields.style.display = 'block';
+                            customProductFields.style.display = 'none';
+                            window.bcSetDynamicFieldsState(true, true);
+                            if (document.getElementById('dynamicButtonsContainer') && document.getElementById('dynamicButtonsContainer').children.length === 0) {
+                                window.bcAddDynamicButton();
+                            }
+                            window.bcSetFieldState(customBtnTextProd, false, false);
+                            window.bcSetFieldState(customBtnCallback, false, false);
+                        } else if (btnVal === 'custom_product') {
+                            customUrlFields.style.display = 'none';
+                            customProductFields.style.display = 'block';
+                            window.bcSetDynamicFieldsState(false, false);
+                            window.bcSetFieldState(customBtnTextProd, true, true);
+                            window.bcSetFieldState(customBtnCallback, true, true);
+                            if (document.getElementById('customBtnCallback').options.length <= 1) {
+                                window.bcUpdateProductDropdown();
+                            }
+                        } else {
+                            customUrlFields.style.display = 'none';
+                            customProductFields.style.display = 'none';
+                            window.bcSetDynamicFieldsState(false, false);
+                            window.bcSetFieldState(customBtnTextProd, false, false);
+                            window.bcSetFieldState(customBtnCallback, false, false);
+                        }
+                    };
+
+                    window.bcReuseBroadcast = function (btn) {
+                        if (!btn) return;
+                        var data = JSON.parse(btn.getAttribute('data-history') || '{}');
+
+                        if (data.message_type === 'text') {
+                            document.getElementById('messageType').value = 'sendmessage';
+                            document.getElementById('messageText').value = data.content || '';
+                        } else if (data.message_type === 'forwardlink') {
+                            document.getElementById('messageType').value = 'forwardlink';
+                            document.getElementById('channelLink').value = data.content || '';
+                        } else {
+                            document.getElementById('messageType').value = 'unpinmessage';
+                        }
+
+                        document.getElementById('targetUsers').value = ['all', 'customer', 'nonecustomer'].indexOf(data.target_audience) >= 0 ? data.target_audience : 'all';
+                        document.getElementById('targetAgent').value = 'all';
+
+                        var btnmessage = document.getElementById('btnmessage');
+                        btnmessage.value = data.button_type || 'none';
+                        
+                        var container = document.getElementById('dynamicButtonsContainer');
+                        if (container) container.innerHTML = '';
+                        
+                        if (data.button_type === 'custom_url' || data.button_type === 'custom_url_dynamic') {
+                            btnmessage.value = 'custom_url';
+                            if (data.button_type === 'custom_url_dynamic' && data.button_data) {
+                                try {
+                                    var btns = JSON.parse(data.button_data);
+                                    if (Array.isArray(btns)) {
+                                        btns.forEach(function(b) {
+                                            window.bcAddDynamicButton(b.text, b.url, b.color);
+                                        });
+                                    }
+                                } catch(e) {}
+                            } else {
+                                 window.bcAddDynamicButton(data.button_text || '', data.button_data || '');
+                            }
+                        } else if (data.button_type === 'custom_product') {
+                            document.getElementById('customBtnTextProd').value = data.button_text || '';
+                            document.getElementById('customBtnCallback').value = data.button_data || '';
+                        }
+
+                        window.bcToggleFields();
+                        window.bcToggleBtnFields();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    };
+
+                    // Initialize UI manually on load
+                    setTimeout(function() {
+                        window.bcToggleFields();
+                        window.bcToggleBtnFields();
+                        window.bcUpdateProductDropdown();
+                    }, 50);
                 </script>
             </div>
         </div>
@@ -512,7 +697,7 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                         </td>
                         <td data-label="زمان ارسال" dir="ltr" style="text-align:center;"><?= jdate('Y/m/d H:i', $history['created_at']) ?></td>
                         <td data-label="عملیات" style="text-align:center;">
-                            <button type="button" class="btn btn-sm reuse-btn" data-history="<?= htmlspecialchars(json_encode($history), ENT_QUOTES, 'UTF-8') ?>" onclick="reuseBroadcast(this)" style="padding: 4px 10px; font-size: 0.8rem; background: var(--sf3); border: 1px solid var(--bd);">استفاده مجدد</button>
+                            <button type="button" class="btn btn-sm reuse-btn" data-history="<?= htmlspecialchars(json_encode($history), ENT_QUOTES, 'UTF-8') ?>" onclick="bcReuseBroadcast(this)" style="padding: 4px 10px; font-size: 0.8rem; background: var(--sf3); border: 1px solid var(--bd);">استفاده مجدد</button>
                         </td>
                     </tr>
                     <?php endforeach; ?>

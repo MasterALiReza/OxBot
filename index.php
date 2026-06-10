@@ -3533,12 +3533,22 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     }
 } elseif (preg_match('/^categorynames_(.*)/', $datain, $dataget)) {
     $categorynames = $dataget[1];
-    $categorynames = select("category", "remark", "id", $categorynames, "select")['remark'];
-    $userdate = json_decode($user['Processing_value'], true);
+    $userdate = json_decode($user['Processing_value'], true) ?: [];
+    
+    if (empty($userdate['name_panel'])) {
+        $first_product_in_cat = select("product", "*", "category", $categorynames, "select");
+        if ($first_product_in_cat) {
+            $userdate['name_panel'] = $first_product_in_cat['Location'] === '/all' ? select("marzban_panel", "name_panel", null, null, "select")['name_panel'] : $first_product_in_cat['Location'];
+            update("user", "Processing_value", json_encode($userdate, JSON_UNESCAPED_UNICODE), "id", $from_id);
+        }
+    }
+    
+    $loc_condition = !empty($userdate['name_panel']) ? "(Location = '{$userdate['name_panel']}' OR Location = '/all')" : "1=1";
+    
     if (isset($userdate['monthproduct'])) {
-        $query = "SELECT * FROM product WHERE (Location = '{$userdate['name_panel']}' OR Location = '/all') AND agent= '{$user['agent']}' AND category = '$categorynames' AND Service_time = '{$userdate['monthproduct']}'";
+        $query = "SELECT * FROM product WHERE $loc_condition AND agent= '{$user['agent']}' AND category = '$categorynames' AND Service_time = '{$userdate['monthproduct']}'";
     } else {
-        $query = "SELECT * FROM product WHERE (Location = '{$userdate['name_panel']}' OR Location = '/all') AND agent= '{$user['agent']}' AND category = '$categorynames'";
+        $query = "SELECT * FROM product WHERE $loc_condition AND agent= '{$user['agent']}' AND category = '$categorynames'";
     }
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $userdate['name_panel'], "select");
     $statuscustomvolume = json_decode($marzban_list_get['customvolume'], true)[$user['agent']];
@@ -3631,7 +3641,14 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     }
 } elseif ($user['step'] == "getvolumecustomusername" || preg_match('/^prodcutservices_(.*)/', $datain, $dataget)) {
     $prodcut = $dataget[1];
-    $userdate = json_decode($user['Processing_value'], true);
+    $userdate = json_decode($user['Processing_value'], true) ?: [];
+    if (empty($userdate['name_panel'])) {
+        $product_info = select("product", "Location", "id", $prodcut, "select");
+        if ($product_info) {
+            $userdate['name_panel'] = $product_info['Location'] === '/all' ? select("marzban_panel", "name_panel", null, null, "select")['name_panel'] : $product_info['Location'];
+            update("user", "Processing_value", json_encode($userdate, JSON_UNESCAPED_UNICODE), "id", $from_id);
+        }
+    }
     if ($user['step'] == "getvolumecustomusername") {
         if (!ctype_digit($text)) {
             sendmessage($from_id, $textbotlang['Admin']['Product']['invalidTime'], $backuser, 'HTML');
@@ -3678,6 +3695,13 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $prodcut = $user['Processing_value_one'];
     } else {
         $prodcut = $dataget[1];
+    }
+    if (empty($userdate['name_panel'])) {
+        $product_info = select("product", "Location", "id", $prodcut, "select");
+        if ($product_info) {
+            $userdate['name_panel'] = $product_info['Location'] === '/all' ? select("marzban_panel", "name_panel", null, null, "select")['name_panel'] : $product_info['Location'];
+            update("user", "Processing_value", json_encode($userdate, JSON_UNESCAPED_UNICODE), "id", $from_id);
+        }
     }
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $userdate['name_panel'], "select");
     if ($marzban_list_get['status'] == "disable") {

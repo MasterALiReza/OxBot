@@ -271,12 +271,12 @@ for ($i = 0; $i < 150; $i++) {
             }
         }
 
-        if (isset($meesage['ok']) && $meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
+        if (isset($meesage['ok']) && $meesage['ok'] and ($info['pingmessage'] == "yes")) {
             pinmessage($iduser, $meesage['result']['message_id']);
         }
     } elseif ($info['type'] == "forwardmessage") {
         $meesage = forwardMessage($info['id_admin'], $info['message'], $iduser);
-        if (isset($meesage['ok']) && $meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
+        if (isset($meesage['ok']) && $meesage['ok'] and ($info['pingmessage'] == "yes")) {
             pinmessage($iduser, $meesage['result']['message_id']);
         }
     } elseif ($info['type'] == "forwardlink") {
@@ -312,7 +312,7 @@ for ($i = 0; $i < 150; $i++) {
                 }
             }
             
-            if (isset($meesage['ok']) && $meesage['ok'] && ($info['pingmessage'] == "yes" || $isAdminOrOwner)) {
+            if (isset($meesage['ok']) && $meesage['ok'] && ($info['pingmessage'] == "yes")) {
                 pinmessage($iduser, $meesage['result']['message_id']);
             }
         }
