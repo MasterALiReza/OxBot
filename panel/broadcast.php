@@ -321,11 +321,6 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                 <div class="field" id="customUrlFields" style="display: none;">
                     <label class="label">دکمه‌های شخصی (می‌توانید چند دکمه اضافه کنید)</label>
                     <div id="dynamicButtonsContainer">
-                        <div class="dynamic-button-row" style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-                            <input type="text" class="input dyn-btn-text" name="custom_btn_text_url[]" placeholder="متن (مثال: کانال ما)" style="flex: 1;">
-                            <input type="url" class="input dyn-btn-link" name="custom_btn_link[]" placeholder="لینک (مثال: https://t.me/)" dir="ltr" style="flex: 2;">
-                            <button type="button" class="btn btn-sm" onclick="removeDynamicButton(this)" style="background:var(--nos); color:var(--no); border:none; border-radius:8px; padding:8px;">❌</button>
-                        </div>
                     </div>
                     <button type="button" class="btn btn-sm btn-primary" onclick="addDynamicButton()" style="margin-top: 5px; padding: 6px 12px; border-radius: 8px;">➕ افزودن دکمه جدید</button>
                 </div>
@@ -496,7 +491,10 @@ function addDynamicButton() {
     var container = document.getElementById('dynamicButtonsContainer');
     var row = document.createElement('div');
     row.className = 'dynamic-button-row';
-    row.style = 'display: flex; gap: 10px; align-items: center; margin-bottom: 10px;';
+    row.style.display = 'flex';
+    row.style.gap = '10px';
+    row.style.alignItems = 'center';
+    row.style.marginBottom = '10px';
     row.innerHTML = `
         <input type="text" class="input dyn-btn-text" name="custom_btn_text_url[]" placeholder="متن دکمه" style="flex: 2;" required>
         <input type="url" class="input dyn-btn-link" name="custom_btn_link[]" placeholder="لینک" dir="ltr" style="flex: 3;" required>
