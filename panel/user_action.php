@@ -85,7 +85,27 @@ switch ($action) {
 
     case 'removeaffiliates':
         db_query($pdo, "UPDATE user SET affiliates = '0' WHERE affiliates = ?", [$id]);
+        db_query($pdo, "UPDATE user SET affiliatescount = 0 WHERE id = ?", [$id]);
         flash('success', 'زیرمجموعه‌های این کاربر حذف شدند.');
+        break;
+
+    case 'remove_single_affiliate':
+        $parent_id = intval($user['affiliates'] ?? 0);
+        if ($parent_id > 0) {
+            try {
+                $pdo->beginTransaction();
+                db_query($pdo, "UPDATE user SET affiliates = '0' WHERE id = ?", [$id]);
+                db_query($pdo, "UPDATE user SET affiliatescount = GREATEST(0, CAST(affiliatescount AS SIGNED) - 1) WHERE id = ?", [$parent_id]);
+                $pdo->commit();
+                flash('success', 'کاربر با موفقیت از لیست زیرمجموعه‌ها خارج شد.');
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                error_log('remove_single_affiliate error: ' . $e->getMessage());
+                flash('error', 'خطا در لغو عضویت زیرمجموعه.');
+            }
+        } else {
+            flash('warning', 'این کاربر زیرمجموعه کسی نیست.');
+        }
         break;
 
     case 'toggle_bot':

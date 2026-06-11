@@ -179,6 +179,9 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               <a href="users.php?tab=admins" class="nav-sub-item <?= (isset($_GET['tab']) && $_GET['tab'] === 'admins') ? 'active' : '' ?>" title="مدیران پنل">
                 <div class="nav-sub-dot"></div>مدیران و همکاران پنل
               </a>
+              <a href="affiliates.php" class="nav-sub-item <?= $activeNav === 'affiliates' ? 'active' : '' ?>" title="همکاری در فروش (زیرمجموعه‌ها)">
+                <div class="nav-sub-dot"></div>همکاری در فروش (زیرمجموعه‌ها)
+              </a>
               <a href="broadcast.php" class="nav-sub-item <?= $activeNav === 'broadcast' ? 'active' : '' ?>" title="ارسال پیام همگانی">
                 <div class="nav-sub-dot"></div>پیام همگانی
               </a>
