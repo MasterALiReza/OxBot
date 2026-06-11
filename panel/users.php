@@ -29,7 +29,7 @@ if ($isSuperAdmin && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     db_query($pdo, "INSERT INTO admin (id_admin, username, password, rule) VALUES (?, ?, ?, ?)", [
                         $id_admin, $username, $hash, $rule
                     ]);
-                    require_once __DIR__ . '/../../botapi.php';
+                    require_once __DIR__ . '/../botapi.php';
                     if (isset($textbotlang['Admin']['manageadmin']['adminAddedSendUser'])) {
                         sendmessage($id_admin, $textbotlang['Admin']['manageadmin']['adminAddedSendUser'], null, 'HTML');
                     } else {
