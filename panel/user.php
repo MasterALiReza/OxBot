@@ -245,11 +245,28 @@ include __DIR__ . '/inc/layout_head.php';
         color: var(--mute) !important;
     }
 }
+.u-sidebar {
+    position: sticky;
+    top: 80px;
+    align-self: flex-start;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+.u-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+.u-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.u-sidebar::-webkit-scrollbar-thumb {
+    background: var(--bd);
+    border-radius: 4px;
+}
 </style>
 
 <div class="profile-grid u-profile-grid">
 
-    <div class="u-sidebar" style="display:flex;flex-direction:column;gap:12px;position:sticky;top:80px;align-self:flex-start;">
+    <div class="u-sidebar" style="display:flex;flex-direction:column;gap:12px;">
 
         <div class="card fade-up">
             <div class="profile-head" style="display: flex; flex-direction: column; gap: 16px;">
