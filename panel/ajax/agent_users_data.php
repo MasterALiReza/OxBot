@@ -56,7 +56,7 @@ if ($action === 'get_users') {
         }
 
         // Format dates
-        require_once '../../function.php'; // ensure jdate is loaded
+        require_once '../../jdf.php'; // ensure jdate is loaded
         $start_date = jdate('Y/m/d H:i', $time_sell);
         $exp_date = $days > 0 ? jdate('Y/m/d', $expire_ts) : 'نامحدود';
 

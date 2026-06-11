@@ -29,7 +29,7 @@ $initials = mb_strtoupper(mb_substr($agentUsername, 0, 1, 'UTF-8'), 'UTF-8');
 <body class="agent-panel-body">
 
     <!-- Mobile Header & Toggle -->
-    <div class="au-mobile-toggle" style="padding: 16px 20px; background: var(--au-surface); border-bottom: 1px solid var(--au-border); display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 90;">
+    <div class="au-mobile-toggle" style="padding: 16px 20px; background: var(--au-surface); border-bottom: 1px solid var(--au-border); align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 90;">
         <div style="font-weight: 700; font-size: 1.1rem;">پنل نمایندگی</div>
         <button id="au-mobile-toggle" class="au-btn-icon" style="border: none; background: transparent;">
             <?= icon('menu', 24) ?>
@@ -46,19 +46,19 @@ $initials = mb_strtoupper(mb_substr($agentUsername, 0, 1, 'UTF-8'), 'UTF-8');
             </div>
         </div>
         <nav class="au-nav">
-            <a href="#" class="au-nav-item">
+            <a href="agent_users.php" class="au-nav-item">
                 <?= icon('dashboard', 18) ?> داشبورد
             </a>
-            <a href="#" class="au-nav-item active">
+            <a href="agent_users.php" class="au-nav-item active">
                 <?= icon('users', 18) ?> مدیریت کاربران
             </a>
-            <a href="#" class="au-nav-item">
+            <a href="javascript:void(0)" onclick="alert('این بخش به زودی فعال می‌شود');" class="au-nav-item">
                 <?= icon('activity', 18) ?> لاگ عملیات
             </a>
-            <a href="#" class="au-nav-item">
+            <a href="javascript:void(0)" onclick="alert('این بخش به زودی فعال می‌شود');" class="au-nav-item">
                 <?= icon('database', 18) ?> مستندات API
             </a>
-            <a href="#" class="au-nav-item">
+            <a href="javascript:void(0)" onclick="alert('این بخش به زودی فعال می‌شود');" class="au-nav-item">
                 <?= icon('settings', 18) ?> تنظیمات
             </a>
         </nav>
