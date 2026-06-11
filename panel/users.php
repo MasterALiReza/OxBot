@@ -29,6 +29,12 @@ if ($isSuperAdmin && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     db_query($pdo, "INSERT INTO admin (id_admin, username, password, rule) VALUES (?, ?, ?, ?)", [
                         $id_admin, $username, $hash, $rule
                     ]);
+                    require_once __DIR__ . '/../../botapi.php';
+                    if (isset($textbotlang['Admin']['manageadmin']['adminAddedSendUser'])) {
+                        sendmessage($id_admin, $textbotlang['Admin']['manageadmin']['adminAddedSendUser'], null, 'HTML');
+                    } else {
+                        sendmessage($id_admin, "شما به عنوان ادمین به ربات اضافه شدید.", null, 'HTML');
+                    }
                     flash('success', 'ادمین با موفقیت اضافه شد.');
                 } catch (Exception $e) {
                     flash('error', 'خطا در افزودن ادمین.');
@@ -176,7 +182,7 @@ $roleConfig = [
 $getRoleConf = fn($rule) => $roleConfig[$rule] ?? ['label' => $rule, 'tag' => 'tag-plain', 'icon' => 'user', 'color' => '#6b7280'];
 
 
-$pageTitle = 'مدیریت کاربران و همکاران';
+$pageTitle = 'مدیریت کاربران و ادمین‌ها';
 $pageLede = 'مدیریت یکپارچه تمامی کاربران ربات و ادمین‌های پنل';
 $activeNav = 'users';
 include __DIR__ . '/inc/layout_head.php';
@@ -241,7 +247,7 @@ include __DIR__ . '/inc/layout_head.php';
     </a>
     <?php if ($isSuperAdmin): ?>
     <a href="?tab=admins" class="tab-item <?= $activeTab === 'admins' ? 'active' : '' ?>">
-        <?= icon('shield', 18) ?> مدیران و همکاران پنل
+        <?= icon('shield', 18) ?> ادمین‌های پنل
         <span class="badge"><?= number_format($totalAdmins) ?></span>
     </a>
     <?php endif; ?>
