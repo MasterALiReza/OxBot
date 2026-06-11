@@ -21,11 +21,9 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
   <link rel="stylesheet" href="css/mobile_optimizations.css?v=<?= time() ?>">
   <script>
     (function () {
-      var _LIGHT = ['light', 'linen', 'mint', 'lavender'];
+      var _LIGHT = ['light'];
       var bg = {
-        navy: '#222831', purple: '#1D3557', emerald: '#1D3557',
-        sunset: '#1D3557', slate: '#1D3557', light: '#F1F5F9',
-        linen: '#FAF7F2', mint: '#F0FDF4', lavender: '#FAF5FF'
+        navy: '#222831', light: '#F1F5F9'
       };
 
       // Auto-detect on first visit using device preference
@@ -54,7 +52,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
     window.PANEL_I18N = <?= json_encode(
       array_filter(
         $textbotlang['panel'] ?? [],
-        fn($k) => strncmp($k, 'js_', 3) === 0,
+        fn($k) => strncmp($k, 'js', 2) === 0,
         ARRAY_FILTER_USE_KEY
       ),
       JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES

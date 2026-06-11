@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title><?= $textbotlang['panel']['loginPanelTitle'] ?></title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/mobile_optimizations.css">
-  <script>(function () { var t = localStorage.getItem('panel-theme') || 'navy'; document.documentElement.setAttribute('data-theme', t); var c = { navy: '#0F172A', purple: '#180D2E', emerald: '#0A1F1C', sunset: '#1A0D0D', slate: '#080808', light: '#F1F5F9', linen: '#FAF7F2', mint: '#F0FDF4', lavender: '#FAF5FF' }; var m = document.getElementById('mtc'); if (m && c[t]) m.content = c[t]; })();</script>
+  <script>(function () { var t = localStorage.getItem('panel-theme') || 'navy'; document.documentElement.setAttribute('data-theme', t); var c = { navy: '#222831', light: '#F1F5F9' }; var m = document.getElementById('mtc'); if (m && c[t]) m.content = c[t]; })();</script>
   <style>
     .input-wrapper {
         position: relative;
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         padding: 32px !important;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
     }
-    [data-theme=light] .auth-box, [data-theme=linen] .auth-box, [data-theme=mint] .auth-box, [data-theme=lavender] .auth-box {
+    [data-theme=light] .auth-box {
         background: rgba(255, 255, 255, 0.75) !important;
         border: 1.5px solid rgba(0, 0, 0, 0.08) !important;
         box-shadow: 0 12px 40px rgba(15, 23, 42, 0.05) !important;

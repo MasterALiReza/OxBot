@@ -35,7 +35,7 @@ window.autoDetectTheme = function () {
 
 // Sync the toggle label/icon on the settings page
 function syncToggleBtn() {
-    var _LIGHT = ['light', 'linen', 'mint', 'lavender'];
+    var _LIGHT = ['light'];
     var cur = localStorage.getItem('panel-theme') || 'navy';
     var isLight = _LIGHT.indexOf(cur) >= 0;
     var lbl = document.getElementById('toggleThemeLabel');

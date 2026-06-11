@@ -157,11 +157,9 @@ window.closeConfirm = function () {
 
 
 var _THEME_BG = {
-    navy: '#222831', purple: '#1D3557', emerald: '#1D3557',
-    sunset: '#1D3557', slate: '#1D3557', light: '#F1F5F9',
-    linen: '#FAF7F2', mint: '#F0FDF4', lavender: '#FAF5FF'
+    navy: '#222831', light: '#F1F5F9'
 };
-var _LIGHT_THEMES = ['light', 'linen', 'mint', 'lavender'];
+var _LIGHT_THEMES = ['light'];
 
 window.applyTheme = function (t) {
     var root = document.documentElement;
