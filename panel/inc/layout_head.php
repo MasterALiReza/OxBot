@@ -182,11 +182,28 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               <a href="users.php?tab=admins" class="nav-sub-item <?= (isset($_GET['tab']) && $_GET['tab'] === 'admins') ? 'active' : '' ?>" title="مدیران پنل">
                 <div class="nav-sub-dot"></div>مدیران و همکاران پنل
               </a>
-              <a href="affiliates.php" class="nav-sub-item <?= $activeNav === 'affiliates' ? 'active' : '' ?>" title="همکاری در فروش (زیرمجموعه‌ها)">
-                <div class="nav-sub-dot"></div>همکاری در فروش (زیرمجموعه‌ها)
-              </a>
+
               <a href="broadcast.php" class="nav-sub-item <?= $activeNav === 'broadcast' ? 'active' : '' ?>" title="ارسال پیام همگانی">
                 <div class="nav-sub-dot"></div>پیام همگانی
+              </a>
+            </div>
+          </div>
+
+          <!-- همکاری در فروش -->
+          <div class="nav-group <?= in_array($activeNav, ['affiliates', 'settings_affiliates']) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= in_array($activeNav, ['affiliates', 'settings_affiliates']) ? 'active' : '' ?>">
+              <div class="nav-group-title">
+                <span class="nav-icon"><?= icon('percent') ?></span>
+                <span class="nav-label">همکاری در فروش</span>
+              </div>
+              <svg class="nav-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div class="nav-sub">
+              <a href="affiliates.php" class="nav-sub-item <?= $activeNav === 'affiliates' ? 'active' : '' ?>" title="لیست زیرمجموعه‌ها">
+                <div class="nav-sub-dot"></div>لیست زیرمجموعه‌ها
+              </a>
+              <a href="settings_affiliates.php" class="nav-sub-item <?= $activeNav === 'settings_affiliates' ? 'active' : '' ?>" title="تنظیمات پورسانت">
+                <div class="nav-sub-dot"></div>تنظیمات پورسانت
               </a>
             </div>
           </div>

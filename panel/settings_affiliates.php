@@ -71,13 +71,21 @@ $limitnumber = json_decode($row['limitnumber'] ?? '{}', true);
 $lottery_prize = json_decode($row['Lottery_prize'] ?? '{}', true);
 
 $schema = [
-    'agents' => [
-        'title' => 'تنظیمات نمایندگان',
-        'icon' => 'users',
+    'affiliates' => [
+        'title' => 'تنظیمات پورسانت',
+        'icon' => 'percent',
         'sections' => [
-            'نمایندگی' => [
-                ['name' => 'set_statusagentrequest', 'label' => 'درخواست نمایندگی', 'type' => 'select', 'options' => ['onrequestagent' => 'باز', 'offrequestagent' => 'بسته'], 'val' => $row['statusagentrequest'] ?? ''],
-                ['name' => 'set_agentreqprice', 'label' => 'حداقل شارژ برای درخواست (تومان)', 'type' => 'number', 'val' => $row['agentreqprice'] ?? ''],
+            'سیستم پورسانت' => [
+                ['name' => 'set_affiliatesstatus', 'label' => 'وضعیت سیستم همکاری در فروش', 'type' => 'select', 'options' => ['onaffiliates' => 'فعال', 'offaffiliates' => 'غیرفعال'], 'val' => $row['affiliatesstatus'] ?? ''],
+                ['name' => 'set_affiliatespercentage', 'label' => 'درصد پورسانت', 'type' => 'number', 'val' => $row['affiliatespercentage'] ?? '0'],
+                ['name' => 'aff_status_commission', 'label' => 'وضعیت پورسانت‌دهی خریدار', 'type' => 'select', 'options' => ['oncommission' => 'فعال', 'offcommission' => 'غیرفعال'], 'val' => $affiliate_settings['status_commission'] ?? ''],
+                ['name' => 'aff_porsant_one_buy', 'label' => 'پورسانت فقط خرید اول', 'type' => 'select', 'options' => ['on_buy_porsant' => 'بله', 'off_buy_porsant' => 'خیر'], 'val' => $affiliate_settings['porsant_one_buy'] ?? ''],
+            ],
+            'تخفیف و رسانه' => [
+                ['name' => 'aff_Discount', 'label' => 'کد تخفیف به معرف', 'type' => 'select', 'options' => ['onDiscountaffiliates' => 'فعال', 'offDiscountaffiliates' => 'غیرفعال'], 'val' => $affiliate_settings['Discount'] ?? ''],
+                ['name' => 'aff_price_Discount', 'label' => 'مبلغ/درصد تخفیف', 'type' => 'number', 'val' => $affiliate_settings['price_Discount'] ?? '0'],
+                ['name' => 'aff_id_media', 'label' => 'شناسه مدیا راهنما', 'type' => 'text', 'val' => $affiliate_settings['id_media'] ?? ''],
+                ['name' => 'aff_description', 'label' => 'متن توضیحات راهنما', 'type' => 'text', 'val' => $affiliate_settings['description'] ?? ''],
             ]
         ]
     ]
@@ -203,13 +211,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     flash('success', $textbotlang['panel']['botSettingsSuccess'] ?? 'تنظیمات با موفقیت ذخیره شد.');
     $redirect_tab = $_POST['current_tab'] ?? 'general';
     $redirect_sec = $_POST['current_sec'] ?? '';
-    header('Location: settings_agents.php?tab=' . urlencode($redirect_tab) . '&sec=' . urlencode($redirect_sec));
+    header('Location: settings_affiliates.php?tab=' . urlencode($redirect_tab) . '&sec=' . urlencode($redirect_sec));
     exit;
 }
 
-$tab = $_GET['tab'] ?? 'agents';
+$tab = $_GET['tab'] ?? 'affiliates';
 if (!array_key_exists($tab, $schema)) {
-    $tab = 'agents';
+    $tab = 'affiliates';
 }
 
 $sections = array_keys($schema[$tab]['sections']);
@@ -218,8 +226,8 @@ if (!in_array($sec, $sections)) {
     $sec = $sections[0];
 }
 
-$pageTitle = $schema[$tab]['title'] ?? 'تنظیمات نمایندگان';
-$activeNav = 'settings_agents';
+$pageTitle = $schema[$tab]['title'] ?? 'تنظیمات همکاری در فروش';
+$activeNav = 'settings_affiliates';
 include __DIR__ . '/inc/layout_head.php';
 ?>
 
