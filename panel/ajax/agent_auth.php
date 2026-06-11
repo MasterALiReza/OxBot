@@ -5,12 +5,12 @@ require_once __DIR__ . '/../../botapi.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_POST['action'])) {
+if (!isset($_REQUEST['action'])) {
     echo json_encode(['status' => 'error', 'message' => 'درخواست نامعتبر']);
     exit;
 }
 
-$action = $_POST['action'];
+$action = $_REQUEST['action'];
 
 if ($action === 'send_otp') {
     $telegram_id = trim($_POST['telegram_id'] ?? '');
@@ -92,6 +92,12 @@ if ($action === 'verify_otp') {
     unset($_SESSION['agent_otp_time']);
 
     echo json_encode(['status' => 'success']);
+    exit;
+}
+
+if ($action === 'logout') {
+    session_destroy();
+    header("Location: ../agent_login.php");
     exit;
 }
 

@@ -37,7 +37,7 @@ if ($action === 'get_users') {
     $totalPages = ceil($total / $limit);
 
     // Get Data
-    $sql = "SELECT * FROM invoice WHERE $where ORDER BY id DESC LIMIT $limit OFFSET $offset";
+    $sql = "SELECT * FROM invoice WHERE $where ORDER BY time_sell DESC LIMIT $limit OFFSET $offset";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -76,7 +76,7 @@ if ($action === 'get_users') {
         }
 
         $users[] = [
-            'id' => $inv['id'],
+            'id' => $inv['id_invoice'],
             'username' => $inv['username'],
             'status' => $inv['Status'] === 'active' ? 'active' : 'inactive',
             'status_label' => $status_label,
