@@ -179,10 +179,9 @@ if ($adminrulecheck['rule'] == "administrator") {
 
     $keyboardadmin = json_encode([
         'keyboard' => [
-            [['text' => $textbotlang['keyboard']['adminMenuStatus']]],
-            [['text' => $textbotlang['keyboard']['adminMenuUsers']], ['text' => $textbotlang['keyboard']['adminMenuServers']]],
-            [['text' => $textbotlang['keyboard']['adminMenuFinancial']], ['text' => $textbotlang['keyboard']['adminMenuShop']]],
-            [['text' => $textbotlang['keyboard']['adminMenuSupport']], ['text' => $textbotlang['keyboard']['adminMenuSettings']]],
+            [['text' => $textbotlang['keyboard']['adminMenuServers']], ['text' => $textbotlang['keyboard']['adminMenuUsers']]],
+            [['text' => $textbotlang['keyboard']['adminMenuShop']], ['text' => $textbotlang['keyboard']['adminMenuFinancial']]],
+            [['text' => $textbotlang['keyboard']['adminMenuSettings']], ['text' => $textbotlang['keyboard']['adminMenuSupport']]],
             [['text' => $textbotlang['users']['backbtn']]]
         ],
         'resize_keyboard' => true
