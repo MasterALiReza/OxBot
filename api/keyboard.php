@@ -23,6 +23,9 @@ $list_keyboard = array(
     'text_Tariff_list',
     'text_support',
     'text_help',
+    'requestAgent',
+    'agentPanel',
+    'panelAdmin',
 );
 $textbotlang['textbot'] = [
     'text_sell' => $textbotlang['textbot']['sell'],
@@ -35,6 +38,9 @@ $textbotlang['textbot'] = [
     'text_Tariff_list' => $textbotlang['textbot']['tariffList'],
     'text_support' => $textbotlang['textbot']['support'],
     'text_help' => $textbotlang['textbot']['help'],
+    'requestAgent' => $textbotlang['textbot']['requestAgent'] ?? 'درخواست نمایندگی',
+    'agentPanel' => $textbotlang['textbot']['agentPanel'] ?? 'پنل نمایندگی',
+    'panelAdmin' => $textbotlang['Admin']['panelAdmin'] ?? 'پنل مدیریت',
 ];
 foreach ($keyboardmain['keyboard'] as $keyboard) {
     foreach ($keyboard as $arrkey) {

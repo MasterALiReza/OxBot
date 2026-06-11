@@ -38,7 +38,10 @@ $replacements = [
     'text_Tariff_list' => $textbotlang['textbot']['tariffList'],
     'text_affiliates' => $textbotlang['textbot']['affiliates'],
     'text_wheel_luck' => $textbotlang['textbot']['wheelLuck'],
-    'text_extend' => $textbotlang['textbot']['extend']
+    'text_extend' => $textbotlang['textbot']['extend'],
+    'requestAgent' => $textbotlang['textbot']['requestAgent'],
+    'agentPanel' => $textbotlang['textbot']['agentPanel'],
+    'panelAdmin' => $textbotlang['Admin']['panelAdmin']
 ];
 $admin_idss = select("admin", "*", "id_admin", $from_id, "count");
 $temp_addtional_key = [];
@@ -47,6 +50,45 @@ $keyboardRows = [];
 if (is_array($keyboardLayout) && isset($keyboardLayout['keyboard']) && is_array($keyboardLayout['keyboard'])) {
     $keyboardRows = $keyboardLayout['keyboard'];
 }
+
+$has_panelAdmin = false;
+$has_agentPanel = false;
+$has_requestAgent = false;
+foreach ($keyboardRows as $row) {
+    foreach ($row as $button) {
+        if ($button['text'] == 'panelAdmin') $has_panelAdmin = true;
+        if ($button['text'] == 'agentPanel') $has_agentPanel = true;
+        if ($button['text'] == 'requestAgent') $has_requestAgent = true;
+    }
+}
+
+$keyboardRowsFiltered = [];
+foreach ($keyboardRows as $row) {
+    $newRow = [];
+    foreach ($row as $button) {
+        $keep = true;
+        if ($button['text'] == 'panelAdmin') {
+            if ($admin_idss == 0) {
+                $keep = false;
+            }
+        } elseif ($button['text'] == 'agentPanel') {
+            if ($users['agent'] == "f") {
+                $keep = false;
+            }
+        } elseif ($button['text'] == 'requestAgent') {
+            if ($users['agent'] != "f" || $setting['statusagentrequest'] != "onrequestagent") {
+                $keep = false;
+            }
+        }
+        if ($keep) {
+            $newRow[] = $button;
+        }
+    }
+    if (!empty($newRow)) {
+        $keyboardRowsFiltered[] = $newRow;
+    }
+}
+$keyboardRows = $keyboardRowsFiltered;
 
 if ($setting['inlinebtnmain'] == "oninline" && !empty($keyboardRows)) {
     $trace_keyboard = $keyboardRows;
@@ -83,18 +125,27 @@ if ($setting['inlinebtnmain'] == "oninline" && !empty($keyboardRows)) {
             if ($keyboard['text'] == "text_usertest") {
                 $trace_keyboard[$key][$keyboard_key]['callback_data'] = "usertestbtn";
             }
+            if ($keyboard['text'] == "panelAdmin") {
+                $trace_keyboard[$key][$keyboard_key]['callback_data'] = "admin";
+            }
+            if ($keyboard['text'] == "agentPanel") {
+                $trace_keyboard[$key][$keyboard_key]['callback_data'] = "agentpanel";
+            }
+            if ($keyboard['text'] == "requestAgent") {
+                $trace_keyboard[$key][$keyboard_key]['callback_data'] = "requestagent";
+            }
             if (!isset($trace_keyboard[$key][$keyboard_key]['callback_data']) && !isset($trace_keyboard[$key][$keyboard_key]['url']) && !isset($trace_keyboard[$key][$keyboard_key]['web_app'])) {
                 $trace_keyboard[$key][$keyboard_key]['callback_data'] = "ignore";
             }
         }
     }
-    if ($admin_idss != 0) {
+    if (!$has_panelAdmin && $admin_idss != 0) {
         $temp_addtional_key[] = ['text' => $textbotlang['Admin']['panelAdmin'], 'callback_data' => "admin"];
     }
-    if ($users['agent'] != "f") {
+    if (!$has_agentPanel && $users['agent'] != "f") {
         $temp_addtional_key[] = ['text' => $textbotlang['textbot']['agentPanel'], 'callback_data' => "agentpanel"];
     }
-    if ($users['agent'] == "f" && $setting['statusagentrequest'] == "onrequestagent") {
+    if (!$has_requestAgent && $users['agent'] == "f" && $setting['statusagentrequest'] == "onrequestagent") {
         $temp_addtional_key[] = ['text' => $textbotlang['textbot']['requestAgent'], 'callback_data' => "requestagent"];
     }
     $keyboard = ['inline_keyboard' => []];
@@ -106,13 +157,13 @@ if ($setting['inlinebtnmain'] == "oninline" && !empty($keyboardRows)) {
     $keyboard['inline_keyboard'] = $keyboardcustom;
     $keyboard = json_encode($keyboard);
 } else {
-    if ($admin_idss != 0) {
+    if (!$has_panelAdmin && $admin_idss != 0) {
         $temp_addtional_key[] = ['text' => $textbotlang['Admin']['panelAdmin']];
     }
-    if ($users['agent'] != "f") {
+    if (!$has_agentPanel && $users['agent'] != "f") {
         $temp_addtional_key[] = ['text' => $textbotlang['textbot']['agentPanel']];
     }
-    if ($users['agent'] == "f" && $setting['statusagentrequest'] == "onrequestagent") {
+    if (!$has_requestAgent && $users['agent'] == "f" && $setting['statusagentrequest'] == "onrequestagent") {
         $temp_addtional_key[] = ['text' => $textbotlang['textbot']['requestAgent']];
     }
     $keyboard = ['keyboard' => [], 'resize_keyboard' => true];

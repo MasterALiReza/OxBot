@@ -152,25 +152,27 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
   <?php else: ?>
     <div class="toolbar">
       <div class="toolbar-title">فهرست محصولات <small>(<?= count($products) ?>)</small></div>
-      <div class="toolbar-end" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <select class="select" id="filter-category" style="width:auto;min-width:140px;">
-            <option value="all">همه دسته‌بندی‌ها</option>
-            <?php foreach (array_unique(array_filter(array_column($products, 'category'))) as $cat): ?>
-                <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
-            <?php endforeach; ?>
-        </select>
-        <select class="select" id="filter-panel" style="width:auto;min-width:140px;">
-            <option value="all">همه سرورها/پنل‌ها</option>
-            <?php foreach (array_unique(array_filter(array_column($products, 'Location'))) as $loc): ?>
-                <option value="<?= htmlspecialchars($loc) ?>"><?= htmlspecialchars($loc) ?></option>
-            <?php endforeach; ?>
-        </select>
-        <div class="search-box" style="min-width:220px; flex: 1;">
+      <div class="toolbar-end">
+        <div class="toolbar-filters">
+          <select class="select" id="filter-category">
+              <option value="all">همه دسته‌بندی‌ها</option>
+              <?php foreach (array_unique(array_filter(array_column($products, 'category'))) as $cat): ?>
+                  <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
+              <?php endforeach; ?>
+          </select>
+          <select class="select" id="filter-panel">
+              <option value="all">همه سرورها/پنل‌ها</option>
+              <?php foreach (array_unique(array_filter(array_column($products, 'Location'))) as $loc): ?>
+                  <option value="<?= htmlspecialchars($loc) ?>"><?= htmlspecialchars($loc) ?></option>
+              <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="search-box">
           <?= icon('search', 14) ?>
           <input type="text" placeholder="جستجوی محصول..." id="filter-search">
           <button type="button" class="search-clear">✕</button>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openModal('addModal')" style="flex-shrink:0;">
+        <button class="btn btn-primary btn-sm btn-add-product" onclick="openModal('addModal')">
           <?= icon('plus', 14) ?> افزودن محصول جدید
         </button>
       </div>

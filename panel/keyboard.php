@@ -28,7 +28,7 @@ $keyboardmain_db = json_decode(select("setting", "keyboardmain", null, null, "se
 $list_keyboard = array(
     'text_sell', 'text_extend', 'text_usertest', 'text_wheel_luck',
     'text_Purchased_services', 'accountwallet', 'text_affiliates',
-    'text_Tariff_list', 'text_support', 'text_help'
+    'text_Tariff_list', 'text_support', 'text_help', 'requestAgent', 'agentPanel', 'panelAdmin'
 );
 
 $text_dict = [
@@ -42,6 +42,9 @@ $text_dict = [
     'text_Tariff_list' => $textbotlang['textbot']['tariffList'],
     'text_support' => $textbotlang['textbot']['support'],
     'text_help' => $textbotlang['textbot']['help'],
+    'requestAgent' => $textbotlang['textbot']['requestAgent'] ?? 'درخواست نمایندگی',
+    'agentPanel' => $textbotlang['textbot']['agentPanel'] ?? 'پنل نمایندگی',
+    'panelAdmin' => $textbotlang['Admin']['panelAdmin'] ?? 'پنل مدیریت',
 ];
 
 foreach ($keyboardmain_db['keyboard'] as $row) {
