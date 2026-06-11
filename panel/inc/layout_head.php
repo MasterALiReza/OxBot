@@ -49,14 +49,17 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
     }());
   </script>
   <script>
-    window.PANEL_I18N = <?= json_encode(
-      array_filter(
-        $textbotlang['panel'] ?? [],
-        fn($k) => strncmp($k, 'js', 2) === 0,
-        ARRAY_FILTER_USE_KEY
-      ),
-      JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-    ) ?>;
+    <?php
+    $js_i18n = [];
+    if (isset($textbotlang['panel']) && is_array($textbotlang['panel'])) {
+        foreach ($textbotlang['panel'] as $k => $v) {
+            if (substr($k, 0, 2) === 'js') {
+                $js_i18n[$k] = $v;
+            }
+        }
+    }
+    ?>
+    window.PANEL_I18N = <?= json_encode($js_i18n, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
     window.t = function (key, vars) {
       var s = (window.PANEL_I18N && window.PANEL_I18N[key]) || key;
       if (vars) {

@@ -41,7 +41,7 @@ $replacements = [
     'text_extend' => $textbotlang['textbot']['extend'],
     'requestAgent' => $textbotlang['textbot']['requestAgent'],
     'agentPanel' => $textbotlang['textbot']['agentPanel'],
-    'panelAdmin' => $textbotlang['Admin']['panelAdmin']
+    'panelAdmin' => $textbotlang['panel']['panelAdmin']
 ];
 $admin_idss = select("admin", "*", "id_admin", $from_id, "count");
 $temp_addtional_key = [];
@@ -140,7 +140,7 @@ if ($setting['inlinebtnmain'] == "oninline" && !empty($keyboardRows)) {
         }
     }
     if (!$has_panelAdmin && $admin_idss != 0) {
-        $temp_addtional_key[] = ['text' => $textbotlang['Admin']['panelAdmin'], 'callback_data' => "admin"];
+        $temp_addtional_key[] = ['text' => $textbotlang['panel']['panelAdmin'], 'callback_data' => "admin"];
     }
     if (!$has_agentPanel && $users['agent'] != "f") {
         $temp_addtional_key[] = ['text' => $textbotlang['textbot']['agentPanel'], 'callback_data' => "agentpanel"];
@@ -158,7 +158,7 @@ if ($setting['inlinebtnmain'] == "oninline" && !empty($keyboardRows)) {
     $keyboard = json_encode($keyboard);
 } else {
     if (!$has_panelAdmin && $admin_idss != 0) {
-        $temp_addtional_key[] = ['text' => $textbotlang['Admin']['panelAdmin']];
+        $temp_addtional_key[] = ['text' => $textbotlang['panel']['panelAdmin']];
     }
     if (!$has_agentPanel && $users['agent'] != "f") {
         $temp_addtional_key[] = ['text' => $textbotlang['textbot']['agentPanel']];

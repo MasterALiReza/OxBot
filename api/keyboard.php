@@ -40,7 +40,7 @@ $textbotlang['textbot'] = [
     'text_help' => $textbotlang['textbot']['help'],
     'requestAgent' => $textbotlang['textbot']['requestAgent'] ?? 'درخواست نمایندگی',
     'agentPanel' => $textbotlang['textbot']['agentPanel'] ?? 'پنل نمایندگی',
-    'panelAdmin' => $textbotlang['Admin']['panelAdmin'] ?? 'پنل مدیریت',
+    'panelAdmin' => $textbotlang['panel']['panelAdmin'] ?? 'پنل مدیریت',
 ];
 foreach ($keyboardmain['keyboard'] as $keyboard) {
     foreach ($keyboard as $arrkey) {
