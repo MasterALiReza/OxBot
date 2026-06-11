@@ -1058,6 +1058,8 @@ function closeTestConnModal() {
         formData.append('url_panel', url);
         formData.append('username_panel', user);
         formData.append('password_panel', pass);
+        const panelType = document.getElementById('panelType').value;
+        formData.append('panel_type', panelType);
 
         fetch('ajax/sanaei_inbounds.php', { method: 'POST', body: formData })
         .then(res => res.json())
@@ -1122,6 +1124,10 @@ function closeTestConnModal() {
         formData.append('url_panel', url);
         formData.append('username_panel', user);
         formData.append('password_panel', pass);
+        const panelType = document.getElementById('panelType').value;
+        const inboundid = document.getElementById('panelInboundId').value;
+        formData.append('panel_type', panelType);
+        formData.append('inboundid', inboundid);
 
         fetch('ajax/sanaei_inbounds.php', { method: 'POST', body: formData })
         .then(res => res.json())

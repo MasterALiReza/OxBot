@@ -6,10 +6,41 @@ header('Content-Type: application/json');
 $url = trim($_POST['url_panel'] ?? '');
 $username = trim($_POST['username_panel'] ?? '');
 $password = trim($_POST['password_panel'] ?? '');
+$panel_type = trim($_POST['panel_type'] ?? '');
+$inboundid = trim($_POST['inboundid'] ?? '');
 
 if (empty($url) || empty($password)) {
     echo json_encode(['success' => false, 'msg' => 'اطلاعات ورود (آدرس و رمزعبور/توکن) ناقص است.']);
     exit;
+}
+
+if ($panel_type === 'WGDashboard') {
+    $test_inbound = !empty($inboundid) ? explode(',', $inboundid)[0] : 'wg0';
+    $base_url = rtrim($url, '/');
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $base_url . '/api/getWireguardConfigurationInfo?configurationName=' . $test_inbound,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => array(
+            'Accept: application/json',
+            'wg-dashboard-apikey: ' . $password
+        ),
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_TIMEOUT => 10
+    ));
+    $response = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+    
+    $resData = json_decode($response, true);
+    if ($http_code === 200 && isset($resData['status']) && $resData['status']) {
+        echo json_encode(['success' => true, 'msg' => 'اتصال موفق', 'inbounds' => []]);
+        exit;
+    } else {
+        echo json_encode(['success' => false, 'msg' => 'اتصال ناموفق: توکن API اشتباه است یا نام کانفیگ (' . $test_inbound . ') در پنل وجود ندارد. (کد: ' . $http_code . ')']);
+        exit;
+    }
 }
 
 // Temporary cookie file for this session
