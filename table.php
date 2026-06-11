@@ -137,7 +137,7 @@ try {
         'uptime_node' => false,
         'uptime_panel' => false,
     ));
-    $keyboardmain = '{"keyboard":[[{"text":"text_extend"},{"text":"text_sell"}],[{"text":"text_Purchased_services"}],[{"text":"text_Tariff_list"},{"text":"text_usertest"}],[{"text":"text_help"},{"text":"accountwallet"}],[{"text":"text_affiliates"},{"text":"text_support"}],[{"text":"text_wheel_luck"}]]}';
+    $keyboardmain = '{"keyboard":[[{"text":"text_sell"},{"text":"text_extend"}],[{"text":"text_Purchased_services"}],[{"text":"text_usertest"},{"text":"text_Tariff_list"}],[{"text":"accountwallet"},{"text":"text_help"}],[{"text":"text_support"},{"text":"text_affiliates"}],[{"text":"text_wheel_luck"}]]}';
     $tableExists = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$tableExists) {
         $stmt = $pdo->prepare("CREATE TABLE $tableName (
