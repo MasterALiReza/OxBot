@@ -498,7 +498,7 @@ include __DIR__ . '/inc/layout_head.php';
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div class="toolbar-title">لیست ادمین‌ها</div>
             <button class="btn btn-primary btn-sm" onclick="openAdminModal()">
-                <?= icon('plus', 14) ?> افزودن همکار
+                <?= icon('plus', 14) ?> افزودن ادمین
             </button>
         </div>
         <form method="GET" class="toolbar-end">
@@ -625,12 +625,12 @@ include __DIR__ . '/inc/layout_head.php';
                 <input type="hidden" name="action" value="add">
                 <div class="form-grid">
                     <div class="field full">
-                        <label>شناسه عددی کاربر <span style="color:var(--accent)">*</span></label>
+                        <label>شناسه عددی کاربر (Telegram ID) <span style="color:var(--accent)">*</span></label>
                         <div class="input-with-icon">
                             <?= icon('hash', 18) ?>
-                            <input type="number" name="id_admin" class="input" placeholder="مثال: 12345678" required>
+                            <input type="number" name="id_admin" id="add-id" class="input" placeholder="مثال: 12345678" required>
                         </div>
-                        <small style="color:var(--mute);margin-top:4px;display:block">شناسه عددی یکتای کاربر در ربات</small>
+                        <small style="color:var(--mute);margin-top:4px;display:block">شناسه عددی یکتای کاربر در ربات (جهت یکپارچگی ادمین پنل با ربات)</small>
                     </div>
                     <div class="field">
                         <label>نام کاربری پنل <span style="color:var(--accent)">*</span></label>
