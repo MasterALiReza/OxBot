@@ -427,6 +427,7 @@ try {
         addFieldToTable("marzban_panel", "linksubx", null, "VARCHAR(200)");
         addFieldToTable("marzban_panel", "conecton", "offconecton", "VARCHAR(100)");
         addFieldToTable("marzban_panel", "type", "marzban", "VARCHAR(50)");
+        addFieldToTable("marzban_panel", "sanaei_group", "", "VARCHAR(255)");
         addFieldToTable("marzban_panel", "Methodextend", $textbotlang['keyboard']['resetVolumeTime'], "VARCHAR(100)");
         addFieldToTable("marzban_panel", "namecustom", "vpn", "VARCHAR(100)");
         addFieldToTable("marzban_panel", "limit_panel", "unlimited", "VARCHAR(50)");

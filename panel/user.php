@@ -246,11 +246,7 @@ include __DIR__ . '/inc/layout_head.php';
     }
 }
 .u-sidebar {
-    position: sticky;
-    top: 80px;
-    align-self: flex-start;
-    max-height: calc(100vh - 100px);
-    overflow-y: auto;
+    /* Style moved to CSS or handled cleanly */
 }
 .u-sidebar::-webkit-scrollbar {
     width: 4px;
@@ -923,7 +919,7 @@ include __DIR__ . '/inc/layout_head.php';
             <h3>ارسال پیام به کاربر</h3>
             <button class="modal-x" onclick="closeModal('msgModal')"><?= icon('close', 14) ?></button>
         </div>
-        <form method="POST">
+        <form method="POST" action="">
             <div class="modal-body">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="send_msg">
@@ -946,7 +942,7 @@ include __DIR__ . '/inc/layout_head.php';
             <h3>سقف اکانت تست</h3>
             <button class="modal-x" onclick="closeModal('limitTestModal')"><?= icon('close', 14) ?></button>
         </div>
-        <form method="POST">
+        <form method="POST" action="">
             <div class="modal-body">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="set_test_limit">
@@ -969,7 +965,7 @@ include __DIR__ . '/inc/layout_head.php';
             <h3>انتقال حساب به کاربر دیگر</h3>
             <button class="modal-x" onclick="closeModal('transferModal')"><?= icon('close', 14) ?></button>
         </div>
-        <form method="POST">
+        <form method="POST" action="">
             <div class="modal-body">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="transfer_account">
@@ -994,7 +990,7 @@ include __DIR__ . '/inc/layout_head.php';
             <h3>سقف خرید نماینده</h3>
             <button class="modal-x" onclick="closeModal('agentBuyCapModal')"><?= icon('close', 14) ?></button>
         </div>
-        <form method="POST">
+        <form method="POST" action="">
             <div class="modal-body">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="set_buy_cap">
@@ -1017,7 +1013,7 @@ include __DIR__ . '/inc/layout_head.php';
             <h3>قیمت پایه حجم</h3>
             <button class="modal-x" onclick="closeModal('agentVolPriceModal')"><?= icon('close', 14) ?></button>
         </div>
-        <form method="POST">
+        <form method="POST" action="">
             <div class="modal-body">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="set_vol_price">
@@ -1040,7 +1036,7 @@ include __DIR__ . '/inc/layout_head.php';
             <h3>قیمت پایه زمان</h3>
             <button class="modal-x" onclick="closeModal('agentTimePriceModal')"><?= icon('close', 14) ?></button>
         </div>
-        <form method="POST">
+        <form method="POST" action="">
             <div class="modal-body">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="set_time_price">
@@ -1063,7 +1059,7 @@ include __DIR__ . '/inc/layout_head.php';
             <h3>مخفی کردن پنل</h3>
             <button class="modal-x" onclick="closeModal('agentHidePanelModal')"><?= icon('close', 14) ?></button>
         </div>
-        <form method="POST">
+        <form method="POST" action="">
             <div class="modal-body">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="set_hide_panel">
@@ -1086,7 +1082,7 @@ include __DIR__ . '/inc/layout_head.php';
             <h3>تعیین تاریخ انقضا</h3>
             <button class="modal-x" onclick="closeModal('agentExpireModal')"><?= icon('close', 14) ?></button>
         </div>
-        <form method="POST">
+        <form method="POST" action="">
             <div class="modal-body">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="set_expire">

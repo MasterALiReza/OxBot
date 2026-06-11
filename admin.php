@@ -696,6 +696,10 @@ if (in_array($text, $textadmin) || $datain == "admin") {
 } elseif ($user['step'] == "getlimitedpanel") {
     savedata("save", "limitpanel", $text);
     $userdata = json_decode($user['Processing_value'], true);
+    if (!is_numeric($text) && $text != "نامحدود" && strtolower($text) != "unlimited") {
+        sendmessage($from_id, $textbotlang['Admin']['managepanel']['onlynumber'], $backadmin, 'HTML');
+        return;
+    }
     $randomString = bin2hex(random_bytes(2));
     if ($userdata['type'] == "x-ui_single" || $userdata['type'] == "MHSanaei-3.2" || $userdata['type'] == "alireza") {
         $marzbanprotocol = $randomString;

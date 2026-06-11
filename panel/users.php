@@ -627,7 +627,7 @@ include __DIR__ . '/inc/layout_head.php';
             <h3><?= icon('plus', 16) ?> افزودن ادمین جدید</h3>
             <button class="modal-x" onclick="closeModal('addModal')"><?= icon('close', 14) ?></button>
         </div>
-        <form method="POST">
+        <form method="POST" action="">
             <div class="modal-body">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="add">
@@ -678,7 +678,7 @@ include __DIR__ . '/inc/layout_head.php';
             <h3><?= icon('edit', 16) ?> ویرایش ادمین</h3>
             <button class="modal-x" onclick="closeModal('editModal')"><?= icon('close', 14) ?></button>
         </div>
-        <form method="POST">
+        <form method="POST" action="">
             <div class="modal-body">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="edit">
@@ -729,7 +729,7 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Delete hidden form -->
-<form method="POST" id="delete-form" style="display:none">
+<form method="POST" action="" id="delete-form" style="display:none">
     <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
     <input type="hidden" name="action" value="delete">
     <input type="hidden" name="id_admin" id="d-id">
