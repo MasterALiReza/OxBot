@@ -31,12 +31,32 @@ function initProductFilters() {
     if (!searchInp || searchInp.dataset.filtersInitialized) return;
     searchInp.dataset.filtersInitialized = 'true';
 
+    // Restore from sessionStorage
+    var savedSearch = sessionStorage.getItem('prod-filter-search');
+    var savedCat = sessionStorage.getItem('prod-filter-category');
+    var savedPanel = sessionStorage.getItem('prod-filter-panel');
+
+    if (savedSearch !== null) searchInp.value = savedSearch;
+    if (savedCat !== null && catSel) {
+        var exists = Array.from(catSel.options).some(function(opt) { return opt.value === savedCat; });
+        if (exists) catSel.value = savedCat;
+    }
+    if (savedPanel !== null && panelSel) {
+        var exists = Array.from(panelSel.options).some(function(opt) { return opt.value === savedPanel; });
+        if (exists) panelSel.value = savedPanel;
+    }
+
     function applyFilters() {
         var items = document.querySelectorAll('.product-card.filterable-item');
         var q = searchInp.value.trim().toLowerCase();
         var cat = catSel ? catSel.value : 'all';
         var panel = panelSel ? panelSel.value : 'all';
         var visibleCount = 0;
+
+        // Save to sessionStorage
+        sessionStorage.setItem('prod-filter-search', searchInp.value);
+        if (catSel) sessionStorage.setItem('prod-filter-category', cat);
+        if (panelSel) sessionStorage.setItem('prod-filter-panel', panel);
 
         items.forEach(function(item) {
             var itemCat = item.getAttribute('data-category') || '';
@@ -67,7 +87,20 @@ function initProductFilters() {
     searchInp.addEventListener('input', applyFilters);
     if(catSel) catSel.addEventListener('change', applyFilters);
     if(panelSel) panelSel.addEventListener('change', applyFilters);
+
+    // Initial run to apply restored filters
+    applyFilters();
 }
+
+// Clear filters when user clicks on product navigation links in sidebar/bottom navigation
+document.addEventListener('click', function (e) {
+    var link = e.target.closest('a');
+    if (link && (link.getAttribute('href') === 'product.php' || link.getAttribute('href') === 'product.php?')) {
+        sessionStorage.removeItem('prod-filter-search');
+        sessionStorage.removeItem('prod-filter-category');
+        sessionStorage.removeItem('prod-filter-panel');
+    }
+});
 
 document.body.addEventListener('htmx:load', initProductFilters);
 initProductFilters();
