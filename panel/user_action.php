@@ -25,7 +25,7 @@ if (!$id) {
     header('Location: users.php'); exit;
 }
 
-$user = db_fetch($pdo, "SELECT id, User_Status FROM user WHERE id = ?", [$id]);
+$user = db_fetch($pdo, "SELECT * FROM user WHERE id = ?", [$id]);
 if (!$user) {
     flash('error', $textbotlang['panel']['userActionUserNotFound']);
     header('Location: users.php'); exit;
