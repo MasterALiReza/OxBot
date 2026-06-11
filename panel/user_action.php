@@ -96,6 +96,58 @@ switch ($action) {
         flash('success', 'وضعیت ربات کاربر تغییر کرد.');
         break;
 
+    case 'set_vol_price':
+        $price = intval($_POST['price'] ?? 0);
+        $bot_info_row = db_fetch($pdo, "SELECT setting FROM botsaz WHERE id_user = ?", [$id]);
+        if ($bot_info_row) {
+            $bot_info = json_decode($bot_info_row['setting'], true) ?: [];
+            $bot_info['minpricevolume'] = $price;
+            db_query($pdo, "UPDATE botsaz SET setting = ? WHERE id_user = ?", [json_encode($bot_info), $id]);
+            flash('success', 'قیمت پایه حجم با موفقیت تغییر کرد.');
+        } else {
+            flash('error', 'کاربر هنوز ربات فعالی ندارد.');
+        }
+        break;
+
+    case 'set_time_price':
+        $price = intval($_POST['price'] ?? 0);
+        $bot_info_row = db_fetch($pdo, "SELECT setting FROM botsaz WHERE id_user = ?", [$id]);
+        if ($bot_info_row) {
+            $bot_info = json_decode($bot_info_row['setting'], true) ?: [];
+            $bot_info['minpricetime'] = $price;
+            db_query($pdo, "UPDATE botsaz SET setting = ? WHERE id_user = ?", [json_encode($bot_info), $id]);
+            flash('success', 'قیمت پایه زمان با موفقیت تغییر کرد.');
+        } else {
+            flash('error', 'کاربر هنوز ربات فعالی ندارد.');
+        }
+        break;
+
+    case 'set_hide_panel':
+        $panel_name = trim($_POST['panel_name'] ?? '');
+        if (empty($panel_name)) {
+            flash('error', 'نام پنل نباید خالی باشد.');
+            break;
+        }
+        $bot_info_row = db_fetch($pdo, "SELECT hide_panel FROM botsaz WHERE id_user = ?", [$id]);
+        if ($bot_info_row) {
+            $hidden = json_decode($bot_info_row['hide_panel'], true);
+            if (!is_array($hidden)) $hidden = [];
+            
+            $pos = array_search($panel_name, $hidden);
+            if ($pos !== false) {
+                unset($hidden[$pos]);
+                $hidden = array_values($hidden);
+                flash('success', 'پنل از حالت مخفی خارج شد.');
+            } else {
+                $hidden[] = $panel_name;
+                flash('success', 'پنل با موفقیت مخفی شد.');
+            }
+            db_query($pdo, "UPDATE botsaz SET hide_panel = ? WHERE id_user = ?", [json_encode($hidden), $id]);
+        } else {
+            flash('error', 'کاربر هنوز ربات فعالی ندارد.');
+        }
+        break;
+
     default:
         flash('error', $textbotlang['panel']['userActionInvalidOperation']);
 }
