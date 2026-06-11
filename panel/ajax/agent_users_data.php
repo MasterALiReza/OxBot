@@ -1,7 +1,10 @@
 <?php
+ob_start();
 session_start();
 require '../inc/config.php';
 
+// Clean any unexpected output before setting JSON header
+ob_end_clean();
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['agent_id'])) {
@@ -42,10 +45,12 @@ if ($action === 'get_users') {
     $stmt->execute($params);
     $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    require_once __DIR__ . '/../../jdf.php'; // ensure jdate is loaded
+
     $users = [];
     foreach ($invoices as $inv) {
         $days = (int)$inv['Service_time'];
-        $time_sell = $inv['time_sell']; // timestamp
+        $time_sell = (int)$inv['time_sell']; // timestamp
         
         // Calculate remaining days
         $expire_ts = $time_sell + ($days * 86400);
@@ -56,12 +61,12 @@ if ($action === 'get_users') {
         }
 
         // Format dates
-        require_once '../../jdf.php'; // ensure jdate is loaded
-        $start_date = jdate('Y/m/d H:i', $time_sell);
+        $start_date = $time_sell > 0 ? jdate('Y/m/d H:i', $time_sell) : 'نامشخص';
         $exp_date = $days > 0 ? jdate('Y/m/d', $expire_ts) : 'نامحدود';
 
-        $vol_total = $inv['Volume'];
-        $vol_used = $inv['used_volume'] ?? 0; // if used_volume exists from cron, else 0
+        $vol_total = (float)$inv['Volume'];
+        $vol_used = isset($inv['used_volume']) ? (float)$inv['used_volume'] : 0; // if used_volume exists from cron, else 0
+
 
         $status_label = '';
         if ($inv['Status'] === 'active') {
@@ -86,7 +91,7 @@ if ($action === 'get_users') {
             'expires_at' => $exp_date,
             'total_gb' => $vol_total == 0 ? 'نامحدود' : $vol_total,
             'used_gb' => $vol_used, // we might need to parse it if stored differently
-            'price' => number_format($inv['price_product']) . ' تومان'
+            'price' => number_format((float)($inv['price_product'] ?? 0)) . ' تومان'
         ];
     }
 
@@ -119,7 +124,7 @@ if ($action === 'get_stats') {
     // Total income
     $stmt3 = $pdo->prepare("SELECT SUM(price_product) as c FROM invoice WHERE refral = :agent_id");
     $stmt3->execute($params);
-    $total_income = $stmt3->fetchColumn() ?: 0;
+    $total_income = (float)($stmt3->fetchColumn() ?: 0);
 
     echo json_encode([
         'status' => 'success',
