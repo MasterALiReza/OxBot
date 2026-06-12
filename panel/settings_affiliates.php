@@ -571,6 +571,31 @@ input:checked + .arvan-slider {
 input:checked + .arvan-slider:before {
     transform: translateX(20px);
 }
+.section-desc-card {
+    background: var(--sf2);
+    border: 1px solid var(--bd);
+    border-right: 4px solid var(--ac);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.section-desc-icon {
+    color: var(--ac);
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+}
+.section-desc-text {
+    font-size: 0.85rem;
+    color: var(--text2);
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 500;
+}
 </style>
 
 <div class="fade-up">
@@ -620,6 +645,23 @@ input:checked + .arvan-slider:before {
                             ?>
                             <div class="arvan-section-content" data-tab="<?= $key ?>" data-sec="<?= htmlspecialchars($section_title) ?>" style="display: <?= $isActiveSec ? 'block' : 'none' ?>;">
                                 <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--text);"><?= htmlspecialchars($section_title) ?></h3>
+                                <?php
+                                $section_descriptions = [
+                                    'سیستم پورسانت' => 'تنظیمات پایه سیستم همکاری در فروش. در این بخش می‌توانید کل سیستم بازاریابی و همچنین وضعیت پورسانت‌دهی با خرید کاربر را فعال یا غیرفعال کنید.',
+                                    'پاداش اولین خرید زیرمجموعه' => 'مبلغ پاداش اولین خرید: هنگامی که زیرمجموعه برای اولین بار از ربات خرید می‌کند، این مبلغ ثابت به صورت نقدی به کیف پول معرف او واریز می‌شود (مثلاً ۵۰,۰۰۰ تومان). برای خاموش کردن، مقدار را روی ۰ قرار دهید.',
+                                    'پورسانت خریدهای بعدی' => 'پورسانت خریدهای بعدی (مادام‌العمر): در خریدهای دوم به بعد زیرمجموعه، این درصد از مبلغ خرید او به عنوان پورسانت به معرف تعلق می‌گیرد (مثلاً ۱۰٪ از کل فاکتور). اگر نمی‌خواهید در خریدهای بعدی پورسانتی پرداخت شود، این مقدار را روی ۰ تنظیم کنید.',
+                                    'تخفیف و رسانه' => 'تنظیمات مربوط به بنر تبلیغاتی آماده و هدیه خوش‌آمدگویی. با فعال‌سازی این بخش، کاربر جدید و معرفش بابت عضویت هدیه نقدی دریافت می‌کنند. همچنین بنر و عکس راهنما در زمان دریافت لینک بازاریابی به کاربر نمایش داده می‌شود تا بتواند به راحتی آن را به اشتراک بگذارد.'
+                                ];
+                                $desc = $section_descriptions[$section_title] ?? '';
+                                ?>
+                                <?php if ($desc): ?>
+                                    <div class="section-desc-card">
+                                        <div class="section-desc-icon">
+                                            <?= icon('info', 18) ?>
+                                        </div>
+                                        <p class="section-desc-text"><?= htmlspecialchars($desc) ?></p>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="arvan-grid">
                                     <?php foreach($fields as $f): ?>
                                         <?php if($f['type'] === 'select'): 
