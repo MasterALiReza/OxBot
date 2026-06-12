@@ -858,7 +858,6 @@ function DirectPayment($order_id, $image = 'images.jpg')
             }
         }
         $affiliatescommission = select("affiliates", "*", null, null, "select");
-        $marzbanporsant_one_buy = select("affiliates", "*", null, null, "select");
         $stmt = $pdo->prepare("SELECT * FROM invoice WHERE name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'  AND id_user = :id_user AND Status != 'Unpaid'");
         $stmt->bindParam(':id_user', $Balance_id['id']);
         $stmt->execute();
@@ -870,7 +869,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
             $reward_amount = 0;
             $is_percentage = false;
 
-            if ($countinvoice <= 1 && $first_buy_reward > 0) {
+            if ($countinvoice == 0 && $first_buy_reward > 0) {
                 $reward_amount = $first_buy_reward;
             } else if ($percentage > 0) {
                 $reward_amount = ($Payment_report['price'] * $percentage) / 100;

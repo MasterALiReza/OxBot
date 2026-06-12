@@ -4038,7 +4038,6 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         }
     }
     $affiliatescommission = select("affiliates", "*", null, null, "select");
-    $marzbanporsant_one_buy = select("affiliates", "*", null, null, "select");
     $stmt = $pdo->prepare("SELECT * FROM invoice WHERE name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'  AND id_user = :id_user AND Status != 'Unpaid'");
     $stmt->bindParam(':id_user', $from_id);
     $stmt->execute();
