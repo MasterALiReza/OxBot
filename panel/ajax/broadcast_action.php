@@ -132,7 +132,8 @@ try {
                 $test_res = telegram('copyMessage', [
                     'chat_id' => $test_chat_id,
                     'from_chat_id' => $from_chat_id,
-                    'message_id' => $parsed_message_id
+                    'message_id' => $parsed_message_id,
+                    'disable_notification' => true
                 ]);
                 if (isset($test_res['ok']) && !$test_res['ok']) {
                     $err = $test_res['description'] ?? 'Unknown error';
@@ -142,6 +143,12 @@ try {
                     }
                     broadcast_feedback('warn', "خطا در دسترسی به پیام کانال: ربات قادر به کپی پیام نیست. خطای تلگرام: $err | آیدی چت: $from_chat_id | آیدی پیام: $parsed_message_id $hint");
                     exit;
+                } elseif (isset($test_res['ok']) && $test_res['ok'] && isset($test_res['result']['message_id'])) {
+                    // Delete the test message so it doesn't confuse the admin (since it lacks the custom buttons)
+                    telegram('deleteMessage', [
+                        'chat_id' => $test_chat_id,
+                        'message_id' => $test_res['result']['message_id']
+                    ]);
                 }
             }
         }
