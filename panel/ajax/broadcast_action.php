@@ -120,10 +120,10 @@ try {
         if ($test_chat_id) {
             $from_chat_id = '';
             $message_id = '';
-            if (preg_match('/t\.me\/c\/(\d+)\/(\d+)/', $link ?? $channel_link, $matches)) {
+            if (preg_match('/t\.me\/c\/(\d+)\/(\d+)/', $channel_link, $matches)) {
                 $from_chat_id = '-100' . $matches[1];
                 $message_id = $matches[2];
-            } elseif (preg_match('/t\.me\/([a-zA-Z0-9_]+)\/(\d+)/', $link ?? $channel_link, $matches)) {
+            } elseif (preg_match('/t\.me\/([a-zA-Z0-9_]+)\/(\d+)/', $channel_link, $matches)) {
                 $from_chat_id = '@' . $matches[1];
                 $message_id = $matches[2];
             }
