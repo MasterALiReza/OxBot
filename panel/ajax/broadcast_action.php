@@ -136,7 +136,11 @@ try {
                 ]);
                 if (isset($test_res['ok']) && !$test_res['ok']) {
                     $err = $test_res['description'] ?? 'Unknown error';
-                    broadcast_feedback('warn', "خطا در دسترسی به پیام کانال: ربات قادر به کپی پیام نیست. مطمئن شوید ربات در کانال عضو است. خطای تلگرام: $err");
+                    $hint = "";
+                    if (strpos($err, 'message to copy not found') !== false) {
+                        $hint = " (راهنما: اگر گروه/کانال خصوصی است، مطمئن شوید پیام بعد از ادمین شدن ربات ارسال شده باشد، یا ربات به تاریخچه پیام‌ها دسترسی دارد.)";
+                    }
+                    broadcast_feedback('warn', "خطا در دسترسی به پیام کانال: ربات قادر به کپی پیام نیست. خطای تلگرام: $err | آیدی چت: $from_chat_id | آیدی پیام: $message_id $hint");
                     exit;
                 }
             }
