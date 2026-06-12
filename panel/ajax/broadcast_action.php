@@ -119,20 +119,20 @@ try {
         $test_chat_id = $admin_info['id_admin'] ?? null;
         if ($test_chat_id) {
             $from_chat_id = '';
-            $message_id = '';
+            $parsed_message_id = '';
             if (preg_match('/t\.me\/c\/(\d+)\/(\d+)/', $channel_link, $matches)) {
                 $from_chat_id = '-100' . $matches[1];
-                $message_id = $matches[2];
+                $parsed_message_id = $matches[2];
             } elseif (preg_match('/t\.me\/([a-zA-Z0-9_]+)\/(\d+)/', $channel_link, $matches)) {
                 $from_chat_id = '@' . $matches[1];
-                $message_id = $matches[2];
+                $parsed_message_id = $matches[2];
             }
-            if ($from_chat_id && $message_id) {
+            if ($from_chat_id && $parsed_message_id) {
                 require_once __DIR__ . '/../../botapi.php';
                 $test_res = telegram('copyMessage', [
                     'chat_id' => $test_chat_id,
                     'from_chat_id' => $from_chat_id,
-                    'message_id' => $message_id
+                    'message_id' => $parsed_message_id
                 ]);
                 if (isset($test_res['ok']) && !$test_res['ok']) {
                     $err = $test_res['description'] ?? 'Unknown error';
@@ -140,7 +140,7 @@ try {
                     if (strpos($err, 'message to copy not found') !== false) {
                         $hint = " (راهنما: اگر گروه/کانال خصوصی است، مطمئن شوید پیام بعد از ادمین شدن ربات ارسال شده باشد، یا ربات به تاریخچه پیام‌ها دسترسی دارد.)";
                     }
-                    broadcast_feedback('warn', "خطا در دسترسی به پیام کانال: ربات قادر به کپی پیام نیست. خطای تلگرام: $err | آیدی چت: $from_chat_id | آیدی پیام: $message_id $hint");
+                    broadcast_feedback('warn', "خطا در دسترسی به پیام کانال: ربات قادر به کپی پیام نیست. خطای تلگرام: $err | آیدی چت: $from_chat_id | آیدی پیام: $parsed_message_id $hint");
                     exit;
                 }
             }
