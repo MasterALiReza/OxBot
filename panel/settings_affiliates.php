@@ -76,10 +76,14 @@ $schema = [
         'icon' => 'percent',
         'sections' => [
             'سیستم پورسانت' => [
-                ['name' => 'set_affiliatesstatus', 'label' => 'وضعیت سیستم همکاری در فروش', 'type' => 'select', 'options' => ['onaffiliates' => 'فعال', 'offaffiliates' => 'غیرفعال'], 'val' => $row['affiliatesstatus'] ?? ''],
-                ['name' => 'set_affiliatespercentage', 'label' => 'درصد پورسانت', 'type' => 'number', 'val' => $row['affiliatespercentage'] ?? '0'],
-                ['name' => 'aff_status_commission', 'label' => 'وضعیت پورسانت‌دهی خریدار', 'type' => 'select', 'options' => ['oncommission' => 'فعال', 'offcommission' => 'غیرفعال'], 'val' => $affiliate_settings['status_commission'] ?? ''],
-                ['name' => 'aff_porsant_one_buy', 'label' => 'پورسانت فقط خرید اول', 'type' => 'select', 'options' => ['on_buy_porsant' => 'بله', 'off_buy_porsant' => 'خیر'], 'val' => $affiliate_settings['porsant_one_buy'] ?? ''],
+                ['name' => 'set_affiliatesstatus', 'label' => 'وضعیت کلی سیستم همکاری در فروش', 'type' => 'select', 'options' => ['onaffiliates' => 'فعال', 'offaffiliates' => 'غیرفعال'], 'val' => $row['affiliatesstatus'] ?? ''],
+                ['name' => 'aff_status_commission', 'label' => 'وضعیت پورسانت‌دهی با خرید کاربر', 'type' => 'select', 'options' => ['oncommission' => 'فعال', 'offcommission' => 'غیرفعال'], 'val' => $affiliate_settings['status_commission'] ?? ''],
+            ],
+            'پاداش اولین خرید زیرمجموعه' => [
+                ['name' => 'aff_first_buy_reward', 'label' => 'مبلغ پاداش اولین خرید (تومان - ۰ برای غیرفعال)', 'type' => 'number', 'val' => $affiliate_settings['first_buy_reward'] ?? '0'],
+            ],
+            'پورسانت خریدهای بعدی' => [
+                ['name' => 'set_affiliatespercentage', 'label' => 'درصد پورسانت از هر خرید', 'type' => 'number', 'val' => $row['affiliatespercentage'] ?? '0'],
             ],
             'تخفیف و رسانه' => [
                 ['name' => 'aff_Discount', 'label' => 'کد تخفیف به معرف', 'type' => 'select', 'options' => ['onDiscountaffiliates' => 'فعال', 'offDiscountaffiliates' => 'غیرفعال'], 'val' => $affiliate_settings['Discount'] ?? ''],

@@ -850,6 +850,7 @@ try {
         Discount varchar(200)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL,
         price_Discount varchar(200)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL,
         porsant_one_buy varchar(100),
+        first_buy_reward varchar(200) NULL DEFAULT '0',
         id_media varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL)
         ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
         if (!$result) {
@@ -879,6 +880,11 @@ try {
             $connect->query("ALTER TABLE affiliates ADD status_commission VARCHAR(100)");
             $connect->query("UPDATE affiliates SET status_commission = 'oncommission'");
             echo "The commission field was added ✅";
+        }
+        $Check_filde = $connect->query("SHOW COLUMNS FROM affiliates LIKE 'first_buy_reward'");
+        if (mysqli_num_rows($Check_filde) != 1) {
+            $connect->query("ALTER TABLE affiliates ADD first_buy_reward VARCHAR(200) NULL DEFAULT '0'");
+            echo "The first_buy_reward field was added ✅";
         }
     }
 } catch (Exception $e) {

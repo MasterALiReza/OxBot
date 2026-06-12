@@ -4044,46 +4044,39 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     $stmt->execute();
     $countinvoice = $stmt->rowCount();
     if ($affiliatescommission['status_commission'] == "oncommission" && ($user['affiliates'] != null && intval($user['affiliates']) != 0)) {
-        if ($marzbanporsant_one_buy['porsant_one_buy'] == "on_buy_porsant") {
-            if ($countinvoice == 1) {
-                $result = ($priceproduct * $setting['affiliatespercentage']) / 100;
-                $user_Balance = select("user", "*", "id", $user['affiliates'], "select");
-                $Balance_prim = $user_Balance['Balance'] + $result;
-                if (intval($setting['scorestatus']) == 1 and !in_array($user['affiliates'], $admin_ids)) {
-                    sendmessage($user['affiliates'], $textbotlang['extracted']['index_php']['earned2Points'], null, 'html');
-                    $scorenew = $user_Balance['score'] + 2;
-                    update("user", "score", $scorenew, "id", $user['affiliates']);
-                }
-                update("user", "Balance", $Balance_prim, "id", $user['affiliates']);
-                $result = number_format($result);
-                $dateacc = date('Y/m/d H:i:s');
-                $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUser'], $result);
-                $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLog'], $result, $user['affiliates'], $from_id, $dateacc);
-                if (strlen($setting['Channel_Report']) > 0) {
-                    telegram('sendmessage', [
-                        'chat_id' => $setting['Channel_Report'],
-                        'message_thread_id' => $porsantreport,
-                        'text' => $textreportport,
-                        'parse_mode' => "HTML"
-                    ]);
-                }
-                sendmessage($user['affiliates'], $textadd, null, 'HTML');
-            }
-        } else {
+        $first_buy_reward = intval($affiliatescommission['first_buy_reward'] ?? 0);
+        $percentage = floatval($setting['affiliatespercentage'] ?? 0);
+        
+        $reward_amount = 0;
+        $is_percentage = false;
 
-            $result = ($priceproduct * $setting['affiliatespercentage']) / 100;
+        if ($countinvoice == 1 && $first_buy_reward > 0) {
+            $reward_amount = $first_buy_reward;
+        } else if ($percentage > 0) {
+            $reward_amount = ($priceproduct * $percentage) / 100;
+            $is_percentage = true;
+        }
+
+        if ($reward_amount > 0) {
             $user_Balance = select("user", "*", "id", $user['affiliates'], "select");
-            $Balance_prim = $user_Balance['Balance'] + $result;
+            $Balance_prim = $user_Balance['Balance'] + $reward_amount;
             if (intval($setting['scorestatus']) == 1 and !in_array($user['affiliates'], $admin_ids)) {
                 sendmessage($user['affiliates'], $textbotlang['extracted']['index_php']['earned2Points'], null, 'html');
                 $scorenew = $user_Balance['score'] + 2;
                 update("user", "score", $scorenew, "id", $user['affiliates']);
             }
             update("user", "Balance", $Balance_prim, "id", $user['affiliates']);
-            $result = number_format($result);
+            $result_formatted = number_format($reward_amount);
             $dateacc = date('Y/m/d H:i:s');
-            $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUser2'], $result);
-            $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLog2'], $result, $user['affiliates'], $from_id, $dateacc);
+            
+            if (!$is_percentage) {
+                $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUser'], $result_formatted);
+                $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLog'], $result_formatted, $user['affiliates'], $from_id, $dateacc);
+            } else {
+                $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUser2'], $result_formatted);
+                $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLog2'], $result_formatted, $user['affiliates'], $from_id, $dateacc);
+            }
+
             if (strlen($setting['Channel_Report']) > 0) {
                 telegram('sendmessage', [
                     'chat_id' => $setting['Channel_Report'],
