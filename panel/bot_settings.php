@@ -111,6 +111,8 @@ $schema = [
                 ['name' => 'set_btn_status_extned', 'label' => 'دکمه تمدید سرویس', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $row['btn_status_extned'] ?? ''],
                 ['name' => 'set_status_keyboard_config', 'label' => 'کیبورد تنظیمات کانفیگ', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $row['status_keyboard_config'] ?? ''],
                 ['name' => 'set_status_manual_config', 'label' => 'دریافت دستی کانفیگ (QR)', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['status_manual_config'] ?? '1'],
+                ['name' => 'custom_qr_background', 'label' => 'پس‌زمینه اصلی بارکد (custom.jpg)', 'type' => 'file', 'accept' => 'image/jpeg', 'hint' => 'تصویر با فرمت jpg'],
+                ['name' => 'images_qr_background', 'label' => 'پس‌زمینه جایگزین بارکد (images.jpg)', 'type' => 'file', 'accept' => 'image/jpeg', 'hint' => 'تصویر با فرمت jpg'],
             ],
             'مدیریت کرون‌جاب' => [
                 ['name' => 'set_cron_day', 'label' => 'محاسبه روزها (day)', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['day'] ?? true) ? '1' : '0'],
@@ -172,6 +174,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $updates_affiliates = [];
     $params_affiliates = [];
+    
+    // File Uploads
+    if (isset($_FILES['custom_qr_background']) && $_FILES['custom_qr_background']['error'] === UPLOAD_ERR_OK) {
+        $tmpName = $_FILES['custom_qr_background']['tmp_name'];
+        if (mime_content_type($tmpName) === 'image/jpeg') {
+            move_uploaded_file($tmpName, __DIR__ . '/../custom.jpg');
+        } else {
+            $error = "فایل پس‌زمینه اصلی باید jpg باشد.";
+        }
+    }
+    
+    if (isset($_FILES['images_qr_background']) && $_FILES['images_qr_background']['error'] === UPLOAD_ERR_OK) {
+        $tmpName = $_FILES['images_qr_background']['tmp_name'];
+        if (mime_content_type($tmpName) === 'image/jpeg') {
+            move_uploaded_file($tmpName, __DIR__ . '/../images.jpg');
+        } else {
+            $error = "فایل پس‌زمینه جایگزین باید jpg باشد.";
+        }
+    }
     
     foreach($_POST as $key => $val) {
         if(strpos($key, 'set_cron_') === 0) {
@@ -635,7 +656,7 @@ input:checked + .arvan-slider:before {
         <?php endforeach; ?>
     </div>
 
-    <form method="POST" id="settingsForm">
+    <form method="POST" id="settingsForm" enctype="multipart/form-data">
         <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
         <input type="hidden" name="current_tab" id="current_tab_input" value="<?= htmlspecialchars($tab) ?>">
         <input type="hidden" name="current_sec" id="current_sec_input" value="<?= htmlspecialchars($sec) ?>">
@@ -695,6 +716,14 @@ input:checked + .arvan-slider:before {
                                             <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
                                                 <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
                                                 <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>">
+                                            </div>
+                                        <?php elseif($f['type'] === 'file'): ?>
+                                            <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
+                                                <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" style="padding: 7px 10px;" accept="<?= htmlspecialchars($f['accept'] ?? '') ?>">
+                                                <?php if(!empty($f['hint'])): ?>
+                                                    <small style="color: var(--mute); font-size: 0.7rem;"><?= htmlspecialchars($f['hint']) ?></small>
+                                                <?php endif; ?>
                                             </div>
                                         <?php endif; ?>
                                     <?php endforeach; ?>

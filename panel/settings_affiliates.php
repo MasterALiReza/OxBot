@@ -90,7 +90,8 @@ $schema = [
                 ['name' => 'aff_price_Discount', 'label' => 'مبلغ/درصد تخفیف', 'type' => 'number', 'val' => $affiliate_settings['price_Discount'] ?? '0'],
                 ['name' => 'aff_media_type', 'label' => 'نوع رسانه راهنما (تصویر / ویدیو)', 'type' => 'select', 'options' => ['photo' => 'تصویر', 'video' => 'ویدیو'], 'val' => $affiliate_settings['media_type'] ?? 'photo'],
                 ['name' => 'aff_id_media', 'label' => 'شناسه مدیا راهنما', 'type' => 'text', 'val' => $affiliate_settings['id_media'] ?? ''],
-                ['name' => 'aff_description', 'label' => 'متن توضیحات راهنما', 'type' => 'text', 'val' => $affiliate_settings['description'] ?? ''],
+                ['name' => 'aff_media_file', 'label' => 'آپلود رسانه جدید (جایگزین شناسه بالا می‌شود)', 'type' => 'file'],
+                ['name' => 'aff_description', 'label' => 'متن توضیحات راهنما', 'type' => 'textarea', 'val' => $affiliate_settings['description'] ?? ''],
             ]
         ]
     ]
@@ -123,6 +124,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $updates_affiliates = [];
     $params_affiliates = [];
     
+    if (isset($_FILES['aff_media_file']) && $_FILES['aff_media_file']['error'] === UPLOAD_ERR_OK) {
+        $fileTmpPath = $_FILES['aff_media_file']['tmp_name'];
+        $media_type = $_POST['aff_media_type'] ?? 'photo';
+        $telegramMethod = ($media_type === 'video') ? 'sendVideo' : 'sendPhoto';
+        $mediaField = ($media_type === 'video') ? 'video' : 'photo';
+        
+        $cFile = new CURLFile($fileTmpPath);
+        $postData = [
+            'chat_id' => $adminnumber,
+            $mediaField => $cFile,
+            'caption' => 'فایل رسانه راهنما با موفقیت در ربات آپلود شد.'
+        ];
+        
+        $ch = curl_init("https://api.telegram.org/bot{$APIKEY}/{$telegramMethod}");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        
+        $res = json_decode($response, true);
+        if ($res && $res['ok']) {
+            if ($media_type === 'video' && isset($res['result']['video']['file_id'])) {
+                $_POST['aff_id_media'] = $res['result']['video']['file_id'];
+            } elseif ($media_type === 'photo' && isset($res['result']['photo'])) {
+                $photos = $res['result']['photo'];
+                $_POST['aff_id_media'] = end($photos)['file_id'];
+            }
+        }
+    }
+
     foreach($_POST as $key => $val) {
         if(strpos($key, 'set_cron_') === 0) {
             $field = substr($key, 9);
@@ -610,7 +641,7 @@ input:checked + .arvan-slider:before {
         <?php endforeach; ?>
     </div>
 
-    <form method="POST" id="settingsForm">
+    <form method="POST" id="settingsForm" enctype="multipart/form-data">
         <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
         <input type="hidden" name="current_tab" id="current_tab_input" value="<?= htmlspecialchars($tab) ?>">
         <input type="hidden" name="current_sec" id="current_sec_input" value="<?= htmlspecialchars($sec) ?>">
@@ -687,6 +718,16 @@ input:checked + .arvan-slider:before {
                                             <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
                                                 <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
                                                 <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>">
+                                            </div>
+                                        <?php elseif($f['type'] === 'textarea'): ?>
+                                            <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
+                                                <textarea name="<?= $f['name'] ?>" class="arvan-input" style="min-height: 100px; resize: vertical;" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>"><?= htmlspecialchars($f['val'] ?? '') ?></textarea>
+                                            </div>
+                                        <?php elseif($f['type'] === 'file'): ?>
+                                            <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
+                                                <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" accept="image/*,video/*">
                                             </div>
                                         <?php endif; ?>
                                     <?php endforeach; ?>

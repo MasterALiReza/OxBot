@@ -275,8 +275,8 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           </div>
 
           <!-- تنظیمات -->
-          <div class="nav-group <?= (in_array($activeNav, ['bot_settings', 'keyboard', 'settings']) && (!isset($_GET['tab']) || $_GET['tab'] !== 'agents')) ? 'open' : '' ?>">
-            <button class="nav-group-btn <?= (in_array($activeNav, ['bot_settings', 'keyboard', 'settings']) && (!isset($_GET['tab']) || $_GET['tab'] !== 'agents')) ? 'active' : '' ?>">
+          <div class="nav-group <?= (in_array($activeNav, ['bot_settings', 'keyboard', 'settings', 'settings_channels']) && (!isset($_GET['tab']) || $_GET['tab'] !== 'agents')) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= (in_array($activeNav, ['bot_settings', 'keyboard', 'settings', 'settings_channels']) && (!isset($_GET['tab']) || $_GET['tab'] !== 'agents')) ? 'active' : '' ?>">
               <div class="nav-group-title">
                 <span class="nav-icon"><?= icon('settings') ?></span>
                 <span class="nav-label">تنظیمات</span>
@@ -292,6 +292,9 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               </a>
               <a href="settings.php" class="nav-sub-item <?= $activeNav === 'settings' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleSettings'] ?? 'پیکربندی پنل' ?>">
                 <div class="nav-sub-dot"></div>پیکربندی پنل
+              </a>
+              <a href="settings_channels.php" class="nav-sub-item <?= $activeNav === 'settings_channels' ? 'active' : '' ?>" title="تنظیمات کانال‌های اجباری">
+                <div class="nav-sub-dot"></div>تنظیمات کانال‌ها
               </a>
             </div>
           </div>
