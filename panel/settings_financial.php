@@ -96,7 +96,7 @@ $schema = [
                 ['name' => 'pay_checkpaycartfirst', 'label' => 'بررسی تراکنش اول', 'type' => 'select', 'options' => ['onpayverify' => 'روشن', 'offpayverify' => 'خاموش'], 'val' => $pay_settings['checkpaycartfirst'] ?? ''],
             ],
             'درگاه زرین‌پال' => [
-                ['name' => 'pay_zarinpalstatus', 'label' => 'وضعیت زرین‌پال', 'type' => 'select', 'options' => ['onzarinpal' => 'روشن', 'offzarinpal' => 'خاموش'], 'val' => $pay_settings['zarinpalstatus'] ?? ''],
+                ['name' => 'pay_zarinpalstatus', 'label' => 'وضعیت زرین‌پال', 'type' => 'select', 'options' => ['onzarinpal' => 'روشن', 'offzarinpal' => 'خاموش'], 'val' => $pay_settings['zarinpalstatus'] ?? 'offzarinpal'],
                 ['name' => 'pay_merchant_zarinpal', 'label' => 'مرچنت زرین‌پال', 'type' => 'text', 'val' => $pay_settings['merchant_zarinpal'] ?? ''],
                 ['name' => 'pay_minbalancezarinpal', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalancezarinpal'] ?? ''],
                 ['name' => 'pay_maxbalancezarinpal', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalancezarinpal'] ?? ''],
