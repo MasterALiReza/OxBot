@@ -15,9 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if ($stmt->fetchColumn() == 0) {
             $stmt_add = $pdo->prepare("INSERT INTO category (remark) VALUES (?)");
             $stmt_add->execute([$category_name]);
-            set_flash_message('success', 'دسته‌بندی با موفقیت اضافه شد.');
+            flash('success', 'دسته‌بندی با موفقیت اضافه شد.');
         } else {
-            set_flash_message('error', 'این دسته‌بندی از قبل وجود دارد.');
+            flash('error', 'این دسته‌بندی از قبل وجود دارد.');
         }
     } elseif ($action === 'edit' && isset($_POST['id'])) {
         $id = (int)$_POST['id'];
@@ -39,9 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt_prod = $pdo->prepare("UPDATE product SET category = ? WHERE category = ?");
                 $stmt_prod->execute([$category_name, $old_name]);
                 
-                set_flash_message('success', 'دسته‌بندی با موفقیت ویرایش شد و در تمامی محصولات اعمال گردید.');
+                flash('success', 'دسته‌بندی با موفقیت ویرایش شد و در تمامی محصولات اعمال گردید.');
             } else {
-                set_flash_message('error', 'این نام قبلا برای دسته‌بندی دیگری ثبت شده است.');
+                flash('error', 'این نام قبلا برای دسته‌بندی دیگری ثبت شده است.');
             }
         }
     }
@@ -66,10 +66,10 @@ if (isset($_GET['delete'])) {
             // Delete from category
             $stmt_del = $pdo->prepare("DELETE FROM category WHERE id = ?");
             $stmt_del->execute([$id]);
-            set_flash_message('success', 'دسته‌بندی با موفقیت حذف شد.');
+            flash('success', 'دسته‌بندی با موفقیت حذف شد.');
         }
     } else {
-        set_flash_message('error', 'توکن امنیتی نامعتبر است.');
+        flash('error', 'توکن امنیتی نامعتبر است.');
     }
     header("Location: categories_manage.php");
     exit;

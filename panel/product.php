@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
     db_query(
       $pdo,
       "INSERT INTO product (name_product,code_product,price_product,Volume_constraint,Service_time,Location,agent,data_limit_reset,note,category,hide_panel,one_buy_status,inbounds,proxies) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-      [$name, $code, (int) ($_POST['price_product'] ?? 0), (int) ($_POST['volume_product'] ?? 0), (int) ($_POST['time_product'] ?? 0), $_POST['namepanel'] ?? '', $_POST['agent_product'] ?? '', $_POST['data_limit_reset'] ?? 'no_reset', $_POST['note_product'] ?? '', $_POST['cetegory_product'] ?? '', $_POST['hide_panel'] ?? '{}', $_POST['one_buy_status'] ?? '0', $_POST['inbounds'] ?? null, $_POST['proxies'] ?? null]
+      [$name, $code, (int) ($_POST['price_product'] ?? 0), (int) ($_POST['volume_product'] ?? 0), (int) ($_POST['time_product'] ?? 0), $_POST['namepanel'] ?? '', $_POST['agent_product'] ?? '', $_POST['data_limit_reset'] ?? 'no_reset', $_POST['note_product'] ?? '', $cat_input, $_POST['hide_panel'] ?? '{}', $_POST['one_buy_status'] ?? '0', $_POST['inbounds'] ?? null, $_POST['proxies'] ?? null]
     );
     flash('success', $textbotlang['panel']['productAddedPrefix'] . $name . $textbotlang['panel']['productAddedSuffix']);
   } catch (Exception $e) {
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edit'
       db_query(
         $pdo,
         "UPDATE product SET name_product=?,price_product=?,Volume_constraint=?,Service_time=?,Location=?,agent=?,note=?,category=?,data_limit_reset=?,one_buy_status=?,inbounds=?,proxies=?,hide_panel=? WHERE id=?",
-        [$name, (int) ($_POST['price_product'] ?? 0), (int) ($_POST['volume_product'] ?? 0), (int) ($_POST['time_product'] ?? 0), $_POST['namepanel'] ?? '', $_POST['agent_product'] ?? '', $_POST['note_product'] ?? '', $_POST['cetegory_product'] ?? '', $_POST['data_limit_reset'] ?? 'no_reset', $_POST['one_buy_status'] ?? '0', $_POST['inbounds'] ?? null, $_POST['proxies'] ?? null, $_POST['hide_panel'] ?? '{}', $pid]
+        [$name, (int) ($_POST['price_product'] ?? 0), (int) ($_POST['volume_product'] ?? 0), (int) ($_POST['time_product'] ?? 0), $_POST['namepanel'] ?? '', $_POST['agent_product'] ?? '', $_POST['note_product'] ?? '', $cat_input, $_POST['data_limit_reset'] ?? 'no_reset', $_POST['one_buy_status'] ?? '0', $_POST['inbounds'] ?? null, $_POST['proxies'] ?? null, $_POST['hide_panel'] ?? '{}', $pid]
       );
       flash('success', $textbotlang['panel']['productEdited']);
     } catch (Exception $e) {
