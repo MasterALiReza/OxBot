@@ -886,6 +886,11 @@ try {
             $connect->query("ALTER TABLE affiliates ADD first_buy_reward VARCHAR(200) NULL DEFAULT '0'");
             echo "The first_buy_reward field was added ✅";
         }
+        $Check_filde = $connect->query("SHOW COLUMNS FROM affiliates LIKE 'media_type'");
+        if (mysqli_num_rows($Check_filde) != 1) {
+            $connect->query("ALTER TABLE affiliates ADD media_type VARCHAR(100) NULL DEFAULT 'photo'");
+            echo "The media_type field was added ✅";
+        }
     }
 } catch (Exception $e) {
     file_put_contents('error_log', $e->getMessage());

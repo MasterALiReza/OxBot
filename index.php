@@ -5871,13 +5871,23 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     }
     $affiliates = select("affiliates", "*", null, null, "select");
     $textaffiliates = "{$affiliates['description']}\n\n🔗 https://t.me/$usernamebot?start=$from_id";
-    if (strlen($affiliates['id_media']) >= 5) {
-        telegram('sendphoto', [
-            'chat_id' => $from_id,
-            'photo' => $affiliates['id_media'],
-            'caption' => $textaffiliates,
-            'parse_mode' => "HTML",
-        ]);
+    if (strlen($affiliates['id_media']) >= 5 && $affiliates['id_media'] !== 'none') {
+        $media_type = $affiliates['media_type'] ?? 'photo';
+        if ($media_type === 'video') {
+            telegram('sendvideo', [
+                'chat_id' => $from_id,
+                'video' => $affiliates['id_media'],
+                'caption' => $textaffiliates,
+                'parse_mode' => "HTML",
+            ]);
+        } else {
+            telegram('sendphoto', [
+                'chat_id' => $from_id,
+                'photo' => $affiliates['id_media'],
+                'caption' => $textaffiliates,
+                'parse_mode' => "HTML",
+            ]);
+        }
     }
     $affiliatescommission = select("affiliates", "*", null, null, "select");
     $sqlPanel = sprintf("SELECT COUNT(*) AS orders, SUM(price_product) AS total_price\n                 FROM invoice \n                 WHERE Status IN ('active', 'end_of_time', 'sendedwarn', 'send_on_hold') \n                 AND refral = '%s'\n                 AND name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'", $from_id);
