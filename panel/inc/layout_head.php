@@ -246,9 +246,6 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               <a href="panels_manage.php" class="nav-sub-item <?= $activeNav === 'panels_manage' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitlePanels'] ?? 'مدیریت پنل‌ها' ?>">
                 <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutNavPanels'] ?? 'مدیریت پنل‌ها' ?>
               </a>
-              <a href="categories_manage.php" class="nav-sub-item <?= $activeNav === 'categories_manage' ? 'active' : '' ?>" title="مدیریت دسته‌بندی‌ها">
-                <div class="nav-sub-dot"></div>مدیریت دسته‌بندی‌ها
-              </a>
               <a href="settings_shop.php" class="nav-sub-item <?= $activeNav === 'settings_shop' ? 'active' : '' ?>" title="تنظیمات فروشگاه">
                 <div class="nav-sub-dot"></div>تنظیمات فروشگاه
               </a>

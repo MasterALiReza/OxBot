@@ -79,6 +79,67 @@ if (isset($_GET['delete'])) {
   exit;
 }
 
+// Category Management Actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_cat') {
+  csrf_check_post();
+  $cat_name = trim($_POST['cat_name'] ?? '');
+  if ($cat_name !== '') {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM category WHERE remark = ?");
+    $stmt->execute([$cat_name]);
+    if ($stmt->fetchColumn() == 0) {
+      $stmt = $pdo->prepare("INSERT INTO category (remark) VALUES (?)");
+      $stmt->execute([$cat_name]);
+      flash('success', "دسته‌بندی با موفقیت اضافه شد.");
+    } else {
+      flash('error', "این دسته‌بندی از قبل وجود دارد.");
+    }
+  }
+  header('Location: product.php');
+  exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edit_cat') {
+  csrf_check_post();
+  $cat_id = (int)($_POST['cat_id'] ?? 0);
+  $cat_name = trim($_POST['cat_name'] ?? '');
+  if ($cat_id && $cat_name !== '') {
+    $stmt = $pdo->prepare("SELECT remark FROM category WHERE id = ?");
+    $stmt->execute([$cat_id]);
+    $oldCat = $stmt->fetchColumn();
+
+    if ($oldCat) {
+      $stmt = $pdo->prepare("UPDATE category SET remark = ? WHERE id = ?");
+      $stmt->execute([$cat_name, $cat_id]);
+
+      $stmt2 = $pdo->prepare("UPDATE product SET category = ? WHERE category = ?");
+      $stmt2->execute([$cat_name, $oldCat]);
+      
+      flash('success', 'نام دسته‌بندی با موفقیت تغییر کرد.');
+    }
+  }
+  header('Location: product.php');
+  exit;
+}
+
+if (isset($_GET['delete_cat'])) {
+  csrf_check_get();
+  $cat_id = (int)$_GET['delete_cat'];
+  $stmt = $pdo->prepare("SELECT remark FROM category WHERE id = ?");
+  $stmt->execute([$cat_id]);
+  $oldCat = $stmt->fetchColumn();
+
+  if ($oldCat) {
+    $stmt = $pdo->prepare("DELETE FROM category WHERE id = ?");
+    $stmt->execute([$cat_id]);
+    
+    $stmt2 = $pdo->prepare("UPDATE product SET category = NULL WHERE category = ?");
+    $stmt2->execute([$oldCat]);
+    flash('success', 'دسته‌بندی با موفقیت حذف شد.');
+  }
+  header('Location: product.php');
+  exit;
+}
+
 $panels = [];
 try {
   $panels = db_fetchAll($pdo, "SELECT * FROM marzban_panel");
@@ -193,6 +254,9 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
           <input type="text" placeholder="جستجوی محصول..." id="filter-search">
           <button type="button" class="search-clear">✕</button>
         </div>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('catManageModal')" style="margin-left:8px;">
+          <?= icon('package', 14) ?> مدیریت دسته‌بندی‌ها
+        </button>
         <button class="btn btn-primary btn-sm btn-add-product" onclick="openModal('addModal')">
           <?= icon('plus', 14) ?> افزودن محصول جدید
         </button>
@@ -447,6 +511,97 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
     </form>
   </div>
 </div>
+
+<!-- Modal Manage Categories -->
+<div class="modal-veil" id="catManageModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title"><?= icon('package') ?> مدیریت دسته‌بندی‌ها</div>
+      <button class="modal-close" onclick="closeModal('catManageModal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <?php if (empty($categories_db)): ?>
+        <div class="empty" style="padding:32px 20px;">
+          <p>هیچ دسته‌بندی ثبت نشده است</p>
+        </div>
+      <?php else: ?>
+        <table class="table" style="margin:0; border-radius:0;">
+          <thead>
+            <tr>
+              <th style="width:60px">شناسه</th>
+              <th>نام دسته‌بندی</th>
+              <th style="text-align:left">عملیات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($categories_db as $c): ?>
+            <tr>
+              <td class="td-id">#<?= $c['id'] ?></td>
+              <td><?= htmlspecialchars($c['remark']) ?></td>
+              <td style="text-align:left; gap:4px; display:flex; justify-content:flex-end;">
+                <button class="btn-icon" title="ویرایش" onclick="openEditCatModal(<?= $c['id'] ?>, '<?= htmlspecialchars(addslashes($c['remark'])) ?>')"><?= icon('edit', 14) ?></button>
+                <button class="btn-icon danger" title="حذف" onclick="confirmDeleteCat(<?= $c['id'] ?>)"><?= icon('trash', 14) ?></button>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      <?php endif; ?>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-primary" onclick="openAddCatModal()"><?= icon('plus', 13) ?> افزودن دسته‌بندی</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Add/Edit Category -->
+<div class="modal-veil" id="catActionModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="catModalTitle">دسته‌بندی</div>
+      <button class="modal-close" onclick="closeModal('catActionModal')">✕</button>
+    </div>
+    <form action="" method="post">
+      <div class="modal-body">
+        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+        <input type="hidden" name="action" id="catModalAction" value="add_cat">
+        <input type="hidden" name="cat_id" id="catModalId" value="">
+        <div class="field">
+          <label>نام دسته‌بندی</label>
+          <input type="text" name="cat_name" id="catModalName" class="input" required>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="submit" class="btn btn-primary"><?= icon('check', 13) ?> ذخیره</button>
+        <button type="button" class="btn btn-ghost" onclick="closeModal('catActionModal')">انصراف</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openAddCatModal() {
+  closeModal('catManageModal');
+  document.getElementById('catModalTitle').innerText = 'افزودن دسته‌بندی';
+  document.getElementById('catModalAction').value = 'add_cat';
+  document.getElementById('catModalId').value = '';
+  document.getElementById('catModalName').value = '';
+  openModal('catActionModal');
+}
+function openEditCatModal(id, name) {
+  closeModal('catManageModal');
+  document.getElementById('catModalTitle').innerText = 'ویرایش دسته‌بندی';
+  document.getElementById('catModalAction').value = 'edit_cat';
+  document.getElementById('catModalId').value = id;
+  document.getElementById('catModalName').value = name;
+  openModal('catActionModal');
+}
+function confirmDeleteCat(id) {
+  if (confirm('آیا از حذف این دسته‌بندی اطمینان دارید؟ تمامی محصولاتی که این دسته‌بندی را دارند، بدون دسته‌بندی خواهند شد.')) {
+    window.location.href = 'product.php?delete_cat=' + id + '&csrf=<?= csrf_token() ?>';
+  }
+}
+</script>
 
 <script src="js/product.js"></script>
 
