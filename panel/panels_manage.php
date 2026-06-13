@@ -147,6 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             
             if ($old_name_panel && $old_name_panel !== $name_panel) {
                 db_query($pdo, "UPDATE invoice SET Service_location = ? WHERE Service_location = ?", [$name_panel, $old_name_panel]);
+                db_query($pdo, "UPDATE product SET Location = ? WHERE Location = ?", [$name_panel, $old_name_panel]);
             }
             flash('success', 'پنل با موفقیت ویرایش شد.');
         } catch (Exception $e) {
