@@ -187,9 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $old = db_fetch($pdo, "SELECT cardnumber, namecard FROM card_number LIMIT 1");
         $old_card = $old ? $old['cardnumber'] : null;
         if ($old_card !== $new_cardnumber || ($old && $old['namecard'] !== $new_namecard) || !$old) {
-            if ($old_card) {
-                db_query($pdo, "DELETE FROM card_number WHERE cardnumber = ?", [$old_card]);
-            }
+            db_query($pdo, "DELETE FROM card_number");
             if ($new_cardnumber) {
                 db_query($pdo, "INSERT IGNORE INTO card_number (cardnumber, namecard) VALUES (?, ?)", [$new_cardnumber, $new_namecard]);
             }

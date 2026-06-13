@@ -3501,6 +3501,8 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             ensureCardNumberTableSupportsUnicode();
         }
 
+        $connect->query("DELETE FROM card_number");
+
         $stmt = $connect->prepare("INSERT INTO card_number (cardnumber,namecard) VALUES (?,?)");
         $stmt->bind_param("ss", $user['Processing_value'], $text);
         $stmt->execute();
@@ -6303,12 +6305,12 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_card_enable_disable'], null, 'HTML');
     update("user", "cardpayment", "0", "id", $id_user);
 } elseif ($text == $textbotlang['keyboard']['deleteCardNumber'] && $adminrulecheck['rule'] == "administrator") {
-    sendmessage($from_id, $textbotlang['Admin']['adminphp']['ask_send_card_delete'], $list_card_remove, 'HTML');
-    step('getcardremove', $from_id);
+    $connect->query("DELETE FROM card_number");
+    sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_success_card'], $CartManage, 'HTML');
+    step("home", $from_id);
 } elseif ($user['step'] == "getcardremove") {
-    $stmt = $pdo->prepare("DELETE FROM card_number WHERE cardnumber = :cardnumber");
-    $stmt->bindParam(':cardnumber', $text, PDO::PARAM_STR);
-    $stmt->execute();
+    // Deprecated step, as we only have one card and delete it directly
+    $connect->query("DELETE FROM card_number");
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_success_card'], $CartManage, 'HTML');
     step("home", $from_id);
 } elseif (preg_match('/rejectrequesta_(\w+)/', $datain, $datagetr)) {
