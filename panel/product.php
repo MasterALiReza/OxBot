@@ -17,6 +17,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
     exit;
   }
   $code = bin2hex(random_bytes(2));
+  $cat_input = trim($_POST['cetegory_product'] ?? '');
+  if (!empty($cat_input)) {
+      $stmt = $pdo->prepare("SELECT COUNT(*) FROM category WHERE remark = ?");
+      $stmt->execute([$cat_input]);
+      if ($stmt->fetchColumn() == 0) {
+          $stmt_add = $pdo->prepare("INSERT INTO category (remark) VALUES (?)");
+          $stmt_add->execute([$cat_input]);
+      }
+  }
+
   try {
     db_query(
       $pdo,
@@ -36,6 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edit'
   $pid = (int) ($_POST['edit_id'] ?? 0);
   $name = trim($_POST['name_product'] ?? '');
   if ($pid && $name !== '') {
+    $cat_input = trim($_POST['cetegory_product'] ?? '');
+    if (!empty($cat_input)) {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM category WHERE remark = ?");
+        $stmt->execute([$cat_input]);
+        if ($stmt->fetchColumn() == 0) {
+            $stmt_add = $pdo->prepare("INSERT INTO category (remark) VALUES (?)");
+            $stmt_add->execute([$cat_input]);
+        }
+    }
+
     try {
       db_query(
         $pdo,
@@ -65,6 +85,7 @@ try {
 } catch (Exception $e) {
 }
 $products = db_fetchAll($pdo, "SELECT * FROM product ORDER BY id");
+$categories_db = db_fetchAll($pdo, "SELECT * FROM category ORDER BY id DESC");
 
 $pageTitle = $textbotlang['panel']['productsTitle'];
 $pageLede = $textbotlang['panel']['productsSubtitle'];
@@ -236,6 +257,12 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
   <?php endif; ?>
 </div>
 
+<datalist id="category_list">
+  <?php foreach ($categories_db as $c_db): ?>
+    <option value="<?= htmlspecialchars($c_db['remark'] ?? '') ?>"></option>
+  <?php endforeach; ?>
+</datalist>
+
 <div class="modal-veil" id="addModal">
   <div class="modal" style="max-width:540px">
     <div class="modal-head">
@@ -265,7 +292,7 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
           </div>
           <div class="field">
             <label>دسته‌بندی</label>
-            <input type="text" name="cetegory_product" class="input" placeholder="مثال: ایرانسل">
+            <input type="text" name="cetegory_product" class="input" list="category_list" placeholder="مثال: ایرانسل" autocomplete="off">
           </div>
           <div class="field">
             <label>پنل/سرور</label>
@@ -358,7 +385,7 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
           </div>
           <div class="field">
             <label>دسته‌بندی</label>
-            <input type="text" name="cetegory_product" id="edit_cat" class="input">
+            <input type="text" name="cetegory_product" id="edit_cat" class="input" list="category_list" autocomplete="off">
           </div>
           <div class="field">
             <label>پنل/سرور</label>
