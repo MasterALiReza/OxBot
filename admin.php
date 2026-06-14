@@ -2830,6 +2830,17 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         'cache_time' => 5,
     ));
 
+    $Confirm_pay = json_encode([
+        'inline_keyboard' => [
+            [
+                ['text' => '✅ تایید شده', 'callback_data' => "confirmpaid"],
+            ],
+            [
+                ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
+            ]
+        ]
+    ]);
+
     $resDirectPay = DirectPayment($order_id);
     if ($resDirectPay === false) {
         update("Payment_report", "payment_Status", "reject", "id_order", $Payment_report['id_order']);
