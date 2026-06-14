@@ -2757,6 +2757,27 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $setting_panel, 'HTML');
 } elseif ($text == $textbotlang['keyboard']['supportSection'] && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $supportcenter, 'HTML');
+} elseif ($datain == "loading_confirm") {
+    telegram('answerCallbackQuery', [
+        'callback_query_id' => $callback_query_id,
+        'text' => '⏳ لطفاً صبور باشید، این تراکنش در حال فعال‌سازی است...',
+        'show_alert' => false
+    ]);
+    return;
+} elseif ($datain == "confirmpaid") {
+    telegram('answerCallbackQuery', [
+        'callback_query_id' => $callback_query_id,
+        'text' => '✅ این تراکنش قبلاً تایید شده است.',
+        'show_alert' => false
+    ]);
+    return;
+} elseif ($datain == "confirmpaid_failed") {
+    telegram('answerCallbackQuery', [
+        'callback_query_id' => $callback_query_id,
+        'text' => '❌ این تراکنش لغو شده است.',
+        'show_alert' => false
+    ]);
+    return;
 } elseif (preg_match('/Confirm_pay_(\w+)/', $datain, $dataget) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $order_id = $dataget[1];
     file_put_contents('log.txt', "\n[Confirm_pay] matched for order_id: " . $order_id, FILE_APPEND);
