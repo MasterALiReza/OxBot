@@ -2784,6 +2784,12 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     $countpay = $stmt->rowCount();
     $typepay = explode('|', $Payment_report['id_invoice']);
     if ($countpay > 0 and !in_array($typepay[0], ['getconfigafterpay', 'getextenduser', 'getextravolumeuser', 'getextratimeuser'])) {
+        telegram('answerCallbackQuery', array(
+            'callback_query_id' => $callback_query_id,
+            'text' => $textbotlang['Admin']['adminphp']['msg_user_renew_buy'] ?? 'شما یک فاکتور منتظر بررسی دارید.',
+            'show_alert' => true,
+            'cache_time' => 5,
+        ));
         sendmessage($from_id, $textbotlang['Admin']['adminphp']['msg_user_renew_buy'], null, 'HTML');
         return;
     }
@@ -5091,11 +5097,20 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         ));
         return;
     }
+    telegram('answerCallbackQuery', array(
+        'callback_query_id' => $callback_query_id,
+        'text' => $textbotlang['Admin']['manageUser']['addBalanceUserDesc'] ?? 'لطفا مبلغ را ارسال کنید'
+    ));
+    
     update("Payment_report", "payment_Status", "paid", "id_order", $id_order);
 
     sendmessage($from_id, $textbotlang['Admin']['manageUser']['addBalanceUserDesc'], $backadmin, 'html');
     step('addbalancemanual', $from_id);
-    Editmessagetext($from_id, $message_id, $text_inline, null);
+    telegram('editMessageReplyMarkup', [
+        'chat_id' => $chat_id,
+        'message_id' => $message_id,
+        'reply_markup' => null
+    ]);
 } elseif ($user['step'] == "addbalancemanual") {
     if (!ctype_digit($text)) {
         sendmessage($from_id, $textbotlang['Admin']['Balance']['invalidPrice'], $backadmin, 'HTML');
