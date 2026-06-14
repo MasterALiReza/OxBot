@@ -741,6 +741,8 @@ function outputlink($text)
 }
 function DirectPayment($order_id, $image = 'images.jpg')
 {
+    @ignore_user_abort(true);
+    @set_time_limit(120);
     global $pdo, $ManagePanel, $textbotlang, $keyboardextendfnished, $keyboard, $Confirm_pay, $from_id, $message_id, $chat_id;
     $buyreport = select("topicid", "idreport", "report", "buyreport", "select")['idreport'];
     $admin_ids = select("admin", "id_admin", null, null, "FETCH_COLUMN");
@@ -809,7 +811,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
                     'parse_mode' => "HTML"
                 ]);
             }
-            return;
+            return false;
         }
         $Shoppinginfo = json_encode([
             'inline_keyboard' => [
@@ -960,6 +962,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
             $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedNewService'], $username_ac, $get_invoice['Service_location'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $Payment_report['dec_not_confirmed']);
             Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         }
+        return true;
     } elseif ($steppay[0] == "getextenduser") {
         $balanceformatsell = number_format(select("user", "Balance", "id", $Balance_id['id'], "select")['Balance'], 0);
         $partsdic = explode("%", $steppay[1]);
@@ -974,7 +977,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
         $service_other = $data_order;
         if ($service_other == false) {
             sendmessage($Balance_id['id'], $textbotlang['hardcoded']['renewGenericError'], $keyboard, 'HTML');
-            return;
+            return false;
         }
         $service_other = json_decode($service_other['value'], true);
         $codeproduct = $service_other['code_product'];
@@ -1016,7 +1019,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
                     'parse_mode' => "HTML"
                 ]);
             }
-            return;
+            return false;
         }
 
         update("service_other", "output", json_encode($extend), "id", $data_order['id']);
@@ -1084,6 +1087,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
             $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedRenew'], $usernamepanel, $prodcut['name_product'], $nameloc['Service_location'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $Payment_report['dec_not_confirmed']);
             Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         }
+        return true;
     } elseif ($steppay[0] == "getextravolumeuser") {
         $steppay = explode("%", $steppay[1]);
         $volume = $steppay[1];
@@ -1116,7 +1120,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
                     'parse_mode' => "HTML"
                 ]);
             }
-            return;
+            return false;
         }
         $stmt = $pdo->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price,output) VALUES (:id_user,:username,:value,:type,:time,:price,:output)");
         $stmt->bindParam(':id_user', $Balance_id['id']);
@@ -1157,6 +1161,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
                 'parse_mode' => "HTML"
             ]);
         }
+        return true;
     } elseif ($steppay[0] == "getextratimeuser") {
         $steppay = explode("%", $steppay[1]);
         $tmieextra = $steppay[1];
@@ -1191,7 +1196,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
                     'parse_mode' => "HTML"
                 ]);
             }
-            return;
+            return false;
         }
         $stmt = $pdo->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price,output) VALUES (:id_user,:username,:value,:type,:time,:price,:output)");
         $stmt->bindParam(':id_user', $Balance_id['id']);
@@ -1231,6 +1236,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
                 'text' => $text_report,
             ]);
         }
+        return true;
     } else {
         $Balance_confrim = intval($Balance_id['Balance']) + intval($Payment_report['price']);
         update("user", "Balance", $Balance_confrim, "id", $Payment_report['id_user']);
@@ -1242,6 +1248,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
             Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         }
         sendmessage($Payment_report['id_user'], sprintf($textbotlang['hardcoded']['balanceChargedThanks'], $Payment_report['price'], $Payment_report['id_order']), null, 'HTML');
+        return true;
     }
 }
 function plisio($order_id, $price)

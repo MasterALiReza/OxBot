@@ -10,6 +10,7 @@ $adminrulecheck = select("admin", "*", "id_admin", $from_id, "select");
 if (!is_array($adminrulecheck)) {
     $adminrulecheck = ['rule' => ''];
 }
+file_put_contents('log.txt', "\n[ADMIN.PHP] loaded: from_id=" . $from_id . ", rule=" . ($adminrulecheck['rule'] ?? '') . ", datain=" . $datain . ", text=" . $text, FILE_APPEND);
 
 $domainhostsEscaped = htmlspecialchars($domainhosts, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
@@ -2758,6 +2759,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $supportcenter, 'HTML');
 } elseif (preg_match('/Confirm_pay_(\w+)/', $datain, $dataget) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $order_id = $dataget[1];
+    file_put_contents('log.txt', "\n[Confirm_pay] matched for order_id: " . $order_id, FILE_APPEND);
     $Payment_report = select("Payment_report", "*", "id_order", $order_id, "select");
     if ($Payment_report == false) {
         telegram('answerCallbackQuery', array(
@@ -2778,15 +2780,6 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             ]
         ]
     ]);
-    $sql = "SELECT * FROM Payment_report WHERE id_user = '{$Payment_report['id_user']}' AND payment_Status != 'paid' AND payment_Status != 'Unpaid' AND payment_Status != 'expire' AND payment_Status != 'reject' AND  (id_invoice  LIKE CONCAT('%','getconfigafterpay', '%') OR id_invoice  LIKE CONCAT('%','getextenduser', '%') OR id_invoice  LIKE CONCAT('%','getextravolumeuser', '%') OR id_invoice  LIKE CONCAT('%','getextratimeuser', '%'))";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-    $countpay = $stmt->rowCount();
-    $typepay = explode('|', $Payment_report['id_invoice']);
-    if ($countpay > 0 and !in_array($typepay[0], ['getconfigafterpay', 'getextenduser', 'getextravolumeuser', 'getextratimeuser'])) {
-        sendmessage($from_id, $textbotlang['Admin']['adminphp']['msg_user_renew_buy'], null, 'HTML');
-        return;
-    }
     $format_price_cart = number_format($Payment_report['price']);
     $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
     if ($Payment_report['payment_Status'] == "paid" || $Payment_report['payment_Status'] == "reject") {
@@ -2797,10 +2790,53 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'cache_time' => 5,
         ));
         $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-        Editmessagetext($from_id, $message_id, $textconfrom, $Confirm_pay);
+        Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         return;
     }
-    DirectPayment($order_id);
+    $sql = "SELECT * FROM Payment_report WHERE id_user = '{$Payment_report['id_user']}' AND payment_Status != 'paid' AND payment_Status != 'Unpaid' AND payment_Status != 'expire' AND payment_Status != 'reject' AND  (id_invoice  LIKE CONCAT('%','getconfigafterpay', '%') OR id_invoice  LIKE CONCAT('%','getextenduser', '%') OR id_invoice  LIKE CONCAT('%','getextravolumeuser', '%') OR id_invoice  LIKE CONCAT('%','getextratimeuser', '%'))";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+    $countpay = $stmt->rowCount();
+    $typepay = explode('|', $Payment_report['id_invoice']);
+    if ($countpay > 0 and !in_array($typepay[0], ['getconfigafterpay', 'getextenduser', 'getextravolumeuser', 'getextratimeuser'])) {
+        telegram('answerCallbackQuery', array(
+            'callback_query_id' => $callback_query_id,
+            'text' => '⚠️ کاربر تراکنش در حال بررسی دیگری دارد.',
+            'show_alert' => true,
+        ));
+        sendmessage($from_id, $textbotlang['Admin']['adminphp']['msg_user_renew_buy'], null, 'HTML');
+        return;
+    }
+
+    telegram('answerCallbackQuery', array(
+        'callback_query_id' => $callback_query_id,
+        'text' => '⏳ در حال بررسی و فعال‌سازی سرویس... لطفاً صبور باشید.',
+        'show_alert' => false,
+        'cache_time' => 5,
+    ));
+
+    $resDirectPay = DirectPayment($order_id);
+    if ($resDirectPay === false) {
+        update("Payment_report", "payment_Status", "reject", "id_order", $Payment_report['id_order']);
+        $text_fail = "❌ خطا در ایجاد یا تمدید سرویس در پنل.\nسفارش لغو شد و مبلغ {$format_price_cart} تومان به کیف پول کاربر عودت داده شد.\n\n👤 نام کاربری: @{$Balance_id['username']}\n🆔 شناسه کاربر: <code>{$Balance_id['id']}</code>\n🧾 کد پیگیری: <code>{$order_id}</code>";
+        $Confirm_pay_fail = json_encode([
+            'inline_keyboard' => [
+                [
+                    ['text' => '❌ ناموفق (برگشت وجه)', 'callback_data' => "confirmpaid_failed"],
+                ],
+                [
+                    ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
+                ]
+            ]
+        ]);
+        Editmessagetext($chat_id, $message_id, $text_fail, $Confirm_pay_fail);
+        
+        update("user", "Processing_value_one", "none", "id", $Balance_id['id']);
+        update("user", "Processing_value_tow", "none", "id", $Balance_id['id']);
+        update("user", "Processing_value_four", "none", "id", $Balance_id['id']);
+        return;
+    }
+
     $pricecashback = select("PaySetting", "ValuePay", "NamePay", "chashbackcart", "select")['ValuePay'];
     $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
     if ($pricecashback != "0") {
@@ -2828,6 +2864,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 
 } elseif (preg_match('/reject_pay_(\w+)/', $datain, $datagetr) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $id_order = $datagetr[1];
+    file_put_contents('log.txt', "\n[reject_pay] matched for id_order: " . $id_order, FILE_APPEND);
     $Payment_report = select("Payment_report", "*", "id_order", $id_order, "select");
     if ($Payment_report == false) {
         telegram('answerCallbackQuery', array(
@@ -2849,11 +2886,19 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         ));
         return;
     }
+
+    telegram('answerCallbackQuery', array(
+        'callback_query_id' => $callback_query_id,
+        'text' => 'در حال ثبت رد تراکنش...',
+        'show_alert' => false,
+        'cache_time' => 5,
+    ));
+
     update("Payment_report", "payment_Status", "reject", "id_order", $id_order);
 
     sendmessage($from_id, $textbotlang['Admin']['Payment']['reasonRejecting'], $backadmin, 'HTML');
     step('reject-dec', $from_id);
-    Editmessagetext($from_id, $message_id, $text_inline, null);
+    Editmessagetext($chat_id, $message_id, $text_inline, null);
 } elseif ($user['step'] == "reject-dec") {
     $Payment_report = select("Payment_report", "*", "id_order", $user['Processing_value_one'], "select");
     update("Payment_report", "dec_not_confirmed", $text, "id_order", $user['Processing_value_one']);
@@ -5037,6 +5082,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     Editmessagetext($from_id, $message_id, $textbotlang['Admin']['Status']['cardStatusOnPv'], null);
 } elseif (preg_match('/addbalamceuser_(\w+)/', $datain, $datagetr) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $id_order = $datagetr[1];
+    file_put_contents('log.txt', "\n[addbalamceuser] matched for id_order: " . $id_order, FILE_APPEND);
     $Payment_report = select("Payment_report", "*", "id_order", $id_order, "select");
     if ($Payment_report == false) {
         telegram('answerCallbackQuery', array(
@@ -5057,11 +5103,19 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         ));
         return;
     }
+
+    telegram('answerCallbackQuery', array(
+        'callback_query_id' => $callback_query_id,
+        'text' => 'در حال باز کردن بخش شارژ دستی...',
+        'show_alert' => false,
+        'cache_time' => 5,
+    ));
+
     update("Payment_report", "payment_Status", "paid", "id_order", $id_order);
 
     sendmessage($from_id, $textbotlang['Admin']['manageUser']['addBalanceUserDesc'], $backadmin, 'html');
     step('addbalancemanual', $from_id);
-    Editmessagetext($from_id, $message_id, $text_inline, null);
+    Editmessagetext($chat_id, $message_id, $text_inline, null);
 } elseif ($user['step'] == "addbalancemanual") {
     if (!ctype_digit($text)) {
         sendmessage($from_id, $textbotlang['Admin']['Balance']['invalidPrice'], $backadmin, 'HTML');
