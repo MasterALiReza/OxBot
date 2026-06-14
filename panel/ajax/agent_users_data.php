@@ -26,15 +26,29 @@ if (!isset($_SESSION['agent_id'])) {
 }
 
 $agent_id = (int) $_SESSION['agent_id'];
+session_write_close(); // Release session lock to allow concurrent AJAX requests
+
 $action   = $_GET['action'] ?? 'get_users';
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Helper to safely encode and output JSON (handles UTF-8)
+// Helpers
 // ──────────────────────────────────────────────────────────────────────────────
 function json_out(array $data): void
 {
     echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
+}
+
+function format_bytes_fa($bytes)
+{
+    if ($bytes <= 0) return '۰ مگ';
+    $mb = $bytes / pow(1024, 2);
+    if ($mb < 1024) {
+        return round($mb, 1) . ' مگ';
+    } else {
+        $gb = $bytes / pow(1024, 3);
+        return round($gb, 2) . ' گیگ';
+    }
 }
 
 try {
@@ -108,54 +122,15 @@ try {
             );
             $formatted_vol = ($vol_total == 0)
                 ? 'نامحدود'
-                : $vol_total . ' ' . ($textbotlang['Admin']['adminphp']['btn_9'] ?? 'گیگ');
+                : $vol_total . ' گیگ';
 
-            // Status label
-            $raw_status = $inv['Status'] ?? '';
-            
-            // Get live data from Panel for usage
-            $used_traffic = 0;
-            $data_limit = (float) ($inv['Volume'] ?? 0) * pow(1024, 3);
-            if (!empty($inv['Service_location']) && !empty($inv['username']) && $inv['username'] !== 'none') {
-                $DataUserOut = $ManagePanel->DataUser($inv['Service_location'], $inv['username']);
-                if (is_array($DataUserOut) && isset($DataUserOut['used_traffic'])) {
-                    $used_traffic = (float) $DataUserOut['used_traffic'];
-                    if (isset($DataUserOut['data_limit'])) {
-                        $data_limit = (float) $DataUserOut['data_limit'];
-                    }
-                    if (isset($DataUserOut['status'])) {
-                        $raw_status = $DataUserOut['status']; // update status
-                    }
-                }
-            }
-
-            if ($raw_status === 'active') {
-                $status_label = ($rem_days === 0 && $days > 0) ? 'منقضی شده' : 'فعال';
-                $status_key   = ($rem_days === 0 && $days > 0) ? 'inactive' : 'active';
-            } elseif ($raw_status === 'end_of_time') {
-                $status_label = 'پایان زمان';
-                $status_key   = 'inactive';
-            } elseif ($raw_status === 'end_of_volume' || $raw_status === 'limited') {
-                $status_label = 'پایان حجم';
-                $status_key   = 'inactive';
-            } elseif ($raw_status === 'disabled') {
-                $status_label = 'غیرفعال';
-                $status_key   = 'inactive';
-            } else {
-                $status_label = 'غیرفعال';
-                $status_key   = 'inactive';
-            }
-            
-            // Calculate usage formatted
-            $used_gb = round($used_traffic / pow(1024, 3), 2);
-            $total_gb_panel = ($data_limit == 0) ? 'نامحدود' : round($data_limit / pow(1024, 3), 2) . ' گیگ';
-            $usage_percent = ($data_limit > 0) ? min(100, round(($used_traffic / $data_limit) * 100)) : 0;
-            if ($data_limit == 0) $usage_percent = 0; // unlimited
+            $raw_status = $inv['Status'] ?? 'inactive';
+            $status_label = ($raw_status === 'active' && $rem_days > 0) ? 'فعال' : 'غیرفعال';
 
             $users[] = [
                 'id'               => $inv['id_invoice'],
                 'username'         => $inv['username'] ?? '—',
-                'status'           => $status_key,
+                'status'           => $raw_status,
                 'status_label'     => $status_label,
                 'plan_name'        => $name_product,
                 'location'         => $inv['Service_location'] ?? '—',
@@ -163,9 +138,6 @@ try {
                 'expires_at'       => $exp_date,
                 'rem_days'         => $rem_days,
                 'total_gb'         => $formatted_vol,
-                'used_gb'          => $used_gb,
-                'total_gb_panel'   => $total_gb_panel,
-                'usage_percent'    => $usage_percent,
                 'service_time_str' => $formatted_time,
                 'price'            => number_format((float) ($inv['price_product'] ?? 0)) . ' تومان',
             ];
@@ -179,6 +151,128 @@ try {
                 'page'        => $page,
                 'total_pages' => $totalPages,
             ],
+        ]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // ACTION: get_user_live
+    // ──────────────────────────────────────────────────────────────────────
+    if ($action === 'get_user_live') {
+        $id = (int) ($_GET['id'] ?? 0);
+        if ($id <= 0) {
+            json_out(['status' => 'error', 'message' => 'شناسه نامعتبر است.']);
+        }
+
+        // Fetch invoice
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_invoice = :id AND (id_user = :aid1 OR refral = :aid2)");
+        $stmt->execute([':id' => $id, ':aid1' => $agent_id, ':aid2' => $agent_id]);
+        $inv = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$inv) {
+            json_out(['status' => 'error', 'message' => 'سرویس یافت نشد.']);
+        }
+
+        // Load Jalali library if not already loaded
+        if (!function_exists('jdate')) {
+            require_once __DIR__ . '/../../jdf.php';
+        }
+
+        // Get live data
+        $used_traffic = 0;
+        $data_limit = (float) ($inv['Volume'] ?? 0) * pow(1024, 3);
+        $raw_status = $inv['Status'] ?? 'inactive';
+        $online_at = null;
+        $is_online = 'offline';
+
+        if (!empty($inv['Service_location']) && !empty($inv['username']) && $inv['username'] !== 'none') {
+            $DataUserOut = $ManagePanel->DataUser($inv['Service_location'], $inv['username']);
+            if (is_array($DataUserOut) && !isset($DataUserOut['status']) && isset($DataUserOut['msg'])) {
+                // Keep defaults if failed
+            } elseif (is_array($DataUserOut)) {
+                if (isset($DataUserOut['used_traffic'])) {
+                    $used_traffic = (float) $DataUserOut['used_traffic'];
+                }
+                if (isset($DataUserOut['data_limit'])) {
+                    $data_limit = (float) $DataUserOut['data_limit'];
+                }
+                if (isset($DataUserOut['status'])) {
+                    $raw_status = $DataUserOut['status'];
+                }
+                if (isset($DataUserOut['online_at'])) {
+                    $online_at = $DataUserOut['online_at'];
+                }
+            }
+        }
+
+        // Expiry calculation
+        $days = (int) ($inv['Service_time'] ?? 0);
+        $time_sell = (int) ($inv['time_sell'] ?? 0);
+        $expire_ts = $time_sell + ($days * 86400);
+
+        if (isset($DataUserOut['expire']) && $DataUserOut['expire'] > 0) {
+            $expire_ts = $DataUserOut['expire'];
+        }
+
+        $rem_days = 0;
+        if ($expire_ts > time()) {
+            $rem_days = (int) ceil(($expire_ts - time()) / 86400);
+        }
+
+        $exp_date = $expire_ts > 0 ? jdate('Y/m/d', $expire_ts) : 'نامحدود';
+
+        // Online Status
+        if ($online_at === 'online') {
+            $is_online = 'online';
+        } elseif ($online_at === 'offline') {
+            $is_online = 'offline';
+        } elseif (!empty($online_at)) {
+            if (is_numeric($online_at)) {
+                $is_online = (time() - $online_at < 300) ? 'online' : 'offline';
+            } else {
+                $ts = strtotime($online_at);
+                $is_online = ($ts && (time() - $ts < 300)) ? 'online' : 'offline';
+            }
+        }
+
+        // Status Label
+        if ($raw_status === 'active') {
+            $status_label = ($rem_days === 0 && $days > 0) ? 'منقضی شده' : 'فعال';
+            $status_key   = ($rem_days === 0 && $days > 0) ? 'inactive' : 'active';
+        } elseif ($raw_status === 'end_of_time') {
+            $status_label = 'پایان زمان';
+            $status_key   = 'inactive';
+        } elseif ($raw_status === 'end_of_volume' || $raw_status === 'limited') {
+            $status_label = 'پایان حجم';
+            $status_key   = 'inactive';
+        } elseif ($raw_status === 'disabled') {
+            $status_label = 'غیرفعال';
+            $status_key   = 'inactive';
+        } else {
+            $status_label = 'غیرفعال';
+            $status_key   = 'inactive';
+        }
+
+        $used_formatted = format_bytes_fa($used_traffic);
+        $limit_formatted = ($data_limit == 0) ? 'نامحدود' : format_bytes_fa($data_limit);
+        
+        $usage_percent = ($data_limit > 0) ? min(100, round(($used_traffic / $data_limit) * 100)) : 0;
+        if ($data_limit == 0) $usage_percent = 0;
+
+        json_out([
+            'status' => 'success',
+            'live' => [
+                'id' => $id,
+                'status' => $status_key,
+                'status_label' => $status_label,
+                'is_online' => $is_online,
+                'online_label' => ($is_online === 'online') ? 'آنلاین' : 'آفلاین',
+                'used_traffic' => $used_traffic,
+                'used_formatted' => $used_formatted,
+                'limit_formatted' => $limit_formatted,
+                'usage_percent' => $usage_percent,
+                'expires_at' => $exp_date,
+                'rem_days' => $rem_days,
+            ]
         ]);
     }
 

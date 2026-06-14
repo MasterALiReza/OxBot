@@ -266,62 +266,74 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
 
                 let html = '';
                 users.forEach(user => {
-                    const statusColor = user.status === 'active' ? '' : 'background: rgba(239, 68, 68, 0.15); color: var(--au-danger);';
-                    const activeClass = user.status === 'active' ? 'au-badge-active' : '';
-                    const dotStyle = user.status === 'active' ? '' : 'background: var(--au-danger);';
-                    
-                    let progressClass = '';
-                    if(user.usage_percent >= 90) progressClass = 'danger';
-                    else if(user.usage_percent >= 75) progressClass = 'warning';
-
                     html += `
-                    <div class="au-card">
-                        <div class="au-card-info">
-                            <div class="au-card-icon">
-                                <i class="fa-solid fa-user"></i>
+                    <div class="au-card" id="user-card-${user.id}">
+                        <!-- ۱. نام کاربری و لوکیشن و تقویم -->
+                        <div class="au-col au-col-meta">
+                            <div class="au-user-title">
+                                <span class="au-username">${user.username}</span>
+                                <span class="au-online-indicator offline" id="online-indicator-${user.id}"></span>
                             </div>
-                            <div class="au-card-details">
-                                <h3>
-                                    ${user.username} 
-                                    <div class="au-status-dot" style="${dotStyle}"></div>
-                                </h3>
-                                <div class="au-card-meta">
-                                    <span><i class="fa-solid fa-server"></i> ${user.location}</span>
-                                    <span>ایجاد: ${user.created_at}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="au-card-status">
-                            <div class="au-badges">
-                                <span class="au-badge ${activeClass}" style="${statusColor}">
-                                    ${user.status_label}
+                            <div class="au-meta-sub">
+                                <span class="au-badge-location">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                    ${user.location}
+                                </span>
+                                <span class="au-meta-date">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                    ساخته شده: ${toPersianDigits(user.created_at)}
                                 </span>
                             </div>
-                            <div class="au-expiry">
-                                پایان: ${user.expires_at} (${user.rem_days} روز)
+                        </div>
+
+                        <!-- ۲. وضعیت فعال/غیرفعال و آنلاین/آفلاین و انقضا -->
+                        <div class="au-col au-col-status">
+                            <div class="au-badges-row">
+                                <span class="au-badge-status ${user.status === 'active' ? 'active' : 'inactive'}" id="status-badge-${user.id}">
+                                    ${user.status_label}
+                                </span>
+                                <span class="au-badge-connection offline" id="connection-badge-${user.id}">
+                                    <span class="dot">•</span> <span class="label">در حال بررسی...</span>
+                                </span>
+                            </div>
+                            <div class="au-expiry-text" id="expiry-text-${user.id}">
+                                پایان: ${user.expires_at} (${toPersianDigits(user.rem_days)} روز)
                             </div>
                         </div>
 
-                        <div class="au-card-usage">
-                            <div class="au-usage-header">
-                                <span>مصرف ${user.used_gb} گیگ از ${user.total_gb_panel}</span>
-                                <span>${user.usage_percent}%</span>
+                        <!-- ۳. میزان مصرف داده و نوار پیشرفت خطی -->
+                        <div class="au-col au-col-usage">
+                            <div class="au-usage-top">
+                                <span class="au-usage-pct" id="usage-pct-${user.id}">...</span>
+                                <span class="au-usage-lbl">مصرف <i class="fa-solid fa-circle-info" style="font-size: 0.75rem; opacity: 0.5;"></i></span>
                             </div>
-                            <div class="au-progress-bg">
-                                <div class="au-progress-bar ${progressClass}" style="width: ${user.usage_percent}%;"></div>
+                            <div class="au-progress-track">
+                                <div class="au-progress-fill" id="progress-fill-${user.id}" style="width: 0%;">
+                                    <div class="au-progress-knob"></div>
+                                </div>
+                            </div>
+                            <div class="au-usage-bottom">
+                                <span class="au-usage-limit" id="usage-limit-${user.id}">از ${toPersianDigits(user.total_gb)}</span>
+                                <span class="au-usage-used" id="usage-used-${user.id}">...</span>
                             </div>
                         </div>
 
-                        <div class="au-card-actions">
-                            <button class="au-btn-icon au-btn-dropdown" data-target="dropdown-${user.id}" style="border:none; background:transparent; width:36px; height:36px;" title="بیشتر">
-                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                        <!-- ۴. دکمه‌های عملیات سریع -->
+                        <div class="au-col au-col-actions">
+                            <button class="au-btn-circle-action" onclick="openLinkModal(${user.id}); event.stopPropagation();" title="کپی لینک اشتراک">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                             </button>
                             
-                            <div class="au-dropdown" id="dropdown-${user.id}">
-                                <a href="#" class="au-dropdown-item" onclick="openLinkModal(${user.id}); return false;"><i class="fa-solid fa-link"></i> لینک اشتراک</a>
-                                <a href="#" class="au-dropdown-item" onclick="openRenewModal(${user.id}, '${user.username}', '${user.location}'); return false;"><i class="fa-solid fa-rotate-right"></i> تمدید سرویس</a>
-                                <a href="#" class="au-dropdown-item danger" onclick="deleteUser(${user.id}); return false;"><i class="fa-solid fa-trash"></i> حذف کاربر</a>
+                            <div style="position: relative;">
+                                <button class="au-btn-circle-action au-btn-dropdown" data-target="dropdown-${user.id}" title="بیشتر">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                                </button>
+                                
+                                <div class="au-dropdown" id="dropdown-${user.id}">
+                                    <a href="#" class="au-dropdown-item" onclick="openLinkModal(${user.id}); return false;"><i class="fa-solid fa-link"></i> لینک اشتراک</a>
+                                    <a href="#" class="au-dropdown-item" onclick="openRenewModal(${user.id}, '${user.username}', '${user.location}'); return false;"><i class="fa-solid fa-rotate-right"></i> تمدید سرویس</a>
+                                    <a href="#" class="au-dropdown-item danger" onclick="deleteUser(${user.id}); return false;"><i class="fa-solid fa-trash"></i> حذف کاربر</a>
+                                </div>
                             </div>
                         </div>
                     </div>`;
@@ -335,9 +347,98 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 // Render pagination
                 renderPagination(pageInfo.page, pageInfo.total_pages);
 
+                // Load live stats asynchronously
+                users.forEach(user => {
+                    fetchLiveStats(user.id);
+                });
+
             } catch (err) {
                 container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--au-danger);">خطای ارتباط با سرور</div>';
             }
+        }
+
+        async function fetchLiveStats(id) {
+            try {
+                const res = await fetch(`ajax/agent_users_data.php?action=get_user_live&id=${id}`);
+                const json = await res.json();
+                
+                if (json.status !== 'success') {
+                    const connBadge = document.getElementById(`connection-badge-${id}`);
+                    if (connBadge) {
+                        connBadge.innerHTML = `<span class="dot">•</span> <span class="label">خطا</span>`;
+                    }
+                    return;
+                }
+                
+                const data = json.live;
+                
+                // 1. Update Connection Status Badge
+                const connBadge = document.getElementById(`connection-badge-${id}`);
+                if (connBadge) {
+                    connBadge.className = `au-badge-connection ${data.is_online}`;
+                    connBadge.innerHTML = `<span class="dot">•</span> <span class="label">${data.online_label}</span>`;
+                }
+                
+                // 2. Update Username Online Indicator Dot
+                const onlineInd = document.getElementById(`online-indicator-${id}`);
+                if (onlineInd) {
+                    onlineInd.className = `au-online-indicator ${data.is_online}`;
+                }
+                
+                // 3. Update Status Badge
+                const statusBadge = document.getElementById(`status-badge-${id}`);
+                if (statusBadge) {
+                    statusBadge.className = `au-badge-status ${data.status}`;
+                    statusBadge.textContent = data.status_label;
+                }
+                
+                // 4. Update Expiry Text
+                const expiryText = document.getElementById(`expiry-text-${id}`);
+                if (expiryText) {
+                    expiryText.textContent = `پایان: ${data.expires_at} (${toPersianDigits(data.rem_days)} روز)`;
+                }
+                
+                // 5. Update Usage Top (Percentage)
+                const usagePct = document.getElementById(`usage-pct-${id}`);
+                if (usagePct) {
+                    usagePct.textContent = `٪${toPersianDigits(data.usage_percent)}`;
+                }
+                
+                // 6. Update Usage Limits/Used
+                const usageLimit = document.getElementById(`usage-limit-${id}`);
+                if (usageLimit) {
+                    usageLimit.textContent = `از ${toPersianDigits(data.limit_formatted)}`;
+                }
+                
+                const usageUsed = document.getElementById(`usage-used-${id}`);
+                if (usageUsed) {
+                    usageUsed.textContent = toPersianDigits(data.used_formatted);
+                }
+                
+                // 7. Update Progress Bar
+                const progressFill = document.getElementById(`progress-fill-${id}`);
+                if (progressFill) {
+                    progressFill.style.width = `${data.usage_percent}%`;
+                    if (data.usage_percent >= 90) {
+                        progressFill.className = 'au-progress-fill danger';
+                    } else if (data.usage_percent >= 75) {
+                        progressFill.className = 'au-progress-fill warning';
+                    } else {
+                        progressFill.className = 'au-progress-fill';
+                    }
+                }
+                
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function toPersianDigits(str) {
+            if (str === null || str === undefined) return '';
+            const id = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            return str.toString()
+                .replace(/[0-9]/g, function(w) { return id[+w]; })
+                .replace(/\./g, '٫');
         }
 
         function renderPagination(current, total) {

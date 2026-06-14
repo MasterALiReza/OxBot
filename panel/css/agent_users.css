@@ -280,141 +280,282 @@ body.agent-panel-body {
     background: var(--au-surface);
     border: 1px solid var(--au-border);
     border-radius: var(--au-radius);
-    padding: 16px 20px;
-    display: flex;
+    padding: 16px 24px;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1.8fr 110px;
+    gap: 24px;
     align-items: center;
-    justify-content: space-between;
-    transition: transform var(--au-transition), box-shadow var(--au-transition);
+    transition: transform var(--au-transition), box-shadow var(--au-transition), border-color var(--au-transition);
 }
 
 .au-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     border-color: rgba(255, 255, 255, 0.15);
 }
 
-.au-card-info {
+/* Columns Base styling */
+.au-col {
     display: flex;
-    align-items: center;
-    gap: 16px;
-    flex: 1.2;
-}
-
-.au-card-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
-    color: var(--au-text-muted);
 }
 
-.au-card-details h3 {
-    margin: 0 0 6px 0;
-    font-size: 1rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
+/* Col 1: Username & Metadata */
+.au-col-meta {
     gap: 8px;
 }
 
-.au-status-dot {
+.au-user-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.au-username {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--au-text);
+    letter-spacing: 0.3px;
+}
+
+.au-online-indicator {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--au-primary);
+    display: inline-block;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+.au-online-indicator.online {
+    background: var(--au-success);
+    box-shadow: 0 0 8px var(--au-success);
+}
+.au-online-indicator.offline {
+    background: var(--au-text-muted);
 }
 
-.au-card-meta {
-    font-size: 0.8rem;
-    color: var(--au-text-muted);
+.au-meta-sub {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
-.au-card-meta span {
-    display: flex;
+.au-badge-location {
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
 }
 
-.au-card-status {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.au-badges {
-    display: flex;
-    gap: 6px;
-}
-
-.au-badge {
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--au-text);
-}
-
-.au-badge-active {
-    background: rgba(16, 185, 129, 0.15);
-    color: var(--au-success);
-}
-
-.au-expiry {
-    font-size: 0.8rem;
+.au-meta-date {
     color: var(--au-text-muted);
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.au-card-usage {
-    flex: 1.5;
-    display: flex;
-    flex-direction: column;
+.au-meta-date svg, .au-badge-location svg {
+    opacity: 0.8;
+}
+
+/* Col 2: Status & Expiry */
+.au-col-status {
     gap: 8px;
 }
 
-.au-usage-header {
-    display: flex;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.au-usage-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--au-primary), #6366f1);
-    border-radius: 3px;
-    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.au-card-actions {
+.au-badges-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-right: 16px;
+}
+
+.au-badge-status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-block;
+    text-align: center;
+}
+.au-badge-status.active {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    color: var(--au-success);
+}
+.au-badge-status.inactive {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+    color: var(--au-danger);
+}
+
+.au-badge-connection {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--au-text-muted);
+    transition: all 0.3s;
+}
+.au-badge-connection.online {
+    color: var(--au-success);
+    background: rgba(16, 185, 129, 0.06);
+    border-color: rgba(16, 185, 129, 0.12);
+}
+.au-badge-connection.online .dot {
+    color: var(--au-success);
+    text-shadow: 0 0 6px var(--au-success);
+}
+.au-badge-connection.offline .dot {
+    color: var(--au-text-muted);
+}
+
+.au-expiry-text {
+    color: var(--au-text-muted);
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+/* Col 3: Data Usage Column */
+.au-col-usage {
+    gap: 6px;
+    min-width: 180px;
+}
+
+.au-usage-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.au-usage-pct {
+    color: var(--au-text);
+    font-weight: 600;
+}
+
+.au-usage-lbl {
+    color: var(--au-text-muted);
+}
+
+.au-progress-track {
+    height: 6px;
+    background: #0f172a;
+    border-radius: 999px;
+    position: relative;
+    overflow: visible;
+    width: 100%;
+}
+
+.au-progress-fill {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: var(--au-success);
+    border-radius: 999px;
+    width: 0%;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.au-progress-fill.warning {
+    background: #f59e0b;
+}
+.au-progress-fill.danger {
+    background: var(--au-danger);
+}
+
+.au-progress-knob {
+    position: absolute;
+    left: -3px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: inherit;
+    border: 2px solid var(--au-surface);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+}
+
+.au-usage-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.au-usage-limit {
+    color: var(--au-text-muted);
+}
+
+.au-usage-used {
+    color: var(--au-text);
+    font-weight: 600;
+}
+
+/* Col 4: Ellipsis dropdown + Direct copy link actions */
+.au-col-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.au-btn-circle-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--au-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.au-btn-circle-action:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--au-text);
+}
+
+.au-card-actions {
     position: relative;
 }
 
 .au-dropdown {
     position: absolute;
     left: 0;
-    top: 45px;
-    background: var(--au-surface);
-    border: 1px solid var(--au-glass-border);
+    top: 42px;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    padding: 8px;
+    padding: 6px;
     min-width: 160px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
-    transition: all 0.2s ease;
-    z-index: 10;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 20;
 }
 
 .au-dropdown.show {
@@ -427,7 +568,7 @@ body.agent-panel-body {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 12px;
+    padding: 8px 12px;
     color: var(--au-text);
     text-decoration: none;
     font-size: 0.85rem;
@@ -436,7 +577,7 @@ body.agent-panel-body {
 }
 
 .au-dropdown-item:hover {
-    background: var(--au-surface-hover);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .au-dropdown-item.danger {
@@ -503,16 +644,15 @@ body.agent-panel-body {
         display: flex;
     }
     .au-card {
-        flex-direction: column;
-        align-items: stretch;
+        grid-template-columns: 1fr;
         gap: 16px;
+        padding: 16px;
     }
-    .au-card-info, .au-card-status, .au-card-usage {
-        flex: none;
-    }
-    .au-card-actions {
-        margin-right: 0;
-        justify-content: flex-end;
+    .au-col-actions {
+        justify-content: flex-start;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 12px;
+        margin-top: 4px;
     }
 }
 
