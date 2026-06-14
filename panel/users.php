@@ -254,8 +254,8 @@ include __DIR__ . '/inc/layout_head.php';
 
 /* Double-Bezel Shell */
 .vanguard-shell {
-    background: rgba(255, 255, 255, 0.015);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: var(--sf);
+    border: 1px solid var(--bd);
     border-radius: 2rem;
     padding: 6px;
     transition: all 700ms cubic-bezier(0.32, 0.72, 0, 1);
@@ -263,16 +263,16 @@ include __DIR__ . '/inc/layout_head.php';
 }
 
 .vanguard-shell:hover {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-color: var(--bds);
     transform: translateY(-2px);
+    box-shadow: var(--shlg);
 }
 
 /* Inner Core */
 .vanguard-core {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--bg);
     border-radius: calc(2rem - 6px);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.03);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
     padding: 24px 32px;
     display: grid;
     grid-template-columns: 2fr 3fr 1.5fr;
@@ -313,14 +313,20 @@ include __DIR__ . '/inc/layout_head.php';
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: radial-gradient(circle at top left, rgba(var(--ac-rgb), 0.15), rgba(var(--ac-rgb), 0.02));
-    border: 1px solid rgba(var(--ac-rgb), 0.2);
+    background: var(--acs);
+    border: 1px solid var(--acg);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--ac);
     flex-shrink: 0;
-    box-shadow: inset 0 2px 4px rgba(255,255,255,0.05);
+}
+
+.vanguard-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .vanguard-name {
@@ -342,8 +348,8 @@ include __DIR__ . '/inc/layout_head.php';
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--sf2);
+    border: 1px solid var(--bd);
     padding: 4px 10px;
     border-radius: 100px;
     font-size: 0.75rem;
@@ -352,9 +358,9 @@ include __DIR__ . '/inc/layout_head.php';
     transition: all 0.3s ease;
 }
 .vanguard-id-pill:hover {
-    background: rgba(var(--ac-rgb), 0.1);
+    background: var(--acs);
     color: var(--ac);
-    border-color: rgba(var(--ac-rgb), 0.3);
+    border-color: var(--acg);
 }
 
 /* Grid for Details */
@@ -371,10 +377,10 @@ include __DIR__ . '/inc/layout_head.php';
 }
 
 .vanguard-bento-box {
-    background: rgba(255,255,255,0.01);
-    border: 1px solid rgba(255,255,255,0.03);
+    background: var(--sf2);
+    border: 1px solid var(--bd);
     border-radius: 1rem;
-    padding: 16px 12px;
+    padding: 18px 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -384,7 +390,8 @@ include __DIR__ . '/inc/layout_head.php';
     transition: all 400ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 .vanguard-bento-box:hover {
-    background: rgba(255,255,255,0.03);
+    background: var(--sf3);
+    border-color: var(--bds);
     transform: translateY(-2px);
 }
 
@@ -400,7 +407,7 @@ include __DIR__ . '/inc/layout_head.php';
 }
 
 .vanguard-bento-value {
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: var(--text);
 }
@@ -423,7 +430,8 @@ include __DIR__ . '/inc/layout_head.php';
 @media (max-width: 768px) {
     .vanguard-actions {
         grid-column: span 1;
-        justify-content: space-between;
+        justify-content: flex-start;
+        flex-wrap: wrap;
     }
 }
 
@@ -431,8 +439,8 @@ include __DIR__ . '/inc/layout_head.php';
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: var(--sf2);
+    border: 1px solid var(--bd);
     color: var(--text);
     border-radius: 100px;
     padding: 6px 6px 6px 20px;
@@ -450,7 +458,7 @@ include __DIR__ . '/inc/layout_head.php';
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.08);
+    background: var(--bd);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -460,41 +468,29 @@ include __DIR__ . '/inc/layout_head.php';
 .btn-vanguard.v-primary:hover {
     background: var(--ac);
     border-color: var(--ac);
-    color: #fff;
+    color: var(--btn-ac-text, #fff);
 }
 .btn-vanguard.v-primary:hover .v-icon-wrap {
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.15);
     transform: translateX(-4px) scale(1.05); /* LTR translate because RTL layout translates differently, let's test */
 }
 .btn-vanguard.v-danger:hover {
     background: var(--no);
     border-color: var(--no);
-    color: #fff;
+    color: var(--btn-no-text, #fff);
 }
 .btn-vanguard.v-danger:hover .v-icon-wrap {
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.15);
     transform: translateX(-4px) scale(1.05);
 }
 .btn-vanguard.v-success:hover {
     background: var(--ok);
     border-color: var(--ok);
-    color: #fff;
+    color: var(--btn-ok-text, #fff);
 }
 .btn-vanguard.v-success:hover .v-icon-wrap {
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.15);
     transform: translateX(-4px) scale(1.05);
-}
-
-.vanguard-status-float {
-    position: absolute;
-    top: 24px;
-    left: 24px;
-}
-@media (max-width: 768px) {
-    .vanguard-status-float {
-        top: 16px;
-        left: 16px;
-    }
 }
 
 @keyframes fadeUp {
@@ -592,28 +588,26 @@ include __DIR__ . '/inc/layout_head.php';
                 <div class="vanguard-shell" style="animation-delay: <?= $delay ?>ms;">
                     <div class="vanguard-core">
                         
-                        <!-- Status Badge (Absolute) -->
-                        <div class="vanguard-status-float">
-                            <?php if ($isBlocked): ?>
-                                <span class="status-pill danger" style="font-size:0.7rem; padding:4px 10px; border-radius:100px; box-shadow: 0 4px 12px rgba(239,68,68,0.2);">مسدود</span>
-                            <?php else: ?>
-                                <span class="status-pill <?= $agent === 'n2' ? 'warning' : ($agent === 'n' ? 'info' : 'success') ?>" style="font-size:0.7rem; padding:4px 10px; border-radius:100px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"><?= user_role_label($agent) ?></span>
-                            <?php endif; ?>
-                        </div>
-
                         <!-- 1. User Meta -->
                         <div class="vanguard-user-meta">
                             <div class="vanguard-avatar">
                                 <?= icon('user', 24) ?>
                             </div>
                             <div style="display:flex; flex-direction:column; gap:6px;">
-                                <div class="vanguard-name">
-                                    <?php if ($name): ?>
-                                        <?= htmlspecialchars(trunc($name, 20)) ?>
-                                    <?php elseif ($uname): ?>
-                                        <span style="direction:ltr; display:inline-block;">@<?= htmlspecialchars(trunc($uname, 20)) ?></span>
+                                <div class="vanguard-name-row">
+                                    <div class="vanguard-name">
+                                        <?php if ($name): ?>
+                                            <?= htmlspecialchars(trunc($name, 20)) ?>
+                                        <?php elseif ($uname): ?>
+                                            <span style="direction:ltr; display:inline-block;">@<?= htmlspecialchars(trunc($uname, 20)) ?></span>
+                                        <?php else: ?>
+                                            کاربر بدون نام
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if ($isBlocked): ?>
+                                        <span class="tag tag-no">مسدود</span>
                                     <?php else: ?>
-                                        کاربر بدون نام
+                                        <span class="tag <?= $agent === 'n2' ? 'tag-warn' : ($agent === 'n' ? 'tag-info' : 'tag-ok') ?>"><?= user_role_label($agent) ?></span>
                                     <?php endif; ?>
                                 </div>
                                 <?php if ($uname && $name): ?>
@@ -631,19 +625,19 @@ include __DIR__ . '/inc/layout_head.php';
                         <div class="vanguard-details-bento">
                             <div class="vanguard-bento-box">
                                 <span class="vanguard-bento-label"><?= icon('phone', 12) ?> تماس</span>
-                                <span class="vanguard-bento-value cm" style="font-size:0.9rem;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
+                                <span class="vanguard-bento-value cm" style="font-size:0.95rem;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
                             </div>
                             <div class="vanguard-bento-box">
                                 <span class="vanguard-bento-label"><?= icon('calendar', 12) ?> عضویت</span>
-                                <span class="vanguard-bento-value" style="font-size:0.85rem;"><?= safe_date($u['register'] ?? null) ?></span>
+                                <span class="vanguard-bento-value" style="font-size:0.9rem;"><?= safe_date($u['register'] ?? null) ?></span>
                             </div>
-                            <div class="vanguard-bento-box" style="background: rgba(var(--ok-rgb), 0.03); border-color: rgba(var(--ok-rgb), 0.1);">
+                            <div class="vanguard-bento-box" style="background: var(--oks); border-color: rgba(34,197,94,0.2);">
                                 <span class="vanguard-bento-label" style="color: var(--ok);"><?= icon('wallet', 12) ?> کیف پول</span>
-                                <span class="vanguard-bento-value cn" style="color: var(--ok); font-size: 1.1rem;"><?= number_format((int) ($u['Balance'] ?? 0)) ?> <span style="font-size:0.7rem;opacity:0.7">ت</span></span>
+                                <span class="vanguard-bento-value cn" style="color: var(--ok); font-size: 1.15rem;"><?= number_format((int) ($u['Balance'] ?? 0)) ?> <span style="font-size:0.7rem;opacity:0.7">ت</span></span>
                             </div>
-                            <div class="vanguard-bento-box" style="background: rgba(var(--warn-rgb), 0.03); border-color: rgba(var(--warn-rgb), 0.1);">
+                            <div class="vanguard-bento-box" style="background: var(--warns); border-color: rgba(251,183,64,0.2);">
                                 <span class="vanguard-bento-label" style="color: var(--warn);"><?= icon('star', 12) ?> امتیاز</span>
-                                <span class="vanguard-bento-value cn" style="color: var(--warn); font-size: 1.1rem;"><?= (int) ($u['score'] ?? 0) ?></span>
+                                <span class="vanguard-bento-value cn" style="color: var(--warn); font-size: 1.15rem;"><?= (int) ($u['score'] ?? 0) ?></span>
                             </div>
                         </div>
 
