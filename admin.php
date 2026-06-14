@@ -3,6 +3,9 @@
 $textadmin = ["panel", "/panel", $textbotlang['Admin']['panelAdmin'] ?? '👨‍💼 پنل مدیریت'];
 $text_panel_admin_login_template = sprintf($textbotlang['Admin']['adminphp']['msg_panel_admin_bot_report'], $version);
 
+// DEBUG LOG
+file_put_contents(__DIR__ . '/log.txt', date('Y-m-d H:i:s') . " admin.php entry: from_id=$from_id datain=" . json_encode($datain) . " text=" . json_encode($text) . " rule=" . ($adminrulecheck['rule'] ?? 'N/A') . "\n", FILE_APPEND);
+
 if (!in_array($from_id, $admin_ids))
     return;
 
