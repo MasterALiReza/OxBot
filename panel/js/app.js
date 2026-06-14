@@ -573,7 +573,7 @@ document.addEventListener('htmx:confirm', function(e) {
     if(e.detail.elt.hasAttribute('data-confirm')) {
         e.preventDefault();
         showConfirm(e.detail.elt.getAttribute('data-confirm') || t('jsConfirmDefault'), function() {
-            e.detail.issueRequest();
+            e.detail.issueRequest(true);
         });
     }
 });

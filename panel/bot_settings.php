@@ -686,7 +686,7 @@ input:checked + .arvan-slider:before {
         <?php endforeach; ?>
     </div>
 
-    <form method="POST" id="settingsForm" enctype="multipart/form-data">
+    <form method="POST" id="settingsForm" enctype="multipart/form-data" hx-boost="false">
         <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
         <input type="hidden" name="current_tab" id="current_tab_input" value="<?= htmlspecialchars($tab) ?>">
         <input type="hidden" name="current_sec" id="current_sec_input" value="<?= htmlspecialchars($sec) ?>">

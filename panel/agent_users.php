@@ -10,13 +10,24 @@ if (!isset($_SESSION['agent_id'])) {
 
 $agent_id = $_SESSION['agent_id'];
 
-// Get agent name or details if needed
-$stmt = $pdo->prepare("SELECT namecustom FROM user WHERE id = :id");
+// Get agent name and type
+$stmt = $pdo->prepare("SELECT namecustom, agent FROM user WHERE id = :id");
 $stmt->execute([':id' => $agent_id]);
 $agentUserRow = $stmt->fetch(PDO::FETCH_ASSOC);
 $agentUsername = !empty($agentUserRow['namecustom']) ? $agentUserRow['namecustom'] : 'نماینده ' . $agent_id;
+$agentType = $agentUserRow['agent'] ?? 'n'; // e.g., 'n', 'n2', 'all'
 
 $initials = mb_strtoupper(mb_substr($agentUsername, 0, 1, 'UTF-8'), 'UTF-8');
+
+// Fetch allowed panels
+$stmtPanel = $pdo->prepare("SELECT * FROM marzban_panel WHERE agent = :agent OR agent = 'all'");
+$stmtPanel->execute([':agent' => $agentType]);
+$allowedPanels = $stmtPanel->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch allowed products
+$stmtProduct = $pdo->prepare("SELECT * FROM product WHERE (agent = :agent OR agent = 'all')");
+$stmtProduct->execute([':agent' => $agentType]);
+$allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -30,10 +41,17 @@ $initials = mb_strtoupper(mb_substr($agentUsername, 0, 1, 'UTF-8'), 'UTF-8');
 
     <!-- Mobile Header & Toggle -->
     <div class="au-mobile-toggle" style="padding: 16px 20px; background: var(--au-surface); border-bottom: 1px solid var(--au-border); align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 90;">
-        <div style="font-weight: 700; font-size: 1.1rem;">پنل نمایندگی</div>
-        <button id="au-mobile-toggle" class="au-btn-icon" style="border: none; background: transparent;">
-            <?= icon('menu', 24) ?>
-        </button>
+        <div style="font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+            <button id="au-mobile-toggle" class="au-btn-icon" style="border: none; background: transparent; padding: 0;">
+                <?= icon('menu', 24) ?>
+            </button>
+            <span>پنل نمایندگی</span>
+        </div>
+        <div>
+            <a href="ajax/agent_auth.php?action=logout" class="au-btn-icon" style="border: none; background: transparent; color: var(--au-danger); text-decoration: none; display: flex;" title="خروج">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </a>
+        </div>
     </div>
 
     <!-- Sidebar -->
@@ -130,7 +148,93 @@ $initials = mb_strtoupper(mb_substr($agentUsername, 0, 1, 'UTF-8'), 'UTF-8');
 
     </main>
 
+    <!-- Create User Modal -->
+    <div id="create-modal" class="au-modal">
+        <div class="au-modal-content">
+            <div class="au-modal-header">
+                <h2>ساخت کاربر جدید</h2>
+                <button class="au-btn-icon" onclick="closeModal('create-modal')"><?= icon('x', 20) ?></button>
+            </div>
+            <div class="au-modal-body">
+                <div class="au-form-group">
+                    <label>سرور (پنل)</label>
+                    <select id="create-location" class="au-select" style="width: 100%; margin-bottom: 15px;" onchange="updateProductsList('create-location', 'create-product')">
+                        <option value="">-- انتخاب کنید --</option>
+                        <?php foreach($allowedPanels as $p): ?>
+                            <option value="<?= htmlspecialchars($p['name_panel']) ?>"><?= htmlspecialchars($p['name_panel']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="au-form-group">
+                    <label>سرویس (پلن)</label>
+                    <select id="create-product" class="au-select" style="width: 100%; margin-bottom: 15px;">
+                        <option value="">ابتدا سرور را انتخاب کنید</option>
+                    </select>
+                </div>
+                <div class="au-form-group">
+                    <label>نام کاربری (اختیاری - انگلیسی)</label>
+                    <input type="text" id="create-username" class="au-select" style="width: 100%; margin-bottom: 15px;" placeholder="مثال: ali_123" dir="ltr">
+                </div>
+                <div id="create-error" style="color: var(--au-danger); font-size: 0.9rem; margin-bottom: 10px; display: none;"></div>
+            </div>
+            <div class="au-modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--au-border); display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="au-btn" onclick="closeModal('create-modal')">انصراف</button>
+                <button class="au-btn au-btn-primary" id="btn-submit-create" onclick="submitCreateUser()">ساخت و کسر از حساب</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Renew User Modal -->
+    <div id="renew-modal" class="au-modal">
+        <div class="au-modal-content">
+            <div class="au-modal-header">
+                <h2>تمدید سرویس</h2>
+                <button class="au-btn-icon" onclick="closeModal('renew-modal')"><?= icon('x', 20) ?></button>
+            </div>
+            <div class="au-modal-body">
+                <p style="margin-bottom: 15px;">کاربر: <strong id="renew-username-lbl"></strong> (سرور: <span id="renew-location-lbl"></span>)</p>
+                <input type="hidden" id="renew-invoice-id">
+                <input type="hidden" id="renew-location-val">
+                <div class="au-form-group">
+                    <label>انتخاب سرویس جدید</label>
+                    <select id="renew-product" class="au-select" style="width: 100%; margin-bottom: 15px;">
+                    </select>
+                </div>
+                <div id="renew-error" style="color: var(--au-danger); font-size: 0.9rem; margin-bottom: 10px; display: none;"></div>
+            </div>
+            <div class="au-modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--au-border); display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="au-btn" onclick="closeModal('renew-modal')">انصراف</button>
+                <button class="au-btn au-btn-primary" id="btn-submit-renew" onclick="submitRenewUser()">تمدید سرویس</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Config Links Modal -->
+    <div id="link-modal" class="au-modal">
+        <div class="au-modal-content">
+            <div class="au-modal-header">
+                <h2>لینک اشتراک</h2>
+                <button class="au-btn-icon" onclick="closeModal('link-modal')"><?= icon('x', 20) ?></button>
+            </div>
+            <div class="au-modal-body">
+                <div id="link-content" style="background: var(--au-background); padding: 15px; border-radius: 8px; word-break: break-all; font-family: monospace; font-size: 0.85rem; line-height: 1.5; text-align: left; direction: ltr; max-height: 200px; overflow-y: auto; user-select: all;">
+                    در حال دریافت...
+                </div>
+                <button class="au-btn au-btn-primary" style="width: 100%; margin-top: 15px; justify-content: center;" onclick="copyConfigLink()">کپی کردن</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        const RAW_PRODUCTS = <?= json_encode($allowedProducts) ?>;
+        
+        // Modal functions
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
         // Data Fetching Logic
         let currentPage = 1;
         let currentSearch = '';
@@ -207,9 +311,9 @@ $initials = mb_strtoupper(mb_substr($agentUsername, 0, 1, 'UTF-8'), 'UTF-8');
                             </button>
                             
                             <div class="au-dropdown" id="dropdown-${user.id}">
-                                <a href="#" class="au-dropdown-item"><i class="fa-solid fa-pen"></i> ویرایش کاربر</a>
-                                <a href="#" class="au-dropdown-item"><i class="fa-solid fa-rotate-right"></i> تمدید سرویس</a>
-                                <a href="#" class="au-dropdown-item danger"><i class="fa-solid fa-trash"></i> حذف کاربر</a>
+                                <a href="#" class="au-dropdown-item" onclick="openLinkModal(${user.id}); return false;"><i class="fa-solid fa-link"></i> لینک اشتراک</a>
+                                <a href="#" class="au-dropdown-item" onclick="openRenewModal(${user.id}, '${user.username}', '${user.location}'); return false;"><i class="fa-solid fa-rotate-right"></i> تمدید سرویس</a>
+                                <a href="#" class="au-dropdown-item danger" onclick="deleteUser(${user.id}); return false;"><i class="fa-solid fa-trash"></i> حذف کاربر</a>
                             </div>
                         </div>
                     </div>`;
@@ -268,14 +372,196 @@ $initials = mb_strtoupper(mb_substr($agentUsername, 0, 1, 'UTF-8'), 'UTF-8');
 
             const searchInput = document.getElementById('au-search-input');
             let searchTimeout;
-            searchInput.addEventListener('input', (e) => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    currentSearch = e.target.value;
-                    loadUsers(1);
-                }, 500);
-            });
+            if(searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        currentSearch = e.target.value;
+                        loadUsers(1);
+                    }, 500);
+                });
+            }
+            
+            const btnCreateOpen = document.querySelector('.au-btn-primary');
+            if(btnCreateOpen) {
+                btnCreateOpen.addEventListener('click', () => {
+                    document.getElementById('create-error').style.display = 'none';
+                    document.getElementById('create-username').value = '';
+                    openModal('create-modal');
+                });
+            }
         });
+
+        function updateProductsList(locSelectId, prodSelectId) {
+            const loc = document.getElementById(locSelectId).value;
+            const prodSelect = document.getElementById(prodSelectId);
+            prodSelect.innerHTML = '<option value="">-- انتخاب پلن --</option>';
+            if(!loc) return;
+
+            const filtered = RAW_PRODUCTS.filter(p => p.Location === loc || p.Location === '/all');
+            filtered.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.name_product} - ${Number(p.price_product).toLocaleString()} تومان`;
+                prodSelect.appendChild(opt);
+            });
+        }
+
+        async function submitCreateUser() {
+            const loc = document.getElementById('create-location').value;
+            const prodId = document.getElementById('create-product').value;
+            const username = document.getElementById('create-username').value;
+            const errDiv = document.getElementById('create-error');
+            const btn = document.getElementById('btn-submit-create');
+
+            if(!loc || !prodId) {
+                errDiv.textContent = 'انتخاب سرور و پلن الزامی است';
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            errDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال پردازش...';
+
+            const formData = new FormData();
+            formData.append('action', 'create_user');
+            formData.append('location', loc);
+            formData.append('product_id', prodId);
+            formData.append('username', username);
+
+            try {
+                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    closeModal('create-modal');
+                    loadUsers(1);
+                    alert('کاربر با موفقیت ساخته شد!');
+                } else {
+                    errDiv.textContent = json.message || 'خطا در ساخت کاربر';
+                    errDiv.style.display = 'block';
+                }
+            } catch(e) {
+                errDiv.textContent = 'خطای ارتباط با سرور';
+                errDiv.style.display = 'block';
+            }
+            btn.disabled = false;
+            btn.textContent = 'ساخت و کسر از حساب';
+        }
+
+        function openRenewModal(invoiceId, username, location) {
+            document.getElementById('renew-invoice-id').value = invoiceId;
+            document.getElementById('renew-username-lbl').textContent = username;
+            document.getElementById('renew-location-lbl').textContent = location;
+            document.getElementById('renew-location-val').value = location;
+            
+            document.getElementById('renew-error').style.display = 'none';
+            
+            const prodSelect = document.getElementById('renew-product');
+            prodSelect.innerHTML = '<option value="">-- انتخاب پلن --</option>';
+            const filtered = RAW_PRODUCTS.filter(p => p.Location === location || p.Location === '/all');
+            filtered.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = `${p.name_product} - ${Number(p.price_product).toLocaleString()} تومان`;
+                prodSelect.appendChild(opt);
+            });
+            
+            openModal('renew-modal');
+        }
+
+        async function submitRenewUser() {
+            const invoiceId = document.getElementById('renew-invoice-id').value;
+            const prodId = document.getElementById('renew-product').value;
+            const errDiv = document.getElementById('renew-error');
+            const btn = document.getElementById('btn-submit-renew');
+
+            if(!prodId) {
+                errDiv.textContent = 'انتخاب پلن الزامی است';
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            errDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال پردازش...';
+
+            const formData = new FormData();
+            formData.append('action', 'renew_user');
+            formData.append('invoice_id', invoiceId);
+            formData.append('product_id', prodId);
+
+            try {
+                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    closeModal('renew-modal');
+                    loadUsers(currentPage);
+                    alert('سرویس با موفقیت تمدید شد!');
+                } else {
+                    errDiv.textContent = json.message || 'خطا در تمدید سرویس';
+                    errDiv.style.display = 'block';
+                }
+            } catch(e) {
+                errDiv.textContent = 'خطای ارتباط با سرور';
+                errDiv.style.display = 'block';
+            }
+            btn.disabled = false;
+            btn.textContent = 'تمدید سرویس';
+        }
+
+        async function deleteUser(invoiceId) {
+            if(!confirm('آیا از حذف این کاربر اطمینان دارید؟ این عملیات قابل بازگشت نیست!')) return;
+            
+            const formData = new FormData();
+            formData.append('action', 'delete_user');
+            formData.append('invoice_id', invoiceId);
+
+            try {
+                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    loadUsers(currentPage);
+                } else {
+                    alert(json.message || 'خطا در حذف کاربر');
+                }
+            } catch(e) {
+                alert('خطای ارتباط با سرور');
+            }
+        }
+
+        async function openLinkModal(invoiceId) {
+            openModal('link-modal');
+            const content = document.getElementById('link-content');
+            content.textContent = 'در حال دریافت اطلاعات...';
+            
+            const formData = new FormData();
+            formData.append('action', 'get_link');
+            formData.append('invoice_id', invoiceId);
+
+            try {
+                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    content.textContent = json.link;
+                } else {
+                    content.textContent = json.message || 'خطا در دریافت لینک';
+                }
+            } catch(e) {
+                content.textContent = 'خطای ارتباط با سرور';
+            }
+        }
+
+        function copyConfigLink() {
+            const content = document.getElementById('link-content');
+            if(content.textContent.trim() === '' || content.textContent.includes('در حال دریافت')) return;
+            
+            navigator.clipboard.writeText(content.textContent).then(() => {
+                alert('لینک با موفقیت کپی شد!');
+            }).catch(err => {
+                alert('خطا در کپی کردن متن!');
+            });
+        }
     </script>
 
 

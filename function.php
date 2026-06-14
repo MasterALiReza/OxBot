@@ -862,7 +862,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
         $stmt->bindParam(':id_user', $Balance_id['id']);
         $stmt->execute();
         $countinvoice = $stmt->rowCount();
-        if ($affiliatescommission['status_commission'] == "oncommission" && ($Balance_id['affiliates'] != null && intval($Balance_id['affiliates']) != 0)) {
+        if ($Shoppinginfo['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name'] && $affiliatescommission['status_commission'] == "oncommission" && ($Balance_id['affiliates'] != null && intval($Balance_id['affiliates']) != 0)) {
             $first_buy_reward = intval($affiliatescommission['first_buy_reward'] ?? 0);
             $percentage = floatval($setting['affiliatespercentage'] ?? 0);
             
