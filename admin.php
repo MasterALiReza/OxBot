@@ -2789,8 +2789,23 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'show_alert' => true,
             'cache_time' => 5,
         ));
-        $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-        Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
+        if ($Payment_report['payment_Status'] == "reject") {
+            $textconfrom = "❌ این تراکنش لغو شده است (به دلیل خطا در ساخت سرویس در پنل).\nمبلغ به کیف پول کاربر عودت داده شد.";
+            $Confirm_pay_fail = json_encode([
+                'inline_keyboard' => [
+                    [
+                        ['text' => '❌ ناموفق', 'callback_data' => "confirmpaid_failed"],
+                    ],
+                    [
+                        ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
+                    ]
+                ]
+            ]);
+            Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay_fail);
+        } else {
+            $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
+            Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
+        }
         return;
     }
     $sql = "SELECT * FROM Payment_report WHERE id_user = '{$Payment_report['id_user']}' AND payment_Status != 'paid' AND payment_Status != 'Unpaid' AND payment_Status != 'expire' AND payment_Status != 'reject' AND  (id_invoice  LIKE CONCAT('%','getconfigafterpay', '%') OR id_invoice  LIKE CONCAT('%','getextenduser', '%') OR id_invoice  LIKE CONCAT('%','getextravolumeuser', '%') OR id_invoice  LIKE CONCAT('%','getextratimeuser', '%'))";

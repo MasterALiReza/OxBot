@@ -2992,10 +2992,6 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
 
     $dataoutput = $ManagePanel->createUser($marzban_list_get['name_panel'], "usertest", $username_ac, $datac);
 
-    if ($loading_msg_id) {
-        deletemessage($from_id, $loading_msg_id);
-    }
-
     if ($dataoutput['username'] == null) {
         $dataoutput['msg'] = json_encode($dataoutput['msg']);
         sendmessage($from_id, $textbotlang['users']['usertest']['errorcreat'], $keyboard, 'html');
@@ -3007,6 +3003,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
                 'text' => $texterros,
                 'parse_mode' => "HTML"
             ]);
+        }
+        if ($loading_msg_id) {
+            deletemessage($from_id, $loading_msg_id);
         }
         step('home', $from_id);
         update("invoice", "Status", "Unsuccessful", "id_invoice", $randomString);
@@ -3040,6 +3039,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         update("invoice", "user_info", $dataoutput['subscription_url'], "id_invoice", $randomString);
     }
     sendMessageService($marzban_list_get, $dataoutput['configs'], $output_config_link, $dataoutput['username'], $usertestinfo, $textcreatuser, $randomString);
+    if ($loading_msg_id) {
+        deletemessage($from_id, $loading_msg_id);
+    }
     sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard, 'HTML');
     step('home', $from_id);
     if ($marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customTextSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['usernameSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['numericIdSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['agentCustomTextSequential']) {
