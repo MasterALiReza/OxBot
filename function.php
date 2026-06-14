@@ -818,9 +818,14 @@ function DirectPayment($order_id, $image = 'images.jpg')
                 ]
             ]
         ]);
-        $service_links = formatServiceDeliveryLinks($marzban_list_get, $dataoutput);
-        $output_config_link = $service_links['main'];
-        $config = $service_links['extra'];
+        $output_config_link = "";
+        $config = "";
+        if ($marzban_list_get['config'] == "onconfig" && is_array($dataoutput['configs'])) {
+            foreach ($dataoutput['configs'] as $link) {
+                $config .= "\n" . $link;
+            }
+        }
+        $output_config_link = $marzban_list_get['sublink'] == "onsublink" ? $dataoutput['subscription_url'] : "";
         $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "Manualsale" ? $textbotlang['textbot']['manual'] : $textbotlang['textbot']['afterPay'];
         $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "WGDashboard" ? $textbotlang['textbot']['wgDashboard'] : $textbotlang['textbot']['afterPay'];
         $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "ibsng" || $marzban_list_get['type'] == "mikrotik" ? $textbotlang['textbot']['afterPayIbsng'] : $textbotlang['textbot']['afterPay'];
@@ -1733,87 +1738,23 @@ function isBase64($string)
     }
     return false;
 }
-function formatServiceDeliveryLinks($panel_info, $dataoutput)
-{
-    $configs = array();
-    if (isset($dataoutput['configs']) && is_array($dataoutput['configs'])) {
-        foreach ($dataoutput['configs'] as $link) {
-            $link = trim((string)$link);
-            if ($link !== '') {
-                $configs[] = $link;
-            }
-        }
-    }
-
-    $subscription_url = trim((string)($dataoutput['subscription_url'] ?? ''));
-    $sublink_mode = $panel_info['sublink'] ?? '';
-    $config_mode = $panel_info['config'] ?? '';
-    
-    $has_subscription = in_array($sublink_mode, array('onsublink', 'bothsubandconfig'), true) && $subscription_url !== '';
-    $has_config = ($config_mode === 'onconfig' || $sublink_mode === 'bothsubandconfig') && !empty($configs);
-
-    $main = '';
-    $extra = '';
-
-    if ($has_subscription && $has_config) {
-        $main = $subscription_url;
-        $extra = '';
-    } elseif ($has_subscription) {
-        $main = $subscription_url;
-        $extra = '';
-    } elseif ($has_config) {
-        $main = "🔗 لینک کانفیگ (شیوه اتصال):\n\n<code>" . $configs[0] . "</code>";
-        $extra = '';
-    }
-
-    return array('main' => $main, 'extra' => $extra, 'configs' => $configs);
-}
 function sendMessageService($panel_info, $config, $sub_link, $username_service, $reply_markup, $caption, $invoice_id, $user_id = null, $image = 'images.jpg')
 {
     global $setting, $from_id, $textbotlang;
     if (!check_active_btn($setting['keyboardmain'], "text_help"))
         $reply_markup = null;
     $user_id = $user_id == null ? $from_id : $user_id;
-    $config = is_array($config) ? $config : array();
-    $has_delivery_subscription = in_array($panel_info['sublink'], array("onsublink", "bothsubandconfig"), true) && trim((string)$sub_link) !== "";
-    $STATUS_SEND_MESSAGE_PHOTO = $has_delivery_subscription || $panel_info['config'] != "onconfig" || count($config) == 1;
+    $STATUS_SEND_MESSAGE_PHOTO = ($panel_info['config'] == "onconfig" && is_array($config) && count($config) != 1) ? false : true;
     $out_put_qrcode = "";
     if ($panel_info['type'] == "Manualsale" || $panel_info['type'] == "ibsng" || $panel_info['type'] == "mikrotik") {
     }
-    if ($has_delivery_subscription) {
+    if ($panel_info['sublink'] == "onsublink" && $panel_info['config']) {
         $out_put_qrcode = $sub_link;
     } elseif ($panel_info['sublink'] == "onsublink") {
         $out_put_qrcode = $sub_link;
-    } elseif ($panel_info['config'] == "onconfig" && !empty($config)) {
+    } elseif ($panel_info['config'] == "onconfig") {
         $out_put_qrcode = $config[0];
     }
-    
-    $has_config_feature = ($panel_info['config'] == 'onconfig' || $panel_info['sublink'] == 'bothsubandconfig') && !empty($config);
-    $manual_config_enabled = ($setting['status_manual_config'] ?? '1') === '1';
-    if ($has_config_feature && $manual_config_enabled) {
-        if ($reply_markup) {
-            $markup_arr = json_decode($reply_markup, true);
-            if (isset($markup_arr['inline_keyboard'])) {
-                $new_button = [['text' => '📥 دریافت دستی کانفیگ', 'callback_data' => 'getmanualconfig_' . $invoice_id]];
-                $helpbtn_index = -1;
-                foreach ($markup_arr['inline_keyboard'] as $idx => $row) {
-                    foreach ($row as $btn) {
-                        if (isset($btn['callback_data']) && $btn['callback_data'] == 'helpbtn') {
-                            $helpbtn_index = $idx;
-                            break 2;
-                        }
-                    }
-                }
-                if ($helpbtn_index !== -1) {
-                    array_splice($markup_arr['inline_keyboard'], $helpbtn_index, 0, [$new_button]);
-                } else {
-                    array_unshift($markup_arr['inline_keyboard'], $new_button);
-                }
-                $reply_markup = json_encode($markup_arr);
-            }
-        }
-    }
-
     if ($STATUS_SEND_MESSAGE_PHOTO) {
         if ($panel_info['type'] == "WGDashboard") {
             $urlimage = "{$panel_info['inboundid']}_{$invoice_id}.conf";
@@ -1826,20 +1767,6 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
                 'parse_mode' => "HTML",
             ]);
             unlink($urlimage);
-
-            if (($panel_info['qr_wgd'] ?? 'offqrwgd') === 'onqrwgd') {
-                $qrUrlimage = "$user_id$invoice_id.png";
-                $qrCode = createqrcode($out_put_qrcode);
-                file_put_contents($qrUrlimage, $qrCode->getString());
-                addBackgroundImage($qrUrlimage, $qrCode, $image);
-                telegram('sendphoto', [
-                    'chat_id' => $user_id,
-                    'photo' => new CURLFile($qrUrlimage),
-                    'caption' => "📱 بارکد کانفیگ",
-                    'parse_mode' => "HTML",
-                ]);
-                unlink($qrUrlimage);
-            }
         } else {
             $urlimage = "$user_id$invoice_id.png";
             $qrCode = createqrcode($out_put_qrcode);
@@ -1857,7 +1784,11 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
     } else {
         sendmessage($user_id, $caption, $reply_markup, 'HTML');
     }
-    // Bottom "click to get config" message removed — manual delivery handled via 📥 button
+    if ($panel_info['config'] == "onconfig" && $setting['status_keyboard_config'] == "1") {
+        if (is_array($config)) {
+            sendmessage($user_id, $textbotlang['hardcoded']['getConfigHint'], keyboard_config($config, $invoice_id, false), 'HTML');
+        }
+    }
 }
 function isValidInvitationCode($setting, $fromId, $verfy_status)
 {
