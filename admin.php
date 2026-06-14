@@ -3,9 +3,6 @@
 $textadmin = ["panel", "/panel", $textbotlang['Admin']['panelAdmin'] ?? '👨‍💼 پنل مدیریت'];
 $text_panel_admin_login_template = sprintf($textbotlang['Admin']['adminphp']['msg_panel_admin_bot_report'], $version);
 
-// DEBUG LOG
-file_put_contents(__DIR__ . '/log.txt', date('Y-m-d H:i:s') . " admin.php entry: from_id=$from_id datain=" . json_encode($datain) . " text=" . json_encode($text) . " rule=" . ($adminrulecheck['rule'] ?? 'N/A') . "\n", FILE_APPEND);
-
 if (!in_array($from_id, $admin_ids))
     return;
 
@@ -2817,14 +2814,32 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         }
         return;
     }
-    $debugLog = date('Y-m-d H:i:s') . " Confirm_pay_\n";
-    $debugLog .= "from_id=$from_id, chat_id=$chat_id, message_id=$message_id\n";
-    $debugLog .= "order_id=$order_id\n";
-    $debugLog .= "payment_Status=" . $Payment_report['payment_Status'] . "\n";
-    $debugLog .= "Payment_Method=" . $Payment_report['Payment_Method'] . "\n";
-    $debugLog .= "id_invoice=" . $Payment_report['id_invoice'] . "\n";
-    $debugLog .= "countpay=$countpay\n";
-    file_put_contents(__DIR__ . '/log.txt', $debugLog . "\n", FILE_APPEND);
+    // Mark payment as paid immediately so UI responds fast
+    update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
+    update("user", "Processing_value_one", "none", "id", $Payment_report['id_user']);
+    update("user", "Processing_value_tow", "none", "id", $Payment_report['id_user']);
+    update("user", "Processing_value_four", "none", "id", $Payment_report['id_user']);
+
+    // Answer callback and edit message immediately (before slow panel API calls)
+    telegram('answerCallbackQuery', [
+        'callback_query_id' => $callback_query_id,
+        'text' => $textbotlang['keyboard']['confirmed'],
+        'show_alert' => false,
+    ]);
+    $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
+    $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $order_id, $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
+    telegram('editMessageText', [
+        'chat_id' => $chat_id,
+        'message_id' => $message_id,
+        'text' => $textconfrom,
+        'reply_markup' => $Confirm_pay,
+        'parse_mode' => 'HTML'
+    ]);
+
+    // Now do the heavy lifting (panel API, notifications, cashback)
+    ignore_user_abort(true);
+    set_time_limit(120);
+
     DirectPayment($order_id);
 
     $pricecashback = select("PaySetting", "ValuePay", "NamePay", "chashbackcart", "select")['ValuePay'];
@@ -2847,24 +2862,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'parse_mode' => "HTML"
         ]);
     }
-    update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
-    update("user", "Processing_value_one", "none", "id", $Balance_id['id']);
-    update("user", "Processing_value_tow", "none", "id", $Balance_id['id']);
-    update("user", "Processing_value_four", "none", "id", $Balance_id['id']);
-    telegram('answerCallbackQuery', [
-        'callback_query_id' => $callback_query_id,
-        'text' => $textbotlang['keyboard']['confirmed'],
-        'show_alert' => false,
-    ]);
-    $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
-    $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $order_id, $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-    telegram('editMessageText', [
-        'chat_id' => $chat_id,
-        'message_id' => $message_id,
-        'text' => $textconfrom,
-        'reply_markup' => $Confirm_pay,
-        'parse_mode' => 'HTML'
-    ]);
+
 } elseif (preg_match('/reject_pay_(\w+)/', $datain, $datagetr) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $id_order = $datagetr[1];
     $Payment_report = select("Payment_report", "*", "id_order", $id_order, "select");
