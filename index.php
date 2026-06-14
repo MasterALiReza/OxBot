@@ -5492,9 +5492,9 @@ if (preg_match('/Confirmpay_user_(\w+)_(\w+)/', $datain, $dataget)) {
             ]);
         }
         update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
-        update("user", "Processing_value_one", "none", "id", $Payment_report['id_order']);
-        update("user", "Processing_value_tow", "none", "id", $Payment_report['id_order']);
-        update("user", "Processing_value_four", "none", "id", $Payment_report['id_order']);
+        update("user", "Processing_value_one", "none", "id", $Payment_report['id_user']);
+        update("user", "Processing_value_tow", "none", "id", $Payment_report['id_user']);
+        update("user", "Processing_value_four", "none", "id", $Payment_report['id_user']);
     } elseif ($StatusPayment['payment_status'] == "expired") {
         telegram('answerCallbackQuery', array(
             'callback_query_id' => $callback_query_id,
@@ -5677,6 +5677,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         sendmessage($id_admin, $textsendrasid, $Confirm_pay, 'HTML');
     }
     if ($user['Processing_value_tow'] == "getconfigafterpay") {
+        update("invoice", "Status", "waiting", "username", $user['Processing_value_one']);
         sendmessage($from_id, $textbotlang['users']['Balance']['sendReceiptAndConfig'], $keyboard, 'HTML');
     } else {
         sendmessage($from_id, $textbotlang['users']['Balance']['sendReceipt'], $keyboard, 'HTML');
@@ -5797,6 +5798,10 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             'parse_mode' => "HTML",
         ]);
         sendmessage($id_admin, $textsendrasid, $Confirm_pay, 'HTML');
+    }
+    $split_data = explode('|', $PaymentReport['id_invoice']);
+    if ($split_data[0] == "getconfigafterpay") {
+        update("invoice", "Status", "waiting", "username", $split_data[1]);
     }
     update("Payment_report", "payment_Status", "waiting", "id_order", $PaymentReport['id_order']);
     $dateacc = date('Y/m/d H:i:s');

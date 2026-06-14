@@ -235,6 +235,7 @@ if (isDuplicateUpdate($update_id)) {
     exit;
 }
 $from_id = $update['message']['from']['id'] ?? $update['callback_query']['from']['id'] ?? $update["inline_query"]['from']['id'] ?? 0;
+$chat_id = $update['message']['chat']['id'] ?? $update['callback_query']['message']['chat']['id'] ?? 0;
 $time_message = $update['message']['date'] ?? $update['callback_query']['date'] ?? $update["inline_query"]['date'] ?? 0;
 $is_bot = $update['message']['from']['is_bot'] ?? false;
 $chat_member = $update['chat_member'] ?? null;
