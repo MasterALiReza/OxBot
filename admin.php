@@ -2830,6 +2830,22 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         'cache_time' => 5,
     ));
 
+    $loading_keyboard = json_encode([
+        'inline_keyboard' => [
+            [
+                ['text' => '⏳ در حال فعال‌سازی سرویس...', 'callback_data' => "loading_confirm"],
+            ],
+            [
+                ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
+            ]
+        ]
+    ]);
+    telegram('editMessageReplyMarkup', [
+        'chat_id' => $chat_id,
+        'message_id' => $message_id,
+        'reply_markup' => $loading_keyboard
+    ]);
+
     $Confirm_pay = json_encode([
         'inline_keyboard' => [
             [
