@@ -405,6 +405,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                     </div>`;
                 });
 
+                // Render all users first
                 container.innerHTML = html;
 
                 // Re-bind dropdowns
@@ -413,10 +414,10 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 // Render pagination
                 renderPagination(pageInfo.page, pageInfo.total_pages);
 
-                // Load live stats asynchronously
-                users.forEach(user => {
-                    fetchLiveStats(user.id);
-                });
+                // Then load live stats sequentially to prevent server overload
+                for (const user of users) {
+                    await fetchLiveStats(user.id);
+                }
 
             } catch (err) {
                 container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--au-danger);">خطای ارتباط با سرور</div>';

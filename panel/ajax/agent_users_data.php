@@ -11,8 +11,11 @@ require '../inc/config.php';
 // Discard any HTML/text output from config (including its header())
 ob_end_clean();
 
-require_once __DIR__ . '/../../function.php';
-require_once __DIR__ . '/../../panels.php';
+$old_cwd = getcwd();
+chdir(__DIR__ . '/../../');
+require_once 'function.php';
+require_once 'panels.php';
+chdir($old_cwd);
 
 $ManagePanel = new ManagePanel();
 
