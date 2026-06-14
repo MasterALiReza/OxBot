@@ -9689,7 +9689,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             ['text' => $textbotlang['keyboard']['passargadPanel'], 'callback_data' => "none"],
         ];
     }
-    if (!in_array($panel['type'], ['Manualsale', "WGDashboard", 'hiddify'])) {
+    if (!in_array($panel['type'], ['Manualsale', 'hiddify'])) {
         $Bot_Status['inline_keyboard'][] = [
             ['text' => $statusconfig, 'callback_data' => "editpanel-stautsconfig-{$panel['config']}-{$panel['code_panel']}"],
             ['text' => $textbotlang['keyboard']['sendConfig'], 'callback_data' => "none"],
@@ -9980,7 +9980,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             ['text' => $textbotlang['keyboard']['passargadPanel'], 'callback_data' => "none"],
         ];
     }
-    if (!in_array($panel['type'], ['Manualsale', "WGDashboard", 'hiddify'])) {
+    if (!in_array($panel['type'], ['Manualsale', 'hiddify'])) {
         $Bot_Status['inline_keyboard'][] = [
             ['text' => $statusconfig, 'callback_data' => "editpanel-stautsconfig-{$panel['config']}-{$panel['code_panel']}"],
             ['text' => $textbotlang['keyboard']['sendConfig'], 'callback_data' => "none"],

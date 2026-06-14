@@ -1773,16 +1773,33 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
     }
     if ($STATUS_SEND_MESSAGE_PHOTO) {
         if ($panel_info['type'] == "WGDashboard") {
-            $urlimage = "{$panel_info['inboundid']}_{$invoice_id}.conf";
-            file_put_contents($urlimage, $sub_link);
-            telegram('senddocument', [
-                'chat_id' => $user_id,
-                'document' => new CURLFile($urlimage),
-                'reply_markup' => $reply_markup,
-                'caption' => $caption,
-                'parse_mode' => "HTML",
-            ]);
-            unlink($urlimage);
+            if (!isset($panel_info['config']) || $panel_info['config'] == 'onconfig') {
+                $urlimage = "{$panel_info['inboundid']}_{$invoice_id}.conf";
+                file_put_contents($urlimage, $sub_link);
+                telegram('senddocument', [
+                    'chat_id' => $user_id,
+                    'document' => new CURLFile($urlimage),
+                    'reply_markup' => $reply_markup,
+                    'caption' => $caption,
+                    'parse_mode' => "HTML",
+                ]);
+                unlink($urlimage);
+            } else {
+                sendmessage($user_id, $caption, $reply_markup, 'HTML');
+            }
+            if (isset($panel_info['qr_wgd']) && $panel_info['qr_wgd'] == 'onqrwgd' && !empty($sub_link)) {
+                $urlimage = "$user_id$invoice_id.png";
+                $qrCode = createqrcode($sub_link);
+                file_put_contents($urlimage, $qrCode->getString());
+                addBackgroundImage($urlimage, $qrCode, $image);
+                telegram('sendphoto', [
+                    'chat_id' => $user_id,
+                    'photo' => new CURLFile($urlimage),
+                    'caption' => "کد QR اتصال",
+                    'parse_mode' => "HTML",
+                ]);
+                unlink($urlimage);
+            }
         } else {
             if (!empty($out_put_qrcode)) {
                 $urlimage = "$user_id$invoice_id.png";
@@ -1963,7 +1980,11 @@ function formatServiceDeliveryLinks($panel_info, $dataoutput)
 
     // Fallbacks
     if ($main === '' && $subscription_url !== '') {
-        $main = $subscription_url;
+        if (($panel_info['type'] ?? '') == 'WGDashboard' && $config_mode == 'offconfig') {
+            $main = '';
+        } else {
+            $main = $subscription_url;
+        }
     }
     if ($main === '' && !empty($configs) && !$inline_configs) {
         $main = implode("\n\n", $configs);
