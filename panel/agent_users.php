@@ -161,7 +161,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                     <select id="create-location" class="au-select" style="width: 100%; margin-bottom: 15px;" onchange="updateProductsList('create-location', 'create-product')">
                         <option value="">-- انتخاب کنید --</option>
                         <?php foreach($allowedPanels as $p): ?>
-                            <option value="<?= htmlspecialchars($p['name_panel']) ?>"><?= htmlspecialchars($p['name_panel']) ?></option>
+                            <option value="<?= htmlspecialchars($p['code_panel']) ?>"><?= htmlspecialchars($p['name_panel']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>

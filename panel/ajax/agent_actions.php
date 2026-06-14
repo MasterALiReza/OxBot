@@ -69,15 +69,27 @@ if ($action === 'create_user') {
         'type' => 'buy'
     ];
 
+    // --- ATOMIC WALLET DEDUCTION FIRST (PREVENT RACE CONDITIONS) ---
+    if ($price > 0) {
+        $stmtW = $pdo->prepare("UPDATE user SET wallet = wallet - :p WHERE id = :id AND wallet >= :p");
+        $stmtW->execute([':p' => $price, ':id' => $agent_id]);
+        if ($stmtW->rowCount() === 0) {
+            echo json_encode(['status' => 'error', 'message' => 'موجودی کیف پول شما کافی نیست یا تراکنش همزمان رخ داده است.']);
+            exit;
+        }
+    }
+
+    // Fetch Panel Name
+    $stmtPnl = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE code_panel = :code LIMIT 1");
+    $stmtPnl->execute([':code' => $location]);
+    $panelData = $stmtPnl->fetch(PDO::FETCH_ASSOC);
+    $name_panel = $panelData ? $panelData['name_panel'] : $location;
+
     // Call Creation API
-    $args = [$location, $product['code_product'], $username, $Data_Config];
+    $args = [$name_panel, $product['code_product'], $username, $Data_Config];
     $response = MHSanaei_router('createUser', $args);
 
     if (isset($response['status']) && $response['status'] === 'successful') {
-        // Deduct Wallet
-        $newWallet = $wallet - $price;
-        $stmtW = $pdo->prepare("UPDATE user SET wallet = :w WHERE id = :id");
-        $stmtW->execute([':w' => $newWallet, ':id' => $agent_id]);
 
         // Insert Invoice
         $randomString = bin2hex(random_bytes(4));
@@ -110,6 +122,11 @@ if ($action === 'create_user') {
 
         echo json_encode(['status' => 'success', 'message' => 'سرویس ساخته شد']);
     } else {
+        // --- REFUND WALLET IF API FAILED ---
+        if ($price > 0) {
+            $stmtR = $pdo->prepare("UPDATE user SET wallet = wallet + :p WHERE id = :id");
+            $stmtR->execute([':p' => $price, ':id' => $agent_id]);
+        }
         echo json_encode(['status' => 'error', 'message' => 'خطا در ارتباط با پنل: ' . ($response['msg'] ?? 'ناشناخته')]);
     }
     exit;
@@ -150,18 +167,30 @@ if ($action === 'renew_user') {
         exit;
     }
 
+    // --- ATOMIC WALLET DEDUCTION FIRST ---
+    if ($price > 0) {
+        $stmtW = $pdo->prepare("UPDATE user SET wallet = wallet - :p WHERE id = :id AND wallet >= :p");
+        $stmtW->execute([':p' => $price, ':id' => $agent_id]);
+        if ($stmtW->rowCount() === 0) {
+            echo json_encode(['status' => 'error', 'message' => 'موجودی کیف پول شما کافی نیست یا تراکنش همزمان رخ داده است.']);
+            exit;
+        }
+    }
+
+    // Fetch Panel Name
+    $stmtPnl = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE code_panel = :code LIMIT 1");
+    $stmtPnl->execute([':code' => $invoice['Service_location']]);
+    $panelData = $stmtPnl->fetch(PDO::FETCH_ASSOC);
+    $name_panel = $panelData ? $panelData['name_panel'] : $invoice['Service_location'];
+
     // Call Renew API (extend)
     // extend args: list($Method_extend, $new_limit, $time_day, $username, $code_product, $name_panel) = $args;
     global $textbotlang;
     $method = $textbotlang['keyboard']['resetVolumeAddTime'] ?? 'ریست حجم زمان قبلی و اضافه شدن حجم زمان جدید';
-    $args = [$method, $product['Volume_constraint'], $product['Service_time'], $invoice['username'], $product['code_product'], $invoice['Service_location']];
+    $args = [$method, $product['Volume_constraint'], $product['Service_time'], $invoice['username'], $product['code_product'], $name_panel];
     $response = MHSanaei_router('extend', $args);
 
     if (isset($response['status']) && $response['status'] === true) {
-        // Deduct Wallet
-        $newWallet = $wallet - $price;
-        $stmtW = $pdo->prepare("UPDATE user SET wallet = :w WHERE id = :id");
-        $stmtW->execute([':w' => $newWallet, ':id' => $agent_id]);
 
         // Update Invoice
         $stmtU = $pdo->prepare("UPDATE invoice SET Status = 'active', time_sell = :time_sell, price_product = :p, Volume = :v, Service_time = :st WHERE id_invoice = :id");
@@ -175,6 +204,11 @@ if ($action === 'renew_user') {
 
         echo json_encode(['status' => 'success', 'message' => 'سرویس تمدید شد']);
     } else {
+        // --- REFUND WALLET IF API FAILED ---
+        if ($price > 0) {
+            $stmtR = $pdo->prepare("UPDATE user SET wallet = wallet + :p WHERE id = :id");
+            $stmtR->execute([':p' => $price, ':id' => $agent_id]);
+        }
         echo json_encode(['status' => 'error', 'message' => 'خطا در ارتباط با پنل: ' . ($response['msg'] ?? 'ناشناخته')]);
     }
     exit;
@@ -197,8 +231,14 @@ if ($action === 'delete_user') {
         exit;
     }
 
+    // Fetch Panel Name
+    $stmtPnl = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE code_panel = :code LIMIT 1");
+    $stmtPnl->execute([':code' => $invoice['Service_location']]);
+    $panelData = $stmtPnl->fetch(PDO::FETCH_ASSOC);
+    $name_panel = $panelData ? $panelData['name_panel'] : $invoice['Service_location'];
+
     // Call Delete API
-    $args = [$invoice['username'], $invoice['Service_location']];
+    $args = [$invoice['username'], $name_panel];
     $response = MHSanaei_router('RemoveUser', $args);
 
     if (isset($response['status']) && $response['status'] === true) {
@@ -228,7 +268,13 @@ if ($action === 'get_link') {
     
     // Fallback if link is not in DB but can be retrieved via DataUser
     if (empty($link)) {
-        $res = MHSanaei_router('DataUser', [$invoice['Service_location'], $invoice['username']]);
+        // Fetch Panel Name
+        $stmtPnl = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE code_panel = :code LIMIT 1");
+        $stmtPnl->execute([':code' => $invoice['Service_location']]);
+        $panelData = $stmtPnl->fetch(PDO::FETCH_ASSOC);
+        $name_panel = $panelData ? $panelData['name_panel'] : $invoice['Service_location'];
+
+        $res = MHSanaei_router('DataUser', [$name_panel, $invoice['username']]);
         if (isset($res['status']) && $res['status'] !== 'Unsuccessful') {
             $link = $res['subscription_url'] ?? '';
             if (empty($link) && !empty($res['configs'])) {
