@@ -2796,14 +2796,22 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'show_alert' => true,
             'cache_time' => 5,
         ));
-        $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-        telegram('editMessageCaption', [
-            'chat_id' => $chat_id,
-            'message_id' => $message_id,
-            'caption' => $textconfrom,
-            'reply_markup' => $Confirm_pay,
-            'parse_mode' => 'HTML'
-        ]);
+        if ($Payment_report['payment_Status'] == "paid") {
+            $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
+            telegram('editMessageCaption', [
+                'chat_id' => $chat_id,
+                'message_id' => $message_id,
+                'caption' => $textconfrom,
+                'reply_markup' => $Confirm_pay,
+                'parse_mode' => 'HTML'
+            ]);
+        } else {
+            telegram('editMessageReplyMarkup', [
+                'chat_id' => $chat_id,
+                'message_id' => $message_id,
+                'reply_markup' => null
+            ]);
+        }
         return;
     }
     DirectPayment($order_id);
@@ -2866,6 +2874,34 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'show_alert' => true,
             'cache_time' => 5,
         ));
+        if ($Payment_report['payment_Status'] == "paid") {
+            $Confirm_pay_json = json_encode([
+                'inline_keyboard' => [
+                    [
+                        ['text' => $textbotlang['keyboard']['confirmed'], 'callback_data' => "confirmpaid"],
+                    ],
+                    [
+                        ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
+                    ]
+                ]
+            ]);
+            $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
+            $format_price_cart = number_format($Payment_report['price']);
+            $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
+            telegram('editMessageCaption', [
+                'chat_id' => $chat_id,
+                'message_id' => $message_id,
+                'caption' => $textconfrom,
+                'reply_markup' => $Confirm_pay_json,
+                'parse_mode' => 'HTML'
+            ]);
+        } else {
+            telegram('editMessageReplyMarkup', [
+                'chat_id' => $chat_id,
+                'message_id' => $message_id,
+                'reply_markup' => null
+            ]);
+        }
         return;
     }
     update("Payment_report", "payment_Status", "reject", "id_order", $id_order);
