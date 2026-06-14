@@ -1879,7 +1879,7 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
         sendmessage($user_id, $caption, $reply_markup, 'HTML');
     }
     if ($panel_info['config'] == "onconfig" && $setting['status_keyboard_config'] == "1") {
-        if (is_array($config)) {
+        if (is_array($config) && count($config) > 0) {
             sendmessage($user_id, $textbotlang['hardcoded']['getConfigHint'], keyboard_config($config, $invoice_id, false), 'HTML');
         }
     }
