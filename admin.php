@@ -6,6 +6,11 @@ $text_panel_admin_login_template = sprintf($textbotlang['Admin']['adminphp']['ms
 if (!in_array($from_id, $admin_ids))
     return;
 
+$adminrulecheck = select("admin", "*", "id_admin", $from_id, "select");
+if (!is_array($adminrulecheck)) {
+    $adminrulecheck = ['rule' => ''];
+}
+
 $domainhostsEscaped = htmlspecialchars($domainhosts, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
 $miniAppInstructionText = sprintf($textbotlang['Admin']['adminphp']['msg_mini_app_instruction'], $domainhostsEscaped);
