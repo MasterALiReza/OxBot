@@ -1347,14 +1347,20 @@ function outtypepanel($typepanel, $message)
 
 function addBackgroundImage($urlimage, $qrCodeResult, $backgroundPath)
 {
-    if (!file_exists($backgroundPath)) {
-        error_log("addBackgroundImage: File not found at $backgroundPath");
-        file_put_contents($urlimage, $qrCodeResult->getString());
-        return;
+    $resolvedPath = __DIR__ . '/' . basename($backgroundPath);
+
+    if (!file_exists($resolvedPath)) {
+        if (file_exists($backgroundPath)) {
+            $resolvedPath = $backgroundPath;
+        } else {
+            error_log("addBackgroundImage: File not found at $backgroundPath or $resolvedPath");
+            file_put_contents($urlimage, $qrCodeResult->getString());
+            return;
+        }
     }
 
     $qrString = $qrCodeResult->getString();
-    $qrCodeImage = imagecreatefromstring($qrString);
+    $qrCodeImage = @imagecreatefromstring($qrString);
     if (!$qrCodeImage) {
         error_log("addBackgroundImage: Failed to create QR Code resource");
         return;
@@ -1363,14 +1369,17 @@ function addBackgroundImage($urlimage, $qrCodeResult, $backgroundPath)
     $backgroundImage = null;
 
     try {
-        $backgroundImage = imagecreatefromjpeg($backgroundPath);
+        $file_data = file_get_contents($resolvedPath);
+        if ($file_data !== false) {
+            $backgroundImage = @imagecreatefromstring($file_data);
+        }
     } catch (Throwable $t) {
         error_log("addBackgroundImage::EXCEPTION loading image: " . $t->getMessage());
     }
 
     if (!$backgroundImage) {
         $lastError = error_get_last();
-        error_log("addBackgroundImage::System Error: " . $lastError['message']);
+        error_log("addBackgroundImage::System Error: " . ($lastError['message'] ?? 'Unknown error'));
 
         imagepng($qrCodeImage, $urlimage);
         imagedestroy($qrCodeImage);
