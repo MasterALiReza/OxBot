@@ -11,6 +11,11 @@ require '../inc/config.php';
 // Discard any HTML/text output from config (including its header())
 ob_end_clean();
 
+require_once __DIR__ . '/../../function.php';
+require_once __DIR__ . '/../../panels.php';
+
+$ManagePanel = new ManagePanel();
+
 // Force JSON content-type after clearing buffer
 header('Content-Type: application/json; charset=utf-8');
 
@@ -107,19 +112,45 @@ try {
 
             // Status label
             $raw_status = $inv['Status'] ?? '';
+            
+            // Get live data from Panel for usage
+            $used_traffic = 0;
+            $data_limit = (float) ($inv['Volume'] ?? 0) * pow(1024, 3);
+            if (!empty($inv['Service_location']) && !empty($inv['username']) && $inv['username'] !== 'none') {
+                $DataUserOut = $ManagePanel->DataUser($inv['Service_location'], $inv['username']);
+                if (is_array($DataUserOut) && isset($DataUserOut['used_traffic'])) {
+                    $used_traffic = (float) $DataUserOut['used_traffic'];
+                    if (isset($DataUserOut['data_limit'])) {
+                        $data_limit = (float) $DataUserOut['data_limit'];
+                    }
+                    if (isset($DataUserOut['status'])) {
+                        $raw_status = $DataUserOut['status']; // update status
+                    }
+                }
+            }
+
             if ($raw_status === 'active') {
                 $status_label = ($rem_days === 0 && $days > 0) ? 'منقضی شده' : 'فعال';
                 $status_key   = ($rem_days === 0 && $days > 0) ? 'inactive' : 'active';
             } elseif ($raw_status === 'end_of_time') {
                 $status_label = 'پایان زمان';
                 $status_key   = 'inactive';
-            } elseif ($raw_status === 'end_of_volume') {
+            } elseif ($raw_status === 'end_of_volume' || $raw_status === 'limited') {
                 $status_label = 'پایان حجم';
+                $status_key   = 'inactive';
+            } elseif ($raw_status === 'disabled') {
+                $status_label = 'غیرفعال';
                 $status_key   = 'inactive';
             } else {
                 $status_label = 'غیرفعال';
                 $status_key   = 'inactive';
             }
+            
+            // Calculate usage formatted
+            $used_gb = round($used_traffic / pow(1024, 3), 2);
+            $total_gb_panel = ($data_limit == 0) ? 'نامحدود' : round($data_limit / pow(1024, 3), 2) . ' گیگ';
+            $usage_percent = ($data_limit > 0) ? min(100, round(($used_traffic / $data_limit) * 100)) : 0;
+            if ($data_limit == 0) $usage_percent = 0; // unlimited
 
             $users[] = [
                 'id'               => $inv['id_invoice'],
@@ -132,6 +163,9 @@ try {
                 'expires_at'       => $exp_date,
                 'rem_days'         => $rem_days,
                 'total_gb'         => $formatted_vol,
+                'used_gb'          => $used_gb,
+                'total_gb_panel'   => $total_gb_panel,
+                'usage_percent'    => $usage_percent,
                 'service_time_str' => $formatted_time,
                 'price'            => number_format((float) ($inv['price_product'] ?? 0)) . ' تومان',
             ];

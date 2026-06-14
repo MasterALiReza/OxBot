@@ -269,6 +269,10 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                     const statusColor = user.status === 'active' ? '' : 'background: rgba(239, 68, 68, 0.15); color: var(--au-danger);';
                     const activeClass = user.status === 'active' ? 'au-badge-active' : '';
                     const dotStyle = user.status === 'active' ? '' : 'background: var(--au-danger);';
+                    
+                    let progressClass = '';
+                    if(user.usage_percent >= 90) progressClass = 'danger';
+                    else if(user.usage_percent >= 75) progressClass = 'warning';
 
                     html += `
                     <div class="au-card">
@@ -282,7 +286,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                                     <div class="au-status-dot" style="${dotStyle}"></div>
                                 </h3>
                                 <div class="au-card-meta">
-                                    <span><i class="fa-solid fa-map-pin"></i> ${user.location}</span>
+                                    <span><i class="fa-solid fa-server"></i> ${user.location}</span>
                                     <span>ایجاد: ${user.created_at}</span>
                                 </div>
                             </div>
@@ -295,13 +299,17 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                                 </span>
                             </div>
                             <div class="au-expiry">
-                                پایان: ${user.expires_at}
+                                پایان: ${user.expires_at} (${user.rem_days} روز)
                             </div>
                         </div>
 
                         <div class="au-card-usage">
-                            <div class="au-usage-header" style="justify-content: center;">
-                                <span><i class="fa-solid fa-database"></i> حجم: ${user.total_gb} | <i class="fa-solid fa-clock"></i> مدت: ${user.service_time_str}</span>
+                            <div class="au-usage-header">
+                                <span>مصرف ${user.used_gb} گیگ از ${user.total_gb_panel}</span>
+                                <span>${user.usage_percent}%</span>
+                            </div>
+                            <div class="au-progress-bg">
+                                <div class="au-progress-bar ${progressClass}" style="width: ${user.usage_percent}%;"></div>
                             </div>
                         </div>
 

@@ -350,14 +350,16 @@ body.agent-panel-body {
 
 .au-badges {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 .au-badge {
     padding: 4px 10px;
-    border-radius: 20px;
+    border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 600;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--au-text);
 }
 
 .au-badge-active {
@@ -365,13 +367,8 @@ body.agent-panel-body {
     color: var(--au-success);
 }
 
-.au-badge-online {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--au-text);
-}
-
 .au-expiry {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--au-text-muted);
 }
 
@@ -384,13 +381,6 @@ body.agent-panel-body {
 
 .au-usage-header {
     display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-}
-
-.au-usage-bar-bg {
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
     overflow: hidden;
 }

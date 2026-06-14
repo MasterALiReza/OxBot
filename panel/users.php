@@ -443,7 +443,7 @@ include __DIR__ . '/inc/layout_head.php';
     border: 1px solid var(--bd);
     color: var(--text);
     border-radius: 100px;
-    padding: 6px 6px 6px 20px;
+    padding: 6px 20px 6px 6px;
     font-size: 0.85rem;
     font-weight: 600;
     text-decoration: none;
