@@ -1904,3 +1904,51 @@ function parseConfigs($input)
 
     return $configs;
 }
+
+function formatServiceDeliveryLinks($panel_info, $dataoutput)
+{
+    $configs = array();
+    if (isset($dataoutput['configs']) && is_array($dataoutput['configs'])) {
+        foreach ($dataoutput['configs'] as $link) {
+            $link = trim((string)$link);
+            if ($link !== '') {
+                $configs[] = $link;
+            }
+        }
+    }
+
+    $subscription_url = trim((string)($dataoutput['subscription_url'] ?? ''));
+    $sublink_mode = $panel_info['sublink'] ?? '';
+    $config_mode = $panel_info['config'] ?? '';
+
+    $main = '';
+    $extra = '';
+
+    if ($sublink_mode == 'onsublink') {
+        $main = $subscription_url;
+    } elseif ($sublink_mode == 'bothsubandconfig') {
+        $main = $subscription_url;
+        if (!empty($configs)) {
+            $main .= "\n\n" . implode("\n\n", $configs);
+        }
+    }
+
+    if ($config_mode == 'onconfig' && !empty($configs)) {
+        if ($main === '') {
+            $main = implode("\n\n", $configs);
+        } else {
+            $extra = "\n" . implode("\n", $configs);
+        }
+    }
+
+    // Fallbacks
+    if ($main === '' && $subscription_url !== '') {
+        $main = $subscription_url;
+    }
+    if ($main === '' && !empty($configs)) {
+        $main = implode("\n\n", $configs);
+    }
+
+    return array('main' => $main, 'extra' => $extra, 'configs' => $configs);
+}
+
