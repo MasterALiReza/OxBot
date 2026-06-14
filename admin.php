@@ -2797,9 +2797,15 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'cache_time' => 5,
         ));
         $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-        Editmessagetext($from_id, $message_id, $textconfrom, $Confirm_pay);
+        Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         return;
     }
+    telegram('answerCallbackQuery', array(
+        'callback_query_id' => $callback_query_id,
+        'text' => $textbotlang['keyboard']['confirmed'] ?? 'در حال پردازش...'
+    ));
+    ignore_user_abort(true);
+    set_time_limit(120);
     DirectPayment($order_id);
     $pricecashback = select("PaySetting", "ValuePay", "NamePay", "chashbackcart", "select")['ValuePay'];
     $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
@@ -2876,7 +2882,12 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             ]);
         }
         return;
-    }
+    telegram('answerCallbackQuery', array(
+        'callback_query_id' => $callback_query_id,
+        'text' => 'در حال پردازش...'
+    ));
+    ignore_user_abort(true);
+    set_time_limit(120);
     update("Payment_report", "payment_Status", "reject", "id_order", $id_order);
 
     sendmessage($from_id, $textbotlang['Admin']['Payment']['reasonRejecting'], $backadmin, 'HTML');
