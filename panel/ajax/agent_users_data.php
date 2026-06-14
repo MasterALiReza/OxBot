@@ -17,12 +17,13 @@ $agent_id = $_SESSION['agent_id'];
 // Get action
 $action = $_GET['action'] ?? 'get_users';
 
-if ($action === 'get_users') {
-    // Pagination and search
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    $limit = 10;
-    $offset = ($page - 1) * $limit;
-    $search = $_GET['search'] ?? '';
+try {
+    if ($action === 'get_users') {
+        // Pagination and search
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+        $search = $_GET['search'] ?? '';
 
     $where = "(id_user = :agent_id OR refral = :agent_id)";
     $params = [':agent_id' => $agent_id];
