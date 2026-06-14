@@ -2759,6 +2759,15 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 } elseif (preg_match('/Confirm_pay_(\w+)/', $datain, $dataget) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $order_id = $dataget[1];
     $Payment_report = select("Payment_report", "*", "id_order", $order_id, "select");
+    if ($Payment_report == false) {
+        telegram('answerCallbackQuery', array(
+            'callback_query_id' => $callback_query_id,
+            'text' => $textbotlang['keyboard']['transactionDeleted'],
+            'show_alert' => true,
+            'cache_time' => 5,
+        ));
+        return;
+    }
     $Confirm_pay = json_encode([
         'inline_keyboard' => [
             [
@@ -2769,15 +2778,6 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             ]
         ]
     ]);
-    if ($Payment_report == false) {
-        telegram('answerCallbackQuery', array(
-            'callback_query_id' => $callback_query_id,
-            'text' => $textbotlang['keyboard']['transactionDeleted'],
-            'show_alert' => true,
-            'cache_time' => 5,
-        ));
-        return;
-    }
     $sql = "SELECT * FROM Payment_report WHERE id_user = '{$Payment_report['id_user']}' AND payment_Status != 'paid' AND payment_Status != 'Unpaid' AND payment_Status != 'expire' AND payment_Status != 'reject' AND  (id_invoice  LIKE CONCAT('%','getconfigafterpay', '%') OR id_invoice  LIKE CONCAT('%','getextenduser', '%') OR id_invoice  LIKE CONCAT('%','getextravolumeuser', '%') OR id_invoice  LIKE CONCAT('%','getextratimeuser', '%'))";
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
@@ -2786,7 +2786,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     if ($countpay > 0 and !in_array($typepay[0], ['getconfigafterpay', 'getextenduser', 'getextravolumeuser', 'getextratimeuser'])) {
         telegram('answerCallbackQuery', array(
             'callback_query_id' => $callback_query_id,
-            'text' => $textbotlang['Admin']['adminphp']['msg_user_renew_buy'] ?? 'شما یک فاکتور منتظر بررسی دارید.',
+            'text' => $textbotlang['Admin']['adminphp']['msg_user_renew_buy'] ?? 'کاربر یک فاکتور منتظر بررسی دارد.',
             'show_alert' => true,
             'cache_time' => 5,
         ));
@@ -2803,12 +2803,13 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'cache_time' => 5,
         ));
         $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-        Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
+        Editmessagetext($from_id, $message_id, $textconfrom, $Confirm_pay);
         return;
     }
+    // پاسخ سریع به تلگرام تا دکمه فریز نشه
     telegram('answerCallbackQuery', array(
         'callback_query_id' => $callback_query_id,
-        'text' => $textbotlang['keyboard']['confirmed'] ?? 'در حال پردازش...'
+        'text' => $textbotlang['keyboard']['confirmed'] ?? 'در حال پردازش...',
     ));
     ignore_user_abort(true);
     set_time_limit(120);
@@ -2859,38 +2860,11 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'show_alert' => true,
             'cache_time' => 5,
         ));
-        if ($Payment_report['payment_Status'] == "paid") {
-            $Confirm_pay_json = json_encode([
-                'inline_keyboard' => [
-                    [
-                        ['text' => $textbotlang['keyboard']['confirmed'], 'callback_data' => "confirmpaid"],
-                    ],
-                    [
-                        ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
-                    ]
-                ]
-            ]);
-            $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
-            $format_price_cart = number_format($Payment_report['price']);
-            $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-            telegram('editMessageText', [
-                'chat_id' => $chat_id,
-                'message_id' => $message_id,
-                'text' => $textconfrom,
-                'reply_markup' => $Confirm_pay_json,
-                'parse_mode' => 'HTML'
-            ]);
-        } else {
-            telegram('editMessageReplyMarkup', [
-                'chat_id' => $chat_id,
-                'message_id' => $message_id,
-                'reply_markup' => null
-            ]);
-        }
         return;
+    }
     telegram('answerCallbackQuery', array(
         'callback_query_id' => $callback_query_id,
-        'text' => 'در حال پردازش...'
+        'text' => 'در حال پردازش...',
     ));
     ignore_user_abort(true);
     set_time_limit(120);
@@ -2898,11 +2872,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 
     sendmessage($from_id, $textbotlang['Admin']['Payment']['reasonRejecting'], $backadmin, 'HTML');
     step('reject-dec', $from_id);
-    telegram('editMessageReplyMarkup', [
-        'chat_id' => $chat_id,
-        'message_id' => $message_id,
-        'reply_markup' => null
-    ]);
+    Editmessagetext($from_id, $message_id, $text_inline, null);
 } elseif ($user['step'] == "reject-dec") {
     $Payment_report = select("Payment_report", "*", "id_order", $user['Processing_value_one'], "select");
     update("Payment_report", "dec_not_confirmed", $text, "id_order", $user['Processing_value_one']);
@@ -4734,6 +4704,12 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 } elseif ((preg_match('/acceptblock_(\w+)/', $datain, $dataget) || preg_match('/blockuserfake_(\w+)/', $datain, $dataget))) {
 
     $iduser = $dataget[1];
+    telegram('answerCallbackQuery', array(
+        'callback_query_id' => $callback_query_id,
+        'text' => $textbotlang['Admin']['manageUser']['blockUser'] ?? 'کاربر بلاک شد',
+        'show_alert' => false,
+        'cache_time' => 5,
+    ));
     update("user", "Processing_value", $iduser, "id", $from_id);
     update("user", "User_Status", "block", "id", $iduser);
     sendmessage($from_id, $textbotlang['Admin']['manageUser']['blockUser'], $backadmin, 'HTML');
@@ -5087,6 +5063,15 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 } elseif (preg_match('/addbalamceuser_(\w+)/', $datain, $datagetr) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $id_order = $datagetr[1];
     $Payment_report = select("Payment_report", "*", "id_order", $id_order, "select");
+    if ($Payment_report == false) {
+        telegram('answerCallbackQuery', array(
+            'callback_query_id' => $callback_query_id,
+            'text' => $textbotlang['keyboard']['transactionDeleted'],
+            'show_alert' => true,
+            'cache_time' => 5,
+        ));
+        return;
+    }
     update("user", "Processing_value", $id_order, "id", $from_id);
     if ($Payment_report['payment_Status'] == "paid" || $Payment_report['payment_Status'] == "reject") {
         $ff = telegram('answerCallbackQuery', array(
