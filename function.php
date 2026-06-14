@@ -1004,7 +1004,10 @@ function DirectPayment($order_id, $image = 'images.jpg')
         update("invoice", "Status", "active", "username", $get_invoice['username']);
         if ($Payment_report['Payment_Method'] == "cart to cart" or $Payment_report['Payment_Method'] == "arze digital offline") {
             update("invoice", "Status", "active", "id_invoice", $get_invoice['id_invoice']);
-            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedNewService'], $username_ac, $get_invoice['Service_location'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $Payment_report['dec_not_confirmed']);
+            $safe_username_ac = htmlspecialchars($username_ac ?? '', ENT_QUOTES, 'UTF-8');
+            $safe_location = htmlspecialchars($get_invoice['Service_location'] ?? '', ENT_QUOTES, 'UTF-8');
+            $safe_dec = htmlspecialchars($Payment_report['dec_not_confirmed'] ?? '', ENT_QUOTES, 'UTF-8');
+            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedNewService'], $safe_username_ac, $safe_location, $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $safe_dec);
             Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         }
         return true;
@@ -1128,8 +1131,11 @@ function DirectPayment($order_id, $image = 'images.jpg')
         }
         update("invoice", "Status", "active", "id_invoice", $nameloc['id_invoice']);
         if ($Payment_report['Payment_Method'] == "cart to cart" or $Payment_report['Payment_Method'] == "arze digital offline") {
-
-            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedRenew'], $usernamepanel, $prodcut['name_product'], $nameloc['Service_location'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $Payment_report['dec_not_confirmed']);
+            $safe_usernamepanel = htmlspecialchars($usernamepanel ?? '', ENT_QUOTES, 'UTF-8');
+            $safe_name_product = htmlspecialchars($prodcut['name_product'] ?? '', ENT_QUOTES, 'UTF-8');
+            $safe_location = htmlspecialchars($nameloc['Service_location'] ?? '', ENT_QUOTES, 'UTF-8');
+            $safe_dec = htmlspecialchars($Payment_report['dec_not_confirmed'] ?? '', ENT_QUOTES, 'UTF-8');
+            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedRenew'], $safe_usernamepanel, $safe_name_product, $safe_location, $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $safe_dec);
             Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         }
         return true;
@@ -1193,7 +1199,8 @@ function DirectPayment($order_id, $image = 'images.jpg')
         sendmessage($Balance_id['id'], $textvolume, $keyboardextrafnished, 'HTML');
         $volumes = $volume;
         if ($Payment_report['Payment_Method'] == "cart to cart") {
-            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedExtraVolume'], $volumes, $steppay[0], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
+            $safe_steppay = htmlspecialchars($steppay[0] ?? '', ENT_QUOTES, 'UTF-8');
+            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedExtraVolume'], $volumes, $safe_steppay, $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
             Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         }
         update("invoice", "Status", "active", "id_invoice", $nameloc['id_invoice']);
@@ -1269,7 +1276,8 @@ function DirectPayment($order_id, $image = 'images.jpg')
         sendmessage($Balance_id['id'], $textextratime, $keyboardextrafnished, 'HTML');
         if ($Payment_report['Payment_Method'] == "cart to cart") {
             $volumes = $tmieextra;
-            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedExtraTime'], $volumes, $steppay[0], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
+            $safe_steppay = htmlspecialchars($steppay[0] ?? '', ENT_QUOTES, 'UTF-8');
+            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedExtraTime'], $volumes, $safe_steppay, $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
             Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         }
         update("invoice", "Status", "active", "id_invoice", $nameloc['id_invoice']);
@@ -1289,7 +1297,8 @@ function DirectPayment($order_id, $image = 'images.jpg')
         $Payment_report['price'] = number_format($Payment_report['price'], 0);
         $format_price_cart = $Payment_report['price'];
         if ($Payment_report['Payment_Method'] == "cart to cart" or $Payment_report['Payment_Method'] == "arze digital offline") {
-            $textconfrom = sprintf($textbotlang['hardcoded']['newPaymentBalanceChargeFn'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $format_price_cart, $Balance_id['Balance'], $Payment_report['dec_not_confirmed']);
+            $safe_dec = htmlspecialchars($Payment_report['dec_not_confirmed'] ?? '', ENT_QUOTES, 'UTF-8');
+            $textconfrom = sprintf($textbotlang['hardcoded']['newPaymentBalanceChargeFn'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $format_price_cart, $Balance_id['Balance'], $safe_dec);
             Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         }
         sendmessage($Payment_report['id_user'], sprintf($textbotlang['hardcoded']['balanceChargedThanks'], $Payment_report['price'], $Payment_report['id_order']), null, 'HTML');
