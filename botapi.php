@@ -29,10 +29,6 @@ function telegram($method, $datas = [], $token = null)
 
     if (curl_error($ch)) {
         error_log('cURL error (' . $method . '): ' . curl_error($ch));
-    } else {
-        if (strpos($method, 'editMessageCaption') !== false || strpos($method, 'editMessageReplyMarkup') !== false) {
-            file_put_contents(__DIR__ . '/log.txt', date('Y-m-d H:i:s') . " - $method - Response: " . $res . "\nData: " . json_encode($datas) . "\n\n", FILE_APPEND);
-        }
     }
 
     if (strpos($res, '429 Too Many Requests') !== false) {

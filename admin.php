@@ -2798,10 +2798,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         ));
         if ($Payment_report['payment_Status'] == "paid") {
             $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-            telegram('editMessageCaption', [
+            telegram('editMessageText', [
                 'chat_id' => $chat_id,
                 'message_id' => $message_id,
-                'caption' => $textconfrom,
+                'text' => $textconfrom,
                 'reply_markup' => $Confirm_pay,
                 'parse_mode' => 'HTML'
             ]);
@@ -2846,10 +2846,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     ]);
     $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
     $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $order_id, $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-    telegram('editMessageCaption', [
+    telegram('editMessageText', [
         'chat_id' => $chat_id,
         'message_id' => $message_id,
-        'caption' => $textconfrom,
+        'text' => $textconfrom,
         'reply_markup' => $Confirm_pay,
         'parse_mode' => 'HTML'
     ]);
@@ -2888,10 +2888,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
             $format_price_cart = number_format($Payment_report['price']);
             $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-            telegram('editMessageCaption', [
+            telegram('editMessageText', [
                 'chat_id' => $chat_id,
                 'message_id' => $message_id,
-                'caption' => $textconfrom,
+                'text' => $textconfrom,
                 'reply_markup' => $Confirm_pay_json,
                 'parse_mode' => 'HTML'
             ]);
