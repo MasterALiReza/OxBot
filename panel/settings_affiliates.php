@@ -526,32 +526,30 @@ include __DIR__ . '/inc/layout_head.php';
         font-size: 0.85rem;
     }
     
-    /* Horizontal scrollable sub tabs on mobile */
+    /* Responsive sub tabs grid on mobile */
     .arvan-sub-tabs {
         display: flex;
-        flex-direction: row;
-        overflow-x: auto;
-        white-space: nowrap;
-        padding: 12px 15px;
+        flex-wrap: wrap;
+        padding: 15px 12px;
         gap: 8px;
-        -webkit-overflow-scrolling: touch;
         border-bottom: 1px solid var(--bd);
         background: var(--sf2);
-        scrollbar-width: none;
-    }
-    .arvan-sub-tabs::-webkit-scrollbar {
-        display: none;
     }
     .arvan-sub-tab-btn {
-        flex: 0 0 auto;
-        padding: 8px 16px;
-        font-size: 0.82rem;
-        border-radius: 20px;
+        flex: 1 1 calc(50% - 8px);
+        padding: 10px 12px;
+        font-size: 0.8rem;
+        border-radius: 8px;
         border: 1px solid var(--bd) !important;
         background: var(--sf);
         color: var(--text2);
         margin: 0;
         text-align: center;
+        white-space: normal;
+        line-height: 1.4;
+    }
+    .arvan-sub-tab-btn:last-child:nth-child(odd) {
+        flex: 1 1 100%;
     }
     .arvan-sub-tab-btn.active {
         background: var(--ac);
@@ -1147,7 +1145,7 @@ input:checked + .arvan-slider:before {
                                         </div>
                                         <?php $desc_field = $fields[5]; ?>
                                         <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
-                                            <textarea name="<?= $desc_field['name'] ?>" class="arvan-input" style="min-height: 120px; resize: vertical;" placeholder="<?= htmlspecialchars($desc_field['placeholder'] ?? '') ?>"><?= htmlspecialchars($desc_field['val'] ?? '') ?></textarea>
+                                            <textarea name="<?= $desc_field['name'] ?>" class="arvan-input" style="min-height: 280px; font-size: 0.9rem; line-height: 1.6; resize: vertical;" placeholder="<?= htmlspecialchars($desc_field['placeholder'] ?? '') ?>"><?= htmlspecialchars($desc_field['val'] ?? '') ?></textarea>
                                         </div>
                                     </div>
 
