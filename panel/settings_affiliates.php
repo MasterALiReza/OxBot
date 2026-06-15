@@ -489,93 +489,110 @@ include __DIR__ . '/inc/layout_head.php';
     border-color: var(--ac);
     box-shadow: 0 0 0 3px var(--acs);
 }
+/* Mobile Optimization & Responsive Rules */
+.responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+.responsive-grid-sm {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
 @media (max-width: 768px) {
-    .arvan-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+    .arvan-content-area {
+        padding: 16px;
     }
-    .field:not(.toggle-field) {
-        grid-column: 1 / -1;
-    }
-}
-@media (max-width: 480px) {
-    .arvan-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-    .field:not(.toggle-field) {
-        grid-column: 1 / -1;
-    }
-    .toggle-field {
-        flex-direction: row;
-        padding: 12px 14px;
-        gap: 8px;
-    }
-    .toggle-label {
-        font-size: 0.8rem;
-    }
-    .toggle-state {
-        font-size: 0.68rem;
-    }
-}
-@media (max-width: 600px) {
-    .arvan-main-tabs, .arvan-sub-tabs {
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
-    }
-    .arvan-main-tabs::-webkit-scrollbar, .arvan-sub-tabs::-webkit-scrollbar {
-        display: none; /* Chrome, Safari and Opera */
-    }
+    
+    /* Horizontal scrollable main tabs on mobile */
     .arvan-main-tabs {
-        gap: 6px;
-        justify-content: space-between;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        gap: 8px;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .arvan-main-tabs::-webkit-scrollbar {
+        display: none;
     }
     .arvan-main-tab-btn {
-        padding: 8px 4px;
-        font-size: 0.65rem;
-        border-radius: 8px;
-        flex-direction: column;
-        gap: 6px;
-        flex: 1;
-        min-width: 0;
+        flex: 0 0 auto;
+        padding: 10px 16px;
+        font-size: 0.85rem;
     }
-    .arvan-main-tab-btn span {
-        white-space: normal;
-        line-height: 1.2;
-        text-align: center;
-        font-size: 0.65rem;
-    }
-    .arvan-main-tab-btn svg {
-        width: 20px !important;
-        height: 20px !important;
-    }
+    
+    /* Horizontal scrollable sub tabs on mobile */
     .arvan-sub-tabs {
-        flex-wrap: wrap;
-        justify-content: center;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 12px 15px;
         gap: 8px;
-        border-bottom: none;
-        padding-bottom: 10px;
+        -webkit-overflow-scrolling: touch;
+        border-bottom: 1px solid var(--bd);
+        background: var(--sf2);
+        scrollbar-width: none;
+    }
+    .arvan-sub-tabs::-webkit-scrollbar {
+        display: none;
     }
     .arvan-sub-tab-btn {
-        padding: 8px 14px;
-        font-size: 0.8rem;
-        background: var(--bg);
+        flex: 0 0 auto;
+        padding: 8px 16px;
+        font-size: 0.82rem;
+        border-radius: 20px;
         border: 1px solid var(--bd) !important;
-        border-radius: 10px;
+        background: var(--sf);
+        color: var(--text2);
         margin: 0;
-        flex: 1 1 auto;
         text-align: center;
     }
     .arvan-sub-tab-btn.active {
         background: var(--ac);
         color: var(--btn-ac-text, #fff) !important;
         border-color: var(--ac) !important;
+        font-weight: 600;
     }
-    .card-head {
-        padding: 0 10px !important;
+    
+    /* Grid adjustments */
+    .arvan-grid, .responsive-grid, .responsive-grid-sm {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
-    .card-body {
-        padding: 15px !important;
+    
+    .field:not(.toggle-field) {
+        grid-column: auto;
+    }
+    
+    .tier-cards-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .toggle-field {
+        padding: 12px 14px;
+        gap: 8px;
+    }
+    .toggle-label {
+        font-size: 0.82rem;
+    }
+    .toggle-state {
+        font-size: 0.7rem;
+    }
+    
+    .setting-group-box {
+        padding: 14px;
+        margin-bottom: 15px;
+    }
+    
+    .tier-card {
+        padding: 15px;
     }
 }
 
@@ -891,7 +908,7 @@ input:checked + .arvan-slider:before {
                                     </div>
                                 <?php endif; ?>
                                 <?php if ($section_title === 'سیستم پورسانت'): ?>
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                                    <div class="responsive-grid">
                                         <?php foreach($fields as $f): ?>
                                             <?php 
                                             $keys = array_keys($f['options']);
@@ -1035,7 +1052,7 @@ input:checked + .arvan-slider:before {
                                         <div class="setting-group-title">
                                             <?= icon('percent', 16) ?> تنظیمات کد تخفیف معرف
                                         </div>
-                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; align-items: start;">
+                                        <div class="responsive-grid-sm" style="align-items: start;">
                                             <!-- aff_Discount -->
                                             <?php 
                                             $disc_field = $fields[0]; 
@@ -1074,7 +1091,7 @@ input:checked + .arvan-slider:before {
                                         <div class="setting-group-title">
                                             <?= icon('image', 16) ?> رسانه راهنما
                                         </div>
-                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: start;">
+                                        <div class="responsive-grid" style="align-items: start;">
                                             <div style="display: flex; flex-direction: column; gap: 15px;">
                                                 <!-- aff_media_type -->
                                                 <?php 
