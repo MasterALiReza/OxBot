@@ -82,10 +82,8 @@ $schema = [
             'پاداش اولین خرید زیرمجموعه' => [
                 ['name' => 'aff_first_buy_reward', 'label' => 'مبلغ پاداش اولین خرید (تومان - ۰ برای غیرفعال)', 'type' => 'number', 'val' => $affiliate_settings['first_buy_reward'] ?? '0'],
             ],
-            'پورسانت خریدهای بعدی' => [
-                ['name' => 'set_affiliatespercentage', 'label' => 'درصد پورسانت (برنزی/پیش‌فرض)', 'type' => 'number', 'val' => $row['affiliatespercentage'] ?? '0'],
-            ],
             'سطوح بازاریابی' => [
+                ['name' => 'set_affiliatespercentage', 'label' => 'درصد پورسانت سطح برنزی (پیش‌فرض)', 'type' => 'number', 'val' => $row['affiliatespercentage'] ?? '0'],
                 ['name' => 'aff_silver_threshold', 'label' => 'حداقل خرید زیرمجموعه برای سطح نقره‌ای', 'type' => 'number', 'val' => $affiliate_settings['silver_threshold'] ?? '10'],
                 ['name' => 'aff_silver_percentage', 'label' => 'درصد پورسانت سطح نقره‌ای', 'type' => 'number', 'val' => $affiliate_settings['silver_percentage'] ?? '15'],
                 ['name' => 'aff_gold_threshold', 'label' => 'حداقل خرید زیرمجموعه برای سطح طلایی', 'type' => 'number', 'val' => $affiliate_settings['gold_threshold'] ?? '50'],
@@ -712,6 +710,9 @@ input:checked + .arvan-slider:before {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
+.tier-card.bronze {
+    border-top: 4px solid #b45309;
+}
 .tier-card.silver {
     border-top: 4px solid #94a3b8;
 }
@@ -739,6 +740,10 @@ input:checked + .arvan-slider:before {
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 20px;
+}
+.bronze .tier-card-badge {
+    background: rgba(180, 83, 9, 0.15);
+    color: #b45309;
 }
 .silver .tier-card-badge {
     background: rgba(148, 163, 184, 0.15);
@@ -872,7 +877,7 @@ input:checked + .arvan-slider:before {
                                 $section_descriptions = [
                                     'سیستم پورسانت' => 'تنظیمات پایه سیستم همکاری در فروش. در این بخش می‌توانید کل سیستم بازاریابی و همچنین وضعیت پورسانت‌دهی با خرید کاربر را فعال یا غیرفعال کنید.',
                                     'پاداش اولین خرید زیرمجموعه' => 'مبلغ پاداش اولین خرید: هنگامی که زیرمجموعه برای اولین بار از ربات خرید می‌کند، این مبلغ ثابت به صورت نقدی به کیف پول معرف او واریز می‌شود (مثلاً ۵۰,۰۰۰ تومان). برای خاموش کردن، مقدار را روی ۰ قرار دهید.',
-                                    'پورسانت خریدهای بعدی' => 'پورسانت خریدهای بعدی (مادام‌العمر): در خریدهای دوم به بعد زیرمجموعه، این درصد از مبلغ خرید او به عنوان پورسانت به معرف تعلق می‌گیرد (مثلاً ۱۰٪ از کل فاکتور). اگر نمی‌خواهید در خریدهای بعدی پورسانتی پرداخت شود، این مقدار را روی ۰ تنظیم کنید.',
+                                    'سطوح بازاریابی' => 'تنظیمات مربوط به درصدهای پورسانت بر اساس سه سطح برنزی (پیش‌فرض)، نقره‌ای و طلایی. کاربران به صورت خودکار با رسیدن به تعداد خریدهای موفق مشخص، به سطوح بالاتر ارتقا می‌یابند.',
                                     'تخفیف و رسانه' => 'تنظیمات مربوط به بنر تبلیغاتی آماده و هدیه خوش‌آمدگویی. با فعال‌سازی این بخش، کاربر جدید و معرفش بابت عضویت هدیه نقدی دریافت می‌کنند. همچنین بنر و رسانه راهنما در زمان دریافت لینک بازاریابی به کاربر نمایش داده می‌شود. (نکته: برای دریافت شناسه رسانه، فایل عکس یا ویدیو خود را ابتدا به ربات ارسال کرده و File ID خروجی آن را در کادر زیر وارد کنید.)'
                                 ];
                                 $desc = $section_descriptions[$section_title] ?? '';
@@ -919,18 +924,34 @@ input:checked + .arvan-slider:before {
                                         </div>
                                     </div>
 
-                                <?php elseif ($section_title === 'پورسانت خریدهای بعدی'): ?>
-                                    <?php $f = $fields[0]; ?>
-                                    <div class="field input-max-width" style="display: flex; flex-direction: column; gap: 8px;">
-                                        <label style="font-weight: 600; color: var(--text2); font-size: 0.85rem;"><?= htmlspecialchars($f['label']) ?></label>
-                                        <div class="input-group-custom">
-                                            <input type="number" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>">
-                                            <span class="input-group-badge">درصد (%)</span>
-                                        </div>
-                                    </div>
-
                                 <?php elseif ($section_title === 'سطوح بازاریابی'): ?>
                                     <div class="tier-cards-container">
+                                        <!-- Bronze Tier Card -->
+                                        <div class="tier-card bronze">
+                                            <div class="tier-card-header">
+                                                <span class="tier-card-title">
+                                                    <?= icon('award', 18) ?> سطح برنزی (Bronze Tier)
+                                                </span>
+                                                <span class="tier-card-badge">برنزی (پیش‌فرض)</span>
+                                            </div>
+                                            
+                                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;">حداقل خرید زیرمجموعه برای سطح برنزی</label>
+                                                <div class="input-group-custom" style="opacity: 0.7;">
+                                                    <input type="text" class="arvan-input" value="0 (پیش‌فرض)" readonly disabled>
+                                                    <span class="input-group-badge">عدد خرید</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[0]['label']) ?></label>
+                                                <div class="input-group-custom">
+                                                    <input type="number" name="<?= $fields[0]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[0]['val'] ?? '') ?>">
+                                                    <span class="input-group-badge">% درصد</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Silver Tier Card -->
                                         <div class="tier-card silver">
                                             <div class="tier-card-header">
@@ -941,17 +962,17 @@ input:checked + .arvan-slider:before {
                                             </div>
                                             
                                             <div style="display: flex; flex-direction: column; gap: 6px;">
-                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[0]['label']) ?></label>
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[1]['label']) ?></label>
                                                 <div class="input-group-custom">
-                                                    <input type="number" name="<?= $fields[0]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[0]['val'] ?? '') ?>">
+                                                    <input type="number" name="<?= $fields[1]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[1]['val'] ?? '') ?>">
                                                     <span class="input-group-badge">عدد خرید</span>
                                                 </div>
                                             </div>
                                             
                                             <div style="display: flex; flex-direction: column; gap: 6px;">
-                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[1]['label']) ?></label>
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[2]['label']) ?></label>
                                                 <div class="input-group-custom">
-                                                    <input type="number" name="<?= $fields[1]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[1]['val'] ?? '') ?>">
+                                                    <input type="number" name="<?= $fields[2]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[2]['val'] ?? '') ?>">
                                                     <span class="input-group-badge">% درصد</span>
                                                 </div>
                                             </div>
@@ -967,17 +988,17 @@ input:checked + .arvan-slider:before {
                                             </div>
                                             
                                             <div style="display: flex; flex-direction: column; gap: 6px;">
-                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[2]['label']) ?></label>
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[3]['label']) ?></label>
                                                 <div class="input-group-custom">
-                                                    <input type="number" name="<?= $fields[2]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[2]['val'] ?? '') ?>">
+                                                    <input type="number" name="<?= $fields[3]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[3]['val'] ?? '') ?>">
                                                     <span class="input-group-badge">عدد خرید</span>
                                                 </div>
                                             </div>
                                             
                                             <div style="display: flex; flex-direction: column; gap: 6px;">
-                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[3]['label']) ?></label>
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[4]['label']) ?></label>
                                                 <div class="input-group-custom">
-                                                    <input type="number" name="<?= $fields[3]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[3]['val'] ?? '') ?>">
+                                                    <input type="number" name="<?= $fields[4]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[4]['val'] ?? '') ?>">
                                                     <span class="input-group-badge">% درصد</span>
                                                 </div>
                                             </div>
