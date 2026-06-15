@@ -648,6 +648,177 @@ input:checked + .arvan-slider:before {
     margin: 0;
     font-weight: 500;
 }
+
+/* Custom layout and component improvements */
+.input-max-width {
+    max-width: 480px;
+    width: 100%;
+}
+
+.input-group-custom {
+    display: flex;
+    align-items: stretch;
+    background: var(--sf2);
+    border: 1.5px solid var(--bd);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+.input-group-custom:focus-within {
+    border-color: var(--ac);
+    box-shadow: 0 0 0 3px var(--acs);
+}
+.input-group-custom .arvan-input {
+    border: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    padding: 10px 12px;
+    width: 100%;
+    margin: 0;
+}
+.input-group-custom .arvan-input:focus {
+    box-shadow: none !important;
+}
+.input-group-badge {
+    display: flex;
+    align-items: center;
+    background: var(--sf3);
+    padding: 0 15px;
+    font-size: 0.8rem;
+    color: var(--text2);
+    font-weight: 600;
+    border-right: 1px solid var(--bd);
+    white-space: nowrap;
+}
+
+/* Tier Cards styling */
+.tier-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 10px;
+}
+.tier-card {
+    background: var(--sf2);
+    border: 1px solid var(--bd);
+    border-radius: 14px;
+    padding: 20px;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.tier-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+.tier-card.silver {
+    border-top: 4px solid #94a3b8;
+}
+.tier-card.gold {
+    border-top: 4px solid #eab308;
+}
+.tier-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--bd);
+    margin-bottom: 5px;
+}
+.tier-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.tier-card-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+}
+.silver .tier-card-badge {
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+}
+.gold .tier-card-badge {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+}
+
+/* Custom Upload Zone */
+.custom-upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    background: var(--sf);
+    border: 2px dashed var(--bd);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    text-align: center;
+    gap: 10px;
+}
+.custom-upload-zone:hover {
+    border-color: var(--ac);
+    background: var(--sf2);
+}
+.custom-upload-zone input[type="file"] {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+.upload-icon {
+    color: var(--ac);
+    opacity: 0.8;
+    transition: transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.custom-upload-zone:hover .upload-icon {
+    transform: translateY(-3px);
+    opacity: 1;
+}
+.upload-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+.upload-subtitle {
+    font-size: 0.72rem;
+    color: var(--dim);
+    margin: 0;
+}
+
+/* Nested section groups */
+.setting-group-box {
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.setting-group-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text2);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--bd);
+    padding-bottom: 8px;
+}
 </style>
 
 <div class="fade-up">
@@ -714,15 +885,16 @@ input:checked + .arvan-slider:before {
                                         <p class="section-desc-text"><?= htmlspecialchars($desc) ?></p>
                                     </div>
                                 <?php endif; ?>
-                                <div class="arvan-grid">
-                                    <?php foreach($fields as $f): ?>
-                                        <?php if($f['type'] === 'select'): 
+                                <?php if ($section_title === 'سیستم پورسانت'): ?>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                                        <?php foreach($fields as $f): ?>
+                                            <?php 
                                             $keys = array_keys($f['options']);
                                             $val1 = $keys[0]; 
                                             $val2 = $keys[1]; 
                                             $currentVal = (strval($f['val']) === strval($val1)) ? $val1 : $val2;
                                             $isChecked = ($currentVal === $val1);
-                                        ?>
+                                            ?>
                                             <div class="field toggle-field">
                                                 <div class="toggle-texts">
                                                     <label class="toggle-label" for="chk_<?= $f['name'] ?>"><?= $f['label'] ?></label>
@@ -734,30 +906,253 @@ input:checked + .arvan-slider:before {
                                                     <span class="arvan-slider"></span>
                                                 </label>
                                             </div>
-                                        <?php elseif($f['type'] === 'text' || $f['type'] === 'number'): ?>
-                                            <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
-                                                <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
-                                                <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>">
+                                        <?php endforeach; ?>
+                                    </div>
+
+                                <?php elseif ($section_title === 'پاداش اولین خرید زیرمجموعه'): ?>
+                                    <?php $f = $fields[0]; ?>
+                                    <div class="field input-max-width" style="display: flex; flex-direction: column; gap: 8px;">
+                                        <label style="font-weight: 600; color: var(--text2); font-size: 0.85rem;"><?= htmlspecialchars($f['label']) ?></label>
+                                        <div class="input-group-custom">
+                                            <input type="number" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>">
+                                            <span class="input-group-badge">تومان</span>
+                                        </div>
+                                    </div>
+
+                                <?php elseif ($section_title === 'پورسانت خریدهای بعدی'): ?>
+                                    <?php $f = $fields[0]; ?>
+                                    <div class="field input-max-width" style="display: flex; flex-direction: column; gap: 8px;">
+                                        <label style="font-weight: 600; color: var(--text2); font-size: 0.85rem;"><?= htmlspecialchars($f['label']) ?></label>
+                                        <div class="input-group-custom">
+                                            <input type="number" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>">
+                                            <span class="input-group-badge">درصد (%)</span>
+                                        </div>
+                                    </div>
+
+                                <?php elseif ($section_title === 'سطوح بازاریابی'): ?>
+                                    <div class="tier-cards-container">
+                                        <!-- Silver Tier Card -->
+                                        <div class="tier-card silver">
+                                            <div class="tier-card-header">
+                                                <span class="tier-card-title">
+                                                    <?= icon('award', 18) ?> سطح نقره‌ای (Silver Tier)
+                                                </span>
+                                                <span class="tier-card-badge">نقره‌ای</span>
                                             </div>
-                                        <?php elseif($f['type'] === 'textarea'): ?>
-                                            <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
-                                                <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
-                                                <textarea name="<?= $f['name'] ?>" class="arvan-input" style="min-height: 100px; resize: vertical;" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>"><?= htmlspecialchars($f['val'] ?? '') ?></textarea>
+                                            
+                                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[0]['label']) ?></label>
+                                                <div class="input-group-custom">
+                                                    <input type="number" name="<?= $fields[0]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[0]['val'] ?? '') ?>">
+                                                    <span class="input-group-badge">عدد خرید</span>
+                                                </div>
                                             </div>
-                                        <?php elseif($f['type'] === 'file'): ?>
-                                            <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
-                                                <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
-                                                <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" accept="image/*,video/*">
-                                                <?php if ($f['name'] === 'banner_base_file' && file_exists(__DIR__ . '/../assets/banner_base.jpg')): ?>
-                                                    <div style="font-size: 0.75rem; color: var(--emerald); margin-top: 4px; display: flex; align-items: center; gap: 4px;">
-                                                        <span>✅ تصویر پایه بنر با موفقیت آپلود شده و فعال است.</span>
-                                                        <a href="../assets/banner_base.jpg" target="_blank" style="color: var(--blue); text-decoration: underline;">مشاهده تصویر فعلی</a>
-                                                    </div>
-                                                <?php endif; ?>
+                                            
+                                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[1]['label']) ?></label>
+                                                <div class="input-group-custom">
+                                                    <input type="number" name="<?= $fields[1]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[1]['val'] ?? '') ?>">
+                                                    <span class="input-group-badge">% درصد</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Gold Tier Card -->
+                                        <div class="tier-card gold">
+                                            <div class="tier-card-header">
+                                                <span class="tier-card-title">
+                                                    <?= icon('award', 18) ?> سطح طلایی (Gold Tier)
+                                                </span>
+                                                <span class="tier-card-badge">طلایی</span>
+                                            </div>
+                                            
+                                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[2]['label']) ?></label>
+                                                <div class="input-group-custom">
+                                                    <input type="number" name="<?= $fields[2]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[2]['val'] ?? '') ?>">
+                                                    <span class="input-group-badge">عدد خرید</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($fields[3]['label']) ?></label>
+                                                <div class="input-group-custom">
+                                                    <input type="number" name="<?= $fields[3]['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($fields[3]['val'] ?? '') ?>">
+                                                    <span class="input-group-badge">% درصد</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <?php elseif ($section_title === 'بنر اختصاصی زیرمجموعه‌گیری'): ?>
+                                    <?php $f = $fields[0]; ?>
+                                    <div class="field input-max-width" style="display: flex; flex-direction: column; gap: 10px;">
+                                        <label style="font-weight: 600; color: var(--text2); font-size: 0.85rem;"><?= htmlspecialchars($f['label']) ?></label>
+                                        
+                                        <div class="custom-upload-zone" onclick="document.getElementById('<?= $f['name'] ?>_input').click();">
+                                            <div class="upload-icon">
+                                                <?= icon('upload-cloud', 32) ?>
+                                            </div>
+                                            <p class="upload-title">برای تغییر تصویر کلیک کنید یا فایل را بکشید اینجا</p>
+                                            <p class="upload-subtitle">فرمت مورد تایید: JPG / JPEG</p>
+                                            <input type="file" id="<?= $f['name'] ?>_input" name="<?= $f['name'] ?>" accept="image/jpeg,image/jpg" style="display: none;" onchange="updateUploadZoneText(this)">
+                                        </div>
+                                        
+                                        <?php if (file_exists(__DIR__ . '/../assets/banner_base.jpg')): ?>
+                                            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--emerald);">
+                                                <div style="display: flex; align-items: center; gap: 6px;">
+                                                    <span>✅ تصویر پایه بنر با موفقیت آپلود شده و فعال است.</span>
+                                                </div>
+                                                <a href="../assets/banner_base.jpg" target="_blank" style="color: var(--blue); text-decoration: underline; font-weight: 600;">مشاهده تصویر فعلی</a>
                                             </div>
                                         <?php endif; ?>
-                                    <?php endforeach; ?>
-                                </div>
+                                    </div>
+
+                                <?php elseif ($section_title === 'تخفیف و رسانه'): ?>
+                                    <!-- Group 1: Discount Settings -->
+                                    <div class="setting-group-box">
+                                        <div class="setting-group-title">
+                                            <?= icon('percent', 16) ?> تنظیمات کد تخفیف معرف
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; align-items: start;">
+                                            <!-- aff_Discount -->
+                                            <?php 
+                                            $disc_field = $fields[0]; 
+                                            $keys = array_keys($disc_field['options']);
+                                            $val1 = $keys[0]; 
+                                            $val2 = $keys[1]; 
+                                            $currentVal = (strval($disc_field['val']) === strval($val1)) ? $val1 : $val2;
+                                            $isChecked = ($currentVal === $val1);
+                                            ?>
+                                            <div class="field toggle-field" style="margin-top: 25px;">
+                                                <div class="toggle-texts">
+                                                    <label class="toggle-label" for="chk_<?= $disc_field['name'] ?>"><?= $disc_field['label'] ?></label>
+                                                    <span class="toggle-state"><?= $isChecked ? $disc_field['options'][$val1] : $disc_field['options'][$val2] ?></span>
+                                                </div>
+                                                <input type="hidden" name="<?= $disc_field['name'] ?>" id="hidden_<?= $disc_field['name'] ?>" value="<?= htmlspecialchars($currentVal) ?>">
+                                                <label class="arvan-switch">
+                                                    <input type="checkbox" id="chk_<?= $disc_field['name'] ?>" <?= $isChecked ? 'checked' : '' ?> onchange="document.getElementById('hidden_<?= $disc_field['name'] ?>').value = this.checked ? '<?= $val1 ?>' : '<?= $val2 ?>'; this.closest('.toggle-field').querySelector('.toggle-state').innerText = this.checked ? '<?= $disc_field['options'][$val1] ?>' : '<?= $disc_field['options'][$val2] ?>';">
+                                                    <span class="arvan-slider"></span>
+                                                </label>
+                                            </div>
+
+                                            <!-- aff_price_Discount -->
+                                            <?php $price_field = $fields[1]; ?>
+                                            <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($price_field['label']) ?></label>
+                                                <div class="input-group-custom">
+                                                    <input type="number" name="<?= $price_field['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($price_field['val'] ?? '') ?>">
+                                                    <span class="input-group-badge">تومان / %</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Group 2: Help Media -->
+                                    <div class="setting-group-box">
+                                        <div class="setting-group-title">
+                                            <?= icon('image', 16) ?> رسانه راهنما
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: start;">
+                                            <div style="display: flex; flex-direction: column; gap: 15px;">
+                                                <!-- aff_media_type -->
+                                                <?php 
+                                                $mtype_field = $fields[2]; 
+                                                $keys = array_keys($mtype_field['options']);
+                                                $val1 = $keys[0]; 
+                                                $val2 = $keys[1]; 
+                                                $currentVal = (strval($mtype_field['val']) === strval($val1)) ? $val1 : $val2;
+                                                $isChecked = ($currentVal === $val1);
+                                                ?>
+                                                <div class="field toggle-field">
+                                                    <div class="toggle-texts">
+                                                        <label class="toggle-label" for="chk_<?= $mtype_field['name'] ?>"><?= $mtype_field['label'] ?></label>
+                                                        <span class="toggle-state"><?= $isChecked ? $mtype_field['options'][$val1] : $mtype_field['options'][$val2] ?></span>
+                                                    </div>
+                                                    <input type="hidden" name="<?= $mtype_field['name'] ?>" id="hidden_<?= $mtype_field['name'] ?>" value="<?= htmlspecialchars($currentVal) ?>">
+                                                    <label class="arvan-switch">
+                                                        <input type="checkbox" id="chk_<?= $mtype_field['name'] ?>" <?= $isChecked ? 'checked' : '' ?> onchange="document.getElementById('hidden_<?= $mtype_field['name'] ?>').value = this.checked ? '<?= $val1 ?>' : '<?= $val2 ?>'; this.closest('.toggle-field').querySelector('.toggle-state').innerText = this.checked ? '<?= $mtype_field['options'][$val1] ?>' : '<?= $mtype_field['options'][$val2] ?>';">
+                                                        <span class="arvan-slider"></span>
+                                                    </label>
+                                                </div>
+
+                                                <!-- aff_id_media -->
+                                                <?php $mid_field = $fields[3]; ?>
+                                                <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                                    <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($mid_field['label']) ?></label>
+                                                    <input type="text" name="<?= $mid_field['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($mid_field['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($mid_field['placeholder'] ?? '') ?>">
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <!-- aff_media_file -->
+                                                <?php $mfile_field = $fields[4]; ?>
+                                                <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                                    <label style="font-weight: 600; color: var(--text2); font-size: 0.8rem;"><?= htmlspecialchars($mfile_field['label']) ?></label>
+                                                    <div class="custom-upload-zone" onclick="document.getElementById('<?= $mfile_field['name'] ?>_input').click();">
+                                                        <div class="upload-icon">
+                                                            <?= icon('upload-cloud', 24) ?>
+                                                        </div>
+                                                        <p class="upload-title" style="font-size:0.8rem;">آپلود مستقیم ویدیو / عکس</p>
+                                                        <p class="upload-subtitle" style="font-size:0.68rem;">برای آپلود کلیک کنید</p>
+                                                        <input type="file" id="<?= $mfile_field['name'] ?>_input" name="<?= $mfile_field['name'] ?>" accept="image/*,video/*" style="display: none;" onchange="updateUploadZoneText(this)">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Group 3: Help Description -->
+                                    <div class="setting-group-box">
+                                        <div class="setting-group-title">
+                                            <?= icon('file-text', 16) ?> متن توضیحات راهنما
+                                        </div>
+                                        <?php $desc_field = $fields[5]; ?>
+                                        <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                            <textarea name="<?= $desc_field['name'] ?>" class="arvan-input" style="min-height: 120px; resize: vertical;" placeholder="<?= htmlspecialchars($desc_field['placeholder'] ?? '') ?>"><?= htmlspecialchars($desc_field['val'] ?? '') ?></textarea>
+                                        </div>
+                                    </div>
+
+                                <?php else: ?>
+                                    <div class="arvan-grid">
+                                        <?php foreach($fields as $f): ?>
+                                            <?php if($f['type'] === 'select'): 
+                                                $keys = array_keys($f['options']);
+                                                $val1 = $keys[0]; 
+                                                $val2 = $keys[1]; 
+                                                $currentVal = (strval($f['val']) === strval($val1)) ? $val1 : $val2;
+                                                $isChecked = ($currentVal === $val1);
+                                            ?>
+                                                <div class="field toggle-field">
+                                                    <div class="toggle-texts">
+                                                        <label class="toggle-label" for="chk_<?= $f['name'] ?>"><?= $f['label'] ?></label>
+                                                        <span class="toggle-state"><?= $isChecked ? $f['options'][$val1] : $f['options'][$val2] ?></span>
+                                                    </div>
+                                                    <input type="hidden" name="<?= $f['name'] ?>" id="hidden_<?= $f['name'] ?>" value="<?= htmlspecialchars($currentVal) ?>">
+                                                    <label class="arvan-switch">
+                                                        <input type="checkbox" id="chk_<?= $f['name'] ?>" <?= $isChecked ? 'checked' : '' ?> onchange="document.getElementById('hidden_<?= $f['name'] ?>').value = this.checked ? '<?= $val1 ?>' : '<?= $val2 ?>'; this.closest('.toggle-field').querySelector('.toggle-state').innerText = this.checked ? '<?= $f['options'][$val1] ?>' : '<?= $f['options'][$val2] ?>';">
+                                                        <span class="arvan-slider"></span>
+                                                    </label>
+                                                </div>
+                                            <?php elseif($f['type'] === 'text' || $f['type'] === 'number'): ?>
+                                                <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                                    <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
+                                                    <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>">
+                                                </div>
+                                            <?php elseif($f['type'] === 'textarea'): ?>
+                                                <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                                    <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
+                                                    <textarea name="<?= $f['name'] ?>" class="arvan-input" style="min-height: 100px; resize: vertical;" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>"><?= htmlspecialchars($f['val'] ?? '') ?></textarea>
+                                                </div>
+                                            <?php elseif($f['type'] === 'file'): ?>
+                                                <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                                    <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
+                                                    <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" accept="image/*,video/*">
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         <?php $isFirstSec = false; endforeach; ?>
                     </div>
@@ -774,6 +1169,14 @@ input:checked + .arvan-slider:before {
 </div>
 
 <script>
+window.updateUploadZoneText = function(input) {
+    if (input.files && input.files[0]) {
+        const zone = input.closest('.field').querySelector('.custom-upload-zone');
+        const title = zone.querySelector('.upload-title');
+        title.innerHTML = "📝 انتخاب شد: " + input.files[0].name;
+        title.style.color = "var(--ac)";
+    }
+};
 (function() {
     const mainTabs = document.querySelectorAll('.arvan-main-tab-btn');
     const subTabs = document.querySelectorAll('.arvan-sub-tab-btn');
