@@ -9649,75 +9649,102 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     $stmt->execute();
 } elseif ($text == $textbotlang['keyboard']['panelFeatureStatus'] && $adminrulecheck['rule'] == "administrator") {
     $panel = select("marzban_panel", "*", "name_panel", $user['Processing_value'], "select");
-    if (!in_array($panel['subvip'], ['offsubvip', 'onsubvip'])) {
+    if (!$panel) {
+        sendmessage($from_id, "❌ پنل مورد نظر یافت نشد. لطفاً مجدداً از منوی مدیریت پنل‌ها سرور را انتخاب کنید.", null, 'HTML');
+        step("home", $from_id);
+        return;
+    }
+    if (!in_array($panel['subvip'] ?? '', ['offsubvip', 'onsubvip'])) {
         update("marzban_panel", "subvip", "offsubvip", "code_panel", $panel['code_panel']);
         $panel = select("marzban_panel", "*", "code_panel", $panel['code_panel'], "select");
     }
-    if (!in_array($panel['version_panel'], ['0', '1'])) {
+    if (!$panel) {
+        sendmessage($from_id, "❌ پنل مورد نظر یافت نشد.", null, 'HTML');
+        step("home", $from_id);
+        return;
+    }
+    if (!in_array($panel['version_panel'] ?? '', ['0', '1'])) {
         $panel['version_panel'] = '0';
     }
-    $customvlume = json_decode($panel['customvolume'], true);
+    $customvlume = json_decode($panel['customvolume'] ?? '', true);
+    if (!is_array($customvlume)) {
+        $customvlume = ['f' => '0', 'n' => '0', 'n2' => '0'];
+    }
     $statusconfig = [
         'onconfig' => $textbotlang['Admin']['Status']['statuson'],
         'offconfig' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['config']];
+    ][$panel['config'] ?? 'offconfig'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $statussublink = [
         'onsublink' => $textbotlang['Admin']['Status']['statuson'],
         'offsublink' => $textbotlang['Admin']['Status']['statusoff'],
         'bothsubandconfig' => $textbotlang['Admin']['Status']['statusboth'] ?? "🟡 ساب + کانفیگ"
-    ][$panel['sublink']] ?? $textbotlang['Admin']['Status']['statusoff'];
+    ][$panel['sublink'] ?? 'offsublink'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $statusshowbuy = [
         'active' => $textbotlang['Admin']['Status']['statuson'],
         'disable' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['status']];
+    ][$panel['status'] ?? 'disable'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $statusshowtest = [
         'ONTestAccount' => $textbotlang['Admin']['Status']['statuson'],
         'OFFTestAccount' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['TestAccount']];
+    ][$panel['TestAccount'] ?? 'OFFTestAccount'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $statusconnecton = [
         'onconecton' => $textbotlang['Admin']['Status']['statuson'],
         'offconecton' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['conecton']];
+    ][$panel['conecton'] ?? 'offconecton'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $status_extend = [
         'on_extend' => $textbotlang['Admin']['Status']['statuson'],
         'off_extend' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['status_extend']];
+    ][$panel['status_extend'] ?? 'off_extend'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $changeloc = [
         'onchangeloc' => $textbotlang['Admin']['Status']['statuson'],
         'offchangeloc' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['changeloc']];
+    ][$panel['changeloc'] ?? 'offchangeloc'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $inbocunddisable = [
         'oninbounddisable' => $textbotlang['Admin']['Status']['statuson'],
         'offinbounddisable' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['inboundstatus']];
+    ][$panel['inboundstatus'] ?? 'offinbounddisable'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $inbound_deactive_status = [
         '1' => $textbotlang['Admin']['Status']['statuson'],
         '0' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['inbound_deactive']] ?? $textbotlang['Admin']['Status']['statusoff'];
+    ][$panel['inbound_deactive'] ?? '0'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $subvip = [
         'onsubvip' => $textbotlang['Admin']['Status']['statuson'],
         'offsubvip' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['subvip']];
+    ][$panel['subvip'] ?? 'offsubvip'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $customstatusf = [
         '1' => $textbotlang['Admin']['Status']['statuson'],
         '0' => $textbotlang['Admin']['Status']['statusoff']
-    ][$customvlume['f']];
+    ][$customvlume['f'] ?? '0'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $customstatusn = [
         '1' => $textbotlang['Admin']['Status']['statuson'],
         '0' => $textbotlang['Admin']['Status']['statusoff']
-    ][$customvlume['n']];
+    ][$customvlume['n'] ?? '0'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $customstatusn2 = [
         '1' => $textbotlang['Admin']['Status']['statuson'],
         '0' => $textbotlang['Admin']['Status']['statusoff']
-    ][$customvlume['n2']];
+    ][$customvlume['n2'] ?? '0'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $on_hold_test = [
         '1' => $textbotlang['Admin']['Status']['statuson'],
         '0' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['on_hold_test']];
+    ][$panel['on_hold_test'] ?? '0'] ?? $textbotlang['Admin']['Status']['statusoff'];
+    
     $version_panel_status = [
         '1' => $textbotlang['Admin']['Status']['statuson'],
         '0' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['version_panel']];
+    ][$panel['version_panel'] ?? '0'] ?? $textbotlang['Admin']['Status']['statusoff'];
     $Bot_Status = [
         'inline_keyboard' => [
             [
