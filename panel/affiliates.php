@@ -255,8 +255,8 @@ include __DIR__ . '/inc/layout_head.php';
                                     <div class="profile-avatar" style="width: 38px; height: 38px; font-size: 16px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--sf3); border: 1px solid var(--bd); flex-shrink: 0;">
                                         <?= mb_substr($name ?: ($uname ?: $ref['id']), 0, 1) ?>
                                     </div>
-                                    <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: right; overflow: hidden;">
-                                        <a href="user.php?id=<?= (int)$ref['id'] ?>" class="cm" style="color: var(--text); font-weight: 600; text-decoration: none; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">
+                                    <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: right; align-items: flex-start; overflow: hidden;">
+                                        <a href="user.php?id=<?= (int)$ref['id'] ?>" class="cm" style="font-family: var(--font); color: var(--text); font-weight: 600; text-decoration: none; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">
                                             <?= htmlspecialchars($name ?: ($uname ? '@' . $uname : 'کاربر بی‌نام')) ?>
                                         </a>
                                         <div class="profile-id-box" style="font-size: 0.75rem; color: var(--mute); margin: 0; display: flex; align-items: center; gap: 2px;">
