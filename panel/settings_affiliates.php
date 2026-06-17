@@ -78,6 +78,7 @@ $schema = [
             'سیستم پورسانت' => [
                 ['name' => 'set_affiliatesstatus', 'label' => 'وضعیت کلی سیستم همکاری در فروش', 'type' => 'select', 'options' => ['onaffiliates' => 'فعال', 'offaffiliates' => 'غیرفعال'], 'val' => $row['affiliatesstatus'] ?? ''],
                 ['name' => 'aff_status_commission', 'label' => 'وضعیت پورسانت‌دهی با خرید کاربر', 'type' => 'select', 'options' => ['oncommission' => 'فعال', 'offcommission' => 'غیرفعال'], 'val' => $affiliate_settings['status_commission'] ?? ''],
+                ['name' => 'aff_porsant_one_buy', 'label' => 'نحوه محاسبه پورسانت خرید', 'type' => 'select', 'options' => ['off_buy_porsant' => 'پورسانت برای همه خریدها', 'on_buy_porsant' => 'پورسانت فقط برای خرید اول'], 'val' => $affiliate_settings['porsant_one_buy'] ?? 'off_buy_porsant'],
             ],
             'پاداش اولین خرید زیرمجموعه' => [
                 ['name' => 'aff_first_buy_reward', 'label' => 'مبلغ پاداش اولین خرید (تومان - ۰ برای غیرفعال)', 'type' => 'number', 'val' => $affiliate_settings['first_buy_reward'] ?? '0'],
