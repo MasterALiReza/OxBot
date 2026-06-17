@@ -660,6 +660,12 @@ include __DIR__ . '/inc/layout_head.php';
                                     'waiting' => ['tag-plain', 'در انتظار'],
                                     'disabled' => ['tag-no', 'غیرفعال'],
                                     'disabledn' => ['tag-no', 'حذف شده'],
+                                    'cancled' => ['tag-no', 'لغو شده'],
+                                    'canceled' => ['tag-no', 'لغو شده'],
+                                    'expired' => ['tag-no', 'منقضی شده'],
+                                    'limited' => ['tag-warn', 'محدود شده'],
+                                    'paying' => ['tag-plain', 'در حال پرداخت'],
+                                    'pending' => ['tag-plain', 'در انتظار'],
                                 ];
                                 foreach ($invoices as $inv):
                                     [$tagClass, $label] = $statusMap[$inv['Status'] ?? ''] ?? ['tag-plain', $inv['Status'] ?? '—'];
@@ -1235,7 +1241,7 @@ include __DIR__ . '/inc/layout_head.php';
 <div class="modal-veil" id="serviceManageModal">
     <div class="modal" style="max-width: 600px; width: 95%;">
         <div class="modal-head">
-            <h3>مدیریت سرویس</h3>
+            <h3 style="display:flex; align-items:center; gap:8px;"><?= icon('settings', 18) ?> مدیریت سرویس کاربر</h3>
             <button class="modal-x" onclick="closeModal('serviceManageModal')"><?= icon('close', 14) ?></button>
         </div>
         <div class="modal-body" id="serviceManageContent" style="min-height: 200px; display: flex; justify-content: center; align-items: center;">
