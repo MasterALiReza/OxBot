@@ -634,8 +634,9 @@ include __DIR__ . '/inc/layout_head.php';
                             <tr>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?></th>
                                 <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?></th>
+                                <th class="desktop-text-center" style="text-align:right;">تاریخ</th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?></th>
-                                <th style="text-align:center;">عملیات</th>
+                                <th style="text-align:center;"><?= icon('settings', 16) ?> مدیریت سرویس کاربر</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -649,12 +650,16 @@ include __DIR__ . '/inc/layout_head.php';
                                 </tr>
                             <?php else:
                                 $statusMap = [
-                                    'active' => ['tag-ok', $textbotlang['panel']['userStatusActive2']],
-                                    'end_of_time' => ['tag-warn', $textbotlang['panel']['userStatusNearTimeEnd']],
-                                    'end_of_volume' => ['tag-no', $textbotlang['panel']['userStatusNearVolumeEnd']],
-                                    'sendedwarn' => ['tag-warn', $textbotlang['panel']['userNotifAllSent']],
-                                    'send_on_hold' => ['tag-plain', $textbotlang['panel']['userStatusWaiting']],
-                                    'unpaid' => ['tag-no', $textbotlang['panel']['userStatusUnpaid']],
+                                    'active' => ['tag-ok', $textbotlang['panel']['userStatusActive2'] ?? 'فعال'],
+                                    'end_of_time' => ['tag-warn', $textbotlang['panel']['userStatusNearTimeEnd'] ?? 'نزدیک به اتمام زمان'],
+                                    'end_of_volume' => ['tag-no', $textbotlang['panel']['userStatusNearVolumeEnd'] ?? 'نزدیک به اتمام حجم'],
+                                    'sendedwarn' => ['tag-warn', $textbotlang['panel']['userNotifAllSent'] ?? 'اخطار ارسال شده'],
+                                    'send_on_hold' => ['tag-plain', $textbotlang['panel']['userStatusWaiting'] ?? 'در انتظار تأیید'],
+                                    'unpaid' => ['tag-no', $textbotlang['panel']['userStatusUnpaid'] ?? 'پرداخت نشده'],
+                                    'پرداخت نشده' => ['tag-no', 'پرداخت نشده'],
+                                    'waiting' => ['tag-plain', 'در انتظار'],
+                                    'disabled' => ['tag-no', 'غیرفعال'],
+                                    'disabledn' => ['tag-no', 'حذف شده'],
                                 ];
                                 foreach ($invoices as $inv):
                                     [$tagClass, $label] = $statusMap[$inv['Status'] ?? ''] ?? ['tag-plain', $inv['Status'] ?? '—'];
