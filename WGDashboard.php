@@ -33,14 +33,19 @@ function get_userwg($username, $namepanel)
             break;
         }
     }
-    if (count($output) != 0)
+    if (count($output) != 0) {
+        $output['id'] = $output['id'] ?? $output['publicKey'] ?? $output['name'] ?? null;
         return $output;
+    }
     foreach ($configurationRestrictedPeers as $userinfo) {
         if ($userinfo['name'] == $username) {
             $output = $userinfo;
             $output['configuration']['Status'] = false;
             break;
         }
+    }
+    if (count($output) != 0) {
+        $output['id'] = $output['id'] ?? $output['publicKey'] ?? $output['name'] ?? null;
     }
     return $output;
 }
