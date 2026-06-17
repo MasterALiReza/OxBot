@@ -2611,7 +2611,8 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     } else {
         $keys = [];
         foreach($missingLocations as $loc) {
-            $keys[] = [['text' => $loc, 'callback_data' => "syncpnl_" . base64_encode($loc)]];
+            // Use md5 to keep the callback data length short (8 + 32 = 40 bytes)
+            $keys[] = [['text' => $loc, 'callback_data' => "syncpnl_" . md5($loc)]];
         }
         $keyboard = json_encode(['inline_keyboard' => $keys]);
         sendmessage($from_id, "⚠️ پنل‌های زیر در لیست سرویس‌های متصل (فاکتورها) وجود دارند اما در لیست پنل‌های فعلی ربات ثبت نشده‌اند.\n\nبرای ادغام و تغییر نام آن‌ها به یکی از پنل‌های فعلی، روی نام پنل قدیمی کلیک کنید:", $keyboard, 'HTML');
@@ -2800,7 +2801,29 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     ]);
     return;
 } elseif (strpos($datain, 'syncpnl_') === 0 && $adminrulecheck['rule'] == "administrator") {
-    $loc = base64_decode(str_replace('syncpnl_', '', $datain));
+    $loc_md5 = str_replace('syncpnl_', '', $datain);
+    
+    // Find the original location name by querying and hashing
+    $uniqueLocationsQuery = CustomQuery("SELECT DISTINCT `Service_location` FROM `invoice` WHERE `Service_location` NOT IN (SELECT `name_panel` FROM `marzban_panel`) AND `Service_location` != 'null' AND `Service_location` IS NOT NULL AND `Service_location` != ''");
+    $loc = null;
+    if($uniqueLocationsQuery && $uniqueLocationsQuery->num_rows > 0){
+        while ($row = $uniqueLocationsQuery->fetch_assoc()) {
+            if (md5($row['Service_location']) === $loc_md5) {
+                $loc = $row['Service_location'];
+                break;
+            }
+        }
+    }
+    
+    if (!$loc) {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => '❌ پنل مورد نظر یافت نشد یا قبلاً ادغام شده است.',
+            'show_alert' => true
+        ]);
+        return;
+    }
+    
     // Save the old location in the database
     update("user", "Processing_value_one", $loc, "id", $from_id);
     
