@@ -256,7 +256,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         <?= mb_substr($name ?: ($uname ?: $ref['id']), 0, 1) ?>
                                     </div>
                                     <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: right; align-items: flex-start; overflow: hidden;">
-                                        <a href="user.php?id=<?= (int)$ref['id'] ?>" class="cm" style="font-family: var(--font); color: var(--text); font-weight: 600; text-decoration: none; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">
+                                        <a href="user.php?id=<?= (int)$ref['id'] ?>" class="username-link" style="color: var(--text); font-weight: 600; text-decoration: none; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">
                                             <?= htmlspecialchars($name ?: ($uname ? '@' . $uname : 'کاربر بی‌نام')) ?>
                                         </a>
                                         <div class="profile-id-box" style="font-size: 0.75rem; color: var(--mute); margin: 0; display: flex; align-items: center; gap: 2px;">
@@ -387,6 +387,38 @@ function toggleReferrals(referrerId) {
 </script>
 
 <style>
+/* ==========================================
+   DESKTOP COLUMN ALIGNMENTS (min-width: 769px)
+   ========================================== */
+@media (min-width: 769px) {
+    /* Main table columns */
+    #affiliatesTbl th:nth-child(1), 
+    #affiliatesTbl td:nth-child(1) { width: 48px; min-width: 48px; text-align: center; }
+    #affiliatesTbl th:nth-child(2), 
+    #affiliatesTbl td:nth-child(2) { width: 35%; }
+    #affiliatesTbl th:nth-child(3), 
+    #affiliatesTbl td:nth-child(3) { width: 20%; }
+    #affiliatesTbl th:nth-child(4), 
+    #affiliatesTbl td:nth-child(4) { width: 20%; }
+    #affiliatesTbl th:nth-child(5), 
+    #affiliatesTbl td:nth-child(5) { width: 25%; }
+
+    /* Nested table columns */
+    #affiliatesTbl tbody tr[id^="details-"] table th:nth-child(1), 
+    #affiliatesTbl tbody tr[id^="details-"] table td:nth-child(1) { width: 48px; min-width: 48px; text-align: center; }
+    #affiliatesTbl tbody tr[id^="details-"] table th:nth-child(2), 
+    #affiliatesTbl tbody tr[id^="details-"] table td:nth-child(2) { width: 35%; }
+    #affiliatesTbl tbody tr[id^="details-"] table th:nth-child(3), 
+    #affiliatesTbl tbody tr[id^="details-"] table td:nth-child(3) { width: 20%; }
+    #affiliatesTbl tbody tr[id^="details-"] table th:nth-child(4), 
+    #affiliatesTbl tbody tr[id^="details-"] table td:nth-child(4) { width: 20%; }
+    #affiliatesTbl tbody tr[id^="details-"] table th:nth-child(5), 
+    #affiliatesTbl tbody tr[id^="details-"] table td:nth-child(5) { width: 25%; }
+}
+
+/* ==========================================
+   MOBILE LAYOUT & CARD CUSTOMIZATIONS (max-width: 768px)
+   ========================================== */
 @media (max-width: 768px) {
     /* 1. Statistics Cards Optimization */
     .stats {
@@ -496,7 +528,7 @@ function toggleReferrals(referrerId) {
         padding-left: 48px !important; /* Make room for the absolute toggler on the left */
         padding-right: 0 !important;
     }
-    #affiliatesTbl tbody tr[id^="referrer-row-"] td[data-label="معرف"] .dash-unified-content a.cm {
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td[data-label="معرف"] .dash-unified-content a.username-link {
         max-width: 140px !important;
     }
     
@@ -573,12 +605,17 @@ function toggleReferrals(referrerId) {
         margin-bottom: 0 !important;
     }
     
+    /* Hide the empty sub-table placeholder column on mobile */
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td:first-child {
+        display: none !important;
+    }
+    
     #affiliatesTbl tbody tr[id^="details-"] table tbody tr td {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        padding: 0 !important;
-        border-bottom: none !important;
+        padding: 10px 12px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
         text-align: right !important;
         width: 100% !important;
     }
@@ -590,17 +627,17 @@ function toggleReferrals(referrerId) {
     }
     
     /* Inner table user column */
-    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="کاربر"] {
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="زیرمجموعه"] {
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 6px !important;
         padding-bottom: 8px !important;
         border-bottom: 1px solid var(--bd) !important;
     }
-    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="کاربر"]::before {
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="زیرمجموعه"]::before {
         display: none !important;
     }
-    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="کاربر"] .dash-unified-content {
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="زیرمجموعه"] .dash-unified-content {
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
@@ -609,7 +646,7 @@ function toggleReferrals(referrerId) {
         gap: 10px !important;
         width: 100% !important;
     }
-    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="کاربر"] .dash-unified-content a.cm {
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="زیرمجموعه"] .dash-unified-content a.username-link {
         max-width: 140px !important;
     }
     
@@ -618,6 +655,7 @@ function toggleReferrals(referrerId) {
         margin-top: 4px !important;
         padding-top: 8px !important;
         border-top: 1px solid var(--bd) !important;
+        border-bottom: none !important;
     }
     #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="عملیات"]::before {
         display: none !important;

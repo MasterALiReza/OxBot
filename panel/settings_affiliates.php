@@ -775,7 +775,8 @@ input:checked + .arvan-slider:before {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 30px 20px;
+    padding: 40px 20px;
+    min-height: 180px;
     background: var(--sf);
     border: 2px dashed var(--bd);
     border-radius: 12px;
@@ -783,7 +784,7 @@ input:checked + .arvan-slider:before {
     transition: all 0.2s ease;
     position: relative;
     text-align: center;
-    gap: 10px;
+    gap: 12px;
 }
 .custom-upload-zone:hover {
     border-color: var(--ac);
@@ -1035,11 +1036,14 @@ input:checked + .arvan-slider:before {
                                         </div>
                                         
                                         <?php if (file_exists(__DIR__ . '/../assets/banner_base.jpg')): ?>
-                                            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--emerald);">
-                                                <div style="display: flex; align-items: center; gap: 6px;">
+                                            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; color: var(--emerald);">
+                                                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                                                     <span>✅ تصویر پایه بنر با موفقیت آپلود شده و فعال است.</span>
+                                                    <a href="../assets/banner_base.jpg" target="_blank" style="color: var(--blue); text-decoration: underline; font-weight: 600;">مشاهده اندازه اصلی</a>
                                                 </div>
-                                                <a href="../assets/banner_base.jpg" target="_blank" style="color: var(--blue); text-decoration: underline; font-weight: 600;">مشاهده تصویر فعلی</a>
+                                                <div style="display: flex; justify-content: center; width: 100%;">
+                                                    <img src="../assets/banner_base.jpg?t=<?= time() ?>" style="max-width: 100%; max-height: 140px; border-radius: 6px; border: 1px solid var(--bd); object-fit: contain;">
+                                                </div>
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -1145,7 +1149,7 @@ input:checked + .arvan-slider:before {
                                         </div>
                                         <?php $desc_field = $fields[5]; ?>
                                         <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
-                                            <textarea name="<?= $desc_field['name'] ?>" class="arvan-input" style="min-height: 280px; font-size: 0.9rem; line-height: 1.6; resize: vertical;" placeholder="<?= htmlspecialchars($desc_field['placeholder'] ?? '') ?>"><?= htmlspecialchars($desc_field['val'] ?? '') ?></textarea>
+                                            <textarea name="<?= $desc_field['name'] ?>" class="arvan-input" style="min-height: 380px; font-size: 0.95rem; line-height: 1.6; resize: vertical;" placeholder="<?= htmlspecialchars($desc_field['placeholder'] ?? '') ?>"><?= htmlspecialchars($desc_field['val'] ?? '') ?></textarea>
                                         </div>
                                     </div>
 
@@ -1211,6 +1215,26 @@ window.updateUploadZoneText = function(input) {
         const title = zone.querySelector('.upload-title');
         title.innerHTML = "📝 انتخاب شد: " + input.files[0].name;
         title.style.color = "var(--ac)";
+        
+        // Remove existing preview if any
+        const oldPreview = zone.querySelector('.preview-thumb');
+        if (oldPreview) {
+            oldPreview.remove();
+        }
+        
+        // Add visual preview if it is an image
+        if (input.files[0].type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.className = 'preview-thumb';
+            img.src = URL.createObjectURL(input.files[0]);
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '100px';
+            img.style.borderRadius = '6px';
+            img.style.marginTop = '10px';
+            img.style.border = '1px solid var(--bd)';
+            img.style.objectFit = 'contain';
+            zone.appendChild(img);
+        }
     }
 };
 (function() {

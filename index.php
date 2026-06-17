@@ -489,7 +489,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     }
     step('none', $from_id);
 } elseif ($text == $textbotlang['textbot']['purchasedServices'] || $datain == "backorder" || $text == "/services") {
-    $stmt = $pdo->prepare("SELECT DISTINCT i.Service_location FROM invoice i INNER JOIN marzban_panel p ON i.Service_location = p.name_panel WHERE i.id_user = :id_user AND (i.status = 'active' OR i.status = 'end_of_time'  OR i.status = 'end_of_volume' OR i.status = 'sendedwarn' OR i.Status = 'send_on_hold')");
+    $stmt = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
     $stmt->bindParam(':id_user', $from_id);
     $stmt->execute();
     $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -6517,7 +6517,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     $price = $rates['USD'];
     sendmessage($from_id, sprintf($textbotlang['users']['priceArze']['tetherPrice'], $price), null, 'HTML');
 } elseif ($text == $textbotlang['textbot']['extend'] or $datain == "extendbtn") {
-    $stmt = $pdo->prepare("SELECT DISTINCT i.Service_location FROM invoice i INNER JOIN marzban_panel p ON i.Service_location = p.name_panel WHERE i.id_user = :id_user AND (i.status = 'active' OR i.status = 'end_of_time'  OR i.status = 'end_of_volume' OR i.status = 'sendedwarn' OR i.Status = 'send_on_hold')");
+    $stmt = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
     $stmt->bindParam(':id_user', $from_id);
     $stmt->execute();
     $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
