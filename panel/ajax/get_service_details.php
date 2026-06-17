@@ -32,6 +32,9 @@ try {
         exit;
     }
 
+    $panelInfo = db_fetch($pdo, "SELECT type FROM panels WHERE name_panel = ?", [$invoice['Service_location']]);
+    $panelType = $panelInfo['type'] ?? '';
+
     $ManagePanel = new ManagePanel();
     $DataUserOut = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
 
@@ -348,6 +351,7 @@ try {
         </div>
 
         <!-- Connection Details Card -->
+        <?php if ($panelType !== 'WGDashboard'): ?>
         <div class="bento-card bento-full">
             <div class="card-title">
                 <?= icon('activity', 15) ?>
@@ -371,6 +375,7 @@ try {
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Subscription & Configs Card -->
         <div class="bento-card bento-full">
@@ -392,7 +397,7 @@ try {
                 <!-- Subscription QR Code -->
                 <details style="margin-top: 4px;">
                     <summary style="font-size: 0.8em; color: var(--ac); cursor: pointer; list-style: none; outline: none; display: inline-flex; align-items: center; gap: 4px;">
-                        📷 نمایش QR کد لینک اشتراک
+                        <?= icon('qr-code', 14) ?> نمایش QR کد لینک اشتراک
                     </summary>
                     <div style="text-align: center; padding: 10px; background: #fff; border-radius: 8px; margin-top: 6px; width: fit-content; margin-left: auto; margin-right: auto;">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?= urlencode(trim($subUrl)) ?>" alt="QR Code" style="display: block; width: 150px; height: 150px;" />
@@ -402,6 +407,12 @@ try {
             <?php endif; ?>
 
             <?php if (!empty($configLinks)): ?>
+            <?php if (count($configLinks) === 1): ?>
+            <div style="margin-top: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 14px;">
+                <div style="font-size: 0.9em; font-weight: 500; display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <?= icon('sliders', 14) ?> کانفیگ فعال سرویس
+                </div>
+            <?php else: ?>
             <details class="configs-details">
                 <summary>
                     <span style="display: flex; align-items: center; gap: 8px;">
@@ -411,21 +422,23 @@ try {
                     <span class="chevron"><?= icon('arrow-left', 14) ?></span>
                 </summary>
                 <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 14px; padding: 4px;">
+            <?php endif; ?>
+
                     <?php foreach ($configLinks as $index => $link): if(empty(trim($link))) continue; 
                         $linkClean = trim($link);
                         $isWireguard = (stripos($linkClean, '[Interface]') !== false || stripos($linkClean, 'PrivateKey') !== false);
                     ?>
-                        <div style="display:flex; flex-direction:column; gap:4px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.04);">
+                        <div style="display:flex; flex-direction:column; gap:4px; padding-bottom: 8px; <?php if(count($configLinks) > 1 && $index < count($configLinks)-1) echo 'border-bottom: 1px solid rgba(255,255,255,0.04);'; ?>">
                             <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.85em; color: var(--mute);">
-                                <span style="font-weight: 500;">کانفیگ #<?= ($index + 1) ?> <?= $isWireguard ? '(وایرگارد)' : '' ?></span>
+                                <span style="font-weight: 500;">کانفیگ <?php if(count($configLinks) > 1) echo '#'.($index + 1); ?> <?= $isWireguard ? '(وایرگارد)' : '' ?></span>
                                 <div style="display:flex; gap:10px;">
                                     <?php if ($isWireguard): ?>
-                                    <a href="data:text/plain;charset=utf-8,<?= rawurlencode($linkClean) ?>" download="<?= htmlspecialchars($invoice['username']) ?>_wg_<?= ($index + 1) ?>.conf" style="color:var(--ac); cursor:pointer; font-size: 0.92em; display:inline-flex; align-items:center; gap:4px;">
-                                        💾 دانلود فایل conf.
+                                    <a href="data:text/plain;charset=utf-8,<?= rawurlencode($linkClean) ?>" download="<?= htmlspecialchars($invoice['username']) ?>_wg_<?= ($index + 1) ?>.conf" style="color:var(--ac); cursor:pointer; display:inline-flex; align-items:center; gap:4px; text-decoration: none;">
+                                        <?= icon('download', 14) ?> دانلود
                                     </a>
                                     <?php endif; ?>
-                                    <span style="color:var(--ac); cursor:pointer; font-size: 0.92em; display:inline-flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($linkClean) ?>').then(()=>alert('کپی شد!'))">
-                                        <?= icon('copy', 12) ?> کپی کانفیگ
+                                    <span style="color:var(--ac); cursor:pointer; display:inline-flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($linkClean) ?>').then(()=>alert('کپی شد!'))">
+                                        <?= icon('copy', 14) ?> کپی
                                     </span>
                                 </div>
                             </div>
@@ -433,7 +446,7 @@ try {
                             <!-- Config QR Code -->
                             <details style="margin-top: 6px;">
                                 <summary style="font-size: 0.8em; color: var(--ac); cursor: pointer; list-style: none; outline: none; display: inline-flex; align-items: center; gap: 4px;">
-                                    📷 نمایش QR کد کانفیگ
+                                    <?= icon('qr-code', 14) ?> نمایش QR کد کانفیگ
                                 </summary>
                                 <div style="text-align: center; padding: 10px; background: #fff; border-radius: 8px; margin-top: 6px; width: fit-content; margin-left: auto; margin-right: auto;">
                                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?= urlencode($linkClean) ?>" alt="QR Code" style="display: block; width: 150px; height: 150px;" />
@@ -441,8 +454,13 @@ try {
                             </details>
                         </div>
                     <?php endforeach; ?>
+
+            <?php if (count($configLinks) === 1): ?>
+            </div>
+            <?php else: ?>
                 </div>
             </details>
+            <?php endif; ?>
             <?php else: ?>
             <div style="font-size: 0.8em; color: var(--mute); text-align: center; margin-top: 8px;">هیچ کانفیگی یافت نشد.</div>
             <?php endif; ?>
