@@ -32,7 +32,7 @@ try {
         exit;
     }
 
-    $panelInfo = db_fetch($pdo, "SELECT type FROM panels WHERE name_panel = ?", [$invoice['Service_location']]);
+    $panelInfo = db_fetch($pdo, "SELECT type FROM marzban_panel WHERE name_panel = ?", [$invoice['Service_location']]);
     $panelType = $panelInfo['type'] ?? '';
 
     $ManagePanel = new ManagePanel();
