@@ -25,6 +25,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $amount = (int) ($_POST['amount'] ?? 0);
         if ($amount >= 1000) {
             db_query($pdo, "UPDATE user SET Balance = Balance + ? WHERE id = ?", [$amount, $id]);
+            
+            $heibalanceuser = number_format($amount, 0);
+            $textadd = sprintf($textbotlang['Admin']['adminphp']['msg_user_balance_amount_add_1'] ?? "✅ موجودی شما %s تومان افزایش یافت.", $heibalanceuser);
+            telegram('SendMessage', [
+                'chat_id' => $id,
+                'text' => $textadd,
+                'parse_mode' => 'HTML'
+            ]);
+            
             flash('success', number_format($amount) . $textbotlang['panel']['userBalanceAddedSuffix']);
         } else {
             flash('error', $textbotlang['panel']['userMinAmountToman']);
@@ -39,6 +48,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $amount = (int) ($_POST['amount'] ?? 0);
         if ($amount > 0) {
             db_query($pdo, "UPDATE user SET Balance = GREATEST(0, Balance - ?) WHERE id = ?", [$amount, $id]);
+            
+            $lowbalanceuser = number_format($amount, 0);
+            $textkam = sprintf($textbotlang['Admin']['adminphp']['err_user_balance_amount_2'] ?? "❌ مبلغ %s تومان از موجودی شما کسر شد.", $lowbalanceuser);
+            telegram('SendMessage', [
+                'chat_id' => $id,
+                'text' => $textkam,
+                'parse_mode' => 'HTML'
+            ]);
+            
             flash('success', "مبلغ " . number_format($amount) . " تومان از حساب کاربر کسر شد.");
         } else {
             flash('error', "مبلغ نامعتبر است.");
@@ -259,7 +277,15 @@ include __DIR__ . '/inc/layout_head.php';
     }
 }
 .u-sidebar {
-    /* Style moved to CSS or handled cleanly */
+    /* Handle scrolling on desktop when content is long */
+}
+@media (min-width: 769px) {
+    .u-sidebar {
+        position: sticky;
+        top: calc(var(--hh, 60px) + 20px);
+        max-height: calc(100vh - var(--hh, 60px) - 40px);
+        overflow-y: auto;
+    }
 }
 .u-sidebar::-webkit-scrollbar {
     width: 4px;
@@ -1228,6 +1254,9 @@ include __DIR__ . '/inc/layout_head.php';
     function manageService(invoiceId) {
         openModal('serviceManageModal');
         const contentDiv = document.getElementById('serviceManageContent');
+        contentDiv.style.display = 'flex';
+        contentDiv.style.justifyContent = 'center';
+        contentDiv.style.alignItems = 'center';
         contentDiv.innerHTML = '<div style="text-align:center; color:var(--mute); padding: 40px 0;">در حال دریافت اطلاعات از سرور...</div>';
         
         fetch('ajax/get_service_details.php?id_user=<?= $id ?>&id_invoice=' + encodeURIComponent(invoiceId) + '&_csrf=<?= csrf_token() ?>')
@@ -1238,10 +1267,11 @@ include __DIR__ . '/inc/layout_head.php';
                 return response.text();
             })
             .then(html => {
+                contentDiv.style.display = 'block';
                 contentDiv.innerHTML = html;
             })
             .catch(error => {
-                contentDiv.innerHTML = '<div style="text-align:center; color:var(--red); padding: 40px 0;">خطا در برقراری ارتباط با سرور.</div>';
+                contentDiv.innerHTML = '<div style="text-align:center; color:var(--no); padding: 40px 0;">خطا در برقراری ارتباط با سرور.</div>';
                 console.error('Error fetching service details:', error);
             });
     }

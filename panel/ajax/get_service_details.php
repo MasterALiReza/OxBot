@@ -401,7 +401,6 @@ try {
         </div>
 
         <!-- Connection Details Card -->
-        <?php if ($panelType !== 'WGDashboard'): ?>
         <div class="bento-card bento-full">
             <div class="card-title">
                 <?= icon('activity', 15) ?>
@@ -410,22 +409,21 @@ try {
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 0.85em; margin-top: 4px;">
                 <div>
                     <span style="color: var(--mute);">آخرین اتصال:</span>
-                    <div style="font-weight: 500; margin-top: 2px;"><?= $lastonline ?></div>
+                    <div style="font-weight: 500; margin-top: 2px; color: <?= $panelType === 'WGDashboard' ? 'var(--dim)' : 'inherit' ?>;"><?= $panelType === 'WGDashboard' ? 'نامشخص (بدون پشتیبانی)' : $lastonline ?></div>
                 </div>
                 <div>
                     <span style="color: var(--mute);">بروزرسانی لینک:</span>
-                    <div style="font-weight: 500; margin-top: 2px; color: <?= $lastupdate == 'بروزرسانی نشده' ? 'rgba(255,255,255,0.4)' : 'inherit' ?>;"><?= $lastupdate ?></div>
+                    <div style="font-weight: 500; margin-top: 2px; color: <?= ($lastupdate == 'بروزرسانی نشده' || $panelType === 'WGDashboard') ? 'var(--dim)' : 'inherit' ?>;"><?= $panelType === 'WGDashboard' ? 'ندارد' : $lastupdate ?></div>
                 </div>
                 <div>
                     <span style="color: var(--mute);">سیستم‌عامل/کلاینت:</span>
                     <?php $ua = $DataUserOut['sub_last_user_agent'] ?? ''; ?>
-                    <div style="font-weight: 500; margin-top: 2px; word-break: break-all; color: <?= empty($ua) ? 'rgba(255,255,255,0.4)' : 'inherit' ?>;" title="<?= htmlspecialchars($ua) ?>">
-                        <?= htmlspecialchars(empty($ua) ? 'نامشخص (در این پنل ثبت نشده)' : trunc($ua, 22)) ?>
+                    <div style="font-weight: 500; margin-top: 2px; word-break: break-all; color: <?= (empty($ua) || $panelType === 'WGDashboard') ? 'var(--dim)' : 'inherit' ?>;" title="<?= htmlspecialchars($ua) ?>">
+                        <?= htmlspecialchars($panelType === 'WGDashboard' ? 'نامشخص' : (empty($ua) ? 'نامشخص (در این پنل ثبت نشده)' : trunc($ua, 22))) ?>
                     </div>
                 </div>
             </div>
         </div>
-        <?php endif; ?>
 
         <!-- Subscription & Configs Card -->
         <div class="bento-card bento-full">
@@ -435,7 +433,7 @@ try {
             </div>
             
             <?php if ($subUrl): ?>
-            <div style="display:flex; flex-direction:column; gap:4px; background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 8px; margin-bottom: 6px;">
+            <div style="display:flex; flex-direction:column; gap:4px; background: var(--sf2); padding: 10px 14px; border-radius: 8px; margin-bottom: 6px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-size:0.85em; color:var(--ac); cursor:pointer;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
                         لینک اشتراک: برای کپی کردن کلیک کنید
@@ -457,72 +455,62 @@ try {
             <?php endif; ?>
 
             <?php if (!empty($configLinks)): ?>
-            <?php if (count($configLinks) === 1): ?>
-            <div style="margin-top: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 14px;">
-                <div style="font-size: 0.9em; font-weight: 500; display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                    <?= icon('sliders', 14) ?> کانفیگ فعال سرویس
-                </div>
-            <?php else: ?>
-            <details class="configs-details">
-                <summary>
-                    <span style="display: flex; align-items: center; gap: 8px;">
-                        <?= icon('sliders', 14) ?>
-                        کانفیگ‌های فعال سرویس (<?= count($configLinks) ?> عدد)
-                    </span>
-                    <span class="chevron"><?= icon('arrow-left', 14) ?></span>
-                </summary>
-                <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 14px; padding: 4px;">
-            <?php endif; ?>
-
-                    <?php foreach ($configLinks as $index => $link): if(empty(trim($link))) continue; 
-                        $linkClean = trim($link);
-                        $isWireguard = (stripos($linkClean, '[Interface]') !== false || stripos($linkClean, 'PrivateKey') !== false);
-                    ?>
-                        <div style="display:flex; flex-direction:column; gap:4px; padding-bottom: 8px; <?php if(count($configLinks) > 1 && $index < count($configLinks)-1) echo 'border-bottom: 1px solid rgba(255,255,255,0.04);'; ?>">
-                            <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.85em; color: var(--mute);">
-                                <span style="font-weight: 500;">کانفیگ <?php if(count($configLinks) > 1) echo '#'.($index + 1); ?> <?= $isWireguard ? '(وایرگارد)' : '' ?></span>
-                                <div style="display:flex; gap:10px;">
-                                    <?php if ($isWireguard): ?>
-                                    <a href="data:text/plain;charset=utf-8,<?= rawurlencode($linkClean) ?>" download="<?= htmlspecialchars($invoice['username']) ?>_wg_<?= ($index + 1) ?>.conf" style="color:var(--ac); cursor:pointer; display:inline-flex; align-items:center; gap:4px; text-decoration: none;">
-                                        <?= icon('download', 14) ?> دانلود
-                                    </a>
-                                    <?php endif; ?>
-                                    <span style="color:var(--ac); cursor:pointer; display:inline-flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($linkClean) ?>').then(()=>alert('کپی شد!'))">
-                                        <?= icon('copy', 14) ?> کپی
-                                    </span>
-                                </div>
+            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 14px;">
+                <?php foreach ($configLinks as $index => $link): if(empty(trim($link))) continue; 
+                    $linkClean = trim($link);
+                    $isWireguard = (stripos($linkClean, '[Interface]') !== false || stripos($linkClean, 'PrivateKey') !== false);
+                ?>
+                    <div style="background: var(--sf2); border: 1px solid var(--bd); border-radius: 10px; padding: 14px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.9em; font-weight: 500;">
+                            <span style="display: flex; align-items: center; gap: 6px;">
+                                <?= icon('sliders', 14) ?> کانفیگ <?php if(count($configLinks) > 1) echo '#'.($index + 1); ?> <?= $isWireguard ? '(وایرگارد)' : '' ?>
+                            </span>
+                            <div style="display:flex; gap:8px;">
+                                <?php if ($isWireguard): ?>
+                                <a href="data:text/plain;charset=utf-8,<?= rawurlencode($linkClean) ?>" download="<?= htmlspecialchars($invoice['username']) ?>_wg_<?= ($index + 1) ?>.conf" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:4px; text-decoration: none;">
+                                    <?= icon('download', 14) ?> دانلود کانفیگ
+                                </a>
+                                <?php endif; ?>
+                                <button class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($linkClean) ?>').then(()=>alert('کپی شد!'))">
+                                    <?= icon('copy', 14) ?> کپی
+                                </button>
                             </div>
-                            <div class="config-box"><?= htmlspecialchars($linkClean) ?></div>
-                            <!-- Config QR Code -->
-                            <details style="margin-top: 6px;">
-                                <summary style="font-size: 0.8em; color: var(--ac); cursor: pointer; list-style: none; outline: none; display: inline-flex; align-items: center; gap: 4px;">
-                                    <?= icon('qr-code', 14) ?> نمایش QR کد کانفیگ
-                                </summary>
-                                <div style="text-align: center; padding: 10px; background: #fff; border-radius: 8px; margin-top: 6px; width: fit-content; margin-left: auto; margin-right: auto;">
-                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?= urlencode($linkClean) ?>" alt="QR Code" style="display: block; width: 150px; height: 150px;" />
-                                </div>
-                            </details>
                         </div>
-                    <?php endforeach; ?>
-
-            <?php if (count($configLinks) === 1): ?>
+                        <div class="config-box" style="margin-top: 4px;"><?= htmlspecialchars($linkClean) ?></div>
+                        
+                        <!-- Config QR Code -->
+                        <?php if (!$isWireguard): ?>
+                        <details style="margin-top: 6px;">
+                            <summary style="font-size: 0.85em; color: var(--ac); cursor: pointer; list-style: none; outline: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <?= icon('qr-code', 14) ?> نمایش بارکد (QR Code) کانفیگ
+                            </summary>
+                            <div style="text-align: center; padding: 10px; background: #fff; border-radius: 8px; margin-top: 6px; width: fit-content; margin-left: auto; margin-right: auto;">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?= urlencode($linkClean) ?>" alt="QR Code" style="display: block; width: 150px; height: 150px;" />
+                            </div>
+                        </details>
+                        <?php else: ?>
+                        <!-- prominent QR code for WGDashboard without dropdown -->
+                        <div style="margin-top: 10px; border-top: 1px solid var(--bd); padding-top: 10px; text-align: center;">
+                            <span style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 8px;"><?= icon('qr-code', 13) ?> بارکد کانفیگ جهت اسکن در گوشی</span>
+                            <div style="padding: 10px; background: #fff; border-radius: 8px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: var(--sh);">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?= urlencode($linkClean) ?>" alt="QR Code" style="display: block; width: 150px; height: 150px;" />
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
             </div>
-            <?php else: ?>
-                </div>
-            </details>
-            <?php endif; ?>
             <?php else: ?>
             <div style="font-size: 0.8em; color: var(--mute); text-align: center; margin-top: 8px;">هیچ کانفیگی یافت نشد.</div>
             <?php endif; ?>
         </div>
     </div>
 
-    <!-- AJAX & Action Buttons -->
     <div class="btn-grid">
         <?php $csrf = csrf_token(); ?>
 
         <!-- Refresh (AJAX) -->
-        <button type="button" class="btn-sm-action btn-grid-full" style="background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid rgba(255,255,255,0.08);" onclick="manageService('<?= $id_invoice ?>')">
+        <button type="button" class="btn-sm-action btn-grid-full" style="background: var(--sf3); color: var(--text); border: 1px solid var(--bds);" onclick="manageService('<?= $id_invoice ?>')">
             <?= icon('refresh-cw', 13) ?> بروزرسانی اطلاعات لحظه‌ای
         </button>
 
