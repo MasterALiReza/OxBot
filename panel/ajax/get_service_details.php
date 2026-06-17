@@ -125,6 +125,12 @@ try {
     $subUrl = $DataUserOut['subscription_url'] ?? '';
     $configLinks = $DataUserOut['links'] ?? [];
 
+    // FIX FOR WGDashboard: Often the "subscription_url" actually contains the raw WireGuard .conf content
+    if (!empty($subUrl) && (stripos(trim($subUrl), '[Interface]') === 0 || stripos(trim($subUrl), 'PrivateKey') !== false)) {
+        $configLinks[] = $subUrl;
+        $subUrl = '';
+    }
+
 ?>
 <style>
     .service-details {
@@ -227,7 +233,7 @@ try {
         opacity: 0.95;
     }
     .progress-bar-container {
-        background: rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.08);
         height: 6px;
         border-radius: 3px;
         overflow: hidden;
@@ -237,6 +243,7 @@ try {
         height: 100%;
         border-radius: 3px;
         transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        min-width: 3px;
     }
     /* Collapsible Details Styles */
     details.configs-details {
@@ -318,7 +325,11 @@ try {
                 </div>
                 <div class="card-value" style="color: var(--text);"><?= $RemainingVolume ?></div>
                 <div class="progress-bar-container">
-                    <div class="progress-bar-fill" style="width: <?= $usedPercent ?>%; background: <?= $usedPercent > 80 ? 'var(--no)' : ($usedPercent > 50 ? 'var(--warn)' : 'var(--ok)') ?>;"></div>
+                    <?php
+                        // Direct Hex colors for inline styling reliability
+                        $pgColor = $usedPercent > 80 ? '#f43f5e' : ($usedPercent > 50 ? '#f59e0b' : '#22c55e');
+                    ?>
+                    <div class="progress-bar-fill" style="width: <?= $usedPercent ?>%; background: <?= $pgColor ?>;"></div>
                 </div>
             </div>
             <div class="card-desc">مصرف شده: <?= $usedTrafficGb ?> از <?= $LastTraffic ?> (<?= round($usedPercent, 1) ?>٪)</div>
@@ -349,12 +360,13 @@ try {
                 </div>
                 <div>
                     <span style="color: var(--mute);">بروزرسانی لینک:</span>
-                    <div style="font-weight: 500; margin-top: 2px;"><?= $lastupdate ?></div>
+                    <div style="font-weight: 500; margin-top: 2px; color: <?= $lastupdate == 'بروزرسانی نشده' ? 'rgba(255,255,255,0.4)' : 'inherit' ?>;"><?= $lastupdate ?></div>
                 </div>
                 <div>
                     <span style="color: var(--mute);">سیستم‌عامل/کلاینت:</span>
-                    <div style="font-weight: 500; margin-top: 2px; word-break: break-all;" title="<?= htmlspecialchars($DataUserOut['sub_last_user_agent'] ?? '') ?>">
-                        <?= htmlspecialchars(trunc($DataUserOut['sub_last_user_agent'] ?? 'یافت نشد', 22)) ?>
+                    <?php $ua = $DataUserOut['sub_last_user_agent'] ?? ''; ?>
+                    <div style="font-weight: 500; margin-top: 2px; word-break: break-all; color: <?= empty($ua) ? 'rgba(255,255,255,0.4)' : 'inherit' ?>;" title="<?= htmlspecialchars($ua) ?>">
+                        <?= htmlspecialchars(empty($ua) ? 'نامشخص (در این پنل ثبت نشده)' : trunc($ua, 22)) ?>
                     </div>
                 </div>
             </div>
@@ -447,37 +459,37 @@ try {
         </button>
 
         <!-- Toggle Status -->
-        <?php if ($panelStatus == "active"): ?>
+        <?php if ($panelStatus == "active" || $panelStatus == "limited"): ?>
         <a href="user_action.php?action=toggle_status&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:var(--no); color:#fff; text-decoration:none;" 
-           data-confirm="آیا از غیرفعال کردن (خاموش کردن) این کانفیگ مطمئن هستید؟" hx-boost="false">
+           class="btn-sm-action" style="background:#f43f5e; color:#fff; text-decoration:none;" 
+           data-confirm="آیا از غیرفعال کردن (خاموش کردن) این اکانت مطمئن هستید؟" hx-boost="false">
            <?= icon('block', 13) ?> خاموش کردن اکانت
         </a>
         <?php else: ?>
         <a href="user_action.php?action=toggle_status&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:var(--ok); color:#fff; text-decoration:none;" 
-           data-confirm="آیا از فعال کردن (روشن کردن) این کانفیگ مطمئن هستید؟" hx-boost="false">
+           class="btn-sm-action" style="background:#22c55e; color:#fff; text-decoration:none;" 
+           data-confirm="آیا از فعال کردن (روشن کردن) این اکانت مطمئن هستید؟" hx-boost="false">
            <?= icon('check', 13) ?> روشن کردن اکانت
         </a>
         <?php endif; ?>
 
         <!-- Extend Service -->
         <a href="user_action.php?action=extendservice&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:var(--ac); color:#fff; text-decoration:none;" 
+           class="btn-sm-action" style="background:#3b82f6; color:#fff; text-decoration:none;" 
            data-confirm="آیا مایلید این سرویس را با حجم <?= $invoice['Volume'] ?> گیگابایت و زمان <?= $invoice['Service_time'] ?> روز تمدید رایگان کنید؟" hx-boost="false">
            <?= icon('plus', 13) ?> تمدید سرویس
         </a>
 
         <!-- Remove Service (No Refund) -->
         <a href="user_action.php?action=removeservice&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:rgba(244, 63, 94, 0.15); color:var(--no); border: 1px solid var(--no); text-decoration:none;" 
+           class="btn-sm-action" style="background:rgba(244, 63, 94, 0.15); color:#f43f5e; border: 1px solid #f43f5e; text-decoration:none;" 
            data-confirm="آیا از حذف کامل این سرویس مطمئن هستید؟ این کار غیرقابل بازگشت است و وجهی بازگردانده نمی‌شود." hx-boost="false">
            <?= icon('trash', 13) ?> حذف کامل سرویس
         </a>
         
         <!-- Remove Service (Refund) -->
         <a href="user_action.php?action=removeserviceandrefund&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:rgba(245, 158, 11, 0.15); color:var(--warn); border: 1px solid var(--warn); text-decoration:none;" 
+           class="btn-sm-action" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b; border: 1px solid #f59e0b; text-decoration:none;" 
            data-confirm="آیا مطمئن هستید؟ کاربر حذف شده و مبلغ <?= number_format((int)($invoice['price_product'] ?? 0)) ?> تومان به کیف پول او برگشت داده می‌شود." hx-boost="false">
            <?= icon('refresh-cw', 13) ?> حذف سفارش و بازگشت وجه
         </a>
