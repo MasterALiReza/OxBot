@@ -160,17 +160,18 @@ try {
         }
     }
     .bento-card {
-        background: var(--bg-card-alt);
-        border: 1px solid rgba(255,255,255,0.04);
+        background: var(--sf);
+        border: 1px solid var(--bd);
         border-radius: 12px;
         padding: 14px 18px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         transition: all 0.2s ease;
+        box-shadow: var(--sh);
     }
     .bento-card:hover {
-        border-color: rgba(255,255,255,0.08);
+        border-color: var(--bds);
         transform: translateY(-2px);
     }
     .bento-full {
@@ -200,8 +201,8 @@ try {
         margin-top: 6px;
     }
     .config-box {
-        background: rgba(0,0,0,0.22);
-        border: 1px solid rgba(255,255,255,0.06);
+        background: var(--sf2);
+        border: 1px solid var(--bd);
         border-radius: 8px;
         padding: 10px 14px;
         font-family: monospace;
@@ -209,7 +210,7 @@ try {
         word-break: break-all;
         max-height: 90px;
         overflow-y: auto;
-        color: #a0aec0;
+        color: var(--text2);
         margin-top: 6px;
         direction: ltr;
         text-align: left;
@@ -240,7 +241,7 @@ try {
         opacity: 0.95;
     }
     .progress-bar-container {
-        background: rgba(255,255,255,0.08);
+        background: var(--sf3);
         height: 6px;
         border-radius: 3px;
         overflow: hidden;
@@ -263,8 +264,8 @@ try {
         justify-content: space-between;
         align-items: center;
         padding: 11px 15px;
-        background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.05);
+        background: var(--sf2);
+        border: 1px solid var(--bd);
         border-radius: 10px;
         font-size: 0.9em;
         font-weight: 500;
@@ -277,7 +278,7 @@ try {
         display: none;
     }
     details.configs-details summary:hover {
-        background: rgba(255,255,255,0.04);
+        background: var(--sf3);
     }
     details.configs-details .chevron {
         transition: transform 0.2s ease;
