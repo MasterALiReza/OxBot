@@ -2595,6 +2595,27 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_users_mgmt, 'HTML');
 } elseif ($text == $textbotlang['keyboard']['adminMenuServers'] && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_server_mgmt, 'HTML');
+} elseif ($text == $textbotlang['keyboard']['syncPanels'] && $adminrulecheck['rule'] == "administrator") {
+    $uniqueLocationsQuery = CustomQuery("SELECT DISTINCT `Service_location` FROM `invoice` WHERE `Service_location` NOT IN (SELECT `name_panel` FROM `marzban_panel`) AND `Service_location` != 'null' AND `Service_location` IS NOT NULL AND `Service_location` != ''");
+    $missingLocations = [];
+    if($uniqueLocationsQuery && $uniqueLocationsQuery->num_rows > 0){
+        while ($row = $uniqueLocationsQuery->fetch_assoc()) {
+            if (!empty($row['Service_location']) && $row['Service_location'] != 'null') {
+                $missingLocations[] = $row['Service_location'];
+            }
+        }
+    }
+    
+    if (empty($missingLocations)) {
+        sendmessage($from_id, "✅ هیچ پنل قدیمی و تغییر نام یافته‌ای برای ادغام یافت نشد.", $keyboard_server_mgmt, 'HTML');
+    } else {
+        $keys = [];
+        foreach($missingLocations as $loc) {
+            $keys[] = [['text' => $loc, 'callback_data' => "syncpnl_" . base64_encode($loc)]];
+        }
+        $keyboard = json_encode(['inline_keyboard' => $keys]);
+        sendmessage($from_id, "⚠️ پنل‌های زیر در لیست سرویس‌های متصل (فاکتورها) وجود دارند اما در لیست پنل‌های فعلی ربات ثبت نشده‌اند.\n\nبرای ادغام و تغییر نام آن‌ها به یکی از پنل‌های فعلی، روی نام پنل قدیمی کلیک کنید:", $keyboard, 'HTML');
+    }
 } elseif ($text == $textbotlang['keyboard']['adminMenuShop'] && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_shop_mgmt, 'HTML');
 } elseif ($text == $textbotlang['keyboard']['adminMenuFinancial'] && $adminrulecheck['rule'] == "administrator") {
@@ -2777,6 +2798,47 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         'text' => '❌ این تراکنش لغو شده است.',
         'show_alert' => false
     ]);
+    return;
+} elseif (strpos($datain, 'syncpnl_') === 0 && $adminrulecheck['rule'] == "administrator") {
+    $loc = base64_decode(str_replace('syncpnl_', '', $datain));
+    $panels = CustomQuery("SELECT `name_panel` FROM `marzban_panel`");
+    $keys = [];
+    if($panels && $panels->num_rows > 0){
+        while($row = $panels->fetch_assoc()){
+            $keys[] = [['text' => $row['name_panel'], 'callback_data' => "dosync_" . base64_encode($loc) . "_" . base64_encode($row['name_panel'])]];
+        }
+    }
+    if (empty($keys)) {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => 'هیچ پنل جدیدی برای جایگزینی یافت نشد.',
+            'show_alert' => true
+        ]);
+        return;
+    }
+    $keyboard = json_encode(['inline_keyboard' => $keys]);
+    sendmessage($from_id, "شما قصد دارید تمام فاکتورهای مربوط به پنل <b>{$loc}</b> را به کدام پنل زیر منتقل کنید؟\nلطفا پنل مقصد را انتخاب کنید:", $keyboard, 'HTML');
+    telegram('answerCallbackQuery', [
+        'callback_query_id' => $callback_query_id,
+        'text' => 'لطفا پنل مقصد را انتخاب کنید',
+        'show_alert' => false
+    ]);
+    return;
+} elseif (strpos($datain, 'dosync_') === 0 && $adminrulecheck['rule'] == "administrator") {
+    $parts = explode('_', str_replace('dosync_', '', $datain));
+    if (count($parts) == 2) {
+        $old_loc = base64_decode($parts[0]);
+        $new_loc = base64_decode($parts[1]);
+        $stmt = $pdo->prepare("UPDATE invoice SET Service_location = ? WHERE Service_location = ?");
+        $stmt->execute([$new_loc, $old_loc]);
+        $count = $stmt->rowCount();
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => "✅ با موفقیت $count فاکتور آپدیت شدند.",
+            'show_alert' => true
+        ]);
+        sendmessage($from_id, "✅ عملیات جایگزینی با موفقیت انجام شد!\n\nتعداد $count فاکتور متعلق به پنل <b>{$old_loc}</b> به پنل <b>{$new_loc}</b> منتقل شدند.", null, 'HTML');
+    }
     return;
 } elseif (preg_match('/Confirm_pay_(\w+)/', $datain, $dataget) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $order_id = $dataget[1];
