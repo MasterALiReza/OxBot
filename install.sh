@@ -433,6 +433,18 @@ function install_bot() {
         echo -e "\e[91mError: Failed to restart Apache2 service.\033[0m"
         exit 1
     }
+    # Extract existing DB credentials if config.php exists before we remove BOT_DIR
+    EXISTING_DB=""
+    EXISTING_USER=""
+    EXISTING_PASS=""
+    CONFIG_PATH="/var/www/html/mirzaprobotconfig/config.php"
+    if [ -f "$CONFIG_PATH" ]; then
+        # Use awk or grep to extract credentials safely without executing PHP
+        EXISTING_DB=$(grep -E '^\$dbname' "$CONFIG_PATH" | cut -d"'" -f2)
+        EXISTING_USER=$(grep -E '^\$usernamedb' "$CONFIG_PATH" | cut -d"'" -f2)
+        EXISTING_PASS=$(grep -E '^\$passworddb' "$CONFIG_PATH" | cut -d"'" -f2)
+    fi
+
     # Check and remove existing directory before cloning Git repository
     # CHANGED: Folder name to mirzaprobotconfig
     BOT_DIR="/var/www/html/mirzaprobotconfig"
@@ -685,26 +697,49 @@ EOF
         wait
         randomdbpass=$(openssl rand -base64 10 | tr -dc 'a-zA-Z0-9' | cut -c1-8)
         randomdbdb=$(openssl rand -base64 10 | tr -dc 'a-zA-Z' | cut -c1-8)
-        # CHANGED: Updated DB name to mirzaprobot to avoid conflict
-        if [[ $(mysql -u root -p$ROOT_PASSWORD -e "SHOW DATABASES LIKE 'mirzaprobot'") ]]; then
-            clear
-            echo -e "\n\e[91mYou have already created the database\033[0m\n"
+        # CHANGED: Updated DB name check to ask user instead of hard blocking
+        dbname=mirzaprobot
+        db_exists=false
+        if [[ $(mysql -u root -p$ROOT_PASSWORD -e "SHOW DATABASES LIKE '$dbname'") ]]; then
+            db_exists=true
+        fi
+
+        if [ "$db_exists" = true ]; then
+            echo -e "\n\e[93m[WARNING] Database '$dbname' already exists.\033[0m"
+            echo -e "1) Keep existing database (Reinstall bot files only, keep users/settings data)"
+            echo -e "2) Clean install (Drop database and recreate - WARNING: ALL BOT DATA WILL BE LOST!)"
+            read -p "Select an option [1-2]: " db_choice
+            if [ "$db_choice" = "2" ]; then
+                echo -e "\e[31mDropping database '$dbname'...\033[0m"
+                mysql -u root -p$ROOT_PASSWORD -e "DROP DATABASE IF EXISTS $dbname;"
+                db_exists=false
+            fi
+        fi
+
+        # Proceed with installation config generation
+        if [ "$db_exists" = true ] && [ -n "$EXISTING_USER" ] && [ -n "$EXISTING_PASS" ]; then
+            dbuser="$EXISTING_USER"
+            dbpass="$EXISTING_PASS"
+            echo -e "\e[32mUsing existing database credentials found in old config.\033[0m"
         else
-            dbname=mirzaprobot
+            if [ "$db_exists" = true ]; then
+                echo -e "\e[33mDatabase exists but we couldn't read existing credentials. Generating new DB user...\033[0m"
+            fi
             clear
-            echo -e "\n\e[32mPlease enter the database username!\033[0m"
+            echo -e "\n\e[32mPlease configure database user!\033[0m"
             printf "[+] Default user name is \e[91m${randomdbdb}\e[0m ( let it blank to use this user name ): "
             read dbuser
             if [ "$dbuser" = "" ]; then
                 dbuser=$randomdbdb
             fi
-            echo -e "\n\e[32mPlease enter the database password!\033[0m"
+            echo -e "\n\e[32mPlease configure database password!\033[0m"
             printf "[+] Default password is \e[91m${randomdbpass}\e[0m ( let it blank to use this password ): "
             read dbpass
             if [ "$dbpass" = "" ]; then
                 dbpass=$randomdbpass
             fi
-            # Create Database
+            
+            # Create Database (if not exists)
             mysql -u root -p$ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS $dbname;"
             # Create User (Remote Access) with restricted privileges
             mysql -u root -p$ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '$dbuser'@'%' IDENTIFIED BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%'; FLUSH PRIVILEGES;"
@@ -713,26 +748,29 @@ EOF
                 echo -e "\e[91mError: Failed to create database or user.\033[0m"
                 exit 1
             }
-            echo -e "\n\e[95mDatabase Created.\033[0m"
-            clear
-            ASAS="$"
-            wait
+            echo -e "\n\e[95mDatabase Ready.\033[0m"
             sleep 1
-            # CHANGED: Path to mirzaprobotconfig
-            file_path="/var/www/html/mirzaprobotconfig/config.php"
-            if [ -f "$file_path" ]; then
-              rm "$file_path" || {
-                echo -e "\e[91mError: Failed to delete old config.php.\033[0m"
-                exit 1
-              }
-              echo -e "File deleted successfully."
-            else
-              echo -e "File not found."
-            fi
-            sleep 1
-            secrettoken=$(openssl rand -base64 10 | tr -dc 'a-zA-Z0-9' | cut -c1-8)
-            # CHANGED: Generate config.php with new Pro structure
-            cat <<EOF > /var/www/html/mirzaprobotconfig/config.php
+        fi
+
+        clear
+        ASAS="$"
+        wait
+        sleep 1
+        # CHANGED: Path to mirzaprobotconfig
+        file_path="/var/www/html/mirzaprobotconfig/config.php"
+        if [ -f "$file_path" ]; then
+          rm "$file_path" || {
+            echo -e "\e[91mError: Failed to delete old config.php.\033[0m"
+            exit 1
+          }
+          echo -e "File deleted successfully."
+        else
+          echo -e "File not found."
+        fi
+        sleep 1
+        secrettoken=$(openssl rand -base64 10 | tr -dc 'a-zA-Z0-9' | cut -c1-8)
+        # CHANGED: Generate config.php with new Pro structure
+        cat <<EOF > /var/www/html/mirzaprobotconfig/config.php
 <?php
 // This variable added for high load panels which their response time is long and bot can't communicate with online panel!
 // null for default settings
@@ -753,39 +791,39 @@ try { \$pdo = new PDO(\$dsn, \$usernamedb, \$passworddb, \$options); } catch (\P
 \$usernamebot = '${YOUR_BOTNAME}';
 ?>
 EOF
-            sleep 1
-            # CHANGED: Update URL path in webhook and table setup
-            curl -F "url=https://${YOUR_DOMAIN}/index.php" \
+        sleep 1
+        # CHANGED: Update URL path in webhook and table setup
+        curl -F "url=https://${YOUR_DOMAIN}/index.php" \
      -F "secret_token=${secrettoken}" \
      "https://api.telegram.org/bot${YOUR_BOT_TOKEN}/setWebhook" || {
-                echo -e "\e[91mError: Failed to set webhook for bot.\033[0m"
-                exit 1
-            }
-            MESSAGE="✅ The Mirza Pro bot is installed! for start the bot send /start command."
-            curl -s -X POST "https://api.telegram.org/bot${YOUR_BOT_TOKEN}/sendMessage" -d chat_id="${YOUR_CHAT_ID}" -d text="$MESSAGE" || {
-                echo -e "\e[91mError: Failed to send message to Telegram.\033[0m"
-                exit 1
-            }
-            sleep 3
-            sudo systemctl start apache2 || {
-                echo -e "\e[91mError: Failed to start Apache2.\033[0m"
-                exit 1
-            }
-            sleep 5
-            url="https://${YOUR_DOMAIN}/table.php"
-            curl -k --max-time 10 $url > /dev/null 2>&1 || {
-                echo -e "\e[93mWarning: Could not reach URL immediately, but installation may still be successful.\033[0m"
-            }
-            clear
-            echo " "
-            echo -e "\e[102mDomain Bot: https://${YOUR_DOMAIN}\033[0m"
-            echo -e "\e[104mDatabase address: https://${YOUR_DOMAIN}/phpmyadmin\033[0m"
-            echo -e "\e[33mDatabase name: \e[36m${dbname}\033[0m"
-            echo -e "\e[33mDatabase username: \e[36m${dbuser}\033[0m"
-            echo -e "\e[33mDatabase password: \e[36m${dbpass}\033[0m"
-            echo " "
-            echo -e "Mirza Pro Bot"
-        fi
+            echo -e "\e[91mError: Failed to set webhook for bot.\033[0m"
+            exit 1
+        }
+        MESSAGE="✅ The Mirza Pro bot is installed! for start the bot send /start command."
+        curl -s -X POST "https://api.telegram.org/bot${YOUR_BOT_TOKEN}/sendMessage" -d chat_id="${YOUR_CHAT_ID}" -d text="$MESSAGE" || {
+            echo -e "\e[91mError: Failed to send message to Telegram.\033[0m"
+            exit 1
+        }
+        sleep 3
+        sudo systemctl start apache2 || {
+            echo -e "\e[91mError: Failed to start Apache2.\033[0m"
+            exit 1
+        }
+        sleep 5
+        url="https://${YOUR_DOMAIN}/table.php"
+        curl -k --max-time 10 $url > /dev/null 2>&1 || {
+            echo -e "\e[93mWarning: Could not reach URL immediately, but installation may still be successful.\033[0m"
+        }
+        clear
+        echo " "
+        echo -e "\e[102mDomain Bot: https://${YOUR_DOMAIN}\033[0m"
+        echo -e "\e[104mDatabase address: https://${YOUR_DOMAIN}/phpmyadmin\033[0m"
+        echo -e "\e[33mDatabase name: \e[36m${dbname}\033[0m"
+        echo -e "\e[33mDatabase username: \e[36m${dbuser}\033[0m"
+        echo -e "\e[33mDatabase password: \e[36m${dbpass}\033[0m"
+        echo " "
+        echo -e "Mirza Pro Bot"
+
     elif [ "$ROOT_PASSWORD" = "" ] || [ "$ROOT_USER" = "" ]; then
         echo -e "\n\e[36mThe password is empty.\033[0m\n"
     else
