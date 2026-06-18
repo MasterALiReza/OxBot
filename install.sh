@@ -541,13 +541,10 @@ function install_bot() {
         rm -rf "$TEMP_DIR"
         exit 1
     fi
-    shopt -s dotglob
-    mv "$EXTRACTED_DIR"/* "$BOT_DIR/" || {
+    cp -a "$EXTRACTED_DIR"/. "$BOT_DIR/" || {
         echo -e "\e[91mError: Failed to move extracted files.\033[0m"
-        shopt -u dotglob
         exit 1
     }
-    shopt -u dotglob
     rm -rf "$TEMP_DIR"
     sudo chown -R www-data:www-data "$BOT_DIR"
     sudo chmod -R 755 "$BOT_DIR"
@@ -1145,13 +1142,10 @@ function install_bot_with_marzban() {
         rm -rf "$TEMP_DIR"
         exit 1
     fi
-    shopt -s dotglob
-    mv "$EXTRACTED_DIR"/* "$BOT_DIR/" || {
+    cp -a "$EXTRACTED_DIR"/. "$BOT_DIR/" || {
         echo -e "\e[91mError: Failed to move bot files.\033[0m"
-        shopt -u dotglob
         exit 1
     }
-    shopt -u dotglob
     rm -rf "$TEMP_DIR"
     sudo chown -R www-data:www-data "$BOT_DIR"
     sudo chmod -R 755 "$BOT_DIR"
@@ -1433,13 +1427,10 @@ function update_bot() {
     }
     # Move new files
     sudo mkdir -p "$BOT_DIR"
-    shopt -s dotglob
-    sudo mv "$EXTRACTED_DIR"/* "$BOT_DIR/" || {
+    sudo cp -a "$EXTRACTED_DIR"/. "$BOT_DIR/" || {
         echo -e "\e[91mFile transfer failed!\033[0m"
-        shopt -u dotglob
         exit 1
     }
-    shopt -u dotglob
     # Restore config file
     if [ -f "$TEMP_CONFIG" ]; then
         sudo mv "$TEMP_CONFIG" "$CONFIG_PATH" || {
