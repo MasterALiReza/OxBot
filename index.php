@@ -2272,9 +2272,11 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         $prodcut['code_product'] = $textbotlang['extracted']['index_php']['customVolumeButton'];
         $product['inbounds'] = null;
     } else {
-            ':service_location' => $nameloc['Service_location'],
+        $loc_cond = getProductLocCondition($nameloc['Service_location']);
+        $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = :agent AND name_product = :name_product");
+        $stmt->execute([
             ':agent' => $user['agent'],
-            'name_product' => $nameloc['name_product']
+            ':name_product' => $nameloc['name_product']
         ]);
         $prodcut = $stmt->fetch(PDO::FETCH_ASSOC);
     }
