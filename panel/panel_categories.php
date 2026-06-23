@@ -3,11 +3,30 @@ require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/icons.php';
 require_auth();
 
-// Add/Edit
+// ─── POST: Add / Edit ────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    csrf_check_post();
+
     $action = $_POST['action'];
-    $name = trim($_POST['name'] ?? '');
+    $name   = trim($_POST['name'] ?? '');
     $status = trim($_POST['status'] ?? 'active');
+
+    // Validate name
+    if ($name === '') {
+        flash('error', 'نام دسته‌بندی نمی‌تواند خالی باشد.');
+        header('Location: panel_categories.php');
+        exit;
+    }
+    if (mb_strlen($name, 'UTF-8') > 100) {
+        flash('error', 'نام دسته‌بندی حداکثر ۱۰۰ کاراکتر مجاز است.');
+        header('Location: panel_categories.php');
+        exit;
+    }
+
+    // Validate status
+    if (!in_array($status, ['active', 'inactive'], true)) {
+        $status = 'active';
+    }
 
     if ($action === 'add') {
         try {
@@ -18,8 +37,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
         header('Location: panel_categories.php');
         exit;
+
     } elseif ($action === 'edit' && isset($_POST['id'])) {
         $id = (int)$_POST['id'];
+        if ($id <= 0) {
+            flash('error', 'شناسه دسته‌بندی معتبر نیست.');
+            header('Location: panel_categories.php');
+            exit;
+        }
         try {
             db_query($pdo, "UPDATE panel_category SET name = ?, status = ? WHERE id = ?", [$name, $status, $id]);
             flash('success', 'دسته‌بندی پنل با موفقیت ویرایش شد.');
@@ -31,20 +56,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Delete
+// ─── GET: Delete ─────────────────────────────────────────────────────────────
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
+    csrf_check_get();
+
     $id = (int)$_GET['id'];
+    if ($id <= 0) {
+        flash('error', 'شناسه دسته‌بندی معتبر نیست.');
+        header('Location: panel_categories.php');
+        exit;
+    }
     try {
         db_query($pdo, "DELETE FROM panel_category WHERE id = ?", [$id]);
         db_query($pdo, "UPDATE marzban_panel SET panel_category_id = NULL WHERE panel_category_id = ?", [$id]);
-        flash('success', "دسته‌بندی با موفقیت حذف شد.");
+        flash('success', 'دسته‌بندی با موفقیت حذف شد.');
     } catch (Exception $e) {
-        flash('error', "خطا در حذف دسته‌بندی.");
+        flash('error', 'خطا در حذف دسته‌بندی.');
     }
     header('Location: panel_categories.php');
     exit;
 }
 
+// ─── Fetch list ──────────────────────────────────────────────────────────────
 try {
     $categories = db_fetchAll($pdo, "SELECT * FROM panel_category ORDER BY id DESC");
 } catch (Exception $e) {
@@ -66,8 +99,6 @@ include __DIR__ . '/inc/layout_head.php';
   </button>
 </div>
 
-
-
 <div class="card">
   <div class="card-header">
     <h3 class="card-title">لیست دسته‌بندی‌ها</h3>
@@ -86,7 +117,7 @@ include __DIR__ . '/inc/layout_head.php';
         <?php if (count($categories) > 0): ?>
           <?php foreach ($categories as $cat): ?>
             <tr>
-              <td><?= htmlspecialchars($cat['id']) ?></td>
+              <td><?= htmlspecialchars((string)$cat['id']) ?></td>
               <td><?= htmlspecialchars($cat['name']) ?></td>
               <td>
                 <span class="badge <?= $cat['status'] === 'active' ? 'badge-success' : 'badge-danger' ?>">
@@ -94,10 +125,13 @@ include __DIR__ . '/inc/layout_head.php';
                 </span>
               </td>
               <td>
-                <button class="btn btn-sm btn-outline" data-edit-cat="<?= htmlspecialchars(json_encode($cat), ENT_QUOTES, 'UTF-8') ?>">
+                <button class="btn btn-sm btn-outline"
+                        data-edit-cat="<?= htmlspecialchars(json_encode($cat, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>">
                   <?= icon('edit') ?> ویرایش
                 </button>
-                <a href="?action=delete&id=<?= $cat['id'] ?>" class="btn btn-sm btn-outline btn-danger" onclick="return confirm('آیا از حذف این دسته‌بندی اطمینان دارید؟');">
+                <a href="?action=delete&id=<?= (int)$cat['id'] ?>&_csrf=<?= csrf_token() ?>"
+                   class="btn btn-sm btn-outline btn-danger"
+                   data-confirm="آیا از حذف دسته‌بندی «<?= htmlspecialchars($cat['name']) ?>» اطمینان دارید؟ پنل‌های مرتبط بدون دسته‌بندی می‌شوند.">
                   <?= icon('trash') ?> حذف
                 </a>
               </td>
@@ -121,18 +155,19 @@ include __DIR__ . '/inc/layout_head.php';
   <div class="modal" style="max-width: 500px;">
     <div class="modal-head">
       <h3 id="catModalTitle"><?= icon('folder', 16) ?> افزودن دسته‌بندی</h3>
-      <button type="button" class="modal-x" onclick="closeModal('categoryModal')"><?= icon('x', 14) ?></button>
+      <button type="button" class="modal-x" id="btnCloseCatModal"><?= icon('x', 14) ?></button>
     </div>
     <form id="catForm" method="POST" action="panel_categories.php">
+      <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
       <div class="modal-body">
         <input type="hidden" name="action" id="catAction" value="add">
         <input type="hidden" name="id" id="catId" value="">
-        
+
         <div class="form-group" style="margin-bottom: 1rem;">
           <label class="form-label" style="display:block;margin-bottom:6px;">نام دسته‌بندی <span class="text-danger">*</span></label>
-          <input type="text" name="name" id="catName" class="input" required>
+          <input type="text" name="name" id="catName" class="input" required maxlength="100" placeholder="مثلاً: سرورهای اروپا">
         </div>
-        
+
         <div class="form-group">
           <label class="form-label" style="display:block;margin-bottom:6px;">وضعیت</label>
           <select name="status" id="catStatus" class="input">
@@ -142,7 +177,7 @@ include __DIR__ . '/inc/layout_head.php';
         </div>
       </div>
       <div class="modal-foot">
-        <button type="button" class="btn btn-ghost" onclick="closeModal('categoryModal')">انصراف</button>
+        <button type="button" class="btn btn-ghost" id="btnCancelCatModal">انصراف</button>
         <button type="submit" class="btn btn-primary">ذخیره دسته‌بندی</button>
       </div>
     </form>
@@ -150,44 +185,60 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <script>
-(function() {
-    // Attach Add button
-    var addBtn = document.getElementById('btnAddCategory');
-    if (addBtn) {
-        addBtn.addEventListener('click', function() {
-            var modal = document.getElementById('categoryModal');
-            if (!modal) return;
-            document.getElementById('catModalTitle').innerText = 'افزودن دسته\u200C\u0628\u0646\u062F\u06CC';
-            document.getElementById('catAction').value = 'add';
-            document.getElementById('catId').value = '';
-            document.getElementById('catName').value = '';
-            document.getElementById('catStatus').value = 'active';
-            modal.classList.add('open');
+(function () {
+    var modal   = document.getElementById('categoryModal');
+    var addBtn  = document.getElementById('btnAddCategory');
+    var closeBtn = document.getElementById('btnCloseCatModal');
+    var cancelBtn = document.getElementById('btnCancelCatModal');
+
+    function openAdd() {
+        if (!modal) return;
+        document.getElementById('catModalTitle').innerText = 'افزودن دسته‌بندی';
+        document.getElementById('catAction').value = 'add';
+        document.getElementById('catId').value = '';
+        document.getElementById('catName').value = '';
+        document.getElementById('catStatus').value = 'active';
+        modal.classList.add('open');
+        document.getElementById('catName').focus();
+    }
+
+    function openEdit(cat) {
+        if (!modal) return;
+        document.getElementById('catModalTitle').innerText = 'ویرایش دسته‌بندی';
+        document.getElementById('catAction').value = 'edit';
+        document.getElementById('catId').value = cat.id;
+        document.getElementById('catName').value = cat.name;
+        document.getElementById('catStatus').value = cat.status;
+        modal.classList.add('open');
+        document.getElementById('catName').focus();
+    }
+
+    function closeModal() {
+        if (modal) modal.classList.remove('open');
+    }
+
+    if (addBtn)   addBtn.addEventListener('click', openAdd);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+    // Close on backdrop click
+    if (modal) {
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeModal();
         });
     }
 
     // Attach Edit buttons
-    document.querySelectorAll('[data-edit-cat]').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var cat = JSON.parse(this.getAttribute('data-edit-cat'));
-            var modal = document.getElementById('categoryModal');
-            if (!modal) return;
-            document.getElementById('catModalTitle').innerText = '\u0648\u06CC\u0631\u0627\u06CC\u0634 \u062F\u0633\u062A\u0647\u200C\u0628\u0646\u062F\u06CC';
-            document.getElementById('catAction').value = 'edit';
-            document.getElementById('catId').value = cat.id;
-            document.getElementById('catName').value = cat.name;
-            document.getElementById('catStatus').value = cat.status;
-            modal.classList.add('open');
+    document.querySelectorAll('[data-edit-cat]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            try {
+                var cat = JSON.parse(this.getAttribute('data-edit-cat'));
+                openEdit(cat);
+            } catch (err) {
+                console.error('خطا در خواندن اطلاعات دسته‌بندی', err);
+            }
         });
     });
-
-    // Close modal on backdrop click
-    var modal = document.getElementById('categoryModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) modal.classList.remove('open');
-        });
-    }
 }());
 </script>
 
