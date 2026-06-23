@@ -312,10 +312,15 @@ class ManagePanel
                     );
                 }
                 $download_config_body = json_decode($download_config['body'], true);
-                $download_config_data = $download_config_body['data'] ?? $download_config_body;
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $download_config_data = $download_config_body['data'] ?? $download_config_body;
+                    $Output['subscription_url'] = strval($download_config_data['file'] ?? '');
+                } else {
+                    // If it's not JSON, assume it's the raw configuration content directly
+                    $Output['subscription_url'] = $download_config['body'];
+                }
                 $Output['status'] = 'successful';
                 $Output['username'] = $usernameC;
-                $Output['subscription_url'] = strval($download_config_data['file'] ?? '');
                 $Output['configs'] = [];
             }
         } elseif ($Get_Data_Panel['type'] == "s_ui") {

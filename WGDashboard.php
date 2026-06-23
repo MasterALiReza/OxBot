@@ -83,6 +83,12 @@ function addpear($namepanel, $usernameac)
 
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     $pubandprivate = publickey();
+    if ($pubandprivate === false) {
+        return array(
+            'status' => false,
+            'msg' => 'PHP sodium extension is missing. Cannot generate WireGuard keys.'
+        );
+    }
     $ipconfig = ipslast($namepanel);
     if (!empty($ipconfig['status']) && $ipconfig['status'] != 200) {
         return array(
@@ -96,14 +102,31 @@ function addpear($namepanel, $usernameac)
             'msg' => $ipconfig['error']
         );
     }
-    $ipconfig = json_decode($ipconfig['body'], true);
-    if (!empty($ipconfig['status']) && $ipconfig['status'] == false)
-        return $ipconfig;
-    $key = array_keys($ipconfig['data'])[0];
-    $ipconfig = $ipconfig['data'][$key][0];
+    $ipconfig_body = json_decode($ipconfig['body'], true);
+    if (!is_array($ipconfig_body)) {
+        return array(
+            'status' => false,
+            'msg' => 'Invalid JSON from WGDashboard: ' . $ipconfig['body']
+        );
+    }
+    if (!empty($ipconfig_body['status']) && $ipconfig_body['status'] == false) {
+        return $ipconfig_body;
+    }
+    if (empty($ipconfig_body['data'])) {
+        return array(
+            'status' => false,
+            'msg' => 'No available IPs found in WGDashboard'
+        );
+    }
+    $key = array_keys($ipconfig_body['data'])[0];
+    if (is_array($ipconfig_body['data'][$key])) {
+        $ipToAssign = $ipconfig_body['data'][$key][0];
+    } else {
+        $ipToAssign = $ipconfig_body['data'][$key];
+    }
     $config = array(
         'name' => $usernameac,
-        'allowed_ips' => [$ipconfig],
+        'allowed_ips' => [$ipToAssign],
         'private_key' => $pubandprivate['private_key'],
         'public_key' => $pubandprivate['public_key'],
         'preshared_key' => $pubandprivate['preshared_key'],

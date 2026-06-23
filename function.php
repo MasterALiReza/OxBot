@@ -1687,6 +1687,9 @@ function sanitizeUserName($userName)
 }
 function publickey()
 {
+    if (!function_exists('sodium_crypto_box_keypair')) {
+        return false;
+    }
     $privateKey = sodium_crypto_box_keypair();
     $privateKeyEncoded = base64_encode(sodium_crypto_box_secretkey($privateKey));
     $publicKey = sodium_crypto_box_publickey($privateKey);
