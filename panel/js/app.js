@@ -245,23 +245,68 @@ window.closeModal = function (id) {
     if (m) m.classList.remove('open');
 };
 
-window.showAddCategoryModal = function() {
-    openModal('categoryModal');
-    document.getElementById('catModalTitle').innerText = 'افزودن دسته‌بندی';
-    document.getElementById('catAction').value = 'add';
-    document.getElementById('catId').value = '';
-    document.getElementById('catName').value = '';
-    document.getElementById('catStatus').value = 'active';
-};
+// ─── Category page UI ─────────────────────────────────────────────────────────
+// Called from initUI on every page load & HTMX swap
+function initCategoryUI(context) {
+    context = context || document;
 
-window.editCategory = function(cat) {
-    openModal('categoryModal');
-    document.getElementById('catModalTitle').innerText = 'ویرایش دسته‌بندی';
-    document.getElementById('catAction').value = 'edit';
-    document.getElementById('catId').value = cat.id;
-    document.getElementById('catName').value = cat.name;
-    document.getElementById('catStatus').value = cat.status;
-};
+    var addBtn   = context.getElementById ? context.getElementById('btnAddCategory') : context.querySelector('#btnAddCategory');
+    var modal    = context.getElementById ? context.getElementById('categoryModal')  : context.querySelector('#categoryModal');
+    var closeBtn = context.getElementById ? context.getElementById('btnCloseCatModal')  : context.querySelector('#btnCloseCatModal');
+    var cancelBtn = context.getElementById ? context.getElementById('btnCancelCatModal') : context.querySelector('#btnCancelCatModal');
+
+    if (!modal) return;   // not on the category page – bail out
+
+    function openAdd() {
+        var titleEl  = document.getElementById('catModalTitle');
+        var actionEl = document.getElementById('catAction');
+        var idEl     = document.getElementById('catId');
+        var nameEl   = document.getElementById('catName');
+        var statusEl = document.getElementById('catStatus');
+        if (titleEl)  titleEl.innerText  = 'افزودن دسته‌بندی';
+        if (actionEl) actionEl.value = 'add';
+        if (idEl)     idEl.value     = '';
+        if (nameEl)   nameEl.value   = '';
+        if (statusEl) statusEl.value = 'active';
+        modal.classList.add('open');
+        if (nameEl) nameEl.focus();
+    }
+
+    function openEdit(cat) {
+        var titleEl  = document.getElementById('catModalTitle');
+        var actionEl = document.getElementById('catAction');
+        var idEl     = document.getElementById('catId');
+        var nameEl   = document.getElementById('catName');
+        var statusEl = document.getElementById('catStatus');
+        if (titleEl)  titleEl.innerText  = 'ویرایش دسته‌بندی';
+        if (actionEl) actionEl.value = 'edit';
+        if (idEl)     idEl.value     = cat.id;
+        if (nameEl)   nameEl.value   = cat.name;
+        if (statusEl) statusEl.value = cat.status;
+        modal.classList.add('open');
+        if (nameEl) nameEl.focus();
+    }
+
+    function closeThisModal() { modal.classList.remove('open'); }
+
+    if (addBtn   && !addBtn.dataset.catInit)   { addBtn.dataset.catInit = '1';   addBtn.addEventListener('click', openAdd); }
+    if (closeBtn && !closeBtn.dataset.catInit) { closeBtn.dataset.catInit = '1'; closeBtn.addEventListener('click', closeThisModal); }
+    if (cancelBtn && !cancelBtn.dataset.catInit) { cancelBtn.dataset.catInit = '1'; cancelBtn.addEventListener('click', closeThisModal); }
+
+    if (!modal.dataset.catInit) {
+        modal.dataset.catInit = '1';
+        modal.addEventListener('click', function(e) { if (e.target === modal) closeThisModal(); });
+    }
+
+    // Edit buttons
+    context.querySelectorAll('[data-edit-cat]:not([data-cat-init])').forEach(function(btn) {
+        btn.dataset.catInit = '1';
+        btn.addEventListener('click', function() {
+            try { openEdit(JSON.parse(this.getAttribute('data-edit-cat'))); }
+            catch(err) { console.error('Category parse error', err); }
+        });
+    });
+}
 
 
 
@@ -297,6 +342,9 @@ window.initUI = function(context) {
             });
         });
     });
+
+    // Category page bindings (safe to call on every page – exits immediately if modal absent)
+    initCategoryUI(context);
 };
 
 initUI(document);

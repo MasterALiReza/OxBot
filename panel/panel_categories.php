@@ -184,62 +184,6 @@ include __DIR__ . '/inc/layout_head.php';
   </div>
 </div>
 
-<script>
-(function () {
-    var modal   = document.getElementById('categoryModal');
-    var addBtn  = document.getElementById('btnAddCategory');
-    var closeBtn = document.getElementById('btnCloseCatModal');
-    var cancelBtn = document.getElementById('btnCancelCatModal');
-
-    function openAdd() {
-        if (!modal) return;
-        document.getElementById('catModalTitle').innerText = 'افزودن دسته‌بندی';
-        document.getElementById('catAction').value = 'add';
-        document.getElementById('catId').value = '';
-        document.getElementById('catName').value = '';
-        document.getElementById('catStatus').value = 'active';
-        modal.classList.add('open');
-        document.getElementById('catName').focus();
-    }
-
-    function openEdit(cat) {
-        if (!modal) return;
-        document.getElementById('catModalTitle').innerText = 'ویرایش دسته‌بندی';
-        document.getElementById('catAction').value = 'edit';
-        document.getElementById('catId').value = cat.id;
-        document.getElementById('catName').value = cat.name;
-        document.getElementById('catStatus').value = cat.status;
-        modal.classList.add('open');
-        document.getElementById('catName').focus();
-    }
-
-    function closeModal() {
-        if (modal) modal.classList.remove('open');
-    }
-
-    if (addBtn)   addBtn.addEventListener('click', openAdd);
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
-
-    // Close on backdrop click
-    if (modal) {
-        modal.addEventListener('click', function (e) {
-            if (e.target === modal) closeModal();
-        });
-    }
-
-    // Attach Edit buttons
-    document.querySelectorAll('[data-edit-cat]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            try {
-                var cat = JSON.parse(this.getAttribute('data-edit-cat'));
-                openEdit(cat);
-            } catch (err) {
-                console.error('خطا در خواندن اطلاعات دسته‌بندی', err);
-            }
-        });
-    });
-}());
-</script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
+
