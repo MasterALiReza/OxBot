@@ -704,9 +704,24 @@ $helpappremove['keyboard'][] = [
 ];
 $json_list_remove_helpـlink = json_encode($helpappremove);
 //------------------  [ listpanelusers ]----------------//
-$stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND (agent = :agent OR agent = 'all') AND (panel_category_id IS NULL OR panel_category_id = 0)");
-$stmt->bindParam(':agent', $users['agent']);
-$stmt->execute();
+try {
+    $stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND (agent = :agent OR agent = 'all') AND (panel_category_id IS NULL OR panel_category_id = 0)");
+    if (!isset($users['agent'])) {
+        $stmt->bindValue(':agent', null);
+    } else {
+        $stmt->bindParam(':agent', $users['agent']);
+    }
+    $stmt->execute();
+} catch (Exception $e) {
+    // Fallback if panel_category_id column is missing
+    $stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND (agent = :agent OR agent = 'all')");
+    if (!isset($users['agent'])) {
+        $stmt->bindValue(':agent', null);
+    } else {
+        $stmt->bindParam(':agent', $users['agent']);
+    }
+    $stmt->execute();
+}
 $list_marzban_panel_users = ['inline_keyboard' => []];
 $panelcount = select("marzban_panel", "*", "status", "active", "count");
 if ($panelcount > 10) {
@@ -759,30 +774,31 @@ if ($panelcount > 10) {
     }
 }
 
-// Add panel categories to the keyboard
-$stmt_cats = $pdo->prepare("SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
-$stmt_cats->execute();
-$cat_temp_row = [];
-while ($cat_result = $stmt_cats->fetch(PDO::FETCH_ASSOC)) {
-    if ($users['step'] == "getusernameinfo") {
-        $cat_btn = ['text' => "دسته‌بندی: " . $cat_result['name'], 'callback_data' => "locationnotuser_category_" . $cat_result['id']];
-    } else {
-        $cat_btn = ['text' => "دسته‌بندی: " . $cat_result['name'], 'callback_data' => "location_category_" . $cat_result['id']];
-    }
-
-    if ($panelcount > 10) {
-        $cat_temp_row[] = $cat_btn;
-        if (count($cat_temp_row) == 2) {
-            $list_marzban_panel_users['inline_keyboard'][] = $cat_temp_row;
-            $cat_temp_row = [];
+try {
+    $stmt_cats = $pdo->prepare("SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
+    $stmt_cats->execute();
+    $cat_temp_row = [];
+    while ($cat_result = $stmt_cats->fetch(PDO::FETCH_ASSOC)) {
+        if (isset($users['step']) && $users['step'] == "getusernameinfo") {
+            $cat_btn = ['text' => "دسته‌بندی: " . $cat_result['name'], 'callback_data' => "locationnotuser_category_" . $cat_result['id']];
+        } else {
+            $cat_btn = ['text' => "دسته‌بندی: " . $cat_result['name'], 'callback_data' => "location_category_" . $cat_result['id']];
         }
-    } else {
-        $list_marzban_panel_users['inline_keyboard'][] = [$cat_btn];
+
+        if ($panelcount > 10) {
+            $cat_temp_row[] = $cat_btn;
+            if (count($cat_temp_row) == 2) {
+                $list_marzban_panel_users['inline_keyboard'][] = $cat_temp_row;
+                $cat_temp_row = [];
+            }
+        } else {
+            $list_marzban_panel_users['inline_keyboard'][] = [$cat_btn];
+        }
     }
-}
-if (!empty($cat_temp_row)) {
-    $list_marzban_panel_users['inline_keyboard'][] = $cat_temp_row;
-}
+    if (!empty($cat_temp_row)) {
+        $list_marzban_panel_users['inline_keyboard'][] = $cat_temp_row;
+    }
+} catch (Exception $e) {}
 $statusnote = false;
 if ($setting['statusnamecustom'] == 'onnamecustom')
     $statusnote = true;
@@ -801,9 +817,15 @@ $list_marzban_panel_user = json_encode($list_marzban_panel_users);
 
 
 //------------------  [ listpanelusers omdhe ]----------------//
-$stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND (agent = :agent OR agent = 'all') AND (panel_category_id IS NULL OR panel_category_id = 0)");
-$stmt->bindParam(':agent', $users['agent']);
-$stmt->execute();
+try {
+    $stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND (agent = :agent OR agent = 'all') AND (panel_category_id IS NULL OR panel_category_id = 0)");
+    $stmt->bindParam(':agent', $users['agent']);
+    $stmt->execute();
+} catch (Exception $e) {
+    $stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND (agent = :agent OR agent = 'all')");
+    $stmt->bindParam(':agent', $users['agent']);
+    $stmt->execute();
+}
 $list_marzban_panel_users_om = ['inline_keyboard' => []];
 while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
     if ($result['hide_user'] != null and in_array($from_id, json_decode($result['hide_user'], true)))
@@ -813,13 +835,15 @@ while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
     ];
 }
 
-$stmt_cats_om = $pdo->prepare("SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
-$stmt_cats_om->execute();
-while ($cat_result = $stmt_cats_om->fetch(PDO::FETCH_ASSOC)) {
-    $list_marzban_panel_users_om['inline_keyboard'][] = [
-        ['text' => "دسته‌بندی: " . $cat_result['name'], 'callback_data' => "locationom_category_" . $cat_result['id']]
-    ];
-}
+try {
+    $stmt_cats_om = $pdo->prepare("SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
+    $stmt_cats_om->execute();
+    while ($cat_result = $stmt_cats_om->fetch(PDO::FETCH_ASSOC)) {
+        $list_marzban_panel_users_om['inline_keyboard'][] = [
+            ['text' => "دسته‌بندی: " . $cat_result['name'], 'callback_data' => "locationom_category_" . $cat_result['id']]
+        ];
+    }
+} catch (Exception $e) {}
 
 $list_marzban_panel_users_om['inline_keyboard'][] = [
     ['text' => $textbotlang['users']['backbtn'], 'callback_data' => "backuser"],

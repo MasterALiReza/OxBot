@@ -117,36 +117,35 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Modal Add/Edit -->
-<div class="modal" id="categoryModal">
-  <div class="modal-content" style="max-width: 500px;">
-    <div class="modal-header">
-      <h3 class="modal-title" id="catModalTitle">افزودن دسته‌بندی</h3>
-      <button class="modal-close" onclick="closeModal('categoryModal')"><?= icon('x') ?></button>
+<div class="modal-veil" id="categoryModal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-head">
+      <h3 id="catModalTitle"><?= icon('folder', 16) ?> افزودن دسته‌بندی</h3>
+      <button type="button" class="modal-x" onclick="closeModal('categoryModal')"><?= icon('x', 14) ?></button>
     </div>
-    <div class="modal-body">
-      <form id="catForm" method="POST" action="panel_categories.php">
+    <form id="catForm" method="POST" action="panel_categories.php">
+      <div class="modal-body">
         <input type="hidden" name="action" id="catAction" value="add">
         <input type="hidden" name="id" id="catId" value="">
         
-        <div class="form-group">
-          <label class="form-label">نام دسته‌بندی <span class="text-danger">*</span></label>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" style="display:block;margin-bottom:6px;">نام دسته‌بندی <span class="text-danger">*</span></label>
           <input type="text" name="name" id="catName" class="input" required>
         </div>
         
         <div class="form-group">
-          <label class="form-label">وضعیت</label>
+          <label class="form-label" style="display:block;margin-bottom:6px;">وضعیت</label>
           <select name="status" id="catStatus" class="input">
             <option value="active">فعال</option>
             <option value="inactive">غیرفعال</option>
           </select>
         </div>
-        
-        <div class="form-actions" style="margin-top: 1.5rem; justify-content: flex-end;">
-          <button type="button" class="btn btn-outline" onclick="closeModal('categoryModal')">انصراف</button>
-          <button type="submit" class="btn btn-primary">ذخیره دسته‌بندی</button>
-        </div>
-      </form>
-    </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('categoryModal')">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره دسته‌بندی</button>
+      </div>
+    </form>
   </div>
 </div>
 
