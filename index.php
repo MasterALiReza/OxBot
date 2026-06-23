@@ -1897,7 +1897,18 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     if ($extend['status'] == false) {
         $extend['msg'] = json_encode($extend['msg']);
         $textreports = sprintf($textbotlang['hardcoded']['renewServiceError'], $marzban_list_get['name_panel'], $nameloc['username'], $extend['msg']);
-        sendmessage($from_id, $textbotlang['extracted']['index_php']['renewServiceError'], null, 'HTML');
+        $msgError = $textbotlang['extracted']['index_php']['renewServiceError'] . "\n\n💳 <b>مبلغ تمدید از کیف پول شما کسر نشده و محفوظ است.</b>";
+        sendmessage($from_id, $msgError, null, 'HTML');
+        if ($datain == "confirmserdiscount") {
+            $SellDiscountlimit = select("DiscountSell", "*", "codeDiscount", $partsdic[1], "select");
+            if ($SellDiscountlimit != false) {
+                $value = max(0, intval($SellDiscountlimit['usedDiscount']) - 1);
+                update("DiscountSell", "usedDiscount", $value, "codeDiscount", $partsdic[1]);
+                $stmt = $connect->prepare("DELETE FROM Giftcodeconsumed WHERE id_user = ? AND code = ? LIMIT 1");
+                $stmt->bind_param("ss", $from_id, $partsdic[1]);
+                $stmt->execute();
+            }
+        }
         if (strlen($setting['Channel_Report']) > 0) {
             telegram('sendmessage', [
                 'chat_id' => $setting['Channel_Report'],
@@ -4107,7 +4118,18 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             $errorMessage = (string) $errorMessage;
         }
         $dataoutput['msg'] = $errorMessage;
-        sendmessage($from_id, $textbotlang['users']['sell']['errorConfig'], $keyboard, 'HTML');
+        $msgError = $textbotlang['users']['sell']['errorConfig'] . "\n\n💳 <b>مبلغ سرویس از کیف پول شما کسر نشده و محفوظ است.</b>";
+        sendmessage($from_id, $msgError, $keyboard, 'HTML');
+        if ($datain == "confirmandgetserviceDiscount") {
+            $SellDiscountlimit = select("DiscountSell", "*", "codeDiscount", $partsdic[0], "select");
+            if ($SellDiscountlimit != false) {
+                $value = max(0, intval($SellDiscountlimit['usedDiscount']) - 1);
+                update("DiscountSell", "usedDiscount", $value, "codeDiscount", $partsdic[0]);
+                $stmt = $connect->prepare("DELETE FROM Giftcodeconsumed WHERE id_user = ? AND code = ? LIMIT 1");
+                $stmt->bind_param("ss", $from_id, $partsdic[0]);
+                $stmt->execute();
+            }
+        }
         $texterros = sprintf($textbotlang['hardcoded']['subscriptionCreateError'], $dataoutput['msg'], $from_id, $username, $marzban_list_get['name_panel']);
         if (strlen($setting['Channel_Report']) > 0) {
             telegram('sendmessage', [
@@ -4769,7 +4791,17 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $dataoutput = $ManagePanel->createUser($marzban_list_get['name_panel'], $info_product['code_product'], $username_acc, $datac);
         if ($dataoutput['username'] == null) {
             $dataoutput['msg'] = json_encode($dataoutput['msg']);
-            sendmessage($from_id, $textbotlang['users']['sell']['errorConfig'], $keyboard, 'HTML');
+            $msgError = $textbotlang['users']['sell']['errorConfig'];
+            if ($i > 0) {
+                $charged_amount = $info_product['price_product'] * $i;
+                $user_Balance_new = select("user", "*", "id", $from_id, "select");
+                $Balance_prim = $user_Balance_new['Balance'] - $charged_amount;
+                update("user", "Balance", $Balance_prim, "id", $from_id);
+                $msgError .= "\n\n💳 <b>تعداد {$i} سرویس ساخته شد و فقط هزینه آنها کسر گردید. مابقی مبلغ در کیف پول شما محفوظ است.</b>";
+            } else {
+                $msgError .= "\n\n💳 <b>هیچ مبلغی از کیف پول شما کسر نشد.</b>";
+            }
+            sendmessage($from_id, $msgError, $keyboard, 'HTML');
             $texterros = sprintf($textbotlang['hardcoded']['bulkAccountCreateError'], $dataoutput['msg'], $from_id, $username, $marzban_list_get['name_panel']);
             if (strlen($setting['Channel_Report']) > 0) {
                 telegram('sendmessage', [
