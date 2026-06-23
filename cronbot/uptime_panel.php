@@ -18,7 +18,7 @@ foreach($marzbanlist as $location){
     $parsed_url = parse_url($location['url_panel']);
     if ($parsed_url && isset($parsed_url['host'])) {
     $address = $parsed_url['host'];
-    $port = empty($parsed_url['port']) ? 443 : $parsed_url['port'];
+    $port = empty($parsed_url['port']) ? ((isset($parsed_url['scheme']) && strtolower($parsed_url['scheme']) === 'http') ? 80 : 443) : $parsed_url['port'];
     if (!checkConnection($address, $port)) {
        foreach ($admin_ids as $admin) {
             $textnode = sprintf($textbotlang['hardcoded']['panelDownNotice'], $location['name_panel']);
