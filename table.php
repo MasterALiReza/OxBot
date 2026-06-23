@@ -1418,6 +1418,13 @@ if ($check && $check->rowCount() != 0) {
     $pdo->exec("ALTER TABLE `user` DROP `ref_code`");
 }
 $pdo->exec("UPDATE setting SET inlinebtnmain = 'oninline' WHERE inlinebtnmain = 'offinline'");
+
+try {
+    $pdo->exec("UPDATE user SET has_purchased = 1 WHERE has_purchased = 0 AND id IN (SELECT DISTINCT id_user FROM invoice WHERE Status != 'Unpaid')");
+} catch (Exception $e) {
+    error_log("Failed to migrate has_purchased: " . $e->getMessage());
+}
+
 telegram('setwebhook', [
     'url' => "https://$domainhosts/index.php"
 ]);

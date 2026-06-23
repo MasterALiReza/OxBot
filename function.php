@@ -913,12 +913,8 @@ function DirectPayment($order_id, $image = 'images.jpg')
             }
         }
         $affiliatescommission = select("affiliates", "*", null, null, "select");
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'  AND id_user = :id_user AND Status != 'Unpaid'");
-        $stmt->bindParam(':id_user', $Balance_id['id']);
-        $stmt->execute();
-        $countinvoice = $stmt->rowCount();
         if ($get_invoice['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name']) {
-            $reward_amount = awardAffiliateCommission($Balance_id['id'], $Payment_report['price'], ($countinvoice == 0));
+            $reward_amount = awardAffiliateCommission($Balance_id['id'], $Payment_report['price']);
             
             if ($reward_amount > 0) {
                 if (intval($setting['scorestatus']) == 1 and !in_array($Balance_id['affiliates'], $admin_ids)) {
@@ -2039,7 +2035,7 @@ function formatServiceDeliveryLinks($panel_info, $dataoutput)
     return array('main' => $main, 'extra' => $extra, 'configs' => $configs);
 }
 
-function awardAffiliateCommission($user_id, $price, $is_first_buy) {
+function awardAffiliateCommission($user_id, $price) {
     global $pdo;
 
     // Fetch user details
@@ -2062,17 +2058,16 @@ function awardAffiliateCommission($user_id, $price, $is_first_buy) {
         return false;
     }
 
-    // Process new referral logic if it's the first purchase
+    // Determine if it's the first buy atomically
+    $stmt = $pdo->prepare("UPDATE user SET has_purchased = 1 WHERE id = :user_id AND has_purchased = 0");
+    $stmt->execute([':user_id' => $user_id]);
+    $is_first_buy = ($stmt->rowCount() > 0);
+
     if ($is_first_buy) {
-        // Mark user as having purchased and increment referrer's active count
-        $stmt = $pdo->prepare("UPDATE user SET has_purchased = 1 WHERE id = :user_id AND has_purchased = 0");
-        $stmt->execute([':user_id' => $user_id]);
-        if ($stmt->rowCount() > 0) {
-            $pdo->prepare("UPDATE user SET active_referrals_count = active_referrals_count + 1 WHERE id = :ref_id")
-                ->execute([':ref_id' => $referrer_id]);
-            // Refresh referrer active count
-            $referrer['active_referrals_count']++;
-        }
+        $pdo->prepare("UPDATE user SET active_referrals_count = active_referrals_count + 1 WHERE id = :ref_id")
+            ->execute([':ref_id' => $referrer_id]);
+        // Refresh referrer active count
+        $referrer['active_referrals_count']++;
     }
 
     // Fetch global affiliates settings

@@ -4184,13 +4184,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         }
     }
     $affiliatescommission = select("affiliates", "*", null, null, "select");
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'  AND id_user = :id_user AND Status != 'Unpaid'");
-    $stmt->bindParam(':id_user', $from_id);
-    $stmt->execute();
-    $countinvoice = $stmt->rowCount();
     // Only process affiliate rewards if the purchased product is NOT a test service
     if ($info_product['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name']) {
-        $reward_amount = awardAffiliateCommission($from_id, $priceproduct, ($countinvoice == 1));
+        $reward_amount = awardAffiliateCommission($from_id, $priceproduct);
         
         if ($reward_amount > 0) {
             if (intval($setting['scorestatus']) == 1 and !in_array($user['affiliates'], $admin_ids)) {

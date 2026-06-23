@@ -889,14 +889,10 @@ switch ($data['actions']) {
                 update("setting", "numbercount", $value);
             }
         }
-        $affiliatescommission = select("affiliates", "*", null, null, "select");
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'  AND id_user = :id_user AND Status != 'Unpaid'");
-        $stmt->bindParam(':id_user', $user_info['id']);
-        $stmt->execute();
-        $countinvoice = $stmt->rowCount();
-        // Only process affiliate rewards if the purchased product is NOT a test service
-        if ($product['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name']) {
-            $reward_amount = awardAffiliateCommission($user_info['id'], $product['price_product'], ($countinvoice == 1));
+    $affiliatescommission = select("affiliates", "*", null, null, "select");
+    // Only process affiliate rewards if the purchased product is NOT a test service
+    if ($product['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name']) {
+        $reward_amount = awardAffiliateCommission($user_info['id'], $product['price_product']);
             
             if ($reward_amount > 0) {
                 if (intval($setting['scorestatus']) == 1) {
