@@ -513,7 +513,7 @@ class ManagePanel
                         $UsernameData['status'] = "expired";
                     }
                     if (($UsernameData['data_limit'] - $UsernameData['used_traffic'] <= 0) and $UsernameData['data_limit'] != null) {
-                        $UsernameData['status'] = "limtied";
+                        $UsernameData['status'] = "limited";
                     }
                     $UsernameData['links'] = outputlink($UsernameData['subscription_url']);
                     if (isBase64($UsernameData['links'])) {
@@ -723,7 +723,7 @@ class ManagePanel
                 if ($UsernameData['enable']) {
                     $UsernameData['enable'] = "active";
                 } else {
-                    $UsernameData['enable'] = "deactivev";
+                    $UsernameData['enable'] = "disabled";
                 }
                 $subId = $UsernameData2['subId'];
                 $status_user = get_onlineclialireza($Get_Data_Panel['name_panel'], $username);
@@ -732,8 +732,12 @@ class ManagePanel
                         $UsernameData['enable'] = "limited";
                 }
                 if (intval($UsernameData['expiryTime']) != 0) {
-                    if ($expire - time() <= 0)
+                    if ($UsernameData['expiryTime'] < -10000) {
+                        $UsernameData['enable'] = "on_hold";
+                        $expire = 0;
+                    } elseif ($expire - time() <= 0) {
                         $UsernameData['enable'] = "expired";
+                    }
                 }
                 $Output = array(
                     'status' => $UsernameData['enable'],
@@ -762,11 +766,13 @@ class ManagePanel
             } else {
                 $jobtime = [];
                 $jobvolume = [];
-                foreach ($UsernameData['jobs'] as $job) {
-                    if ($job['Field'] == "total_data") {
-                        $jobvolume = $job;
-                    } elseif ($job['Field'] == "date") {
-                        $jobtime = $job;
+                if (isset($UsernameData['jobs']) && is_array($UsernameData['jobs'])) {
+                    foreach ($UsernameData['jobs'] as $job) {
+                        if ($job['Field'] == "total_data") {
+                            $jobvolume = $job;
+                        } elseif ($job['Field'] == "date") {
+                            $jobtime = $job;
+                        }
                     }
                 }
                 if (intval($invoiceinfo['Service_time']) == 0) {
@@ -775,18 +781,31 @@ class ManagePanel
                     if (isset($jobtime['Value'])) {
                         $expire = strtotime($jobtime['Value']);
                     } else {
-                        $expire = 0;
+                        if (isset($invoiceinfo['time_sell']) && intval($invoiceinfo['time_sell']) > 0) {
+                            $expire = intval($invoiceinfo['time_sell']) + (intval($invoiceinfo['Service_time']) * 86400);
+                        } else {
+                            $expire = 0;
+                        }
                     }
                 }
                 $status = "active";
-                if (!$UsernameData['configuration']['Status'])
+                if (isset($UsernameData['configuration']) && isset($UsernameData['configuration']['Status']) && !$UsernameData['configuration']['Status'])
                     $status = "disabled";
                 if ($expire != 0 and $expire - time() < 0) {
                     $status = "expired";
                 }
-                $data_useage = ($UsernameData['total_data'] * pow(1024, 3)) + ($UsernameData['cumu_data'] * pow(1024, 3));
-                if (($jobvolume['Value'] * pow(1024, 3)) < $data_useage) {
-                    $status = "limited";
+                $data_useage = ((isset($UsernameData['total_data']) ? floatval($UsernameData['total_data']) : 0) * pow(1024, 3)) + ((isset($UsernameData['cumu_data']) ? floatval($UsernameData['cumu_data']) : 0) * pow(1024, 3));
+                
+                if (isset($jobvolume['Value'])) {
+                    if (($jobvolume['Value'] * pow(1024, 3)) <= $data_useage) {
+                        $status = "limited";
+                    }
+                } else {
+                    if (isset($invoiceinfo['Volume']) && floatval($invoiceinfo['Volume']) > 0) {
+                        if ((floatval($invoiceinfo['Volume']) * pow(1024, 3)) <= $data_useage) {
+                            $status = "limited";
+                        }
+                    }
                 }
                 $download_config = downloadconfig($Get_Data_Panel['name_panel'], $UsernameData['id']);
                 if (isset($download_config['status']) && ($download_config['status'] === false || $download_config['status'] != 200)) {
@@ -803,10 +822,18 @@ class ManagePanel
                 }
                 $download_config_body = json_decode($download_config['body'], true);
                 $download_config_data = $download_config_body['data'] ?? $download_config_body;
+                
+                $data_limit_value = 0;
+                if (isset($jobvolume['Value'])) {
+                    $data_limit_value = $jobvolume['Value'] * pow(1024, 3);
+                } elseif (isset($invoiceinfo['Volume'])) {
+                    $data_limit_value = floatval($invoiceinfo['Volume']) * pow(1024, 3);
+                }
+                
                 $Output = array(
                     'status' => $status,
                     'username' => $UsernameData['name'],
-                    'data_limit' => $jobvolume['Value'] * pow(1024, 3),
+                    'data_limit' => $data_limit_value,
                     'expire' => $expire,
                     'online_at' => null,
                     'used_traffic' => $data_useage,
@@ -843,6 +870,9 @@ class ManagePanel
                     $UsernameData['enable'] = "active";
                 } elseif ($data_limit != 0 and $RemainingVolume < 0) {
                     $UsernameData['enable'] = "limited";
+                } elseif ($expire < -10000) {
+                    $UsernameData['enable'] = "on_hold";
+                    $expire = 0;
                 } elseif ($expire - time() < 0 and $expire != 0) {
                     $UsernameData['enable'] = "expired";
                 } else {

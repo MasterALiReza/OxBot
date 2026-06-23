@@ -129,10 +129,14 @@ class ServiceMonitor
     {
         if (!in_array($userData['status'], ['limited', 'expired']))
             return false;
-        $timeService = $userData['expire'] - time();
-        $daysRemaining = intval($timeService / 86400);
-        $removalThreshold = intval("-" . $this->setting['removedayc']);
-        $result = $daysRemaining <= $removalThreshold;
+        if ($userData['expire'] <= 0) {
+            $result = false;
+        } else {
+            $timeService = $userData['expire'] - time();
+            $daysRemaining = intval($timeService / 86400);
+            $removalThreshold = intval("-" . $this->setting['removedayc']);
+            $result = $daysRemaining <= $removalThreshold;
+        }
         $statusText = $statusMap = [
             'active' => $this->textBotLang['users']['stateus']['active'],
             'limited' => $this->textBotLang['users']['stateus']['limited'],
