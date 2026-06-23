@@ -61,7 +61,7 @@ include __DIR__ . '/inc/layout_head.php';
     <h2><?= icon('folder') ?> دسته‌بندی پنل‌ها</h2>
     <p>مدیریت دسته‌بندی‌های پنل‌ها برای ساخت گروهی محصولات</p>
   </div>
-  <button class="btn btn-primary" onclick="openModal('addCategoryModal')">
+  <button class="btn btn-primary" onclick="showAddCategoryModal()">
     <?= icon('plus') ?> افزودن دسته‌بندی
   </button>
 </div>
@@ -151,8 +151,8 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <script>
-function openModal(id) {
-    document.getElementById('categoryModal').classList.add('active');
+function showAddCategoryModal() {
+    openModal('categoryModal');
     document.getElementById('catModalTitle').innerText = 'افزودن دسته‌بندی';
     document.getElementById('catAction').value = 'add';
     document.getElementById('catId').value = '';
@@ -160,12 +160,8 @@ function openModal(id) {
     document.getElementById('catStatus').value = 'active';
 }
 
-function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
-}
-
 function editCategory(cat) {
-    document.getElementById('categoryModal').classList.add('active');
+    openModal('categoryModal');
     document.getElementById('catModalTitle').innerText = 'ویرایش دسته‌بندی';
     document.getElementById('catAction').value = 'edit';
     document.getElementById('catId').value = cat.id;
