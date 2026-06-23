@@ -756,7 +756,6 @@ if ($panelcount > 10) {
                 ['text' => $result['name_panel'], 'callback_data' => "location_{$result['code_panel']}"]
             ];
         }
-        }
     }
 }
 
