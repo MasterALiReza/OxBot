@@ -13,6 +13,15 @@ try {
     } catch (Exception $ex) {}
 }
 
+// Ensure panel_category_id column exists safely
+try {
+    $pdo->query("SELECT panel_category_id FROM marzban_panel LIMIT 1");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("ALTER TABLE marzban_panel ADD COLUMN panel_category_id VARCHAR(50) NULL");
+    } catch (Exception $ex) {}
+}
+
 // Fetch Panel Categories
 try {
     $panel_categories = db_fetchAll($pdo, "SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
