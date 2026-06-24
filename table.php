@@ -865,6 +865,8 @@ try {
         silver_percentage INT NULL DEFAULT 15,
         gold_threshold INT NULL DEFAULT 50,
         gold_percentage INT NULL DEFAULT 20,
+        invite_reward varchar(200) NULL DEFAULT '0',
+        withdrawal_status varchar(200) NULL DEFAULT 'onwithdraw',
         id_media varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL)
         ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
         if (!$result) {
@@ -924,6 +926,16 @@ try {
         if (mysqli_num_rows($Check_filde) != 1) {
             $connect->query("ALTER TABLE affiliates ADD gold_percentage INT NULL DEFAULT 20");
             echo "The gold_percentage field was added ✅";
+        }
+        $Check_filde = $connect->query("SHOW COLUMNS FROM affiliates LIKE 'invite_reward'");
+        if (mysqli_num_rows($Check_filde) != 1) {
+            $connect->query("ALTER TABLE affiliates ADD invite_reward VARCHAR(200) NULL DEFAULT '0'");
+            echo "The invite_reward field was added ✅";
+        }
+        $Check_filde = $connect->query("SHOW COLUMNS FROM affiliates LIKE 'withdrawal_status'");
+        if (mysqli_num_rows($Check_filde) != 1) {
+            $connect->query("ALTER TABLE affiliates ADD withdrawal_status VARCHAR(200) NULL DEFAULT 'onwithdraw'");
+            echo "The withdrawal_status field was added ✅";
         }
     }
 } catch (Exception $e) {

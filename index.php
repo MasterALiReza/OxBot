@@ -240,6 +240,20 @@ if (strpos($text, "/start ") !== false && $user['step'] != "gettextSystemMessage
             sendmessage($affiliatesid, sprintf($textbotlang['hardcoded']['affiliateNewReferralJoined'], $username), $keyboard, 'html');
             $addcountaffiliates = intval($useraffiliates['affiliatescount']) + 1;
             update("user", "affiliatescount", $addcountaffiliates, "id", $affiliatesid);
+            
+            // --- Reward for Inviting (without purchase) ---
+            $aff_settings = select("affiliates", "*", null, null, "select");
+            $invite_reward = isset($aff_settings['invite_reward']) ? intval($aff_settings['invite_reward']) : 0;
+            
+            if ($invite_reward > 0) {
+                $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance + :reward WHERE id = :id");
+                $stmt->execute([':reward' => $invite_reward, ':id' => $affiliatesid]);
+                
+                $reward_msg = "🎉 مبلغ <b>" . number_format($invite_reward) . "</b> تومان بابت عضویت زیرمجموعه جدید به کیف پول بازاریابی شما اضافه شد.";
+                sendmessage($affiliatesid, $reward_msg, null, 'html');
+            }
+            // ----------------------------------------------
+            
             $stmt = $connect->prepare("INSERT IGNORE INTO reagent_report (user_id, get_gift,time,reagent) VALUES (?, ?,?, ?)");
             $dateacc = date('Y/m/d H:i:s');
             $type_gift = false;
@@ -423,6 +437,13 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
 } elseif ($user['step'] == 'get_card_number_withdraw') {
     if (!$text || strlen(preg_replace('/[^0-9]/', '', $text)) != 16) {
         sendmessage($from_id, "❌ شماره کارت باید دقیقا 16 رقم باشد. لطفا دوباره ارسال کنید:", $backuser, 'HTML');
+        return;
+    }
+
+    $aff_settings = select("affiliates", "*", null, null, "select");
+    if (isset($aff_settings['withdrawal_status']) && $aff_settings['withdrawal_status'] === 'offwithdraw') {
+        sendmessage($from_id, "❌ امکان ثبت درخواست تسویه در حال حاضر غیرفعال است.", $keyboard, 'HTML');
+        step('none', $from_id);
         return;
     }
     
@@ -6101,16 +6122,20 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         $tier_name = "نقره‌ای 🥈";
     }
 
+    $withdraw_status = $affiliatescommission['withdrawal_status'] ?? 'onwithdraw';
+    $financial_row = [];
+    if ($withdraw_status !== 'offwithdraw') {
+        $financial_row[] = ['text' => "📥 درخواست تسویه", 'callback_data' => "affiliate_withdraw"];
+    }
+    $financial_row[] = ['text' => "🔄 انتقال به کیف پول", 'callback_data' => "affiliate_transfer"];
+
     $keyboard_share = json_encode([
         'inline_keyboard' => [
             [
                 ['text' => $textbotlang['keyboard']['receiveMembershipGift'], 'callback_data' => "get_gift_start"],
                 ['text' => $textbotlang['keyboard']['shareLink'], 'url' => "https://t.me/share/url?url=https://t.me/$usernamebot?start=$from_id"],
             ],
-            [
-                ['text' => "📥 درخواست تسویه", 'callback_data' => "affiliate_withdraw"],
-                ['text' => "🔄 انتقال به کیف پول", 'callback_data' => "affiliate_transfer"],
-            ],
+            $financial_row,
             [
                 ['text' => "🖼 دریافت بنر اختصاصی من", 'callback_data' => "affiliate_banner"],
             ]
@@ -6178,6 +6203,12 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         ]);
     }
 } elseif ($datain == "affiliate_withdraw") {
+    $aff_settings = select("affiliates", "*", null, null, "select");
+    if (isset($aff_settings['withdrawal_status']) && $aff_settings['withdrawal_status'] === 'offwithdraw') {
+        sendmessage($from_id, "❌ امکان ثبت درخواست تسویه در حال حاضر غیرفعال است.", null, 'HTML');
+        return;
+    }
+
     $stmt = $pdo->prepare("SELECT affiliate_balance FROM user WHERE id = :id");
     $stmt->execute([':id' => $from_id]);
     $affiliate_balance = $stmt->fetchColumn() ?: 0;

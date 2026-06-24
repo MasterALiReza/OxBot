@@ -78,10 +78,14 @@ $schema = [
             'سیستم پورسانت' => [
                 ['name' => 'set_affiliatesstatus', 'label' => 'وضعیت کلی سیستم همکاری در فروش', 'type' => 'select', 'options' => ['onaffiliates' => 'فعال', 'offaffiliates' => 'غیرفعال'], 'val' => $row['affiliatesstatus'] ?? ''],
                 ['name' => 'aff_status_commission', 'label' => 'وضعیت پورسانت‌دهی با خرید کاربر', 'type' => 'select', 'options' => ['oncommission' => 'فعال', 'offcommission' => 'غیرفعال'], 'val' => $affiliate_settings['status_commission'] ?? ''],
+                ['name' => 'aff_withdrawal_status', 'label' => 'وضعیت درخواست تسویه (برداشت کیف پول)', 'type' => 'select', 'options' => ['onwithdraw' => 'فعال', 'offwithdraw' => 'غیرفعال'], 'val' => $affiliate_settings['withdrawal_status'] ?? 'onwithdraw'],
                 ['name' => 'aff_porsant_one_buy', 'label' => 'نحوه محاسبه پورسانت خرید', 'type' => 'select', 'options' => ['off_buy_porsant' => 'پورسانت برای همه خریدها', 'on_buy_porsant' => 'پورسانت فقط برای خرید اول'], 'val' => $affiliate_settings['porsant_one_buy'] ?? 'off_buy_porsant'],
             ],
             'پاداش اولین خرید زیرمجموعه' => [
                 ['name' => 'aff_first_buy_reward', 'label' => 'مبلغ پاداش اولین خرید (تومان - ۰ برای غیرفعال)', 'type' => 'number', 'val' => $affiliate_settings['first_buy_reward'] ?? '0'],
+            ],
+            'پاداش عضویت زیرمجموعه (بدون خرید)' => [
+                ['name' => 'aff_invite_reward', 'label' => 'مبلغ پاداش به ازای هر نفری که ثبت نام کند (تومان - ۰ برای غیرفعال)', 'type' => 'number', 'val' => $affiliate_settings['invite_reward'] ?? '0'],
             ],
             'سطوح بازاریابی' => [
                 ['name' => 'set_affiliatespercentage', 'label' => 'درصد پورسانت سطح برنزی (پیش‌فرض)', 'type' => 'number', 'val' => $row['affiliatespercentage'] ?? '0'],
