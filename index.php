@@ -3661,7 +3661,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             } else {
                 $statuscustom = false;
             }
-            if (isset($userdate['nameconfig'])) {
+            if (!empty($marzban_list_get['panel_category_id'])) {
+                $back = "location_category_" . $marzban_list_get['panel_category_id'];
+            } elseif (isset($userdate['nameconfig'])) {
                 $back = "buybacktow";
             } else {
                 $back = "buyback";
@@ -4547,7 +4549,12 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     }
     $loc_cond = getProductLocCondition($location);
     $query = "SELECT * FROM product WHERE $loc_cond AND agent= '{$user['agent']}'";
-    Editmessagetext($from_id, $message_id, $textbotlang['users']['sell']['serviceSelect'], KeyboardProduct($marzban_list_get['name_panel'], $query, $user['pricediscount'], $datakeyboard, $statuscustom, "backuser", null, "customsellvolumeom"));
+    if (!empty($marzban_list_get['panel_category_id'])) {
+        $backom = "locationom_category_" . $marzban_list_get['panel_category_id'];
+    } else {
+        $backom = "backuser";
+    }
+    Editmessagetext($from_id, $message_id, $textbotlang['users']['sell']['serviceSelect'], KeyboardProduct($marzban_list_get['name_panel'], $query, $user['pricediscount'], $datakeyboard, $statuscustom, $backom, null, "customsellvolumeom"));
 } elseif ($datain == "customsellvolumeom") {
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $user['Processing_value'], "select");
     $eextraprice = json_decode($marzban_list_get['pricecustomvolume'], true);
