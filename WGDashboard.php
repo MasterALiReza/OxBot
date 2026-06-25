@@ -40,8 +40,8 @@ function get_userwg($username, $namepanel)
         }
         return $response;
     }
-    $configurationPeers = $response['data']['configurationPeers'];
-    $configurationRestrictedPeers = $response['data']['configurationRestrictedPeers'];
+    $configurationPeers = $response['data']['configurationPeers'] ?? [];
+    $configurationRestrictedPeers = $response['data']['configurationRestrictedPeers'] ?? [];
     $output = [];
     foreach ($configurationPeers as $userinfo) {
         if ($userinfo['name'] == $username) {
