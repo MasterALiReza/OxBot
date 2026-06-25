@@ -66,7 +66,7 @@ try {
                             </div>
                         </td>
                         <td data-label="تاریخ عضویت" style="text-align: right; color: var(--mute); padding: 10px 8px; vertical-align: middle;">
-                            <?= safe_date($ref['register'] ?? null, 'Y/m/d H:i') ?>
+                            <span class="cn" style="color: var(--text); font-weight: 500;"><?= safe_date($ref['register'] ?? null, 'Y/m/d H:i') ?></span>
                         </td>
                         <td data-label="موجودی" style="text-align: right; padding: 10px 8px; vertical-align: middle;">
                             <span class="cn" style="font-weight: 600; color: var(--text);">

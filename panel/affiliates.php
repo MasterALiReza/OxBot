@@ -573,15 +573,16 @@ function toggleReferrals(referrerId) {
     }
     
     /* Nested table styles */
-    #affiliatesTbl tbody tr[id^="details-"] .dash-users {
-        margin: 0 !important;
-        padding: 4px !important;
-        border: none !important;
-        background: transparent !important;
-        box-shadow: none !important;
-    }
-    #affiliatesTbl tbody tr[id^="details-"] .dash-users h4 {
-        margin: 4px 4px 12px !important;
+    #affiliatesTbl tbody tr[id^="details-"] td .tbl-wrap {
+        display: block !important;
+        width: 100% !important;
+        margin: 10px 0 !important;
+        padding: 8px !important;
+        background: var(--sf2) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 8px !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02) !important;
+        overflow-x: hidden !important;
     }
     #affiliatesTbl tbody tr[id^="details-"] table {
         min-width: 100% !important;
