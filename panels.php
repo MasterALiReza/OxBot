@@ -831,20 +831,20 @@ class ManagePanel
                     }
                 }
                 $download_config = downloadconfig($Get_Data_Panel['name_panel'], $UsernameData['id']);
+                $subscription_url_val = '';
                 if (isset($download_config['status']) && ($download_config['status'] === false || $download_config['status'] != 200)) {
-                    return array(
-                        'status' => 'Unsuccessful',
-                        'msg' => $download_config['msg'] ?? ($download_config['status'] ? 'error code : ' . $download_config['status'] : 'Unknown error')
-                    );
+                    $subscription_url_val = 'Error downloading config: ' . ($download_config['msg'] ?? ($download_config['status'] ? 'error code : ' . $download_config['status'] : 'Unknown error'));
+                } elseif (!empty($download_config['error'])) {
+                    $subscription_url_val = 'Error: ' . $download_config['error'];
+                } else {
+                    $download_config_body = json_decode($download_config['body'], true);
+                    if (is_array($download_config_body)) {
+                        $download_config_data = $download_config_body['data'] ?? $download_config_body;
+                        $subscription_url_val = isset($download_config_data['file']) ? strval($download_config_data['file']) : '';
+                    } else {
+                        $subscription_url_val = 'Invalid config data format';
+                    }
                 }
-                if (!empty($download_config['error'])) {
-                    return array(
-                        'status' => 'Unsuccessful',
-                        'msg' => $download_config['error']
-                    );
-                }
-                $download_config_body = json_decode($download_config['body'], true);
-                $download_config_data = $download_config_body['data'] ?? $download_config_body;
                 
                 $data_limit_value = 0;
                 if (isset($jobvolume['Value'])) {
@@ -861,7 +861,7 @@ class ManagePanel
                     'online_at' => null,
                     'used_traffic' => $data_useage,
                     'links' => [],
-                    'subscription_url' => strval($download_config_data['file'] ?? ''),
+                    'subscription_url' => $subscription_url_val,
                     'sub_updated_at' => null,
                     'sub_last_user_agent' => null,
                 );

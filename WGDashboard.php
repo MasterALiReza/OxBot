@@ -21,9 +21,25 @@ function get_userwg($username, $namepanel)
             'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
         ),
     ));
-    $response = json_decode(curl_exec($curl), true);
-    if (!$response['status'])
+    $response_str = curl_exec($curl);
+    $curl_error = curl_error($curl);
+    curl_close($curl);
+    
+    if ($response_str === false) {
+        return ['status' => false, 'msg' => 'API Connection Error: ' . $curl_error];
+    }
+    
+    $response = json_decode($response_str, true);
+    if (!is_array($response)) {
+        return ['status' => false, 'msg' => 'Invalid JSON from WGDashboard'];
+    }
+    
+    if (empty($response['status'])) {
+        if (isset($response['message'])) {
+            $response['msg'] = $response['message'];
+        }
         return $response;
+    }
     $configurationPeers = $response['data']['configurationPeers'];
     $configurationRestrictedPeers = $response['data']['configurationRestrictedPeers'];
     $output = [];
