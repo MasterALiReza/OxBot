@@ -3605,7 +3605,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             $stmt_cat->execute([$cat_id]);
             $cat_name = $stmt_cat->fetchColumn() ?: "دسته‌بندی";
             
-            $panels_kb = getCategoryPanelsKeyboard($pdo, $cat_id, $user['agent'], "location_", "buyback", $from_id);
+            $panels_kb = getCategoryPanelsKeyboard($pdo, $cat_id, $user['agent'], "location_", "buybacktow", $from_id);
             Editmessagetext($from_id, $message_id, "📍 لطفاً یکی از سرورهای دسته‌بندی «" . $cat_name . "» را انتخاب کنید:", $panels_kb);
             return;
         } else {
