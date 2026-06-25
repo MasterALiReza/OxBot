@@ -96,62 +96,65 @@ try {
 }
 
 $pageTitle = 'دسته‌بندی پنل‌ها';
+$pageLede = 'مدیریت دسته‌بندی‌های پنل‌ها برای ساخت گروهی محصولات';
 $activeNav = 'panel_categories';
 include __DIR__ . '/inc/layout_head.php';
 ?>
 
-<div class="header-actions">
-  <div class="header-title">
-    <h2><?= icon('folder') ?> دسته‌بندی پنل‌ها</h2>
-    <p>مدیریت دسته‌بندی‌های پنل‌ها برای ساخت گروهی محصولات</p>
+<div class="card fade-up">
+  <div class="toolbar">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="toolbar-title">لیست دسته‌بندی‌ها <small>(<?= count($categories) ?>)</small></div>
+    </div>
+    <div class="toolbar-end">
+      <button class="btn btn-primary btn-sm" id="btnAddCategory">
+        <?= icon('plus', 14) ?> افزودن دسته‌بندی
+      </button>
+    </div>
   </div>
-  <button class="btn btn-primary" id="btnAddCategory">
-    <?= icon('plus') ?> افزودن دسته‌بندی
-  </button>
-</div>
 
-<div class="card">
-  <div class="card-header">
-    <h3 class="card-title">لیست دسته‌بندی‌ها</h3>
-  </div>
-  <div class="table-responsive">
+  <div class="tbl-wrap">
     <table class="table">
       <thead>
         <tr>
-          <th>شناسه</th>
+          <th style="width: 80px;">آیدی</th>
           <th>نام دسته‌بندی</th>
-          <th>وضعیت</th>
-          <th>عملیات</th>
+          <th style="width: 100px;">وضعیت</th>
+          <th style="width: 180px;">عملیات</th>
         </tr>
       </thead>
       <tbody>
         <?php if (count($categories) > 0): ?>
           <?php foreach ($categories as $cat): ?>
             <tr>
-              <td><?= htmlspecialchars((string)$cat['id']) ?></td>
-              <td><?= htmlspecialchars($cat['name']) ?></td>
-              <td>
-                <span class="badge <?= $cat['status'] === 'active' ? 'badge-success' : 'badge-danger' ?>">
+              <td data-label="آیدی" class="cell-mono"><?= htmlspecialchars((string)$cat['id']) ?></td>
+              <td data-label="نام" style="font-weight: 600; color: var(--text);"><?= htmlspecialchars($cat['name']) ?></td>
+              <td data-label="وضعیت">
+                <span class="status-pill <?= $cat['status'] === 'active' ? 'success' : 'danger' ?>">
                   <?= $cat['status'] === 'active' ? 'فعال' : 'غیرفعال' ?>
                 </span>
               </td>
-              <td>
-                <button class="btn btn-sm btn-outline" data-edit-cat="<?= htmlspecialchars(json_encode($cat, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>">
-                  <?= icon('edit') ?> ویرایش
-                </button>
-                <a href="?action=delete&id=<?= (int)$cat['id'] ?>&_csrf=<?= csrf_token() ?>"
-                   class="btn btn-sm btn-outline btn-danger"
-                   data-confirm="آیا از حذف دسته‌بندی «<?= htmlspecialchars($cat['name']) ?>» اطمینان دارید؟ پنل‌های مرتبط بدون دسته‌بندی می‌شوند.">
-                  <?= icon('trash') ?> حذف
-                </a>
+              <td data-label="عملیات">
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-sm btn-ghost" data-edit-cat="<?= htmlspecialchars(json_encode($cat, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>">
+                    <?= icon('edit', 14) ?> ویرایش
+                  </button>
+                  <a href="?action=delete&id=<?= (int)$cat['id'] ?>&_csrf=<?= csrf_token() ?>"
+                     class="btn btn-sm btn-no"
+                     data-confirm="آیا از حذف دسته‌بندی «<?= htmlspecialchars($cat['name']) ?>» اطمینان دارید؟ پنل‌های مرتبط بدون دسته‌بندی می‌شوند.">
+                    <?= icon('trash', 14) ?> حذف
+                  </a>
+                </div>
               </td>
             </tr>
           <?php endforeach; ?>
         <?php else: ?>
           <tr>
-            <td colspan="4" class="text-center text-muted" style="padding: 3rem;">
-              <span style="opacity:0.3; display:inline-block; margin-bottom:1rem;"><?= icon('inbox', 48) ?></span><br>
-              هیچ دسته‌بندی پنلی یافت نشد.
+            <td colspan="4" class="no-label">
+              <div class="empty">
+                <span style="opacity:0.3; display:inline-block; margin-bottom:1rem;"><?= icon('inbox', 48) ?></span><br>
+                هیچ دسته‌بندی پنلی یافت نشد.
+              </div>
             </td>
           </tr>
         <?php endif; ?>
@@ -173,13 +176,13 @@ include __DIR__ . '/inc/layout_head.php';
         <input type="hidden" name="action" id="catAction" value="add">
         <input type="hidden" name="id" id="catId" value="">
 
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label class="form-label" style="display:block;margin-bottom:6px;">نام دسته‌بندی <span class="text-danger">*</span></label>
+        <div class="field" style="margin-bottom: 1.2rem;">
+          <label>نام دسته‌بندی <span class="text-danger">*</span></label>
           <input type="text" name="name" id="catName" class="input" required maxlength="100" placeholder="مثلاً: سرورهای اروپا">
         </div>
 
-        <div class="form-group">
-          <label class="form-label" style="display:block;margin-bottom:6px;">وضعیت</label>
+        <div class="field">
+          <label>وضعیت</label>
           <select name="status" id="catStatus" class="input">
             <option value="active">فعال</option>
             <option value="inactive">غیرفعال</option>
