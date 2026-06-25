@@ -281,6 +281,7 @@ include __DIR__ . '/inc/layout_head.php';
                             <td data-label="عملیات" style="text-align: center; padding: 14px 8px; vertical-align: middle;">
                                 <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
                                     <button class="btn btn-ghost btn-sm" 
+                                            id="btn-view-<?= $ref['id'] ?>"
                                             onclick="toggleReferrals(<?= $ref['id'] ?>)" 
                                             style="padding: 6px 14px; font-weight: 600;">
                                         <?= icon('eye', 14) ?> مشاهده زیرمجموعه‌ها
@@ -319,18 +320,33 @@ include __DIR__ . '/inc/layout_head.php';
 <script>
 function toggleReferrals(referrerId) {
     const btn = document.getElementById('btn-' + referrerId);
+    const viewBtn = document.getElementById('btn-view-' + referrerId);
     const row = document.getElementById('referrer-row-' + referrerId);
     let detailsRow = document.getElementById('details-' + referrerId);
 
     if (detailsRow) {
-        if (detailsRow.style.display === 'none') {
-            detailsRow.style.display = 'table-row';
-            btn.innerHTML = `<?= icon('minus', 14) ?>`;
-            btn.classList.add('active');
+        if (detailsRow.classList.contains('d-none')) {
+            detailsRow.classList.remove('d-none');
+            if (row) row.classList.add('expanded');
+            if (btn) {
+                btn.innerHTML = `<?= icon('minus', 14) ?>`;
+                btn.classList.add('active');
+            }
+            if (viewBtn) {
+                viewBtn.innerHTML = `<?= icon('eye-off', 14) ?> بستن زیرمجموعه‌ها`;
+                viewBtn.classList.add('btn-active');
+            }
         } else {
-            detailsRow.style.display = 'none';
-            btn.innerHTML = `<?= icon('plus', 14) ?>`;
-            btn.classList.remove('active');
+            detailsRow.classList.add('d-none');
+            if (row) row.classList.remove('expanded');
+            if (btn) {
+                btn.innerHTML = `<?= icon('plus', 14) ?>`;
+                btn.classList.remove('active');
+            }
+            if (viewBtn) {
+                viewBtn.innerHTML = `<?= icon('eye', 14) ?> مشاهده زیرمجموعه‌ها`;
+                viewBtn.classList.remove('btn-active');
+            }
         }
     } else {
         // Create details row
@@ -362,9 +378,16 @@ function toggleReferrals(referrerId) {
         
         detailsRow.appendChild(td);
         row.parentNode.insertBefore(detailsRow, row.nextSibling);
+        if (row) row.classList.add('expanded');
         
-        btn.innerHTML = `<?= icon('minus', 14) ?>`;
-        btn.classList.add('active');
+        if (btn) {
+            btn.innerHTML = `<?= icon('minus', 14) ?>`;
+            btn.classList.add('active');
+        }
+        if (viewBtn) {
+            viewBtn.innerHTML = `<?= icon('eye-off', 14) ?> بستن زیرمجموعه‌ها`;
+            viewBtn.classList.add('btn-active');
+        }
         
         // Fetch sub-members list
         fetch('ajax/get_referrals.php?id=' + referrerId)
@@ -554,16 +577,32 @@ function toggleReferrals(referrerId) {
         justify-content: center !important;
     }
     
+    /* Expanded states for referrer rows to merge with details card */
+    #affiliatesTbl tbody tr[id^="referrer-row-"].expanded {
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        margin-bottom: 0 !important;
+        border-bottom: none !important;
+        box-shadow: none !important;
+    }
+
     /* 4. Sub-members (جزئیات) row on mobile */
     #affiliatesTbl tbody tr[id^="details-"] {
-        display: block !important;
-        background: var(--sf2) !important;
-        margin-top: -8px !important;
-        margin-bottom: 20px !important;
-        border-radius: 12px !important;
-        border: 1px dashed var(--ac) !important;
-        padding: 12px 10px !important;
+        display: block; /* No !important to allow d-none override */
+        background: var(--sf) !important;
+        border-left: 1px solid var(--bd) !important;
+        border-right: 1px solid var(--bd) !important;
+        border-bottom: 1px solid var(--bd) !important;
+        border-top: none !important;
+        border-bottom-left-radius: 14px !important;
+        border-bottom-right-radius: 14px !important;
+        border-top-left-radius: 0 !important;
+        border-top-right-radius: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 16px !important;
+        padding: 0 16px 16px 16px !important;
         width: 100% !important;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.12) !important;
     }
     #affiliatesTbl tbody tr[id^="details-"] td {
         display: block !important;

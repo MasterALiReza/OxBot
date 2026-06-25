@@ -338,6 +338,27 @@
         direction: rtl !important;
     }
 
+    .tbl-wrap td .profile-avatar {
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
+        flex: 0 0 38px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* Smaller sub-member avatar sizes */
+    .tbl-wrap tr[id^="details-"] td .profile-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        flex: 0 0 32px !important;
+    }
+
     /* Custom Header layout for Name cell to make it look like real cards */
     .tbl-wrap td[data-label="نام"],
     .tbl-wrap td[data-label="نام پنل"] {
@@ -2043,7 +2064,7 @@
     /* Center text and icons horizontally on top line */
     .tbl-wrap td .mobile-flex-between > div,
     .tbl-wrap td .desktop-vertical-stack > div,
-    .tbl-wrap td .dash-unified-content > div {
+    .tbl-wrap td .dash-unified-content > div:not(.profile-avatar) {
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
@@ -2052,6 +2073,24 @@
         width: auto !important;
         white-space: nowrap !important;
         flex-shrink: 0 !important;
+    }
+
+    /* Global Display Utility */
+    .d-none {
+        display: none !important;
+    }
+
+    /* Mobile Table Card Hover & Focus States */
+    .tbl-wrap tbody tr:not([id^="details-"]):hover {
+        background: rgba(var(--glass-base-rgb), 0.3) !important;
+        border-color: var(--ac) !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.18) !important;
+        transform: translateY(-2px);
+        cursor: pointer;
+    }
+    
+    .tbl-wrap tbody tr:not([id^="details-"]):hover td {
+        background: transparent !important;
     }
     
     .tbl-wrap td .mobile-label {
