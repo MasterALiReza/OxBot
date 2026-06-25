@@ -129,7 +129,7 @@ include __DIR__ . '/inc/layout_head.php';
             <tr>
               <td data-label="آیدی" class="cell-mono"><?= htmlspecialchars((string)$cat['id']) ?></td>
               <td data-label="نام" style="font-weight: 600; color: var(--text);"><?= htmlspecialchars($cat['name']) ?></td>
-              <td data-label="وضعیت">
+              <td data-label="وضعیت" class="no-label">
                 <span class="status-pill <?= $cat['status'] === 'active' ? 'success' : 'danger' ?>">
                   <?= $cat['status'] === 'active' ? 'فعال' : 'غیرفعال' ?>
                 </span>
