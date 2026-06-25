@@ -246,77 +246,47 @@ window.closeModal = function (id) {
 };
 
 // ─── Category page UI ─────────────────────────────────────────────────────────
-// Uses document-level event delegation so it survives HTMX swaps.
-// The one-time setup guard prevents double-binding.
-(function setupCategoryUI() {
-    // Only run once per page lifetime using a flag on document.body
-    if (document.body.__catUIReady) return;
+window.showAddCategoryModal = function () {
+    var modal    = document.getElementById('categoryModal');
+    var titleEl  = document.getElementById('catModalTitle');
+    var actionEl = document.getElementById('catAction');
+    var idEl     = document.getElementById('catId');
+    var nameEl   = document.getElementById('catName');
+    var statusEl = document.getElementById('catStatus');
+    if (!modal) return;
+    if (titleEl)  titleEl.innerText = 'افزودن دسته‌بندی';
+    if (actionEl) actionEl.value    = 'add';
+    if (idEl)     idEl.value        = '';
+    if (nameEl)   nameEl.value      = '';
+    if (statusEl) statusEl.value    = 'active';
+    modal.classList.add('open');
+    if (nameEl) nameEl.focus();
+};
 
-    // Use event delegation on document so buttons added/replaced by HTMX are always covered
-    document.addEventListener('click', function (e) {
-        // ── Add button ────────────────────────────────────────────────────────
-        var addBtn = e.target.closest('#btnAddCategory');
-        if (addBtn) {
-            var modal    = document.getElementById('categoryModal');
-            var titleEl  = document.getElementById('catModalTitle');
-            var actionEl = document.getElementById('catAction');
-            var idEl     = document.getElementById('catId');
-            var nameEl   = document.getElementById('catName');
-            var statusEl = document.getElementById('catStatus');
-            if (!modal) return;
-            if (titleEl)  titleEl.innerText = 'افزودن دسته‌بندی';
-            if (actionEl) actionEl.value    = 'add';
-            if (idEl)     idEl.value        = '';
-            if (nameEl)   nameEl.value      = '';
-            if (statusEl) statusEl.value    = 'active';
-            modal.classList.add('open');
-            if (nameEl) nameEl.focus();
-            return;
-        }
+window.editCategory = function (cat) {
+    var modal    = document.getElementById('categoryModal');
+    var titleEl  = document.getElementById('catModalTitle');
+    var actionEl = document.getElementById('catAction');
+    var idEl     = document.getElementById('catId');
+    var nameEl   = document.getElementById('catName');
+    var statusEl = document.getElementById('catStatus');
+    if (!modal) return;
+    if (titleEl)  titleEl.innerText = 'ویرایش دسته‌بندی';
+    if (actionEl) actionEl.value    = 'edit';
+    if (idEl)     idEl.value        = cat.id;
+    if (nameEl)   nameEl.value      = cat.name;
+    if (statusEl) statusEl.value    = cat.status;
+    modal.classList.add('open');
+    if (nameEl) nameEl.focus();
+};
 
-        // ── Edit button ───────────────────────────────────────────────────────
-        var editBtn = e.target.closest('[data-edit-cat]');
-        if (editBtn) {
-            var modal    = document.getElementById('categoryModal');
-            var titleEl  = document.getElementById('catModalTitle');
-            var actionEl = document.getElementById('catAction');
-            var idEl     = document.getElementById('catId');
-            var nameEl   = document.getElementById('catName');
-            var statusEl = document.getElementById('catStatus');
-            if (!modal) return;
-            try {
-                var cat = JSON.parse(editBtn.getAttribute('data-edit-cat'));
-                if (titleEl)  titleEl.innerText = 'ویرایش دسته‌بندی';
-                if (actionEl) actionEl.value    = 'edit';
-                if (idEl)     idEl.value        = cat.id;
-                if (nameEl)   nameEl.value      = cat.name;
-                if (statusEl) statusEl.value    = cat.status;
-                modal.classList.add('open');
-                if (nameEl) nameEl.focus();
-            } catch(err) { console.error('Category parse error', err); }
-            return;
-        }
-
-        // ── Close / Cancel buttons ────────────────────────────────────────────
-        if (e.target.closest('#btnCloseCatModal') || e.target.closest('#btnCancelCatModal')) {
-            var modal = document.getElementById('categoryModal');
-            if (modal) modal.classList.remove('open');
-            return;
-        }
-
-        // ── Click on veil backdrop ────────────────────────────────────────────
-        var veil = e.target.closest('#categoryModal');
-        if (veil && e.target === veil) {
-            veil.classList.remove('open');
-        }
-    });
-
-    document.body.__catUIReady = true;
-})();
+window.closeCategoryModal = function () {
+    var modal = document.getElementById('categoryModal');
+    if (modal) modal.classList.remove('open');
+};
 
 function initCategoryUI(context) {
-    // No-op: logic moved to document-level delegation above.
-    // Kept for backwards compatibility so initUI() call doesn't throw.
+    // No-op: handled by global window functions via inline HTML onclicks.
 }
 
 

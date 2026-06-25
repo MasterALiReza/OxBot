@@ -94,7 +94,7 @@ include __DIR__ . '/inc/layout_head.php';
     <h2><?= icon('folder') ?> دسته‌بندی پنل‌ها</h2>
     <p>مدیریت دسته‌بندی‌های پنل‌ها برای ساخت گروهی محصولات</p>
   </div>
-  <button class="btn btn-primary" id="btnAddCategory">
+  <button class="btn btn-primary" id="btnAddCategory" onclick="showAddCategoryModal()">
     <?= icon('plus') ?> افزودن دسته‌بندی
   </button>
 </div>
@@ -126,7 +126,7 @@ include __DIR__ . '/inc/layout_head.php';
               </td>
               <td>
                 <button class="btn btn-sm btn-outline"
-                        data-edit-cat="<?= htmlspecialchars(json_encode($cat, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>">
+                        onclick="editCategory(<?= htmlspecialchars(json_encode($cat, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>)">
                   <?= icon('edit') ?> ویرایش
                 </button>
                 <a href="?action=delete&id=<?= (int)$cat['id'] ?>&_csrf=<?= csrf_token() ?>"
@@ -151,11 +151,11 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Modal Add/Edit -->
-<div class="modal-veil" id="categoryModal">
+<div class="modal-veil" id="categoryModal" onclick="if(event.target===this) closeCategoryModal()">
   <div class="modal" style="max-width: 500px;">
     <div class="modal-head">
       <h3 id="catModalTitle"><?= icon('folder', 16) ?> افزودن دسته‌بندی</h3>
-      <button type="button" class="modal-x" id="btnCloseCatModal"><?= icon('x', 14) ?></button>
+      <button type="button" class="modal-x" id="btnCloseCatModal" onclick="closeCategoryModal()"><?= icon('x', 14) ?></button>
     </div>
     <form id="catForm" method="POST" action="panel_categories.php">
       <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
@@ -177,7 +177,7 @@ include __DIR__ . '/inc/layout_head.php';
         </div>
       </div>
       <div class="modal-foot">
-        <button type="button" class="btn btn-ghost" id="btnCancelCatModal">انصراف</button>
+        <button type="button" class="btn btn-ghost" id="btnCancelCatModal" onclick="closeCategoryModal()">انصراف</button>
         <button type="submit" class="btn btn-primary">ذخیره دسته‌بندی</button>
       </div>
     </form>
