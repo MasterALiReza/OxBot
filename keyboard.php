@@ -1569,7 +1569,7 @@ function KeyboardProduct($location, $query, $pricediscount, $datakeyboard, $stat
     $product = ['inline_keyboard' => []];
     $statusshowprice = select("shopSetting", "*", "Namevalue", "statusshowprice", "select")['value'];
     if (stripos($query, 'ORDER BY') === false) {
-        $query .= " ORDER BY CAST(Volume_constraint AS UNSIGNED) ASC, CAST(price_product AS UNSIGNED) ASC";
+        $query .= " ORDER BY sort_order ASC, CAST(Volume_constraint AS UNSIGNED) ASC, CAST(price_product AS UNSIGNED) ASC";
     }
     $stmt = $pdo->prepare($query);
     $stmt->execute();

@@ -104,3 +104,53 @@ document.addEventListener('click', function (e) {
 
 document.body.addEventListener('htmx:load', initProductFilters);
 initProductFilters();
+
+function initSortable() {
+    var prodTbl = document.getElementById('prodTbl');
+    if (prodTbl && typeof Sortable !== 'undefined') {
+        Sortable.create(prodTbl, {
+            handle: '.drag-handle',
+            animation: 150,
+            onEnd: function (evt) {
+                var order = [];
+                prodTbl.querySelectorAll('.product-card').forEach(function(card) {
+                    var id = card.getAttribute('data-id');
+                    if (id) {
+                        order.push(id);
+                    }
+                });
+                
+                var csrfInput = document.querySelector('input[name="_csrf"]');
+                var csrfToken = csrfInput ? csrfInput.value : '';
+
+                var formData = new URLSearchParams();
+                formData.append('action', 'reorder_products');
+                formData.append('_csrf', csrfToken);
+                order.forEach(function(id) {
+                    formData.append('order[]', id);
+                });
+
+                fetch('product.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData.toString()
+                }).then(function(res) {
+                    return res.json();
+                }).then(function(data) {
+                    if(data.success) {
+                        console.log('Order saved successfully');
+                    } else {
+                        console.error('Failed to save order:', data.error);
+                        alert('خطا در ذخیره چیدمان محصولات');
+                    }
+                }).catch(function(err) {
+                    console.error(err);
+                });
+            }
+        });
+    }
+}
+document.body.addEventListener('htmx:load', initSortable);
+initSortable();

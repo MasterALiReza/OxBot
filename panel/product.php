@@ -3,6 +3,29 @@ require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/icons.php';
 require_auth();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reorder_products') {
+    csrf_check_post();
+    header('Content-Type: application/json');
+    $order = $_POST['order'] ?? [];
+    if (is_array($order)) {
+        try {
+            $pdo->beginTransaction();
+            $stmt = $pdo->prepare("UPDATE product SET sort_order = ? WHERE id = ?");
+            foreach ($order as $index => $id) {
+                $stmt->execute([$index, (int)$id]);
+            }
+            $pdo->commit();
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Invalid order data']);
+    }
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add') {
   csrf_check_post();
   $name = trim($_POST['name_product'] ?? '');
@@ -150,7 +173,7 @@ try {
   $panel_categories = db_fetchAll($pdo, "SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
 } catch (Exception $e) {
 }
-$products = db_fetchAll($pdo, "SELECT * FROM product ORDER BY id");
+$products = db_fetchAll($pdo, "SELECT * FROM product ORDER BY sort_order ASC, CAST(Volume_constraint AS UNSIGNED) ASC, CAST(price_product AS UNSIGNED) ASC, id ASC");
 
 // Auto-sync missing categories from product table to category table
 try {
@@ -293,12 +316,17 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
           <p>هیچ محصولی با این فیلترها یافت نشد.</p>
       </div>
       <?php foreach ($products as $p): ?>
-        <div class="product-card filterable-item" data-category="<?= htmlspecialchars($p['category'] ?? '') ?>" data-panel="<?= htmlspecialchars($p['Location'] ?? '') ?>">
+        <div class="product-card filterable-item" data-id="<?= (int) $p['id'] ?>" data-category="<?= htmlspecialchars($p['category'] ?? '') ?>" data-panel="<?= htmlspecialchars($p['Location'] ?? '') ?>">
             <div class="pc-head">
-                <div>
-                    <h3 class="pc-title"><?= htmlspecialchars($p['name_product'] ?? '') ?></h3>
-                    <div class="pc-price">
-                        <?= number_format((int) ($p['price_product'] ?? 0)) ?> <small>تومان</small>
+                <div style="display:flex; align-items:center;">
+                    <div class="drag-handle" style="cursor: grab; margin-left: 10px; color: var(--text-muted); opacity: 0.5;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 19v-2h2v2H7zm4 0v-2h2v2h-2zm4 0v-2h2v2h-2zm-8-4v-2h2v2H7zm4 0v-2h2v2h-2zm4 0v-2h2v2h-2zm-8-4V9h2v2H7zm4 0V9h2v2h-2zm4 0V9h2v2h-2zM7 5v2h2V5H7zm4 0v2h2V5h-2zm4 0v2h2V5h-2z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="pc-title"><?= htmlspecialchars($p['name_product'] ?? '') ?></h3>
+                        <div class="pc-price">
+                            <?= number_format((int) ($p['price_product'] ?? 0)) ?> <small>تومان</small>
+                        </div>
                     </div>
                 </div>
                 <?php if (!empty($p['category'])): ?>
@@ -641,6 +669,7 @@ function confirmDeleteCat(id) {
 }
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script src="js/product.js"></script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>

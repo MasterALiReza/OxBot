@@ -483,6 +483,7 @@ try {
         inbounds TEXT NULL,
         proxies TEXT NULL,
         category varchar(400) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+        sort_order INT(10) DEFAULT 0,
         hide_panel TEXT  NOT NULL)
         ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
         if (!$result) {
@@ -498,6 +499,7 @@ try {
         addFieldToTable("product", "hide_panel", '{}', "TEXT");
         addFieldToTable("product", "data_limit_reset", "no_reset", "varchar(100)");
         addFieldToTable("product", "agent", "f", "varchar(50)");
+        addFieldToTable("product", "sort_order", "0", "INT(10)");
         addFieldToTable("product", "code_product", null, "varchar(50)");
     }
 } catch (Exception $e) {
