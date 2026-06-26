@@ -168,17 +168,13 @@ switch ($data['actions']) {
                 return;
             }
             $DataUserOut = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
-            if (!is_array($DataUserOut) || !array_key_exists('data_limit', $DataUserOut) || !array_key_exists('used_traffic', $DataUserOut)) {
-                http_response_code(502);
-                echo json_encode([
-                    'status' => false,
-                    'msg' => isset($DataUserOut['msg']) ? $DataUserOut['msg'] : "Service data unavailable",
-                    'obj' => []
-                ]);
-                return;
+            
+            if (!is_array($DataUserOut)) {
+                $DataUserOut = ['status' => 'Unsuccessful', 'msg' => 'Invalid DataUser response'];
             }
-            $data_limit_bytes = is_numeric($DataUserOut['data_limit']) ? (float) $DataUserOut['data_limit'] : 0;
-            $used_traffic_bytes = is_numeric($DataUserOut['used_traffic']) ? (float) $DataUserOut['used_traffic'] : 0;
+            
+            $data_limit_bytes = isset($DataUserOut['data_limit']) && is_numeric($DataUserOut['data_limit']) ? (float) $DataUserOut['data_limit'] : 0;
+            $used_traffic_bytes = isset($DataUserOut['used_traffic']) && is_numeric($DataUserOut['used_traffic']) ? (float) $DataUserOut['used_traffic'] : 0;
             $remaining_traffic_bytes = max($data_limit_bytes - $used_traffic_bytes, 0);
             $data_limit = $data_limit_bytes / pow(1024, 3);
             $used_Traffic = $used_traffic_bytes / pow(1024, 3);

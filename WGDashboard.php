@@ -6,28 +6,25 @@ ini_set('error_log', 'error_log');
 function get_userwg($username, $namepanel)
 {
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $curl = curl_init();
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => $marzban_list_get['url_panel'] . '/api/getWireguardConfigurationInfo?configurationName=' . $marzban_list_get['inboundid'],
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'GET',
-        CURLOPT_HTTPHEADER => array(
-            'Accept: application/json',
-            'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
-        ),
-    ));
-    $response_str = curl_exec($curl);
-    $curl_error = curl_error($curl);
-    curl_close($curl);
+    $url = $marzban_list_get['url_panel'] . '/api/getWireguardConfigurationInfo?configurationName=' . $marzban_list_get['inboundid'];
+    $headers = array(
+        'Accept: application/json',
+        'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
+    );
     
-    if ($response_str === false) {
-        return ['status' => false, 'msg' => 'API Connection Error: ' . $curl_error];
+    $req = new CurlRequest($url);
+    $req->setHeaders($headers);
+    $api_res = $req->get();
+    
+    if (!empty($api_res['error'])) {
+        return ['status' => false, 'msg' => 'API Connection Error: ' . $api_res['error']];
     }
+    
+    if (empty($api_res['status']) || $api_res['status'] != 200) {
+        return ['status' => false, 'msg' => 'API Error: HTTP ' . ($api_res['status'] ?? 'unknown')];
+    }
+    
+    $response_str = $api_res['body'];
     
     $response = json_decode($response_str, true);
     if (!is_array($response)) {
