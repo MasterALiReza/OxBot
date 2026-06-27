@@ -1072,12 +1072,12 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         $keyboardsetting = [
             'inline_keyboard' => [
                 [
-                    ['text' => $textbotlang['users']['extend']['title'], 'callback_data' => 'extend_' . $username],
-                    ['text' => $textbotlang['users']['extraVolume']['sellextra'], 'callback_data' => 'Extra_volume_' . $username],
+                    ['text' => $textbotlang['users']['extend']['title'], 'callback_data' => 'extend_' . $nameloc['id_invoice']],
+                    ['text' => $textbotlang['users']['extraVolume']['sellextra'], 'callback_data' => 'Extra_volume_' . $nameloc['id_invoice']],
                 ],
                 [
-                    ['text' => $textbotlang['keyboard']['deleteService'], 'callback_data' => 'removeauto-' . $username],
-                    ['text' => $textbotlang['users']['extraTime']['title'], 'callback_data' => 'Extra_time_' . $username],
+                    ['text' => $textbotlang['keyboard']['deleteService'], 'callback_data' => 'removeauto-' . $nameloc['id_invoice']],
+                    ['text' => $textbotlang['users']['extraTime']['title'], 'callback_data' => 'Extra_time_' . $nameloc['id_invoice']],
                 ],
                 [
                     ['text' => $textbotlang['users']['status']['backlist'], 'callback_data' => 'backorder'],
@@ -1217,7 +1217,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         $tempArray = [];
         $keyboardsetting = ['inline_keyboard' => []];
         foreach ($keyboarddate as $keyboardtext) {
-            $tempArray[] = ['text' => $keyboardtext['text'], 'callback_data' => $keyboardtext['callback_data'] . $username];
+            $tempArray[] = ['text' => $keyboardtext['text'], 'callback_data' => $keyboardtext['callback_data'] . $nameloc['id_invoice']];
             if (count($tempArray) == 2 or $keyboardtext['text'] == $textbotlang['extracted']['index_php']['refreshInfoButton']) {
                 $keyboardsetting['inline_keyboard'][] = $tempArray;
                 $tempArray = [];
