@@ -1,4 +1,131 @@
 <?php
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+if (false) {
+    /** Dummy definitions to suppress IDE Undefined function warnings */
+    /** @return array|false */
+    function selectAll($table, $field) {}
+    
+    /** @return \mysqli_result|false */
+    function CustomQuery($sql) {}
+}
+
+/**
+ * @var array $textbotlang
+ * @var string $version
+ * @var string|int $from_id
+ * @var array $admin_ids
+ * @var string $datain
+ * @var string $text
+ * @var string|int $message_id
+ * @var mixed $buyreport
+ * @var mixed $otherservice
+ * @var mixed $otherreport
+ * @var mixed $paymentreports
+ * @var mixed $reporttest
+ * @var mixed $errorreport
+ * @var mixed $active_panell
+ * @var mixed $keyboardadmin
+ * @var mixed $setting_panel
+ * @var array $user
+ * @var mixed $shopkeyboard
+ * @var mixed $channelkeyboard
+ * @var mixed $backadmin
+ * @var mixed $list_channels_joins
+ * @var mixed $adminrule
+ * @var string $username
+ * @var array $setting
+ * @var mixed $keyboard_stat
+ * @var mixed $affiliates
+ * @var mixed $keyboardtypepanel
+ * @var PDO $pdo
+ * @var string $domainhosts
+ * @var array $marzban_list
+ * @var mixed $photo
+ * @var mixed $photoid
+ * @var mixed $caption
+ * @var mixed $keyboardhelpadmin
+ * @var mixed $connect
+ * @var mixed $video
+ * @var mixed $document
+ * @var mixed $json_list_helpkey
+ * @var mixed $porsantreport
+ * @var mixed $reportnight
+ * @var mixed $reportcron
+ * @var mixed $reportbackup
+ * @var mixed $keyboard_status_mgmt
+ * @var mixed $keyboard_users_mgmt
+ * @var mixed $keyboard_server_mgmt
+ * @var mixed $keyboard_shop_mgmt
+ * @var mixed $keyboard_financial_mgmt
+ * @var mixed $keyboard_support_mgmt
+ * @var mixed $name_product
+ * @var mixed $keyboardAgentProduct
+ * @var mixed $json_list_marzban_panel
+ * @var mixed $keyboardtimereset
+ * @var mixed $supportcenter
+ * @var mixed $callback_query_id
+ * @var mixed $chat_id
+ * @var mixed $text_inline
+ * @var mixed $json_list_product_list_admin
+ * @var mixed $list_marzban_panel_edit_product
+ * @var mixed $change_product
+ * @var mixed $users_ids
+ * @var mixed $json_list_Discount_list_admin
+ * @var mixed $code_Discount
+ * @var mixed $keyboardprotocollist
+ * @var mixed $protocoldata
+ * @var mixed $optionMarzban
+ * @var mixed $MethodUsername
+ * @var mixed $CartManage
+ * @var mixed $backuser
+ * @var mixed $NowPaymentsManage
+ * @var mixed $Swapinokey
+ * @var mixed $aqayepardakht
+ * @var mixed $keyboardzarinpal
+ * @var mixed $keyboard_panel_category_mgmt
+ * @var mixed $optionMHSanaei
+ * @var mixed $optionX_ui_single
+ * @var mixed $optionalireza_single
+ * @var mixed $optionhiddfy
+ * @var mixed $optionManualsale
+ * @var mixed $optionmarzneshin
+ * @var mixed $optionwg
+ * @var mixed $options_ui
+ * @var mixed $optionibsng
+ * @var mixed $option_mikrotik
+ * @var mixed $keyboardprotocol
+ * @var mixed $keyboardconfirm
+ * @var mixed $keyboard
+ * @var mixed $json_list_Discount_list_admin_sell
+ * @var mixed $SellDiscount
+ * @var mixed $keyboardexportdata
+ * @var mixed $trnado
+ * @var mixed $helpedit
+ * @var mixed $Methodextend
+ * @var mixed $usernameinvoice
+ * @var mixed $iranpaykeyboard
+ * @var mixed $tronnowpayments
+ * @var mixed $optionathmarzban
+ * @var mixed $optionathx_ui
+ * @var mixed $nowpayment_setting_keyboard
+ * @var mixed $configedit
+ * @var mixed $departemanslist
+ * @var mixed $videoid
+ * @var mixed $lottery
+ * @var mixed $wheelkeyboard
+ * @var mixed $list_payment
+ * @var mixed $inline_query_id
+ * @var mixed $keyboardlinkapp
+ * @var mixed $json_list_remove_helpـlink
+ * @var mixed $Startelegram
+ * @var mixed $keyboardchangelimit
+ * @var mixed $keyboard_Category_manage
+ * @var mixed $keyboard_shop_manage
+ * @var mixed $Exception_auto_cart_keyboard
+ * @var mixed $userslist
+ */
 #----------------[  admin section  ]------------------#
 $textadmin = ["panel", "/panel", $textbotlang['Admin']['panelAdmin'] ?? '👨‍💼 پنل مدیریت'];
 $text_panel_admin_login_template = sprintf($textbotlang['Admin']['adminphp']['msg_panel_admin_bot_report'], $version);
