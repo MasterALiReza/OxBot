@@ -7,9 +7,13 @@ fi
 # Function to update the script itself automatically
 function self_update_script() {
     local MASTER_PATH="/root/install.sh"
-    local BIN_LINK="/usr/local/bin/mirza"
+    local BIN_LINK="/usr/local/bin/ox"
     local URL="https://raw.githubusercontent.com/MasterALiReza/mirzabot/main/install.sh"
     local TEMP_FILE="/tmp/mirza_pro_update.sh"
+    # Clean up old command symlink if it exists
+    if [ -L "/usr/local/bin/mirza" ] || [ -f "/usr/local/bin/mirza" ]; then
+        rm -f "/usr/local/bin/mirza"
+    fi
     echo -e "\e[33mChecking for updates...\033[0m"
     wget -q -O "$TEMP_FILE" "$URL"
     if [ -s "$TEMP_FILE" ]; then
@@ -891,7 +895,7 @@ EOF
     fi
     # Add executable permission and link (This is handled by self_update_script as well, but kept for completeness)
     chmod +x /root/install.sh
-    ln -sf /root/install.sh /usr/local/bin/mirza
+    ln -sf /root/install.sh /usr/local/bin/ox
     # Trigger self-update to ensure next run uses latest
     self_update_script
 }
@@ -1374,7 +1378,7 @@ EOF
     echo -e "\033[33mDatabase password: \033[36m$DB_PASSWORD\033[0m"
     # Add executable permission and link
     chmod +x /root/install.sh
-    ln -vs /root/install.sh /usr/local/bin/mirza
+    ln -vs /root/install.sh /usr/local/bin/ox
 }
 Update Function for Mirza Pro
 function update_bot() {
@@ -1549,8 +1553,8 @@ EOF
     # Ensure /root/install.sh is executable and linked to mirza
     if [ -f "/root/install.sh" ]; then
         sudo chmod +x /root/install.sh
-        sudo ln -sf /root/install.sh /usr/local/bin/mirza
-        echo -e "\e[92mEnsured /root/install.sh is executable and 'mirza' command is linked.\033[0m"
+        sudo ln -sf /root/install.sh /usr/local/bin/ox
+        echo -e "\e[92mEnsured /root/install.sh is executable and 'ox' command is linked.\033[0m"
     else
         echo -e "\e[91mError: /root/install.sh not found after update attempt.\033[0m"
     fi
