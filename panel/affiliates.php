@@ -274,7 +274,7 @@ include __DIR__ . '/inc/layout_head.php';
                             </td>
                             <td data-label="موجودی کیف پول" style="text-align: right; padding: 14px 8px; vertical-align: middle;">
                                 <span class="cn" style="font-weight: 600; font-size: 1rem; color: var(--ac);">
-                                    <?= number_format((int)($ref['Balance'] ?? 0)) ?>
+                                    <?= number_format((int)($ref['affiliate_balance'] ?? 0)) ?>
                                     <span class="cf" style="font-size: 0.75rem; color: var(--mute);">تومان</span>
                                 </span>
                             </td>

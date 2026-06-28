@@ -488,11 +488,17 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     step('none', $from_id);
 
 } elseif ($user['step'] == 'get_transfer_amount') {
-    if (!$text || !is_numeric($text) || intval($text) <= 0) {
+    // Convert Persian numerals and strip non-digits
+    $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $clean_text = str_replace($persian, $english, $text);
+    $clean_text = preg_replace('/[^0-9]/', '', $clean_text);
+
+    if (!$clean_text || intval($clean_text) <= 0) {
         sendmessage($from_id, "❌ مبلغ نامعتبر است. لطفا یک عدد معتبر ارسال کنید:", $backuser, 'HTML');
         return;
     }
-    $amount = intval($text);
+    $amount = intval($clean_text);
     
     // Atomic transfer
     $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance - :amount, Balance = Balance + :amount WHERE id = :id AND affiliate_balance >= :amount");
@@ -4916,7 +4922,15 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     update("user", 'Processing_value', $message_id, "id", $from_id);
 } elseif ($user['step'] == "getprice") {
     deletemessage($from_id, $user['Processing_value']);
-    if (!is_numeric($text))
+    
+    // Convert Persian numerals and strip non-digits
+    $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $clean_text = str_replace($persian, $english, $text);
+    $clean_text = preg_replace('/[^0-9]/', '', $clean_text);
+    $text = $clean_text;
+    
+    if (!$text || !is_numeric($text))
         return sendmessage($from_id, $textbotlang['users']['Balance']['errorprice'], null, 'HTML');
     $minbalance = json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true)[$user['agent']];
     $maxbalance = json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true)[$user['agent']];
