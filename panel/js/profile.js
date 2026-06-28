@@ -1,7 +1,7 @@
 window.switchTab = function (name) {
-    var panes = { invs: 'paneOrders', pay: 'panePay', refs: 'paneRefs' };
-    var tabs = { invs: 'tabInvs', pay: 'tabPay', refs: 'tabRefs' };
-    var links = { invs: 'linkAllInvs', pay: 'linkAllPays', refs: 'linkAllRefs' };
+    var panes = { invs: 'paneOrders', pay: 'panePay', refs: 'paneRefs', affhistory: 'paneAffHistory' };
+    var tabs = { invs: 'tabInvs', pay: 'tabPay', refs: 'tabRefs', affhistory: 'tabAffHistory' };
+    var links = { invs: 'linkAllInvs', pay: 'linkAllPays', refs: 'linkAllRefs', affhistory: 'linkAllAffHistory' };
 
     Object.values(panes).forEach(function (id) {
         var el = document.getElementById(id);

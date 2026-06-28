@@ -116,6 +116,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $limit = (int) ($_POST['limit'] ?? 0);
         db_query($pdo, "UPDATE user SET limitchangeloc = ? WHERE id = ?", [$limit, $id]);
         flash('success', "سقف تغییر لوکیشن نماینده تنظیم شد.");
+    } elseif ($action === 'add_affiliate_balance') {
+        $amount = (int) ($_POST['amount'] ?? 0);
+        $desc = trim($_POST['description'] ?? '');
+        if ($amount > 0) {
+            db_query($pdo, "UPDATE user SET affiliate_balance = COALESCE(affiliate_balance, 0) + ? WHERE id = ?", [$amount, $id]);
+            db_query($pdo, "INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'deposit', ?, ?)", [$id, $amount, $desc]);
+            
+            $msg = "🎉 مبلغ <b>" . number_format($amount) . "</b> تومان به کیف پول بازاریابی شما توسط مدیریت اضافه شد.";
+            if (!empty($desc)) {
+                $msg .= "\n📝 علت: $desc";
+            }
+            telegram('sendMessage', ['chat_id' => $id, 'text' => $msg, 'parse_mode' => 'HTML']);
+            flash('success', "مبلغ " . number_format($amount) . " تومان به کیف پول بازاریابی کاربر اضافه شد.");
+        } else {
+            flash('error', "مبلغ نامعتبر است.");
+        }
+    } elseif ($action === 'deduct_affiliate_balance') {
+        $amount = (int) ($_POST['amount'] ?? 0);
+        $desc = trim($_POST['description'] ?? '');
+        if ($amount > 0) {
+            // Atomic decrement
+            $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance - ? WHERE id = ? AND affiliate_balance >= ?");
+            $stmt->execute([$amount, $id, $amount]);
+            if ($stmt->rowCount() > 0) {
+                db_query($pdo, "INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'deduct', ?, ?)", [$id, $amount, $desc]);
+                
+                $msg = "❌ مبلغ <b>" . number_format($amount) . "</b> تومان از کیف پول بازاریابی شما توسط مدیریت کسر شد.";
+                if (!empty($desc)) {
+                    $msg .= "\n📝 علت: $desc";
+                }
+                telegram('sendMessage', ['chat_id' => $id, 'text' => $msg, 'parse_mode' => 'HTML']);
+                flash('success', "مبلغ " . number_format($amount) . " تومان از کیف پول بازاریابی کاربر کسر شد.");
+            } else {
+                flash('error', "موجودی بازاریابی کاربر کافی نیست.");
+            }
+        } else {
+            flash('error', "مبلغ نامعتبر است.");
+        }
+    } elseif ($action === 'transfer_affiliate_to_main') {
+        $amount = (int) ($_POST['amount'] ?? 0);
+        if ($amount > 0) {
+            // Atomic transfer
+            $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance - :amount, Balance = Balance + :amount WHERE id = :id AND affiliate_balance >= :amount");
+            $stmt->execute([':amount' => $amount, ':id' => $id]);
+            if ($stmt->rowCount() > 0) {
+                db_query($pdo, "INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'transfer_to_main', ?, 'انتقال دستی توسط مدیریت')", [$id, $amount]);
+                
+                $msg = "💼 مبلغ <b>" . number_format($amount) . "</b> تومان از کیف پول بازاریابی به کیف پول اصلی شما در ربات منتقل شد.";
+                telegram('sendMessage', ['chat_id' => $id, 'text' => $msg, 'parse_mode' => 'HTML']);
+                flash('success', "مبلغ " . number_format($amount) . " تومان با موفقیت به کیف پول اصلی کاربر منتقل شد.");
+            } else {
+                flash('error', "موجودی بازاریابی کافی برای انتقال وجود ندارد.");
+            }
+        } else {
+            flash('error', "مبلغ نامعتبر است.");
+        }
+    } elseif ($action === 'approve_withdrawal' || $action === 'reject_withdrawal') {
+        $w_id = (int)$_POST['withdrawal_id'];
+        $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
+        if ($w_req && $w_req['status'] === 'pending') {
+            if ($action === 'approve_withdrawal') {
+                db_query($pdo, "UPDATE withdrawal_requests SET status = 'approved' WHERE id = ?", [$w_id]);
+                $msg = "✅ درخواست تسویه حساب شما به مبلغ <b>" . number_format($w_req['amount']) . "</b> تومان تایید و پرداخت شد.";
+                telegram('sendMessage', ['chat_id' => $w_req['user_id'], 'text' => $msg, 'parse_mode' => 'HTML']);
+                flash('success', 'درخواست تسویه تایید و پرداخت شد.');
+            } else {
+                db_query($pdo, "UPDATE user SET affiliate_balance = COALESCE(affiliate_balance, 0) + ? WHERE id = ?", [$w_req['amount'], $w_req['user_id']]);
+                db_query($pdo, "UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ?", [$w_id]);
+                $msg = "❌ درخواست تسویه حساب شما به مبلغ <b>" . number_format($w_req['amount']) . "</b> تومان رد شد و مبلغ به کیف پول بازاریابی شما بازگشت داده شد.";
+                telegram('sendMessage', ['chat_id' => $w_req['user_id'], 'text' => $msg, 'parse_mode' => 'HTML']);
+                flash('success', 'درخواست تسویه رد شد و وجه بازگشت داده شد.');
+            }
+        } else {
+            flash('error', 'درخواست یافت نشد یا دیگر در انتظار بررسی نیست.');
+        }
     }
 
     header("Location: user.php?id=$id");
@@ -138,6 +213,14 @@ try {
 
 try {
     $referrals = db_fetchAll($pdo, "SELECT id, username, namecustom, Balance, register, agent FROM user WHERE affiliates = ? ORDER BY register DESC LIMIT 20", [$id]);
+} catch (Exception $e) {
+}
+
+$withdrawals = [];
+$aff_logs = [];
+try {
+    $withdrawals = db_fetchAll($pdo, "SELECT * FROM withdrawal_requests WHERE user_id = ? ORDER BY created_at DESC", [$id]);
+    $aff_logs = db_fetchAll($pdo, "SELECT * FROM affiliate_log WHERE user_id = ? ORDER BY created_at DESC", [$id]);
 } catch (Exception $e) {
 }
 
@@ -375,6 +458,10 @@ include __DIR__ . '/inc/layout_head.php';
                     <span class="cn" style="font-weight:700; font-size:1rem; color:var(--ac);"><?= number_format($balance) ?> <span class="cf" style="font-size:0.75rem">ت</span></span>
                 </div>
                 <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
+                    <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('award', 14) ?> کیف پول بازاریابی:</span>
+                    <span class="cn" style="font-weight:700; font-size:1rem; color:var(--ac);"><?= number_format($user['affiliate_balance'] ?? 0) ?> <span class="cf" style="font-size:0.75rem">ت</span></span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content: space-between; padding:10px 12px; background:var(--sf2); border-radius:8px; border:1px solid var(--bd);">
                     <span style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:6px;"><?= icon('star', 14) ?> امتیاز کاربر:</span>
                     <span class="cn" style="font-weight:600; font-size:1.05rem;"><?= number_format((int) ($user['score'] ?? 0)) ?></span>
                 </div>
@@ -449,6 +536,29 @@ include __DIR__ . '/inc/layout_head.php';
                         <button class="btn btn-primary" style="background:var(--ok);color:#fff;border:none" onclick="openModal('addOrderModal')">
                             <?= icon('shopping-cart', 14) ?> افزودن سفارش دستی
                         </button>
+                    </div>
+                </div>
+
+                <!-- Affiliate Financial Affairs -->
+                <div style="margin-top: 20px;">
+                    <div style="font-size:0.85rem;color:var(--mute);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                        <?= icon('award', 14) ?> <span>امور مالی همکاری در فروش (بازاریابی)</span>
+                        <div style="flex:1;height:1px;background:var(--bd);margin-right:10px;"></div>
+                    </div>
+                    <div class="user-actions-grid" style="padding:0;">
+                        <button class="btn btn-primary" onclick="openModal('addAffBalanceModal')">
+                            <?= icon('plus', 14) ?> افزایش موجودی بازاریابی
+                        </button>
+                        <button class="btn" style="background:var(--warn);color:#000;border:none" onclick="openModal('deductAffBalanceModal')">
+                            <?= icon('minus', 14) ?> کسر موجودی بازاریابی
+                        </button>
+                        <button class="btn btn-ghost" onclick="openModal('transferAffBalanceModal')">
+                            <?= icon('refresh-cw', 14) ?> انتقال به کیف پول اصلی
+                        </button>
+                        <a href="user_action.php?action=zero_affiliate_balance&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                            class="btn btn-no" data-confirm="آیا از صفر کردن کیف پول همکاری در فروش کاربر اطمینان دارید؟" hx-boost="false">
+                            <?= icon('slash', 14) ?> صفر کردن بازاریابی
+                        </a>
                     </div>
                 </div>
 
@@ -623,11 +733,19 @@ include __DIR__ . '/inc/layout_head.php';
                             </span>
                         </button>
                     <?php endif; ?>
+                    <button class="btn btn-sm" id="tabAffHistory" onclick="switchTab('affhistory')"
+                        style="background:transparent;color:var(--mute);border-radius:5px;font-size:.75rem;border:none">
+                        همکاری در فروش (لاگ و تسویه)
+                        <span style="background:var(--acs);color:var(--ac);padding:1px 6px;border-radius:99px;font-size:.65rem">
+                            <?= count($withdrawals) + count($aff_logs) ?>
+                        </span>
+                    </button>
                 </div>
                 <div>
                     <a href="invoice.php?q=<?= urlencode($id) ?>" id="linkAllInvs" class="btn-link" style="font-size:.75rem"><?= $textbotlang['panel']['userColTrackingCode'] ?? 'همه ←' ?></a>
                     <a href="payments.php?q=<?= urlencode($id) ?>" id="linkAllPays" class="btn-link" style="font-size:.75rem; display:none;">همه ←</a>
                     <a href="affiliates.php?q=<?= urlencode($id) ?>" id="linkAllRefs" class="btn-link" style="font-size:.75rem; display:none;">همه ←</a>
+                    <a href="affiliates.php?q=<?= urlencode($id) ?>" id="linkAllAffHistory" class="btn-link" style="font-size:.75rem; display:none;">همه ←</a>
                 </div>
             </div>
 
@@ -880,8 +998,204 @@ include __DIR__ . '/inc/layout_head.php';
                 </div>
             <?php endif; ?>
 
+            <div id="paneAffHistory" style="display:none">
+                <div style="padding: 10px 0;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 12px; display:flex; align-items:center; gap:8px;">
+                        <?= icon('credit-card', 18) ?> درخواست‌های تسویه نقدی به کارت
+                    </h3>
+                    <div class="tbl-wrap">
+                        <table class="tbl-md">
+                            <thead>
+                                <tr>
+                                    <th>مبلغ</th>
+                                    <th>شماره کارت</th>
+                                    <th>تاریخ ثبت</th>
+                                    <th>وضعیت</th>
+                                    <th style="text-align:center;">عملیات تسویه</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($withdrawals)): ?>
+                                    <tr>
+                                        <td colspan="5">
+                                            <div class="empty" style="padding:20px">
+                                                <p>هیچ درخواست تسویه‌ای یافت نشد.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($withdrawals as $w): ?>
+                                        <tr>
+                                            <td data-label="مبلغ" class="cn" style="font-weight:700; color:var(--emerald);">
+                                                <?= number_format($w['amount']) ?> <span class="cf" style="font-size:0.75rem">تومان</span>
+                                            </td>
+                                            <td data-label="شماره کارت" style="font-family:monospace;"><?= htmlspecialchars($w['card_number']) ?></td>
+                                            <td data-label="تاریخ" style="color:var(--mute);"><?= htmlspecialchars($w['created_at']) ?></td>
+                                            <td data-label="وضعیت">
+                                                <?php if ($w['status'] === 'pending'): ?>
+                                                    <span class="tag tag-warn">در انتظار بررسی</span>
+                                                <?php elseif ($w['status'] === 'approved'): ?>
+                                                    <span class="tag tag-ok">پرداخت شده</span>
+                                                <?php else: ?>
+                                                    <span class="tag tag-no">رد شده</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td data-label="عملیات" style="text-align:center;">
+                                                <?php if ($w['status'] === 'pending'): ?>
+                                                    <form method="POST" style="display:inline-block;" onsubmit="return confirm('آیا از تایید این درخواست و واریز مبلغ اطمینان دارید؟');">
+                                                        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                                                        <input type="hidden" name="action" value="approve_withdrawal">
+                                                        <input type="hidden" name="withdrawal_id" value="<?= $w['id'] ?>">
+                                                        <button type="submit" class="btn btn-sm" style="background: rgba(16,185,129,0.1); color: var(--emerald); padding: 4px 8px; font-size: 0.75rem; border: none; border-radius: 4px;">تایید و پرداخت</button>
+                                                    </form>
+                                                    <form method="POST" style="display:inline-block; margin-right: 5px;" onsubmit="return confirm('آیا از رد این درخواست اطمینان دارید؟ مبلغ به حساب بازاریابی کاربر برگشت داده می‌شود.');">
+                                                        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                                                        <input type="hidden" name="action" value="reject_withdrawal">
+                                                        <input type="hidden" name="withdrawal_id" value="<?= $w['id'] ?>">
+                                                        <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--rose); padding: 4px 8px; font-size: 0.75rem; border: none; border-radius: 4px;">رد درخواست</button>
+                                                    </form>
+                                                <?php else: ?>
+                                                    —
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="padding: 20px 0 10px 0; border-top: 1px dashed var(--bd); margin-top: 20px;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 12px; display:flex; align-items:center; gap:8px;">
+                        <?= icon('file-text', 18) ?> لاگ تراکنش‌ها و تغییرات دستی ادمین
+                    </h3>
+                    <div class="tbl-wrap">
+                        <table class="tbl-md">
+                            <thead>
+                                <tr>
+                                    <th>نوع عملیات</th>
+                                    <th>مبلغ</th>
+                                    <th>توضیحات / علت</th>
+                                    <th>تاریخ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($aff_logs)): ?>
+                                    <tr>
+                                        <td colspan="4">
+                                            <div class="empty" style="padding:20px">
+                                                <p>هیچ لاگی یافت نشد.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($aff_logs as $l): 
+                                        $actionMap = [
+                                            'deposit' => ['افزایش موجودی دستی', 'var(--emerald)'],
+                                            'deduct' => ['کاهش موجودی دستی', 'var(--rose)'],
+                                            'zero' => ['صفر کردن موجودی', 'var(--rose)'],
+                                            'transfer_to_main' => ['انتقال به کیف پول اصلی', 'var(--ac)']
+                                        ];
+                                        $typeInfo = $actionMap[$l['action_type']] ?? [$l['action_type'], 'var(--text)'];
+                                        ?>
+                                        <tr>
+                                            <td data-label="نوع" style="font-weight:600; color: <?= $typeInfo[1] ?>;"><?= $typeInfo[0] ?></td>
+                                            <td data-label="مبلغ" class="cn"><?= number_format($l['amount']) ?> <span class="cf" style="font-size:0.75rem">تومان</span></td>
+                                            <td data-label="توضیحات"><?= htmlspecialchars($l['description'] ?? '—') ?></td>
+                                            <td data-label="تاریخ" style="color:var(--mute);"><?= htmlspecialchars($l['created_at']) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
+    </div>
+</div>
+
+<div class="modal-veil" id="addAffBalanceModal">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>افزایش موجودی بازاریابی</h3>
+            <button class="modal-x" onclick="closeModal('addAffBalanceModal')"><?= icon('close', 14) ?></button>
+        </div>
+        <form method="POST">
+            <div class="modal-body">
+                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                <input type="hidden" name="action" value="add_affiliate_balance">
+                <div class="field">
+                    <label>مبلغ افزایش (تومان)</label>
+                    <input type="number" name="amount" class="input" placeholder="مبلغ به تومان وارد کنید" min="1" required>
+                    <span class="field-hint">موجودی فعلی بازاریابی: <strong><?= number_format($user['affiliate_balance'] ?? 0) ?> تومان</strong></span>
+                </div>
+                <div class="field" style="margin-top: 15px;">
+                    <label>توضیحات (علت واریز)</label>
+                    <input type="text" name="description" class="input" placeholder="اختیاری">
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="submit" class="btn btn-primary"><?= icon('plus', 13) ?> افزایش موجودی بازاریابی</button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('addAffBalanceModal')">انصراف</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-veil" id="deductAffBalanceModal">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>کسر موجودی بازاریابی</h3>
+            <button class="modal-x" onclick="closeModal('deductAffBalanceModal')"><?= icon('close', 14) ?></button>
+        </div>
+        <form method="POST">
+            <div class="modal-body">
+                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                <input type="hidden" name="action" value="deduct_affiliate_balance">
+                <div class="field">
+                    <label>مبلغ کسر (تومان)</label>
+                    <input type="number" name="amount" class="input" placeholder="مبلغ به تومان وارد کنید" min="1" required>
+                    <span class="field-hint">موجودی فعلی بازاریابی: <strong><?= number_format($user['affiliate_balance'] ?? 0) ?> تومان</strong></span>
+                </div>
+                <div class="field" style="margin-top: 15px;">
+                    <label>توضیحات (علت کسر)</label>
+                    <input type="text" name="description" class="input" placeholder="اختیاری">
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="submit" class="btn btn-primary"><?= icon('minus', 13) ?> کسر موجودی بازاریابی</button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('deductAffBalanceModal')">انصراف</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-veil" id="transferAffBalanceModal">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>انتقال به کیف پول اصلی</h3>
+            <button class="modal-x" onclick="closeModal('transferAffBalanceModal')"><?= icon('close', 14) ?></button>
+        </div>
+        <form method="POST">
+            <div class="modal-body">
+                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                <input type="hidden" name="action" value="transfer_affiliate_to_main">
+                <div class="field">
+                    <label>مبلغ جهت انتقال به کیف پول اصلی (تومان)</label>
+                    <input type="number" name="amount" class="input" placeholder="مبلغ به تومان وارد کنید" min="1" max="<?= $user['affiliate_balance'] ?? 0 ?>" required>
+                    <span class="field-hint">موجود قابل انتقال: <strong><?= number_format($user['affiliate_balance'] ?? 0) ?> تومان</strong></span>
+                    <span class="field-hint" style="display:block; margin-top: 5px; color: var(--mute);">مبلغ از موجودی بازاریابی کاربر کسر شده و به موجودی اصلی او در ربات (جهت خرید سرویس) اضافه می‌شود.</span>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="submit" class="btn btn-primary"><?= icon('refresh-cw', 13) ?> انتقال موجودی</button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('transferAffBalanceModal')">انصراف</button>
+            </div>
+        </form>
     </div>
 </div>
 
