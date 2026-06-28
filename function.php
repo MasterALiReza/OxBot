@@ -2089,7 +2089,7 @@ function awardAffiliateCommission($user_id, $price) {
     $is_first_buy = ($stmt->rowCount() > 0);
 
     if ($is_first_buy) {
-        $pdo->prepare("UPDATE user SET active_referrals_count = active_referrals_count + 1 WHERE id = :ref_id")
+        $pdo->prepare("UPDATE user SET active_referrals_count = COALESCE(active_referrals_count, 0) + 1 WHERE id = :ref_id")
             ->execute([':ref_id' => $referrer_id]);
         // Refresh referrer active count
         $referrer['active_referrals_count']++;
@@ -2137,7 +2137,7 @@ function awardAffiliateCommission($user_id, $price) {
     }
 
     if ($rewardAmount > 0) {
-        $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance + :reward WHERE id = :ref_id");
+        $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = COALESCE(affiliate_balance, 0) + :reward WHERE id = :ref_id");
         $stmt->execute([':reward' => $rewardAmount, ':ref_id' => $referrer_id]);
         
         if (function_exists('telegram')) {

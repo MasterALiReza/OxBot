@@ -246,7 +246,7 @@ if (strpos($text, "/start ") !== false && $user['step'] != "gettextSystemMessage
             $invite_reward = isset($aff_settings['invite_reward']) ? intval($aff_settings['invite_reward']) : 0;
             
             if ($invite_reward > 0) {
-                $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance + :reward WHERE id = :id");
+                $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = COALESCE(affiliate_balance, 0) + :reward WHERE id = :id");
                 $stmt->execute([':reward' => $invite_reward, ':id' => $affiliatesid]);
                 
                 $reward_msg = "🎉 مبلغ <b>" . number_format($invite_reward) . "</b> تومان بابت عضویت زیرمجموعه جدید به کیف پول بازاریابی شما اضافه شد.";
@@ -4546,10 +4546,17 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     }
     step('getcountconfig', $from_id);
 } elseif ($user['step'] == "getcountconfig") {
+    // Convert Persian numerals and strip non-digits
+    $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $clean_text = str_replace($persian, $english, $text);
+    $clean_text = preg_replace('/[^0-9]/', '', $clean_text);
+    $text = $clean_text;
+
+    if (!$text || !is_numeric($text))
+        return sendmessage($from_id, $textbotlang['users']['Balance']['errorprice'], null, 'HTML');
     if (intval($text) > 15 || intval($text) < 1)
         return sendmessage($from_id, $textbotlang['Admin']['agent']['invalidValue'], $backuser, 'HTML');
-    if (!is_numeric($text))
-        return sendmessage($from_id, $textbotlang['users']['Balance']['errorprice'], null, 'HTML');
     sendmessage($from_id, $textbotlang['textbot']['selectLocation'], $list_marzban_panel_userom, 'HTML');
     update("user", "Processing_value_four", $text, "id", $from_id);
     step('home', $from_id);
