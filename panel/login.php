@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
       <div class="auth-quote">
         <h2><?= $textbotlang['panel']['loginSubtitle'] ?> <a style="color:#a8dafd !important  "
-            href="https://github.com/MasterALiReza/mirzabot">OxBot</a>
+            href="https://github.com/MasterALiReza/OxBot">OxBot</a>
           <?= $textbotlang['panel']['loginUsernamePlaceholder'] ?></h2>
         <cite><?= $textbotlang['panel']['loginPasswordLabel'] ?></cite>
       </div>

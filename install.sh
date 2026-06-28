@@ -8,7 +8,7 @@ fi
 function self_update_script() {
     local MASTER_PATH="/root/install.sh"
     local BIN_LINK="/usr/local/bin/ox"
-    local URL="https://raw.githubusercontent.com/MasterALiReza/mirzabot/main/install.sh"
+    local URL="https://raw.githubusercontent.com/MasterALiReza/OxBot/main/install.sh"
     local TEMP_FILE="/tmp/mirza_pro_update.sh"
     # Clean up old command symlink if it exists
     if [ -L "/usr/local/bin/mirza" ] || [ -f "/usr/local/bin/mirza" ]; then
@@ -524,7 +524,7 @@ function install_bot() {
         exit 1
     fi
     # CHANGED: Always download from main branch (No releases for Pro)
-    ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/heads/main.zip"
+    ZIP_URL="https://github.com/MasterALiReza/OxBot/archive/refs/heads/main.zip"
     echo -e "\033[33mDownloading OxBot from Main Branch...\033[0m"
     # Download and extract the repository
     TEMP_DIR="/tmp/mirzaprobot"
@@ -1128,11 +1128,11 @@ function install_bot_with_marzban() {
         exit 1
     }
     # Download bot files
-    ZIP_URL=$(curl -s https://api.github.com/repos/MasterALiReza/mirzabot/releases/latest | grep "zipball_url" | cut -d '"' -f 4)
+    ZIP_URL=$(curl -s https://api.github.com/repos/MasterALiReza/OxBot/releases/latest | grep "zipball_url" | cut -d '"' -f 4)
     if [[ "$1" == "-v" && "$2" == "beta" ]] || [[ "$1" == "-beta" ]] || [[ "$1" == "-" && "$2" == "beta" ]]; then
-        ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/heads/main.zip"
+        ZIP_URL="https://github.com/MasterALiReza/OxBot/archive/refs/heads/main.zip"
     elif [[ "$1" == "-v" && -n "$2" ]]; then
-        ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/tags/$2.zip"
+        ZIP_URL="https://github.com/MasterALiReza/OxBot/archive/refs/tags/$2.zip"
     fi
     TEMP_DIR="/tmp/mirzabot"
     rm -rf "$TEMP_DIR"
@@ -1396,7 +1396,7 @@ function update_bot() {
         exit 1
     fi
     # Fetch latest version from GitHub (Always Main Branch for Pro)
-    ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/heads/main.zip"
+    ZIP_URL="https://github.com/MasterALiReza/OxBot/archive/refs/heads/main.zip"
     # Create temporary directory
     TEMP_DIR="/tmp/mirzaprobot_update"
     rm -rf "$TEMP_DIR"
@@ -2092,7 +2092,7 @@ Added Function for Installing Additional Bot
 #     # Clone a Fresh Copy of the Bot's Source Code
 #     BOT_DIR="/var/www/html/$BOT_NAME"
 #     echo -e "\033[33mCloning bot's source code...\033[0m"
-#     git clone https://github.com/MasterALiReza/mirzabot.git "$BOT_DIR" || {
+#     git clone https://github.com/MasterALiReza/OxBot.git "$BOT_DIR" || {
 #         echo -e "\033[31mError: Failed to clone the repository.\033[0m"
 #         return 1
 #     }
@@ -2236,7 +2236,7 @@ Added Function for Installing Additional Bot
 #         return 1
 #     fi
 #     # Clone the new version of the bot
-#     if ! git clone https://github.com/MasterALiReza/mirzabot.git "$BOT_PATH"; then
+#     if ! git clone https://github.com/MasterALiReza/OxBot.git "$BOT_PATH"; then
 #         echo -e "\033[31mFailed to clone the repository. Exiting...\033[0m"
 #         return 1
 #     fi

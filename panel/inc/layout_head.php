@@ -151,7 +151,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
 
     <aside class="sidebar" id="sidebar" hx-preserve="true">
       <div class="sidebar-brand">
-        <div class="brand-mark">M</div>
+        <div class="brand-mark">O</div>
         <div class="brand-name"><?= $textbotlang['panel']['layoutNavProducts'] ?><span>
             <?= $textbotlang['panel']['layoutNavPayments'] ?></span></div>
       </div>
