@@ -1804,3 +1804,8 @@ button:disabled,
     align-items: center;
     gap: 12px;
 }
+
+/* Global Font Overrides for form controls */
+input, select, textarea, button {
+    font-family: var(--font) !important;
+}
