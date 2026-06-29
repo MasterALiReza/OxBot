@@ -506,7 +506,7 @@ include __DIR__ . '/inc/layout_head.php';
                     </div>
                     <div class="field-group" style="margin-top:15px">
                         <label>دامنه/پیشوند سفارشی سابسکریپشن (اختیاری)</label>
-                        <input type="url" name="custom_sub_domain" id="panelCustomSubDomain" class="input" placeholder="https://sub.wxnet.pro:2096/sub/" style="direction:ltr;text-align:left;">
+                        <input type="url" name="custom_sub_domain" id="panelCustomSubDomain" class="input" placeholder="https://sub.example.com/sub/" style="direction:ltr;text-align:left;">
                         <small style="color:var(--ts);font-size:11px;display:block;margin-top:4px;">در صورت مقداردهی، در لینک‌های ساب این آدرس به جای آدرس اصلی پنل جایگزین می‌شود.</small>
                     </div>
                     <div class="field-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px">
@@ -515,7 +515,7 @@ include __DIR__ . '/inc/layout_head.php';
                             <input type="text" name="username_panel" id="panelUsername" class="input" placeholder="admin" style="direction:ltr;text-align:left;">
                         </div>
                         <div class="field-group">
-                            <label>رمز عبور یا توکن API پنل</label>
+                            <label id="panelPasswordLabel">رمز عبور یا توکن API پنل</label>
                             <div id="changePasswordToggleContainer" style="display:none; align-items:center; gap:6px; margin-bottom:6px;">
                                 <input type="checkbox" id="changePasswordToggle" onchange="togglePasswordEdit()" style="width:auto; margin:0; cursor:pointer;">
                                 <label for="changePasswordToggle" style="font-size:12px; color:var(--ts); cursor:pointer; margin:0; font-weight:normal;">تغییر رمز عبور / توکن API</label>
@@ -1051,7 +1051,7 @@ function togglePanelFields() {
     const sanaeiFetcher = document.getElementById('sanaeiInboundsFetcher');
     
     const usernameGroup = document.getElementById('panelUsername').closest('.field-group');
-    const passwordLabel = document.getElementById('panelPassword').previousElementSibling;
+    const passwordLabel = document.getElementById('panelPasswordLabel') || document.getElementById('panelPassword').previousElementSibling;
 
     if (panelType === 'WGDashboard' || panelType === 's_ui') {
         usernameGroup.style.display = 'none';
