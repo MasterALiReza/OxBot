@@ -343,7 +343,8 @@ include __DIR__ . '/inc/layout_head.php';
                             'priceextravolume' => $p['priceextravolume'], 'pricecustomvolume' => $p['pricecustomvolume'],
                             'priceextratime' => $p['priceextratime'],
                             'priceChangeloc' => $p['priceChangeloc'],
-                            'panel_category_id' => $p['panel_category_id']
+                            'panel_category_id' => $p['panel_category_id'],
+                            'custom_sub_domain' => $p['custom_sub_domain']
                         ]);
                         ?>
                         <tr>

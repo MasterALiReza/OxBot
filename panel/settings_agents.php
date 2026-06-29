@@ -93,11 +93,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!is_array($new_lottery_prize)) $new_lottery_prize = [];
     
     $new_chashbackextend_agent = ['n' => 0, 'n2' => 0];
-    $stmt = $pdo->query("SELECT value FROM shopSetting WHERE Namevalue = 'chashbackextend_agent'");
-    if($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $dec = json_decode($r['value'], true);
-        if(is_array($dec)) $new_chashbackextend_agent = $dec;
-    }
+    try {
+        $stmt = $pdo->query("SELECT value FROM shopSetting WHERE Namevalue = 'chashbackextend_agent'");
+        if($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $dec = json_decode($r['value'], true);
+            if(is_array($dec)) $new_chashbackextend_agent = $dec;
+        }
+    } catch (Exception $e) {}
     
     foreach($_POST as $key => $val) {
         if(strpos($key, 'set_cron_') === 0) {
