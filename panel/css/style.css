@@ -335,11 +335,11 @@ body::after, body::before {
 /* Custom Color Palette Overrides for Soft Structuralism */
 [data-theme=light], :root {
     --bg: #F8FAFC;
-    --sf: #FFFFFF;
+    --sf: rgba(255, 255, 255, 0.75);
     --sf2: #F1F5F9;
     --sf3: #E2E8F0;
-    --bd: #E2E8F0;
-    --bds: #CBD5E1;
+    --bd: rgba(15, 23, 42, 0.08);
+    --bds: rgba(14, 165, 233, 0.2);
     --text: #0F172A;
     --text2: #334155;
     --mute: #64748B;
@@ -351,20 +351,20 @@ body::after, body::before {
 }
 
 [data-theme=navy] {
-    --bg: #222831;
-    --sf: #393e46;
-    --sf2: #2d323a;
-    --sf3: #4b5058;
-    --bd: #2d323a;
-    --bds: #393e46;
-    --text: #eeeeee;
-    --text2: #dddddd;
-    --mute: #b2b8c2;
-    --dim: #7b828e;
-    --ac: #00adb5;
-    --ach: #00c4cc;
-    --acs: rgba(0, 173, 181, 0.14);
-    --acg: rgba(0, 173, 181, 0.30);
+    --bg: #090d16;
+    --sf: rgba(15, 22, 38, 0.65);
+    --sf2: rgba(10, 15, 28, 0.8);
+    --sf3: rgba(30, 41, 59, 0.8);
+    --bd: rgba(255, 255, 255, 0.06);
+    --bds: rgba(0, 242, 254, 0.3);
+    --text: #f8fafc;
+    --text2: #cbd5e1;
+    --mute: #94a3b8;
+    --dim: #64748b;
+    --ac: #00f2fe;
+    --ach: #00c6ff;
+    --acs: rgba(0, 242, 254, 0.14);
+    --acg: rgba(0, 242, 254, 0.30);
 }
 
 /* Modal and Overlays */
@@ -1647,4 +1647,160 @@ button:disabled,
 }
 .d-none {
     display: none !important;
+}
+
+/* ==========================================================================
+   AETHER PREMIUM / DARK GLASSMORPHISM ADDITIONS
+   ========================================================================== */
+
+/* Modern scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 99px;
+}
+[data-theme=light] ::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.12);
+}
+
+/* Glow dots */
+.glow-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+}
+.glow-dot::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0.4;
+    filter: blur(4px);
+    animation: pulse 2s infinite ease-in-out;
+}
+.glow-dot.success { background: #10b981; }
+.glow-dot.danger { background: #ef4444; }
+.glow-dot.warning { background: #f59e0b; }
+.glow-dot.info { background: #00f2fe; }
+
+/* Custom dashboard asymmetric grid */
+.dash-grid-asym {
+    display: grid;
+    grid-template-columns: 1.6fr 0.9fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+    .dash-grid-asym {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Progress-list for Best Selling Products */
+.progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px 20px;
+}
+.progress-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.progress-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.progress-item-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.progress-item-meta {
+    font-size: 0.8rem;
+    color: var(--mute);
+    font-weight: 600;
+}
+.progress-bar-container {
+    height: 6px;
+    background: var(--sf2);
+    border-radius: 99px;
+    overflow: hidden;
+}
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--ac);
+    box-shadow: 0 0 10px var(--acg);
+    transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Mobile responsive card list instead of table */
+@media (max-width: 768px) {
+    .responsive-table {
+        display: none !important;
+    }
+    .mobile-card-list {
+        display: flex !important;
+        flex-direction: column;
+        gap: 12px;
+        padding: 8px 0;
+    }
+    .mobile-card-item {
+        background: rgba(var(--glass-base-rgb), 0.15);
+        border: 1px solid var(--bd);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: all 0.3s ease;
+    }
+    .mobile-card-item:hover {
+        border-color: rgba(var(--glass-base-rgb), 0.3);
+        transform: translateY(-2px);
+    }
+    .mobile-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    .mobile-card-label {
+        font-size: 0.72rem;
+        color: var(--mute);
+        font-weight: 600;
+    }
+    .mobile-card-value {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+}
+@media (min-width: 769px) {
+    .mobile-card-list {
+        display: none !important;
+    }
+    .responsive-table {
+        display: table !important;
+    }
+}
+
+/* Additional layout adjustments */
+.card-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
