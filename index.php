@@ -482,6 +482,14 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
                 'parse_mode' => "HTML"
             ]);
         }
+        foreach ($admin_ids as $admin_id) {
+            $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>\n💰 مبلغ: " . number_format($affiliate_balance) . " تومان\n💳 کارت: <code>$card_number</code>\n\nبرای بررسی به بخش تسویه حساب ها در پنل مدیریت مراجعه کنید.";
+            telegram('sendmessage', [
+                'chat_id' => $admin_id,
+                'text' => $admin_msg,
+                'parse_mode' => "HTML"
+            ]);
+        }
     } else {
         sendmessage($from_id, "❌ خطا در پردازش درخواست. احتمالا موجودی شما تغییر کرده است.", $keyboard, 'HTML');
     }
@@ -501,8 +509,8 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $amount = intval($clean_text);
     
     // Atomic transfer
-    $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance - :amount, Balance = Balance + :amount WHERE id = :id AND affiliate_balance >= :amount");
-    $stmt->execute([':amount' => $amount, ':id' => $from_id]);
+    $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance - :amount1, Balance = Balance + :amount2 WHERE id = :id AND affiliate_balance >= :amount3");
+    $stmt->execute([':amount1' => $amount, ':amount2' => $amount, ':amount3' => $amount, ':id' => $from_id]);
     
     if ($stmt->rowCount() > 0) {
         // Fetch new wallet balance to display to user

@@ -91,7 +91,7 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
     <div class="card-body">
         <form method="POST" action="settings_channels.php" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
-            <?= csrf_field() ?>
+            <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
             <input type="hidden" name="action" value="add">
             
             <div class="form-group" style="margin-bottom: 0;">
@@ -159,7 +159,7 @@ include __DIR__ . '/inc/layout_head.php';
                             </td>
                             <td style="text-align: left;">
                                 <form method="POST" action="settings_channels.php" style="display: inline-block;" onsubmit="return confirm('آیا از حذف این کانال اطمینان دارید؟');">
-                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                                     <input type="hidden" name="action" value="delete">
                                     <input type="hidden" name="channel_link" value="<?= htmlspecialchars($ch['link']) ?>">
                                     <button type="submit" class="btn btn-ghost" style="color: var(--danger); padding: 5px; height: 32px; width: 32px; border-radius: 6px;" title="حذف">

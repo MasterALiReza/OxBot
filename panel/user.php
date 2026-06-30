@@ -158,8 +158,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $amount = (int) ($_POST['amount'] ?? 0);
         if ($amount > 0) {
             // Atomic transfer
-            $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance - :amount, Balance = Balance + :amount WHERE id = :id AND affiliate_balance >= :amount");
-            $stmt->execute([':amount' => $amount, ':id' => $id]);
+            $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance - :amount1, Balance = Balance + :amount2 WHERE id = :id AND affiliate_balance >= :amount3");
+            $stmt->execute([':amount1' => $amount, ':amount2' => $amount, ':amount3' => $amount, ':id' => $id]);
             if ($stmt->rowCount() > 0) {
                 db_query($pdo, "INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'transfer_to_main', ?, 'انتقال دستی توسط مدیریت')", [$id, $amount]);
                 
