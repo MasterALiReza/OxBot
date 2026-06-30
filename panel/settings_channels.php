@@ -38,10 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif ($action === 'delete') {
-        $id = (int)($_POST['channel_id'] ?? 0);
-        if ($id > 0) {
+        $channel_link = trim($_POST['channel_link'] ?? '');
+        if (!empty($channel_link)) {
             try {
-                db_query($pdo, "DELETE FROM channels WHERE id = ?", [$id]);
+                db_query($pdo, "DELETE FROM channels WHERE link = ?", [$channel_link]);
                 $success = 'کانال با موفقیت حذف شد.';
             } catch (Exception $e) {
                 $error = 'خطا در حذف کانال: ' . $e->getMessage();
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $channels = [];
 try {
-    $channels = db_fetchAll($pdo, "SELECT * FROM channels ORDER BY id DESC");
+    $channels = db_fetchAll($pdo, "SELECT * FROM channels");
 } catch (Exception $e) {
     // If table doesn't exist
 }
@@ -161,7 +161,7 @@ include __DIR__ . '/inc/layout_head.php';
                                 <form method="POST" action="settings_channels.php" style="display: inline-block;" onsubmit="return confirm('آیا از حذف این کانال اطمینان دارید؟');">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="channel_id" value="<?= $ch['id'] ?>">
+                                    <input type="hidden" name="channel_link" value="<?= htmlspecialchars($ch['link']) ?>">
                                     <button type="submit" class="btn btn-ghost" style="color: var(--danger); padding: 5px; height: 32px; width: 32px; border-radius: 6px;" title="حذف">
                                         <?= icon('trash-2', 16) ?>
                                     </button>
