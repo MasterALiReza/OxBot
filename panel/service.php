@@ -189,12 +189,16 @@ include __DIR__ . '/inc/layout_head.php';
           $i = $offset + 1;
           foreach ($services as $s):
             $stMap = [
-              'done' => ['tag-ok', $textbotlang['panel']['serviceStatusDone']],
-              'pending' => ['tag-warn', $textbotlang['panel']['serviceStatusWaiting']],
-              'reject' => ['tag-no', $textbotlang['panel']['serviceStatusRejected']],
+              'done' => ['tag-ok', $textbotlang['panel']['serviceStatusDone'] ?? 'انجام شده'],
+              'pending' => ['tag-warn', $textbotlang['panel']['serviceStatusWaiting'] ?? 'در انتظار'],
+              'reject' => ['tag-no', $textbotlang['panel']['serviceStatusRejected'] ?? 'رد شده'],
               'unpaid' => ['tag-plain', 'پرداخت نشده'],
+              'paid' => ['tag-ok', 'پرداخت شده'],
+              'active' => ['tag-ok', 'فعال'],
+              'disabled' => ['tag-no', 'غیرفعال']
             ];
-            [$cls, $lbl] = $stMap[$s['status'] ?? ''] ?? ['tag-plain', $s['status'] ?? '—'];
+            $rawStatus = trim($s['status'] ?? '');
+            [$cls, $lbl] = $stMap[$rawStatus] ?? ['tag-plain', $rawStatus ?: '—'];
             $typeLabel = $typeMap[$s['type'] ?? ''] ?? ($s['type'] ?? '—');
             
             $rawVal = $s['value'] ?? '';
@@ -256,7 +260,7 @@ include __DIR__ . '/inc/layout_head.php';
               <td data-label="وضعیت" style="text-align:center;">
                   <span class="tag <?= $cls ?>"><?= $lbl ?></span>
               </td>
-              <td data-label="عملیات" style="text-align:center;">
+              <td data-label="عملیات" style="text-align:center;" class="<?= (($s['status'] ?? '') !== 'pending') ? 'no-actions' : '' ?>">
                 <?php if (($s['status'] ?? '') === 'pending'): ?>
                   <div style="display: flex; gap: 6px; justify-content:center;">
                     <button type="button" class="btn" style="background:rgba(16, 185, 129, 0.1); color:var(--emerald); border:1px solid rgba(16, 185, 129, 0.2); padding:6px 12px; border-radius:8px; font-size:0.8rem; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:4px;"
