@@ -2321,4 +2321,383 @@
     }
 }
 
+/* ========================================================================= */
+/* VANGUARD MOBILE UI/UX ARCHITECTURE OVERRIDES (USERS & USER EDIT PAGES)     */
+/* ========================================================================= */
+@media (max-width: 768px) {
+    /* Active tabs horizontal scrolling */
+    .tab-navigation {
+        display: flex !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        border-bottom: 1px solid var(--bd) !important;
+        padding-bottom: 2px !important;
+    }
+    .tab-navigation::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* Mobile filter chips row */
+    .toolbar > div[style*="display:flex"] {
+        display: flex !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        padding-bottom: 6px !important;
+        gap: 8px !important;
+        margin-bottom: 6px !important;
+    }
+    .toolbar > div[style*="display:flex"]::-webkit-scrollbar {
+        display: none !important;
+    }
+    .toolbar-title {
+        font-size: 0.95rem !important;
+        white-space: nowrap !important;
+        margin-left: 8px !important;
+        flex-shrink: 0 !important;
+    }
+    .toolbar > div[style*="display:flex"] .tag {
+        font-size: 0.74rem !important;
+        padding: 6px 12px !important;
+        border-radius: 20px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        display: inline-flex !important;
+    }
+
+    /* Style search and filters container */
+    .toolbar-end {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        width: 100% !important;
+        margin-top: 4px !important;
+    }
+    
+    /* Make dropdown selectors sit side-by-side */
+    .toolbar-end .select {
+        flex: 1 1 calc(50% - 4px) !important;
+        height: 42px !important;
+        border-radius: 10px !important;
+        font-size: 0.82rem !important;
+        background-color: var(--sf2) !important;
+        border: 1px solid var(--bd) !important;
+        padding: 0 12px 0 28px !important;
+        text-align: right !important;
+    }
+
+    /* Style the Search Box */
+    .toolbar-end .search-box {
+        flex: 1 1 100% !important;
+        height: 42px !important;
+        border-radius: 10px !important;
+        border: 1px solid var(--bd) !important;
+        background-color: var(--sf2) !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        position: relative !important;
+        box-shadow: none !important;
+    }
+    .toolbar-end .search-box input {
+        font-size: 0.83rem !important;
+        padding: 0 12px !important;
+        height: 100% !important;
+        background: transparent !important;
+        border: none !important;
+        flex: 1 !important;
+    }
+    .toolbar-end .search-box svg {
+        margin: 0 8px 0 4px !important;
+        opacity: 0.6 !important;
+    }
+    
+    /* Clear button inside input */
+    .search-clear {
+        position: absolute !important;
+        left: 65px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        margin: 0 !important;
+        height: 28px !important;
+        width: 28px !important;
+        display: none !important;
+        place-items: center !important;
+    }
+    .toolbar-end .search-box input:not(:placeholder-shown) ~ .search-clear {
+        display: grid !important;
+    }
+    
+    /* Search button inside input */
+    .search-btn {
+        height: 100% !important;
+        border-radius: 9px 0 0 9px !important;
+        padding: 0 16px !important;
+        font-size: 0.82rem !important;
+        background-color: var(--ac) !important;
+        color: #fff !important;
+        border: none !important;
+        cursor: pointer !important;
+        font-family: var(--font) !important;
+        font-weight: 700 !important;
+    }
+
+    /* Responsive User Card on Mobile */
+    .vanguard-list-row {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        background: var(--sf2) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 16px !important;
+        padding: 16px !important;
+        margin-bottom: 12px !important;
+        gap: 12px !important;
+    }
+    
+    /* User metadata header row */
+    .v-list-meta {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+        padding-bottom: 10px !important;
+    }
+    
+    .vanguard-avatar {
+        width: 46px !important;
+        height: 46px !important;
+        border-radius: 12px !important;
+        background: rgba(0, 173, 181, 0.08) !important;
+        color: var(--ac) !important;
+        border: 1px solid rgba(0, 173, 181, 0.15) !important;
+    }
+    
+    .v-list-info {
+        flex: 1 !important;
+        gap: 2px !important;
+    }
+    
+    .v-list-name-row {
+        gap: 6px !important;
+    }
+    
+    .v-list-name {
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+    }
+    
+    .v-list-sub {
+        gap: 8px !important;
+        font-size: 0.76rem !important;
+        color: var(--mute) !important;
+    }
+    
+    /* Rebuilt 2x2 grid details section */
+    .v-list-contact, .v-list-fin {
+        display: grid !important;
+        grid-template-columns: 1.2fr 1fr !important;
+        gap: 8px !important;
+        padding: 4px 0 !important;
+        width: 100% !important;
+        border: none !important;
+    }
+    .v-list-contact {
+        border-bottom: 1px dashed rgba(255,255,255,0.06) !important;
+        padding-bottom: 8px !important;
+    }
+    
+    .v-list-item {
+        font-size: 0.82rem !important;
+        gap: 6px !important;
+        color: var(--text2) !important;
+        align-items: center !important;
+        display: flex !important;
+    }
+    
+    .v-list-value {
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        color: var(--text) !important;
+    }
+    
+    /* Touch friendly action buttons */
+    .v-list-actions {
+        display: flex !important;
+        justify-content: stretch !important;
+        gap: 8px !important;
+        margin-top: 4px !important;
+        border-top: 1px solid rgba(255,255,255,0.04) !important;
+        padding-top: 12px !important;
+        width: 100% !important;
+    }
+    .v-list-actions .v-action-btn {
+        flex: 1 !important;
+        height: 42px !important;
+        border-radius: 10px !important;
+        font-size: 0.82rem !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+    }
+    .v-list-actions .v-action-btn svg {
+        width: 15px !important;
+        height: 15px !important;
+    }
+    
+    /* Dynamic Labels for Action Buttons */
+    .v-list-actions .v-action-btn.primary::after {
+        content: "مشاهده" !important;
+    }
+    .v-list-actions .v-action-btn.success::after {
+        content: "رفع مسدودی" !important;
+    }
+    .v-list-actions .v-action-btn.danger::after {
+        content: "مسدود کردن" !important;
+    }
+
+    /* Centered profile header on mobile */
+    .u-sidebar .card {
+        border-radius: 16px !important;
+    }
+    .profile-head {
+        padding: 18px 14px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: 12px !important;
+    }
+    .profile-head > div:first-child {
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+    .profile-head > div:first-child > div:first-child {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 10px !important;
+    }
+    .profile-head .profile-avatar {
+        margin: 0 auto !important;
+        width: 74px !important;
+        height: 74px !important;
+        border-radius: 16px !important;
+        font-size: 2.2rem !important;
+    }
+    .profile-head div[style*="align-items:flex-start"] {
+        align-items: center !important;
+        text-align: center !important;
+    }
+    .profile-head .tag {
+        font-size: 0.72rem !important;
+        padding: 4px 10px !important;
+    }
+    
+    /* Copy User ID row */
+    .profile-head > div:nth-child(2) {
+        width: 100% !important;
+        justify-content: center !important;
+        border-top: 1px solid rgba(255,255,255,0.05) !important;
+        padding-top: 12px !important;
+        margin-top: 4px !important;
+    }
+    .profile-head > div:nth-child(2) > div:first-child {
+        width: auto !important;
+    }
+    .profile-head > div:nth-child(2) > div:first-child > div {
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 10px !important;
+    }
+    .profile-head > div:nth-child(2) > div:nth-child(2) {
+        align-items: center !important;
+        gap: 2px !important;
+    }
+    
+    /* Quick User key-value rows styling */
+    .user-kv-grid {
+        padding: 12px 14px !important;
+        gap: 8px !important;
+    }
+    .user-kv-grid > div {
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Quick stats grid on user profile page */
+    .u-stats {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+        margin-bottom: 16px !important;
+    }
+    
+    /* User Actions grids styling */
+    .user-actions-grid {
+        grid-template-columns: 1fr 1fr !important; /* Force 2 columns */
+        gap: 8px !important;
+        padding: 8px 0 !important;
+    }
+    
+    .user-actions-grid .btn {
+        width: 100% !important;
+        justify-content: center !important;
+        align-items: center !important;
+        white-space: normal !important; /* Wrap long labels */
+        word-break: break-word !important;
+        line-height: 1.25 !important;
+        height: auto !important;
+        min-height: 44px !important; /* Touch target height */
+        padding: 8px 10px !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+    }
+    
+    .user-actions-grid .btn svg {
+        width: 14px !important;
+        height: 14px !important;
+        margin-left: 4px !important; /* Persian spacing */
+        flex-shrink: 0 !important;
+    }
+    
+    /* Make Manual Order button span full width (2 columns) */
+    .user-actions-grid button[onclick*="addOrderModal"] {
+        grid-column: span 2 !important;
+        min-height: 46px !important;
+        font-size: 0.82rem !important;
+    }
+
+    /* Pager / Pagination alignment on mobile */
+    .tbl-foot {
+        align-items: center !important;
+    }
+    .pager {
+        width: 100% !important;
+        justify-content: center !important;
+        margin-top: 4px !important;
+        gap: 6px !important;
+    }
+    .pager a, .pager span {
+        min-width: 36px !important;
+        height: 36px !important;
+        font-size: 0.85rem !important;
+        border-radius: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+}
+
+
 
