@@ -43,7 +43,7 @@ try {
                     $refAgent = $ref['agent'] ?? 'f';
                     ?>
                     <tr style="border-bottom: 1px solid var(--bd);">
-                        <td style="width: 48px; min-width: 48px; text-align: center; padding: 10px 8px; vertical-align: middle;"></td>
+                        <td class="no-label" style="width: 48px; min-width: 48px; text-align: center; padding: 10px 8px; vertical-align: middle;"></td>
                         <td data-label="زیرمجموعه" style="text-align: right; padding: 10px 8px; vertical-align: middle;">
                             <div class="dash-unified-content" style="align-items: center; display: flex; gap: 10px; direction: rtl; justify-content: flex-start; width: 100%; min-width: 0;">
                                 <div class="profile-avatar" style="width: 32px; height: 32px; font-size: 14px; display: flex; align-items: center; justify-content: center; background: var(--sf3); border-radius: 50%; flex-shrink: 0;">

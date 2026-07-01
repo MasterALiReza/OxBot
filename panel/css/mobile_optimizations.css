@@ -1958,6 +1958,9 @@
         display: flex !important;
         align-items: center !important;
     }
+    .admin-panels-table td:nth-child(3) a {
+        max-width: 100% !important;
+    }
 
     /* Type */
     .admin-panels-table td:nth-child(4) {

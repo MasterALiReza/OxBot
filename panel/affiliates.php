@@ -242,7 +242,7 @@ include __DIR__ . '/inc/layout_head.php';
                         if ($uname === 'none' || $uname === 'NOT_USERNAME') $uname = '';
                         ?>
                         <tr style="border-bottom: 1px solid var(--bd);" id="referrer-row-<?= $ref['id'] ?>">
-                            <td style="width: 48px; min-width: 48px; text-align: center; padding: 14px 8px; vertical-align: middle;">
+                            <td class="no-label" style="width: 48px; min-width: 48px; text-align: center; padding: 14px 8px; vertical-align: middle;">
                                 <button class="btn btn-ghost btn-icon toggler" 
                                         onclick="toggleReferrals(<?= $ref['id'] ?>)" 
                                         style="width: 28px; height: 28px; border-radius: 6px; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;" 
