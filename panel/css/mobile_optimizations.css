@@ -2713,6 +2713,98 @@
         align-items: center !important;
         justify-content: center !important;
     }
+
+    /* Horizontal scrollable tab bar on user details page */
+    .u-tab-bar {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: flex !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 6px !important;
+        padding: 4px !important;
+        background: var(--sf2) !important;
+        border-radius: 10px !important;
+        scrollbar-width: none !important;
+    }
+    .u-tab-bar::-webkit-scrollbar {
+        display: none !important;
+    }
+    .u-tab-bar .btn, .u-tab-bar button {
+        flex: 1 0 auto !important;
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        font-size: 0.76rem !important;
+        padding: 8px 12px !important;
+        border-radius: 7px !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+        height: auto !important;
+        min-height: 34px !important;
+        transition: all var(--tf) !important;
+    }
+    .u-tab-bar button.active {
+        background: var(--ac) !important;
+        color: var(--btn-ac-text, #fff) !important;
+        box-shadow: 0 2px 8px var(--acg) !important;
+    }
+    .u-tab-bar button:not(.active) {
+        background: transparent !important;
+        color: var(--mute) !important;
+    }
+    .u-tab-bar button:not(.active):hover {
+        background: rgba(255, 255, 255, 0.03) !important;
+        color: var(--text) !important;
+    }
+
+    /* Align "همه ←" link container to the left on mobile card-heads */
+    .u-main-col .card .card-head > div:last-child {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        margin-top: -2px !important;
+    }
+
+    /* Clean up empty states in tables on mobile */
+    td[colspan]::before {
+        display: none !important;
+        content: none !important;
+    }
+
+    /* Premium Empty State Styling on mobile */
+    .empty {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 24px 16px !important;
+        background: rgba(255, 255, 255, 0.015) !important;
+        border: 1.5px dashed rgba(255, 255, 255, 0.08) !important;
+        border-radius: 12px !important;
+        margin: 8px 0 !important;
+        min-height: 120px !important;
+        text-align: center !important;
+    }
+    .empty p {
+        font-size: 0.8rem !important;
+        color: var(--mute) !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+    .empty p::before {
+        content: "" !important;
+        display: block !important;
+        width: 28px !important;
+        height: 28px !important;
+        background-color: var(--mute) !important;
+        opacity: 0.3 !important;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='8' y1='12' x2='16' y2='12'/%3E%3C/svg%3E") no-repeat center / contain !important;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='8' y1='12' x2='16' y2='12'/%3E%3C/svg%3E") no-repeat center / contain !important;
+    }
 }
 
 
