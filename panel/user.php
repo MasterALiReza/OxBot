@@ -269,7 +269,7 @@ include __DIR__ . '/inc/layout_head.php';
     <?php if ($username): ?>
         <a href="https://t.me/<?= htmlspecialchars($username) ?>" target="_blank" rel="noopener"
             class="btn btn-ghost btn-sm">
-            <?= icon('eye', 13) ?> <?= $textbotlang['panel']['userBackToUsersBtn'] ?>
+            <?= icon('send', 13) ?> <?= $textbotlang['panel']['userBackToUsersBtn'] ?>
         </a>
     <?php endif; ?>
 </div>

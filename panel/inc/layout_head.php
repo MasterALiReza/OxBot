@@ -4,7 +4,7 @@ $pageLede = $pageLede ?? '';
 $activeNav = $activeNav ?? '';
 $showPageHead = $showPageHead ?? true;
 $currentUser = $_SESSION['admin_user'] ?? $textbotlang['panel']['layoutDefaultAdminName'];
-$initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
+$adminInitials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -312,7 +312,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
       </nav>
       <div class="sidebar-foot">
         <div class="user-pill">
-          <div class="user-mono"><?= htmlspecialchars($initials) ?></div>
+          <div class="user-mono"><?= htmlspecialchars($adminInitials) ?></div>
           <div class="user-info">
             <div class="uname"><?= htmlspecialchars($currentUser) ?></div>
             <div class="urole"><?= $textbotlang['panel']['layoutMobileMenuLabel'] ?></div>

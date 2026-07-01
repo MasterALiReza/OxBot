@@ -2563,8 +2563,14 @@
         content: "مسدود کردن" !important;
     }
 
-    /* Constrain the grid items to prevent horizontal overflow */
-    .u-sidebar, .u-main-col {
+    /* Constrain the grid items to prevent horizontal overflow and set mobile order */
+    .u-sidebar {
+        order: 1 !important;
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+    .u-main-col {
+        order: 2 !important;
         min-width: 0 !important;
         width: 100% !important;
     }
@@ -2620,22 +2626,43 @@
     /* Copy User ID row */
     .profile-head > div:nth-child(2) {
         width: 100% !important;
-        justify-content: center !important;
-        border-top: 1px solid rgba(255,255,255,0.05) !important;
-        padding-top: 12px !important;
-        margin-top: 4px !important;
+        flex-direction: row-reverse !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        background: var(--sf2) !important;
+        border: 1.5px solid var(--bd) !important;
+        border-radius: 12px !important;
+        padding: 10px 14px !important;
+        margin-top: 10px !important;
     }
     .profile-head > div:nth-child(2) > div:first-child {
         width: auto !important;
     }
     .profile-head > div:nth-child(2) > div:first-child > div {
-        width: 44px !important;
-        height: 44px !important;
-        border-radius: 10px !important;
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 8px !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1.5px solid var(--bd) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     .profile-head > div:nth-child(2) > div:nth-child(2) {
+        display: flex !important;
+        flex-direction: row !important;
         align-items: center !important;
-        gap: 2px !important;
+        gap: 6px !important;
+    }
+    .profile-head > div:nth-child(2) > div:nth-child(2) span:first-child {
+        font-size: 0.74rem !important;
+        color: var(--mute) !important;
+        margin: 0 !important;
+    }
+    .profile-head > div:nth-child(2) > div:nth-child(2) span:last-child {
+        font-size: 0.94rem !important;
+        font-weight: 700 !important;
+        color: var(--text) !important;
     }
     
     /* Quick User key-value rows styling */
