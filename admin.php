@@ -2981,7 +2981,9 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     $w_id = (int)str_replace('admin_approve_withdraw_', '', $datain);
     
     // Check if it's still pending
-    $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
+    $stmt = $pdo->prepare("SELECT * FROM withdrawal_requests WHERE id = ?");
+    $stmt->execute([$w_id]);
+    $w_req = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($w_req && $w_req['status'] === 'pending') {
         step("admin_send_receipt_withdraw_{$w_id}", $from_id);
         telegram('sendMessage', [
@@ -3011,7 +3013,9 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 } elseif (strpos($datain, 'admin_reject_withdraw_') === 0) {
     $w_id = (int)str_replace('admin_reject_withdraw_', '', $datain);
     
-    $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
+    $stmt = $pdo->prepare("SELECT * FROM withdrawal_requests WHERE id = ?");
+    $stmt->execute([$w_id]);
+    $w_req = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($w_req && $w_req['status'] === 'pending') {
         step("admin_reject_reason_withdraw_{$w_id}", $from_id);
         telegram('sendMessage', [
@@ -3315,13 +3319,16 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 } elseif (strpos($user['step'], 'admin_send_receipt_withdraw_') === 0) {
     if (isset($update->message->photo)) {
         $w_id = (int)str_replace('admin_send_receipt_withdraw_', '', $user['step']);
-        $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
+        $stmt = $pdo->prepare("SELECT * FROM withdrawal_requests WHERE id = ?");
+        $stmt->execute([$w_id]);
+        $w_req = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($w_req && $w_req['status'] === 'pending') {
             $photo_id = end($update->message->photo)->file_id;
             
             // Mark as approved
-            db_query($pdo, "UPDATE withdrawal_requests SET status = 'approved' WHERE id = ?", [$w_id]);
+            $stmt = $pdo->prepare("UPDATE withdrawal_requests SET status = 'approved' WHERE id = ?");
+            $stmt->execute([$w_id]);
             
             // Send to user
             $caption = "✅ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان تایید و پرداخت شد.\nرسید پرداخت شما ضمیمه شده است.";
@@ -3343,14 +3350,18 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 } elseif (strpos($user['step'], 'admin_reject_reason_withdraw_') === 0) {
     if ($text) {
         $w_id = (int)str_replace('admin_reject_reason_withdraw_', '', $user['step']);
-        $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
+        $stmt = $pdo->prepare("SELECT * FROM withdrawal_requests WHERE id = ?");
+        $stmt->execute([$w_id]);
+        $w_req = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($w_req && $w_req['status'] === 'pending') {
             // Refund user
-            db_query($pdo, "UPDATE user SET affiliate_balance = affiliate_balance + ? WHERE id = ?", [$w_req['amount'], $w_req['user_id']]);
+            $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance + ? WHERE id = ?");
+            $stmt->execute([$w_req['amount'], $w_req['user_id']]);
             
             // Mark as rejected
-            db_query($pdo, "UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ?", [$w_id]);
+            $stmt = $pdo->prepare("UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ?");
+            $stmt->execute([$w_id]);
             
             // Send to user
             $reason = htmlspecialchars($text);

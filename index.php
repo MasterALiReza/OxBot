@@ -434,11 +434,55 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     sendmessage($from_id, $textbotlang['users']['text_start'], $keyboard, 'html');
     update("user", "number", $user_phone, "id", $from_id);
     step('home', $from_id);
+} elseif ($user['step'] == 'get_withdraw_amount') {
+    $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $clean_text = str_replace($persian, $english, $text);
+    $clean_text = preg_replace('/[^0-9]/', '', $clean_text);
+
+    if (!$clean_text || intval($clean_text) <= 0) {
+        sendmessage($from_id, "❌ مبلغ نامعتبر است. لطفا یک عدد معتبر ارسال کنید:", $backuser, 'HTML');
+        return;
+    }
+    $amount = intval($clean_text);
+
+    $stmt = $pdo->prepare("SELECT affiliate_balance FROM user WHERE id = :id");
+    $stmt->execute([':id' => $from_id]);
+    $affiliate_balance = $stmt->fetchColumn() ?: 0;
+
+    if ($amount < 50000) {
+        sendmessage($from_id, "❌ حداقل مبلغ قابل برداشت 50,000 تومان است.", $backuser, 'HTML');
+        return;
+    }
+    if ($amount > $affiliate_balance) {
+        sendmessage($from_id, "❌ مبلغ درخواستی از موجودی شما بیشتر است.", $backuser, 'HTML');
+        return;
+    }
+
+    update("user", "Processing_value", $amount, "id", $from_id);
+    update("user", "step", "get_card_number_withdraw", "id", $from_id);
+    sendmessage($from_id, "💳 لطفا شماره کارت 16 رقمی خود را جهت واریز وجه ارسال کنید:\n\nبرای انصراف /start را ارسال کنید.", $backuser, 'HTML');
+
 } elseif ($user['step'] == 'get_card_number_withdraw') {
     if (!$text || strlen(preg_replace('/[^0-9]/', '', $text)) != 16) {
         sendmessage($from_id, "❌ شماره کارت باید دقیقا 16 رقم باشد. لطفا دوباره ارسال کنید:", $backuser, 'HTML');
         return;
     }
+
+    $card_number = preg_replace('/[^0-9]/', '', $text);
+    update("user", "Processing_value_one", $card_number, "id", $from_id);
+    update("user", "step", "get_card_name_withdraw", "id", $from_id);
+    sendmessage($from_id, "👤 لطفا نام و نام خانوادگی صاحب کارت را ارسال کنید:", $backuser, 'HTML');
+
+} elseif ($user['step'] == 'get_card_name_withdraw') {
+    $card_name = strip_tags($text);
+    if (empty($card_name) || mb_strlen($card_name) < 3) {
+        sendmessage($from_id, "❌ نام نامعتبر است. لطفا نام و نام خانوادگی صحیح ارسال کنید:", $backuser, 'HTML');
+        return;
+    }
+
+    $amount = intval($user['Processing_value']);
+    $card_number = $user['Processing_value_one'];
 
     $aff_settings = select("affiliates", "*", null, null, "select");
     if (isset($aff_settings['withdrawal_status']) && $aff_settings['withdrawal_status'] === 'offwithdraw') {
@@ -447,42 +491,31 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         return;
     }
     
-    $stmt = $pdo->prepare("SELECT affiliate_balance FROM user WHERE id = :id");
-    $stmt->execute([':id' => $from_id]);
-    $affiliate_balance = $stmt->fetchColumn() ?: 0;
-
-    if ($affiliate_balance < 50000) {
-        sendmessage($from_id, "❌ موجودی شما کافی نیست. (حداقل 50,000 تومان)", $keyboard, 'HTML');
-        step('none', $from_id);
-        return;
-    }
-
-    $card_number = preg_replace('/[^0-9]/', '', $text);
-    
-    // Atomic deduction: set affiliate_balance to 0 only if it currently equals the expected balance
-    $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = 0 WHERE id = :id AND affiliate_balance = :bal AND affiliate_balance >= 50000");
-    $stmt->execute([':id' => $from_id, ':bal' => $affiliate_balance]);
+    // Atomic deduction:
+    $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance - :amount WHERE id = :id AND affiliate_balance >= :amount2");
+    $stmt->execute([':amount' => $amount, ':amount2' => $amount, ':id' => $from_id]);
     
     if ($stmt->rowCount() > 0) {
         $stmt = $pdo->prepare("INSERT INTO withdrawal_requests (user_id, amount, card_number, card_name, status, time) VALUES (:u, :a, :c, :n, 'pending', :t)");
         $stmt->execute([
             ':u' => $from_id,
-            ':a' => $affiliate_balance,
+            ':a' => $amount,
             ':c' => $card_number,
-            ':n' => 'وارد نشده',
+            ':n' => $card_name,
             ':t' => date('Y-m-d H:i:s')
         ]);
         $w_id = $pdo->lastInsertId();
 
-        sendmessage($from_id, "✅ درخواست تسویه شما با مبلغ " . number_format($affiliate_balance) . " تومان به شماره کارت $card_number ثبت شد و پس از بررسی به حساب شما واریز خواهد شد.", $keyboard, 'HTML');
+        sendmessage($from_id, "✅ درخواست تسویه شما با مبلغ " . number_format($amount) . " تومان به شماره کارت $card_number به نام $card_name ثبت شد و پس از بررسی به حساب شما واریز خواهد شد.", $keyboard, 'HTML');
         
         $admin_keyboard = json_encode(['inline_keyboard' => [
             [['text' => '✅ پرداخت شد و ارسال رسید', 'callback_data' => 'admin_approve_withdraw_' . $w_id]],
             [['text' => '❌ رد درخواست', 'callback_data' => 'admin_reject_withdraw_' . $w_id]]
         ]]);
 
+        $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>\n💰 مبلغ: " . number_format($amount) . " تومان\n💳 کارت: <code>$card_number</code>\n👤 نام صاحب کارت: $card_name\n\nجهت بررسی اقدام کنید.";
+
         if (strlen($setting['Channel_Report']) > 0) {
-            $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>\n💰 مبلغ: " . number_format($affiliate_balance) . " تومان\n💳 کارت: <code>$card_number</code>\n\nجهت بررسی اقدام کنید.";
             telegram('sendmessage', [
                 'chat_id' => $setting['Channel_Report'],
                 'text' => $admin_msg,
@@ -491,7 +524,6 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
             ]);
         }
         foreach ($admin_ids as $admin_id) {
-            $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>\n💰 مبلغ: " . number_format($affiliate_balance) . " تومان\n💳 کارت: <code>$card_number</code>\n\nجهت بررسی اقدام کنید.";
             telegram('sendmessage', [
                 'chat_id' => $admin_id,
                 'text' => $admin_msg,
@@ -6281,8 +6313,11 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         sendmessage($from_id, "❌ موجودی شما برای تسویه کافی نیست. (حداقل 50,000 تومان)", null, 'HTML');
         return;
     }
-    update("user", "step", "get_card_number_withdraw", "id", $from_id);
-    sendmessage($from_id, "💳 لطفا شماره کارت 16 رقمی خود را جهت واریز وجه ارسال کنید:\n\nبرای انصراف /start را ارسال کنید.", $backuser, 'HTML');
+    update("user", "step", "get_withdraw_amount", "id", $from_id);
+    $msg = "💰 موجودی قابل تسویه: " . number_format($affiliate_balance) . " تومان\n\n";
+    $msg .= "لطفا مبلغی که قصد تسویه و واریز به کارت را دارید به تومان وارد کنید (فقط عدد انگلیسی):\n\n";
+    $msg .= "برای انصراف /start را ارسال کنید.";
+    sendmessage($from_id, $msg, $backuser, 'HTML');
 
 } elseif ($datain == "affiliate_transfer") {
     $stmt = $pdo->prepare("SELECT affiliate_balance FROM user WHERE id = :id");
