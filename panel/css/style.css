@@ -1809,3 +1809,62 @@ button:disabled,
 input, select, textarea, button {
     font-family: var(--font) !important;
 }
+
+/* Product Toolbar Restructuring Styles (Desktop & Base Layout) */
+.toolbar {
+    display: flex;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    padding: 20px 24px !important;
+    border-bottom: 1px solid var(--bd) !important;
+}
+.toolbar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+.toolbar-top .toolbar-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.product-count-badge {
+    font-size: 0.72rem;
+    background: var(--acs);
+    color: var(--ach);
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+    line-height: 1;
+}
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.toolbar-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+}
+.toolbar-bottom .search-box {
+    flex: 1;
+    min-width: 250px;
+    max-width: 400px;
+}
+.toolbar-bottom .toolbar-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.toolbar-bottom .toolbar-filters .select {
+    min-width: 170px;
+    width: auto;
+}

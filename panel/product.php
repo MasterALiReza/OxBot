@@ -276,8 +276,26 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
     </div>
   <?php else: ?>
     <div class="toolbar">
-      <div class="toolbar-title">فهرست محصولات <small>(<?= count($products) ?>)</small></div>
-      <div class="toolbar-end">
+      <div class="toolbar-top">
+        <div class="toolbar-title">
+          فهرست محصولات
+          <span class="product-count-badge"><?= count($products) ?></span>
+        </div>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openModal('catManageModal')">
+            <?= icon('package', 14) ?> مدیریت دسته‌بندی‌ها
+          </button>
+          <button class="btn btn-primary btn-sm btn-add-product" onclick="openModal('addModal')">
+            <?= icon('plus', 14) ?> افزودن محصول جدید
+          </button>
+        </div>
+      </div>
+      <div class="toolbar-bottom">
+        <div class="search-box">
+          <?= icon('search', 14) ?>
+          <input type="text" placeholder="جستجوی محصول..." id="filter-search">
+          <button type="button" class="search-clear">✕</button>
+        </div>
         <div class="toolbar-filters">
           <select class="select" id="filter-category">
               <option value="all">همه دسته‌بندی‌ها</option>
@@ -292,17 +310,6 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
               <?php endforeach; ?>
           </select>
         </div>
-        <div class="search-box">
-          <?= icon('search', 14) ?>
-          <input type="text" placeholder="جستجوی محصول..." id="filter-search">
-          <button type="button" class="search-clear">✕</button>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="openModal('catManageModal')" style="margin-left:8px;">
-          <?= icon('package', 14) ?> مدیریت دسته‌بندی‌ها
-        </button>
-        <button class="btn btn-primary btn-sm btn-add-product" onclick="openModal('addModal')">
-          <?= icon('plus', 14) ?> افزودن محصول جدید
-        </button>
       </div>
     </div>
     <div class="product-grid" id="prodTbl">
