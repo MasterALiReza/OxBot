@@ -472,23 +472,31 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
             ':n' => 'وارد نشده',
             ':t' => date('Y-m-d H:i:s')
         ]);
+        $w_id = $pdo->lastInsertId();
 
         sendmessage($from_id, "✅ درخواست تسویه شما با مبلغ " . number_format($affiliate_balance) . " تومان به شماره کارت $card_number ثبت شد و پس از بررسی به حساب شما واریز خواهد شد.", $keyboard, 'HTML');
         
+        $admin_keyboard = json_encode(['inline_keyboard' => [
+            [['text' => '✅ پرداخت شد و ارسال رسید', 'callback_data' => 'admin_approve_withdraw_' . $w_id]],
+            [['text' => '❌ رد درخواست', 'callback_data' => 'admin_reject_withdraw_' . $w_id]]
+        ]]);
+
         if (strlen($setting['Channel_Report']) > 0) {
-            $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>\n💰 مبلغ: " . number_format($affiliate_balance) . " تومان\n💳 کارت: <code>$card_number</code>\n\nبرای بررسی به پنل مدیریت مراجعه کنید.";
+            $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>\n💰 مبلغ: " . number_format($affiliate_balance) . " تومان\n💳 کارت: <code>$card_number</code>\n\nجهت بررسی اقدام کنید.";
             telegram('sendmessage', [
                 'chat_id' => $setting['Channel_Report'],
                 'text' => $admin_msg,
-                'parse_mode' => "HTML"
+                'parse_mode' => "HTML",
+                'reply_markup' => $admin_keyboard
             ]);
         }
         foreach ($admin_ids as $admin_id) {
-            $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>\n💰 مبلغ: " . number_format($affiliate_balance) . " تومان\n💳 کارت: <code>$card_number</code>\n\nبرای بررسی به بخش تسویه حساب ها در پنل مدیریت مراجعه کنید.";
+            $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>\n💰 مبلغ: " . number_format($affiliate_balance) . " تومان\n💳 کارت: <code>$card_number</code>\n\nجهت بررسی اقدام کنید.";
             telegram('sendmessage', [
                 'chat_id' => $admin_id,
                 'text' => $admin_msg,
-                'parse_mode' => "HTML"
+                'parse_mode' => "HTML",
+                'reply_markup' => $admin_keyboard
             ]);
         }
     } else {
@@ -6203,10 +6211,19 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     // Override template slightly to inject new stats
     $textaffiliates = sprintf($textbotlang['hardcoded']['affiliateWelcomeGiftInfo'], $text_start, $text_porsant, $user['affiliatescount'], $inforefral['orders'], $sum_order);
     
+    // Fetch pending withdrawal amount
+    $stmt = $pdo->prepare("SELECT SUM(amount) FROM withdrawal_requests WHERE user_id = :id AND status = 'pending'");
+    $stmt->execute([':id' => $from_id]);
+    $pending_withdrawals = $stmt->fetchColumn() ?: 0;
+
     $textaffiliates .= "\n\n📊 **اطلاعات اختصاصی شما:**\n";
     $textaffiliates .= "👥 زیرمجموعه‌های فعال: {$active_referrals_count} نفر\n";
     $textaffiliates .= "💎 رتبه بازاریابی شما: {$tier_name} (پورسانت {$Percent_porsant}٪)\n";
     $textaffiliates .= "💰 موجودی قابل برداشت: {$aff_balance_str} تومان\n";
+    if ($pending_withdrawals > 0) {
+        $pending_withdrawals_str = number_format($pending_withdrawals, 0);
+        $textaffiliates .= "⏳ در حال تسویه: {$pending_withdrawals_str} تومان\n";
+    }
 
     sendmessage($from_id, $textaffiliates, $keyboard_share, 'HTML');
 } elseif ($datain == "get_gift_start") {

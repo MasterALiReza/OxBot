@@ -2977,6 +2977,67 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         'show_alert' => false
     ]);
     return;
+} elseif (strpos($datain, 'admin_approve_withdraw_') === 0) {
+    $w_id = (int)str_replace('admin_approve_withdraw_', '', $datain);
+    
+    // Check if it's still pending
+    $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
+    if ($w_req && $w_req['status'] === 'pending') {
+        step("admin_send_receipt_withdraw_{$w_id}", $from_id);
+        telegram('sendMessage', [
+            'chat_id' => $from_id,
+            'text' => "📸 لطفاً تصویر رسید پرداختی را ارسال کنید.\n\nاین عکس برای کاربر ارسال خواهد شد.",
+            'reply_markup' => json_encode([
+                'keyboard' => [
+                    [
+                        ['text' => $textbotlang['keyboard']['cancelOperation']]
+                    ]
+                ],
+                'resize_keyboard' => true
+            ])
+        ]);
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => 'منتظر ارسال تصویر...',
+            'show_alert' => false
+        ]);
+    } else {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => '❌ این درخواست قبلاً بررسی شده است.',
+            'show_alert' => true
+        ]);
+    }
+} elseif (strpos($datain, 'admin_reject_withdraw_') === 0) {
+    $w_id = (int)str_replace('admin_reject_withdraw_', '', $datain);
+    
+    $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
+    if ($w_req && $w_req['status'] === 'pending') {
+        step("admin_reject_reason_withdraw_{$w_id}", $from_id);
+        telegram('sendMessage', [
+            'chat_id' => $from_id,
+            'text' => "✍️ لطفاً دلیل رد درخواست را به صورت متنی بفرستید.\n\nاین متن برای کاربر ارسال خواهد شد.",
+            'reply_markup' => json_encode([
+                'keyboard' => [
+                    [
+                        ['text' => $textbotlang['keyboard']['cancelOperation']]
+                    ]
+                ],
+                'resize_keyboard' => true
+            ])
+        ]);
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => 'منتظر ارسال متن...',
+            'show_alert' => false
+        ]);
+    } else {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => '❌ این درخواست قبلاً بررسی شده است.',
+            'show_alert' => true
+        ]);
+    }
 } elseif (strpos($datain, 'syncpnl_') === 0 && $adminrulecheck['rule'] == "administrator") {
     $loc_md5 = str_replace('syncpnl_', '', $datain);
     
@@ -3250,6 +3311,60 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'text' => $text_report,
             'parse_mode' => "HTML"
         ]);
+    }
+} elseif (strpos($user['step'], 'admin_send_receipt_withdraw_') === 0) {
+    if (isset($update->message->photo)) {
+        $w_id = (int)str_replace('admin_send_receipt_withdraw_', '', $user['step']);
+        $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
+        
+        if ($w_req && $w_req['status'] === 'pending') {
+            $photo_id = end($update->message->photo)->file_id;
+            
+            // Mark as approved
+            db_query($pdo, "UPDATE withdrawal_requests SET status = 'approved' WHERE id = ?", [$w_id]);
+            
+            // Send to user
+            $caption = "✅ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان تایید و پرداخت شد.\nرسید پرداخت شما ضمیمه شده است.";
+            telegram('sendPhoto', [
+                'chat_id' => $w_req['user_id'],
+                'photo' => $photo_id,
+                'caption' => $caption
+            ]);
+            
+            sendmessage($from_id, "رسید با موفقیت برای کاربر ارسال شد و وضعیت به پرداخت شده تغییر یافت.", $keyboardadmin, 'HTML');
+            step('none', $from_id);
+        } else {
+            sendmessage($from_id, "این درخواست قبلا بررسی شده است.", $keyboardadmin, 'HTML');
+            step('none', $from_id);
+        }
+    } else {
+        sendmessage($from_id, "لطفا فقط تصویر رسید را ارسال کنید.", null, 'HTML');
+    }
+} elseif (strpos($user['step'], 'admin_reject_reason_withdraw_') === 0) {
+    if ($text) {
+        $w_id = (int)str_replace('admin_reject_reason_withdraw_', '', $user['step']);
+        $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
+        
+        if ($w_req && $w_req['status'] === 'pending') {
+            // Refund user
+            db_query($pdo, "UPDATE user SET affiliate_balance = affiliate_balance + ? WHERE id = ?", [$w_req['amount'], $w_req['user_id']]);
+            
+            // Mark as rejected
+            db_query($pdo, "UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ?", [$w_id]);
+            
+            // Send to user
+            $reason = htmlspecialchars($text);
+            $msg = "❌ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان رد شد و مبلغ به کیف پول پورسانت شما بازگشت داده شد.\n\nدلیل: $reason";
+            sendmessage($w_req['user_id'], $msg, null, 'HTML');
+            
+            sendmessage($from_id, "دلیل رد برای کاربر ارسال شد و مبلغ به کیف پول او بازگشت.", $keyboardadmin, 'HTML');
+            step('none', $from_id);
+        } else {
+            sendmessage($from_id, "این درخواست قبلا بررسی شده است.", $keyboardadmin, 'HTML');
+            step('none', $from_id);
+        }
+    } else {
+        sendmessage($from_id, "لطفا فقط متن دلیل رد را تایپ کنید.", null, 'HTML');
     }
 } elseif ($text == $textbotlang['keyboard']['deleteProduct'] && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['Admin']['Product']['removeLocation'], $json_list_marzban_panel, 'HTML');
