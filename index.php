@@ -513,7 +513,32 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
             [['text' => '❌ رد درخواست', 'callback_data' => 'admin_reject_withdraw_' . $w_id]]
         ]]);
 
-        $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>\n💰 مبلغ: " . number_format($amount) . " تومان\n💳 کارت: <code>$card_number</code>\n👤 نام صاحب کارت: $card_name\n\nجهت بررسی اقدام کنید.";
+        $total_referrals = intval($user['affiliatescount'] ?? 0);
+        $active_referrals = intval($user['active_referrals_count'] ?? 0);
+
+        $aff_comm = select("affiliates", "*", null, null, "select");
+        $tier = "برنزی 🥉";
+        $porsant = $setting['affiliatespercentage'] ?? 0;
+        if ($active_referrals >= intval($aff_comm['gold_threshold'] ?? 0)) {
+            $porsant = $aff_comm['gold_percentage'] ?? 0;
+            $tier = "طلایی 🥇";
+        } elseif ($active_referrals >= intval($aff_comm['silver_threshold'] ?? 0)) {
+            $porsant = $aff_comm['silver_percentage'] ?? 0;
+            $tier = "نقره‌ای 🥈";
+        }
+
+        $user_mention = ($user['username'] && $user['username'] !== 'NOT_USERNAME') ? " (@" . $user['username'] . ")" : "";
+        $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n" .
+                     "👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>$user_mention\n" .
+                     "💰 مبلغ: " . number_format($amount) . " تومان\n" .
+                     "💳 کارت: <code>$card_number</code>\n" .
+                     "👤 نام صاحب کارت: $card_name\n\n" .
+                     "📊 <b>وضعیت بازاریابی کاربر:</b>\n" .
+                     "👥 کل زیرمجموعه‌ها: " . number_format($total_referrals) . " نفر\n" .
+                     "👥 زیرمجموعه‌های فعال: " . number_format($active_referrals) . " نفر\n" .
+                     "💎 سطح پورسانت: $tier (پورسانت {$porsant}٪)\n\n" .
+                     "جهت بررسی اقدام کنید.";
+
 
         if (strlen($setting['Channel_Report']) > 0) {
             telegram('sendmessage', [
