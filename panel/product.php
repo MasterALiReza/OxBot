@@ -590,7 +590,7 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
   <div class="modal">
     <div class="modal-head">
       <div class="modal-title"><?= icon('package') ?> مدیریت دسته‌بندی‌ها</div>
-      <button class="modal-close" onclick="closeModal('catManageModal')">✕</button>
+      <button class="modal-x" onclick="closeModal('catManageModal')"><?= icon('close', 14) ?></button>
     </div>
     <div class="modal-body" style="padding:0">
       <?php if (empty($categories_db)): ?>
@@ -612,8 +612,8 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
               <td class="td-id">#<?= $c['id'] ?></td>
               <td><?= htmlspecialchars($c['remark']) ?></td>
               <td style="text-align:left; gap:4px; display:flex; justify-content:flex-end;">
-                <button class="btn-icon" title="ویرایش" onclick="openEditCatModal(<?= $c['id'] ?>, '<?= htmlspecialchars(addslashes($c['remark'])) ?>')"><?= icon('edit', 14) ?></button>
-                <button class="btn-icon danger" title="حذف" onclick="confirmDeleteCat(<?= $c['id'] ?>)"><?= icon('trash', 14) ?></button>
+                <button class="btn btn-ghost btn-icon btn-sm" title="ویرایش" onclick="openEditCatModal(<?= $c['id'] ?>, '<?= htmlspecialchars(addslashes($c['remark'])) ?>')"><?= icon('edit', 14) ?></button>
+                <button class="btn btn-no btn-icon btn-sm" title="حذف" onclick="confirmDeleteCat(<?= $c['id'] ?>)"><?= icon('trash', 14) ?></button>
               </td>
             </tr>
             <?php endforeach; ?>
@@ -632,11 +632,11 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
   <div class="modal">
     <div class="modal-head">
       <div class="modal-title" id="catModalTitle">دسته‌بندی</div>
-      <button class="modal-close" onclick="closeModal('catActionModal')">✕</button>
+      <button class="modal-x" onclick="closeModal('catActionModal')"><?= icon('close', 14) ?></button>
     </div>
     <form action="" method="post">
       <div class="modal-body">
-        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
         <input type="hidden" name="action" id="catModalAction" value="add_cat">
         <input type="hidden" name="cat_id" id="catModalId" value="">
         <div class="field">
@@ -671,7 +671,7 @@ function openEditCatModal(id, name) {
 }
 function confirmDeleteCat(id) {
   if (confirm('آیا از حذف این دسته‌بندی اطمینان دارید؟ تمامی محصولاتی که این دسته‌بندی را دارند، بدون دسته‌بندی خواهند شد.')) {
-    window.location.href = 'product.php?delete_cat=' + id + '&csrf=<?= csrf_token() ?>';
+    window.location.href = 'product.php?delete_cat=' + id + '&_csrf=<?= csrf_token() ?>';
   }
 }
 </script>
