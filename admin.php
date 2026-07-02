@@ -3317,14 +3317,14 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         ]);
     }
 } elseif (strpos($user['step'], 'admin_send_receipt_withdraw_') === 0) {
-    if (isset($update->message->photo)) {
+    if (isset($update['message']['photo'])) {
         $w_id = (int)str_replace('admin_send_receipt_withdraw_', '', $user['step']);
         $stmt = $pdo->prepare("SELECT * FROM withdrawal_requests WHERE id = ?");
         $stmt->execute([$w_id]);
         $w_req = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($w_req && $w_req['status'] === 'pending') {
-            $photo_id = end($update->message->photo)->file_id;
+            $photo_id = end($update['message']['photo'])['file_id'];
             
             // Mark as approved
             $stmt = $pdo->prepare("UPDATE withdrawal_requests SET status = 'approved' WHERE id = ?");
