@@ -3317,6 +3317,11 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         ]);
     }
 } elseif (strpos($user['step'], 'admin_send_receipt_withdraw_') === 0) {
+    if ($text == ($textbotlang['keyboard']['cancelOperation'] ?? 'لغو عملیات') || $text == 'لغو عملیات') {
+        sendmessage($from_id, "❌ عملیات تایید تسویه و ارسال رسید لغو شد.", $keyboardadmin, 'HTML');
+        step('none', $from_id);
+        return;
+    }
     if (isset($update['message']['photo'])) {
         $w_id = (int)str_replace('admin_send_receipt_withdraw_', '', $user['step']);
         $stmt = $pdo->prepare("SELECT * FROM withdrawal_requests WHERE id = ?");
@@ -3348,6 +3353,11 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         sendmessage($from_id, "لطفا فقط تصویر رسید را ارسال کنید.", null, 'HTML');
     }
 } elseif (strpos($user['step'], 'admin_reject_reason_withdraw_') === 0) {
+    if ($text == ($textbotlang['keyboard']['cancelOperation'] ?? 'لغو عملیات') || $text == 'لغو عملیات') {
+        sendmessage($from_id, "❌ عملیات رد درخواست تسویه لغو شد.", $keyboardadmin, 'HTML');
+        step('none', $from_id);
+        return;
+    }
     if ($text) {
         $w_id = (int)str_replace('admin_reject_reason_withdraw_', '', $user['step']);
         $stmt = $pdo->prepare("SELECT * FROM withdrawal_requests WHERE id = ?");
