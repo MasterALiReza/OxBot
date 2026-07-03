@@ -20,5 +20,6 @@ $APIKEY = '{API_KEY}';
 $adminnumber = '{admin_number}';
 $domainhosts = '{domain_name}';
 $usernamebot = '{username_bot}';
+$backup_secure_token = 'SecureBackupToken_3e5c9b67484df7c05b8a02a9b31d04ec'; // Token generated for secure backups
 
 ?>

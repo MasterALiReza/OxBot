@@ -471,8 +471,8 @@ function install_bot() {
         echo -e "\e[91mError: Failed to install Wget.\033[0m"
         exit 1
     }
-    sudo apt-get install -y unzip || {
-        echo -e "\e[91mError: Failed to install Unzip.\033[0m"
+    sudo apt-get install -y zip unzip || {
+        echo -e "\e[91mError: Failed to install Zip/Unzip.\033[0m"
         exit 1
     }
     sudo apt install curl -y || {
@@ -833,6 +833,7 @@ EOF
         fi
         sleep 1
         secrettoken=$(openssl rand -base64 10 | tr -dc 'a-zA-Z0-9' | cut -c1-8)
+        backup_token="SecureBackupToken_$(openssl rand -hex 16)"
         # CHANGED: Generate config.php with new Pro structure
         cat <<EOF > /var/www/html/mirzaprobotconfig/config.php
 <?php
@@ -853,6 +854,7 @@ try { \$pdo = new PDO(\$dsn, \$usernamedb, \$passworddb, \$options); } catch (\P
 \$adminnumber = '${YOUR_CHAT_ID}';
 \$domainhosts = '${YOUR_DOMAIN}';
 \$usernamebot = '${YOUR_BOTNAME}';
+\$backup_secure_token = '$backup_token';
 ?>
 EOF
         sleep 1
@@ -1321,6 +1323,7 @@ EOF
     # Create config file with correct MySQL host and PDO
     ASAS="$"
     secrettoken=$(openssl rand -base64 10 | tr -dc 'a-zA-Z0-9' | cut -c1-8)
+    backup_token="SecureBackupToken_$(openssl rand -hex 16)"
     cat <<EOF > "$BOT_DIR/config.php"
 <?php
 \$APIKEY = '$YOUR_BOT_TOKEN';
@@ -1331,6 +1334,7 @@ EOF
 \$adminnumber = '$YOUR_CHAT_ID';
 \$usernamebot = '$YOUR_BOTNAME';
 \$secrettoken = '$secrettoken';
+\$backup_secure_token = '$backup_token';
 \$connect = mysqli_connect('127.0.0.1', \$usernamedb, \$passworddb, \$dbname);
 if (\$connect->connect_error) {
     die('Database connection failed: ' . \$connect->connect_error);
@@ -1799,23 +1803,61 @@ function export_database() {
     if ! extract_db_credentials; then
         return 1
     fi
-    # Check if Marzban is installed
-    if check_marzban_installed; then
-        echo -e "\033[31m[ERROR]\033[0m Exporting database is not supported when Marzban is installed due to database being managed by Docker."
-        return 1
-    fi
     echo -e "\033[33mVerifying database existence...\033[0m"
-    if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
-        echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
-        return 1
+    if check_marzban_installed; then
+        MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc)
+        if ! docker exec -i $MYSQL_CONTAINER mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
+            echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
+            return 1
+        fi
+    else
+        if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
+            echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
+            return 1
+        fi
     fi
-    BACKUP_FILE="/root/${DB_NAME}_backup.sql"
-    echo -e "\033[33mCreating backup at $BACKUP_FILE...\033[0m"
-    if ! mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$BACKUP_FILE"; then
+
+    BACKUP_ZIP="/root/mirzabackup_${DB_NAME}_$(date +"%Y%m%d_%H%M%S").zip"
+    SQL_FILE="/tmp/mirzadb_$(date +"%s").sql"
+
+    echo -e "\033[33mCreating SQL dump...\033[0m"
+    if check_marzban_installed; then
+        docker exec -i $MYSQL_CONTAINER mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$SQL_FILE"
+    else
+        mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$SQL_FILE"
+    fi
+
+    if [ ! -f "$SQL_FILE" ] || [ ! -s "$SQL_FILE" ]; then
         echo -e "\033[31m[ERROR]\033[0m Failed to create database backup."
+        rm -f "$SQL_FILE"
         return 1
     fi
-    echo -e "\033[32mBackup successfully created at $BACKUP_FILE.\033[0m"
+
+    echo -e "\033[33mArchiving Bot Files...\033[0m"
+    # Go to bot directory safely depending on structure
+    local TARGET_DIR="/var/www/html/mirzaprobotconfig"
+    if [ ! -d "$TARGET_DIR" ]; then TARGET_DIR="/var/www/html"; fi
+    
+    cd "$TARGET_DIR" || return 1
+    
+    # We will copy the SQL file here temporarily so it can be zipped at root level of zip
+    mv "$SQL_FILE" database.sql
+    
+    # Build list of files to zip dynamically
+    FILES_TO_ZIP="database.sql config.php text.json"
+    if [ -d "vpnbot" ]; then FILES_TO_ZIP="$FILES_TO_ZIP vpnbot/"; fi
+    if [ -f "MHSanaei-3.2.php" ]; then FILES_TO_ZIP="$FILES_TO_ZIP MHSanaei-3.2.php"; fi
+    
+    # Zip required files safely, suppress output
+    zip -r "$BACKUP_ZIP" $FILES_TO_ZIP -q 2>/dev/null
+    
+    rm -f database.sql
+    
+    if [ -f "$BACKUP_ZIP" ]; then
+        echo -e "\033[32mSuper Safe Backup (Unified) successfully created at $BACKUP_ZIP.\033[0m"
+    else
+        echo -e "\033[31m[ERROR]\033[0m Failed to create ZIP archive."
+    fi
 }
 Import Database Function
 function import_database() {
@@ -1823,31 +1865,78 @@ function import_database() {
     if ! extract_db_credentials; then
         return 1
     fi
-    # Check if Marzban is installed
-    if check_marzban_installed; then
-        echo -e "\033[31m[ERROR]\033[0m Importing database is not supported when Marzban is installed due to database being managed by Docker."
-        return 1
-    fi
     echo -e "\033[33mVerifying database existence...\033[0m"
-    if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
-        echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
-        return 1
+    if check_marzban_installed; then
+        MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc)
+        if ! docker exec -i $MYSQL_CONTAINER mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
+            echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
+            return 1
+        fi
+    else
+        if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
+            echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
+            return 1
+        fi
     fi
     while true; do
-        read -p "Enter the path to the backup file [default: /root/${DB_NAME}_backup.sql]: " BACKUP_FILE
-        BACKUP_FILE=${BACKUP_FILE:-/root/${DB_NAME}_backup.sql}
-        if [[ -f "$BACKUP_FILE" && "$BACKUP_FILE" =~ \.sql$ ]]; then
+        read -p "Enter the path to the backup file (.zip or .sql) [default: /root/mirzabackup_${DB_NAME}.zip]: " BACKUP_FILE
+        BACKUP_FILE=${BACKUP_FILE:-/root/mirzabackup_${DB_NAME}.zip}
+        if [[ -f "$BACKUP_FILE" && "$BACKUP_FILE" =~ \.(zip|sql)$ ]]; then
             break
         else
-            echo -e "\033[31m[ERROR]\033[0m Invalid file path or format. Please provide a valid .sql file."
+            echo -e "\033[31m[ERROR]\033[0m Invalid file path or format. Please provide a valid .zip or .sql file."
         fi
     done
+
     echo -e "\033[33mImporting backup from $BACKUP_FILE...\033[0m"
-    if ! mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$BACKUP_FILE"; then
-        echo -e "\033[31m[ERROR]\033[0m Failed to import database from backup file."
-        return 1
+    
+    local TARGET_DIR="/var/www/html/mirzaprobotconfig"
+    if [ ! -d "$TARGET_DIR" ]; then TARGET_DIR="/var/www/html"; fi
+
+    if [[ "$BACKUP_FILE" == *.zip ]]; then
+        echo -e "\033[33mExtracting ZIP archive safely...\033[0m"
+        TMP_RESTORE="/tmp/mirza_restore_$(date +%s)"
+        mkdir -p "$TMP_RESTORE"
+        unzip -q -o "$BACKUP_FILE" -d "$TMP_RESTORE"
+        
+        # Import Database
+        if [ -f "$TMP_RESTORE/database.sql" ]; then
+            if check_marzban_installed; then
+                cat "$TMP_RESTORE/database.sql" | docker exec -i $MYSQL_CONTAINER mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME"
+            else
+                mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$TMP_RESTORE/database.sql"
+            fi
+            if [ $? -ne 0 ]; then echo -e "\033[31m[ERROR]\033[0m SQL Import Failed."; fi
+        fi
+
+        # Restore Bot Files
+        if [ -d "$TMP_RESTORE/vpnbot" ]; then cp -r "$TMP_RESTORE/vpnbot" "$TARGET_DIR/"; fi
+        if [ -f "$TMP_RESTORE/text.json" ]; then cp "$TMP_RESTORE/text.json" "$TARGET_DIR/text.json"; fi
+        if [ -f "$TMP_RESTORE/MHSanaei-3.2.php" ]; then cp "$TMP_RESTORE/MHSanaei-3.2.php" "$TARGET_DIR/MHSanaei-3.2.php"; fi
+        if [ -f "$TMP_RESTORE/config.php" ]; then 
+            # Back up current config just in case
+            cp "$TARGET_DIR/config.php" "$TARGET_DIR/config_backup_$(date +%s).php" 2>/dev/null
+            cp "$TMP_RESTORE/config.php" "$TARGET_DIR/config.php"
+        fi
+        
+        # Fix permissions
+        chown -R www-data:www-data "$TARGET_DIR" 2>/dev/null
+        
+        rm -rf "$TMP_RESTORE"
+        echo -e "\033[32mFull Restore (Database + Files) completed successfully.\033[0m"
+    else
+        # Fallback to old pure SQL import
+        if check_marzban_installed; then
+            cat "$BACKUP_FILE" | docker exec -i $MYSQL_CONTAINER mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME"
+        else
+            mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$BACKUP_FILE"
+        fi
+        if [ $? -ne 0 ]; then
+            echo -e "\033[31m[ERROR]\033[0m Failed to import database from SQL file."
+            return 1
+        fi
+        echo -e "\033[32mDatabase successfully imported from $BACKUP_FILE.\033[0m"
     fi
-    echo -e "\033[32mDatabase successfully imported from $BACKUP_FILE.\033[0m"
 }
 Function for automated backup
 function auto_backup() {
@@ -1864,52 +1953,73 @@ function auto_backup() {
     if ! extract_db_credentials; then
         return 1
     fi
-    # Determine backup script based on Marzban presence
-    if check_marzban_installed; then
-        echo -e "\033[41m[NOTICE]\033[0m \033[33mMarzban detected. Using Marzban-compatible backup.\033[0m"
-        BACKUP_SCRIPT="/root/backup_mirza_marzban.sh"
-        MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc)
-        if [ -z "$MYSQL_CONTAINER" ]; then
-            echo -e "\033[31m[ERROR]\033[0m No running MySQL container found for Marzban."
-            return 1
-        fi
-        # Create Marzban backup script
-        cat <<EOF > "$BACKUP_SCRIPT"
+    # Create Unified Backup Script
+    BACKUP_SCRIPT="/root/mirza_backup.sh"
+    cat <<'EOF' > "$BACKUP_SCRIPT"
 #!/bin/bash
-BACKUP_FILE="/root/\${DB_NAME}_\$(date +\"%Y%m%d_%H%M%S\").sql"
-docker exec $MYSQL_CONTAINER mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "\$BACKUP_FILE"
-if [ \$? -eq 0 ]; then
-    curl -F document=@"\$BACKUP_FILE" "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendDocument" -F chat_id="$TELEGRAM_CHAT_ID"
-    rm "\$BACKUP_FILE"
-else
-    echo -e "\033[31m[ERROR]\033[0m Failed to create Marzban database backup."
+CONFIG_FILE="/var/www/html/mirzaprobotconfig/config.php"
+if [ ! -f "$CONFIG_FILE" ]; then
+    CONFIG_FILE="/var/www/html/config.php"
 fi
-EOF
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Error: config.php not found."
+    exit 1
+fi
+
+# Extract variables dynamically
+DB_NAME=$(grep -oP "\$dbname\s*=\s*'\K[^']+" "$CONFIG_FILE")
+DB_USER=$(grep -oP "\$usernamedb\s*=\s*'\K[^']+" "$CONFIG_FILE")
+DB_PASS=$(grep -oP "\$passworddb\s*=\s*'\K[^']+" "$CONFIG_FILE")
+BOT_TOKEN=$(grep -oP "\$APIKEY\s*=\s*'\K[^']+" "$CONFIG_FILE")
+CHAT_ID=$(grep -oP "\$adminnumber\s*=\s*'\K[^']+" "$CONFIG_FILE")
+TARGET_DIR=$(dirname "$CONFIG_FILE")
+
+# Generate paths
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKUP_ZIP="/tmp/mirzabackup_${DB_NAME}_${TIMESTAMP}.zip"
+SQL_FILE="/tmp/database.sql"
+
+# 1. Dump Database
+if docker ps | grep -q "marzban-mysql\|mysql"; then
+    MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc | head -n 1)
+    if [ -n "$MYSQL_CONTAINER" ]; then
+        docker exec $MYSQL_CONTAINER mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$SQL_FILE" 2>/dev/null
     else
-        echo -e "\033[33mUsing standard backup.\033[0m"
-        BACKUP_SCRIPT="/root/mirza_backup.sh"
-        # Verify database existence
-        if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
-            echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
-            return 1
-        fi
-        # Create standard backup script
-        cat <<EOF > "$BACKUP_SCRIPT"
-#!/bin/bash
-BACKUP_FILE="/root/\${DB_NAME}_\$(date +\"%Y%m%d_%H%M%S\").sql"
-mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "\$BACKUP_FILE"
-if [ \$? -eq 0 ]; then
-    curl -F document=@"\$BACKUP_FILE" "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendDocument" -F chat_id="$TELEGRAM_CHAT_ID"
-    rm "\$BACKUP_FILE"
+        mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$SQL_FILE" 2>/dev/null
+    fi
 else
-    echo -e "\033[31m[ERROR]\033[0m Failed to create database backup."
+    mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$SQL_FILE" 2>/dev/null
+fi
+
+if [ ! -f "$SQL_FILE" ] || [ ! -s "$SQL_FILE" ]; then
+    echo "Error: Database dump failed."
+    rm -f "$SQL_FILE"
+    exit 1
+fi
+
+# 2. Archive Files
+cd "$TARGET_DIR" || exit 1
+mv "$SQL_FILE" database.sql
+FILES_TO_ZIP="database.sql config.php text.json"
+if [ -d "vpnbot" ]; then FILES_TO_ZIP="$FILES_TO_ZIP vpnbot/"; fi
+if [ -f "MHSanaei-3.2.php" ]; then FILES_TO_ZIP="$FILES_TO_ZIP MHSanaei-3.2.php"; fi
+zip -r "$BACKUP_ZIP" $FILES_TO_ZIP -q 2>/dev/null
+rm -f database.sql
+
+# 3. Send to Telegram
+if [ -f "$BACKUP_ZIP" ]; then
+    CAPTION="📦 Full MirzaBot Backup (Auto)%0A📅 $(date +"%Y-%m-%d %H:%M:%S")%0A✅ Super Safe Backup"
+    curl -s -F document=@"$BACKUP_ZIP" -F caption="$CAPTION" "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" -F chat_id="$CHAT_ID" >/dev/null
+    rm -f "$BACKUP_ZIP"
+else
+    echo "Error: Failed to create ZIP archive."
 fi
 EOF
-    fi
     # Make the script executable
     chmod +x "$BACKUP_SCRIPT"
     # Check current cron and translate it
-    CURRENT_CRON=$(crontab -l 2>/dev/null | grep "$BACKUP_SCRIPT" | grep -v "^#")
+    CURRENT_CRON=$(crontab -l 2>/dev/null | grep -E "mirza_backup.sh|backup_mirza_marzban.sh" | grep -v "^#")
     if [ -n "$CURRENT_CRON" ]; then
         SCHEDULE=$(translate_cron "$CURRENT_CRON")
         echo -e "\033[33mCurrent Backup Schedule:\033[0m $SCHEDULE"
@@ -1928,13 +2038,12 @@ EOF
     # Function to update cron
     update_cron() {
         local cron_line="$1"
-        if [ -n "$CURRENT_CRON" ]; then
-            crontab -l 2>/dev/null | grep -v "$BACKUP_SCRIPT" | crontab - && {
-                echo -e "\033[92mRemoved previous backup schedule.\033[0m"
-            } || {
-                echo -e "\033[31mFailed to remove existing cron.\033[0m"
-            }
-        fi
+        # Safely remove both standard and old marzban backup scripts from crontab to avoid duplicates
+        crontab -l 2>/dev/null | grep -v "mirza_backup.sh" | grep -v "backup_mirza_marzban.sh" | crontab - && {
+            echo -e "\033[92mRemoved previous backup schedule.\033[0m"
+        } || {
+            echo -e "\033[31mFailed to remove existing cron.\033[0m"
+        }
         if [ -n "$cron_line" ]; then
             (crontab -l 2>/dev/null; echo "$cron_line") | crontab - && {
                 echo -e "\033[92mBackup scheduled: $(translate_cron "$cron_line")\033[0m"
