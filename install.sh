@@ -2092,17 +2092,21 @@ function change_domain() {
         echo -e "\033[31m[ERROR] SSL configuration failed!\033[0m"
         echo -e "\033[33mCleaning up...\033[0m"
         sudo certbot delete --cert-name "$new_domain" 2>/dev/null
-        sudo certbot delete --cert-name "$new_domain" 2>/dev/null
         return 1
     fi
     CONFIG_FILE="/var/www/html/mirzaprobotconfig/config.php"
     if [ -f "$CONFIG_FILE" ]; then
         sudo cp "$CONFIG_FILE" "$CONFIG_FILE.$(date +%s).bak"
-        sudo sed -i "s/\$domainhosts = '.*\/mirzaprobotconfig';/\$domainhosts = '${new_domain}\/mirzaprobotconfig';/" "$CONFIG_FILE"
+        # Detect if Apache is listening on port 88
+        local port_suffix=""
+        if grep -q "Listen 88" /etc/apache2/ports.conf 2>/dev/null; then
+            port_suffix=":88"
+        fi
+        sudo sed -i "s/\$domainhosts\s*=\s*'.*';/\$domainhosts = '${new_domain}${port_suffix}';/g" "$CONFIG_FILE"
         NEW_SECRET=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9')
-        sudo sed -i "s/\$secrettoken = '.*';/\$secrettoken = '${NEW_SECRET%%}';/" "$CONFIG_FILE"
+        sudo sed -i "s/\$secrettoken\s*=\s*'.*';/\$secrettoken = '${NEW_SECRET%%}';/g" "$CONFIG_FILE"
         BOT_TOKEN=$(awk -F"'" '/\$APIKEY/{print $2}' "$CONFIG_FILE")
-        curl -s -o /dev/null -F "url=https://${new_domain}/mirzaprobotconfig/index.php" \
+        curl -s -o /dev/null -F "url=https://${new_domain}${port_suffix}/mirzaprobotconfig/index.php" \
              -F "secret_token=${NEW_SECRET}" \
              "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" || {
             echo -e "\033[33m[WARNING] Webhook update failed\033[0m"
