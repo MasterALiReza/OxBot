@@ -35,6 +35,9 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>پنل نمایندگی - مدیریت کاربران</title>
     <link rel="stylesheet" href="css/agent_users.css">
+    
+    <!-- QRCode Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="agent-panel-body">
 
@@ -208,84 +211,97 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <!-- Config Links Modal -->
-    <div id="link-modal" class="au-modal">
-        <div class="au-modal-content">
-            <div class="au-modal-header">
-                <h2>لینک اشتراک</h2>
-                <button class="au-btn-icon" onclick="closeModal('link-modal')"><?= icon('x', 20) ?></button>
+    <!-- User Management Advanced Modal -->
+    <div id="manage-modal" class="au-modal">
+        <div class="au-modal-content" style="max-width: 600px; background: var(--au-surface); border-radius: 12px; overflow: hidden; padding: 0;">
+            <div class="au-modal-header" style="background: rgba(0,0,0,0.2); padding: 15px 20px;">
+                <h2 style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-gear"></i> مدیریت سرویس کاربر</h2>
+                <button class="au-btn-icon" onclick="closeModal('manage-modal')"><?= icon('x', 20) ?></button>
             </div>
-            <div class="au-modal-body">
-                <div id="link-content" style="background: var(--au-background); padding: 15px; border-radius: 8px; word-break: break-all; font-family: monospace; font-size: 0.85rem; line-height: 1.5; text-align: left; direction: ltr; max-height: 200px; overflow-y: auto; user-select: all;">
-                    در حال دریافت...
+            
+            <div class="au-modal-body" style="padding: 20px; display: grid; gap: 15px; grid-template-columns: 1fr 1fr;">
+                
+                <!-- جزئیات خرید فاکتور -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
+                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 5px;"><i class="fa-solid fa-file-invoice"></i> جزئیات خرید فاکتور</div>
+                    <strong id="man-plan-name" style="font-size: 1rem; color: #fff; display: block; margin-bottom: 5px;">...</strong>
+                    <div style="font-size: 0.85rem; color: var(--au-text-muted);">مبلغ پرداختی: <span id="man-price">...</span></div>
                 </div>
-                <button class="au-btn au-btn-primary" style="width: 100%; margin-top: 15px; justify-content: center;" onclick="copyConfigLink()">کپی کردن</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- User Details Modal -->
-    <div id="details-modal" class="au-modal">
-        <div class="au-modal-content" style="max-width: 500px;">
-            <div class="au-modal-header">
-                <h2>جزئیات اشتراک</h2>
-                <button class="au-btn-icon" onclick="closeModal('details-modal')"><?= icon('x', 20) ?></button>
-            </div>
-            <div class="au-modal-body">
-                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--au-border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+                <!-- وضعیت و مشخصات عمومی -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
+                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 5px;"><i class="fa-regular fa-user"></i> وضعیت و مشخصات عمومی</div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+                        <span id="man-location" style="background: rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 4px; font-size: 0.8rem;">...</span>
+                        <span id="man-status">...</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--au-text-muted);">سفارش: <span id="man-invoice-id">...</span></div>
+                </div>
+
+                <!-- اعتبار زمانی سرویس -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
+                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 5px;"><i class="fa-regular fa-clock"></i> اعتبار زمانی سرویس</div>
+                    <strong id="man-expired" style="font-size: 1.1rem; color: #fff; display: block; margin-bottom: 5px; direction: ltr; text-align: right;">...</strong>
+                    <div style="font-size: 0.8rem; color: var(--au-text-muted);">
+                        زمان باقی‌مانده: <span id="man-rem-days">...</span><br>
+                        (تاریخ خرید: <span id="man-created">...</span>)
+                    </div>
+                </div>
+
+                <!-- حجم مصرفی و باقیمانده -->
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
+                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 5px;"><i class="fa-solid fa-chart-simple"></i> حجم مصرفی و باقی‌مانده</div>
+                    <strong id="man-usage-rem" style="font-size: 1.1rem; color: #fff; display: block; margin-bottom: 5px;">...</strong>
+                    <div class="au-progress-track" style="height: 6px; margin: 10px 0;">
+                        <div class="au-progress-fill" id="man-progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--au-text-muted);">مصرف شده: <span id="man-usage-used">...</span> از <span id="man-usage-limit">...</span> (<span id="man-usage-pct">...</span>)</div>
+                </div>
+
+                <!-- جزئیات اتصال -->
+                <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
+                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 10px;"><i class="fa-solid fa-network-wired"></i> جزئیات اتصال و مشخصات</div>
+                    <div style="display: flex; justify-content: space-between; text-align: center;">
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.8rem; color: var(--au-text-muted);">وضعیت اتصال:</div>
+                            <div id="man-connection" style="font-size: 0.9rem; margin-top: 5px;">...</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.8rem; color: var(--au-text-muted);">نام کاربری:</div>
+                            <div id="man-username" style="font-size: 0.9rem; margin-top: 5px; color: var(--au-primary);">...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- اشتراک و کانفیگ‌ها -->
+                <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
+                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 10px; display: flex; justify-content: space-between;">
+                        <span><i class="fa-solid fa-link"></i> اشتراک و کانفیگ‌ها</span>
+                        <span id="man-config-type" style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">درحال بررسی...</span>
+                    </div>
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
-                        <span style="color: var(--au-text-muted); font-size: 0.9rem;">نام کاربری</span>
-                        <strong id="det-username" style="font-size: 1.1rem; color: var(--au-primary);">...</strong>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: var(--au-text-muted); font-size: 0.9rem;">لوکیشن (سرور)</span>
-                        <span id="det-location" style="background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem;">...</span>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: var(--au-text-muted); font-size: 0.9rem;">وضعیت اتصال</span>
-                        <span id="det-connection" style="font-size: 0.85rem;">...</span>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: var(--au-text-muted); font-size: 0.9rem;">وضعیت اکانت</span>
-                        <span id="det-status" style="font-size: 0.85rem;">...</span>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
-                        <span style="color: var(--au-text-muted); font-size: 0.9rem;">ترافیک مصرفی / کل</span>
-                        <div style="text-align: left;">
-                            <strong id="det-usage-used">...</strong> <span style="color: var(--au-text-muted); font-size: 0.85rem;" id="det-usage-limit">از ...</span>
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; position: relative;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <button class="au-btn" style="font-size: 0.8rem; padding: 5px 10px; gap: 5px; background: rgba(255,255,255,0.1); color: #fff;" onclick="copyManConfig()"><i class="fa-solid fa-copy"></i> کپی</button>
+                            <button class="au-btn" style="font-size: 0.8rem; padding: 5px 10px; gap: 5px; background: #00d285; color: #000; border: none; font-weight: bold;" onclick="downloadManConfig()"><i class="fa-solid fa-download"></i> دانلود کانفیگ</button>
                         </div>
+                        <textarea id="man-config-text" readonly style="width: 100%; height: 80px; background: transparent; border: none; color: var(--au-text-muted); font-family: monospace; font-size: 0.75rem; resize: none; direction: ltr;" placeholder="در حال دریافت کانفیگ..."></textarea>
                     </div>
 
-                    <!-- Progress Bar for Details -->
-                    <div class="au-progress-track" style="height: 8px;">
-                        <div class="au-progress-fill" id="det-progress-fill" style="width: 0%;">
-                            <div class="au-progress-knob"></div>
-                        </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <div style="font-size: 0.8rem; color: var(--au-text-muted); margin-bottom: 10px;"><i class="fa-solid fa-qrcode"></i> بارکد کانفیگ جهت اسکن در گوشی</div>
+                        <div id="man-qrcode" style="display: inline-block; background: #fff; padding: 10px; border-radius: 8px; min-width: 150px; min-height: 150px;"></div>
                     </div>
-                    <div style="text-align: left; margin-top: -10px;"><span id="det-usage-pct" style="font-size: 0.8rem; color: var(--au-text-muted);">٪۰</span></div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
-                        <span style="color: var(--au-text-muted); font-size: 0.9rem;">تاریخ ساخت</span>
-                        <span id="det-created" style="font-size: 0.9rem;">...</span>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: var(--au-text-muted); font-size: 0.9rem;">تاریخ انقضا</span>
-                        <div style="text-align: left;">
-                            <span id="det-expired" style="font-size: 0.9rem;">...</span>
-                            <div id="det-rem-days" style="font-size: 0.75rem; color: var(--au-success);">...</div>
-                        </div>
-                    </div>
-
                 </div>
+
             </div>
-            <div class="au-modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--au-border); display: flex; justify-content: flex-end; gap: 10px;">
-                <button class="au-btn" onclick="closeModal('details-modal')">بستن</button>
+            
+            <div class="au-modal-footer" style="padding: 15px 20px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--au-border); display: flex; flex-direction: column; gap: 10px;">
+                <button class="au-btn" style="width: 100%; justify-content: center; background: rgba(255,255,255,0.05);" onclick="refreshManStats()"><i class="fa-solid fa-rotate"></i> بروزرسانی اطلاعات لحظه‌ای</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="au-btn au-btn-primary" style="flex: 1; justify-content: center;" id="man-btn-renew"><i class="fa-solid fa-plus"></i> تمدید سرویس</button>
+                    <button class="au-btn" style="flex: 1; justify-content: center; background: rgba(255,50,50,0.1); color: #ff4d4d; border: 1px solid rgba(255,50,50,0.2);" id="man-btn-delete"><i class="fa-solid fa-trash-can"></i> حذف کامل سرویس</button>
+                </div>
             </div>
         </div>
     </div>
@@ -341,9 +357,12 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 }
 
                 let html = '';
+                window.usersData = window.usersData || {};
+                
                 users.forEach(user => {
+                    window.usersData[user.id] = user;
                     html += `
-                    <div class="au-card" id="user-card-${user.id}" onclick="openUserDetails('${user.id}')" style="cursor: pointer;">
+                    <div class="au-card" id="user-card-${user.id}" onclick="openManageModal('${user.id}')" style="cursor: pointer;">
                         <!-- ۱. نام کاربری و لوکیشن و تقویم -->
                         <div class="au-col au-col-meta">
                             <div class="au-user-title">
@@ -396,7 +415,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
 
                         <!-- ۴. دکمه‌های عملیات سریع -->
                         <div class="au-col au-col-actions" onclick="event.stopPropagation();">
-                            <button class="au-btn-circle-action" onclick="openLinkModal('${user.id}'); event.stopPropagation();" title="کپی لینک اشتراک">
+                            <button class="au-btn-circle-action" onclick="openManageModal('${user.id}'); event.stopPropagation();" title="تنظیمات اشتراک">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                             </button>
                             
@@ -406,7 +425,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                                 </button>
                                 
                                 <div class="au-dropdown" id="dropdown-${user.id}">
-                                    <a href="#" class="au-dropdown-item" onclick="openLinkModal('${user.id}'); return false;"><i class="fa-solid fa-link"></i> لینک اشتراک</a>
+                                    <a href="#" class="au-dropdown-item" onclick="openManageModal('${user.id}'); return false;"><i class="fa-solid fa-link"></i> تنظیمات و لینک</a>
                                     <a href="#" class="au-dropdown-item" onclick="openRenewModal('${user.id}', '${user.username}', '${user.location}'); return false;"><i class="fa-solid fa-rotate-right"></i> تمدید سرویس</a>
                                     <a href="#" class="au-dropdown-item danger" onclick="deleteUser('${user.id}'); return false;"><i class="fa-solid fa-trash"></i> حذف کاربر</a>
                                 </div>
@@ -448,6 +467,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 }
                 
                 const data = json.live;
+                window.usersData[id] = { ...window.usersData[id], ...data };
                 
                 // 1. Update Connection Status Badge
                 const connBadge = document.getElementById(`connection-badge-${id}`);
@@ -730,10 +750,85 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
             }
         }
 
-        async function openLinkModal(invoiceId) {
-            openModal('link-modal');
-            const content = document.getElementById('link-content');
-            content.textContent = 'در حال دریافت اطلاعات...';
+        let activeManageModalId = null;
+        let qrCodeInstance = null;
+
+        async function openManageModal(id) {
+            activeManageModalId = id;
+            openModal('manage-modal');
+            
+            const user = window.usersData[id] || { username: 'نامشخص', plan_name: 'نامشخص', price: '0' };
+            
+            document.getElementById('man-plan-name').textContent = user.plan_name || 'نامشخص';
+            
+            // Format price
+            let priceFormatted = user.price ? Number(user.price).toLocaleString('fa-IR') : '0';
+            document.getElementById('man-price').textContent = priceFormatted + ' تومان';
+            document.getElementById('man-invoice-id').textContent = id;
+            
+            const statusBadgeHTML = document.getElementById(`status-badge-${id}`)?.outerHTML || '—';
+            const connectionBadgeHTML = document.getElementById(`connection-badge-${id}`)?.outerHTML || '—';
+            const location = document.querySelector(`#user-card-${id} .au-badge-location`)?.textContent.trim() || '—';
+            
+            document.getElementById('man-location').textContent = location;
+            document.getElementById('man-status').innerHTML = statusBadgeHTML;
+            document.getElementById('man-connection').innerHTML = connectionBadgeHTML;
+            document.getElementById('man-username').textContent = user.username || '—';
+
+            const created = document.querySelector(`#user-card-${id} .au-meta-date`)?.textContent.replace('ساخته شده:', '').trim() || '—';
+            const expiryText = document.getElementById(`expiry-text-${id}`)?.textContent || '—';
+            let expiredStr = '—', remDaysStr = '—';
+            if(expiryText !== '—') {
+                const match = expiryText.match(/پایان:\s*(.*?)\s*\((.*?)\)/);
+                if(match) {
+                    expiredStr = match[1];
+                    remDaysStr = match[2];
+                } else {
+                    expiredStr = expiryText;
+                }
+            }
+            document.getElementById('man-created').textContent = created;
+            document.getElementById('man-expired').textContent = expiredStr;
+            document.getElementById('man-rem-days').textContent = remDaysStr;
+
+            const usageLimit = document.getElementById(`usage-limit-${id}`)?.textContent.replace('از ', '').trim() || '—';
+            const usageUsed = document.getElementById(`usage-used-${id}`)?.textContent.trim() || '—';
+            const usagePct = document.getElementById(`usage-pct-${id}`)?.textContent.trim() || '٪۰';
+            const pctVal = usagePct.replace('٪', '').replace(/[۰-۹]/g, w => ['0','1','2','3','4','5','6','7','8','9'][w.charCodeAt(0)-1776] || w);
+            
+            const progressFillClass = document.getElementById(`progress-fill-${id}`)?.className || 'au-progress-fill';
+            
+            document.getElementById('man-usage-rem').textContent = `حجم کل: ${usageLimit}`;
+            document.getElementById('man-usage-used').textContent = usageUsed;
+            document.getElementById('man-usage-limit').textContent = usageLimit;
+            document.getElementById('man-usage-pct').textContent = usagePct;
+            
+            const pFill = document.getElementById('man-progress-fill');
+            pFill.className = progressFillClass;
+            pFill.style.width = pctVal + '%';
+
+            const configText = document.getElementById('man-config-text');
+            const configType = document.getElementById('man-config-type');
+            const qrContainer = document.getElementById('man-qrcode');
+            
+            configText.value = '';
+            configType.textContent = 'درحال دریافت...';
+            qrContainer.innerHTML = '';
+            if (qrCodeInstance) {
+                qrCodeInstance.clear();
+                qrCodeInstance = null;
+            }
+
+            document.getElementById('man-btn-renew').onclick = () => { closeModal('manage-modal'); openRenewModal(id, user.username, location); };
+            document.getElementById('man-btn-delete').onclick = () => { closeModal('manage-modal'); deleteUser(id); };
+
+            await fetchManConfig(id);
+        }
+
+        async function fetchManConfig(invoiceId) {
+            const configText = document.getElementById('man-config-text');
+            const configType = document.getElementById('man-config-type');
+            const qrContainer = document.getElementById('man-qrcode');
             
             const formData = new FormData();
             formData.append('action', 'get_link');
@@ -743,75 +838,78 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
                 const json = await res.json();
                 if(json.status === 'success') {
-                    content.textContent = json.link;
+                    const content = json.link.trim();
+                    configText.value = content;
+                    
+                    let isWireguard = content.includes('[Interface]') || content.includes('[Peer]');
+                    configType.textContent = isWireguard ? 'کانفیگ وایرگارد' : 'لینک سابسکریپشن (Sanaei/X-ui)';
+                    configText.setAttribute('data-type', isWireguard ? 'wg' : 'sub');
+
+                    qrContainer.innerHTML = '';
+                    qrCodeInstance = new QRCode(qrContainer, {
+                        text: content,
+                        width: 150,
+                        height: 150,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.L
+                    });
                 } else {
-                    content.textContent = json.message || 'خطا در دریافت لینک';
+                    configText.value = json.message || 'خطا در دریافت لینک';
+                    configType.textContent = 'خطا';
                 }
             } catch(e) {
-                content.textContent = 'خطای ارتباط با سرور';
+                configText.value = 'خطای ارتباط با سرور';
+                configType.textContent = 'خطا';
             }
         }
 
-        function openUserDetails(id) {
-            openModal('details-modal');
+        async function refreshManStats() {
+            if(!activeManageModalId) return;
+            const btn = document.querySelector('#manage-modal .au-modal-footer button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال بروزرسانی...';
             
-            // Get data from DOM elements (from the card)
-            const username = document.querySelector(`#user-card-${id} .au-username`)?.textContent || '—';
-            const location = document.querySelector(`#user-card-${id} .au-badge-location`)?.textContent.trim() || '—';
-            const created = document.querySelector(`#user-card-${id} .au-meta-date`)?.textContent.replace('ساخته شده:', '').trim() || '—';
+            await fetchLiveStats([activeManageModalId]);
+            openManageModal(activeManageModalId);
             
-            // Extract from DOM
-            const statusBadgeHTML = document.getElementById(`status-badge-${id}`)?.outerHTML || '—';
-            const connectionBadgeHTML = document.getElementById(`connection-badge-${id}`)?.outerHTML || '—';
-            
-            const expiryText = document.getElementById(`expiry-text-${id}`)?.textContent || '—';
-            let expiredStr = '—';
-            let remDaysStr = '';
-            if(expiryText !== '—') {
-                const match = expiryText.match(/پایان:\s*(.*?)\s*\((.*?)\)/);
-                if(match) {
-                    expiredStr = match[1];
-                    remDaysStr = '(' + match[2] + ')';
-                } else {
-                    expiredStr = expiryText;
-                }
-            }
-
-            const usageLimit = document.getElementById(`usage-limit-${id}`)?.textContent.replace('از ', '').trim() || '—';
-            const usageUsed = document.getElementById(`usage-used-${id}`)?.textContent.trim() || '—';
-            const usagePct = document.getElementById(`usage-pct-${id}`)?.textContent.trim() || '٪۰';
-            const pctVal = usagePct.replace('٪', '').replace(/[۰-۹]/g, w => ['0','1','2','3','4','5','6','7','8','9'][w.charCodeAt(0)-1776] || w);
-            
-            const progressFillClass = document.getElementById(`progress-fill-${id}`)?.className || 'au-progress-fill';
-
-            document.getElementById('det-username').textContent = username;
-            document.getElementById('det-location').textContent = location;
-            document.getElementById('det-created').textContent = created;
-            
-            document.getElementById('det-status').innerHTML = statusBadgeHTML;
-            document.getElementById('det-connection').innerHTML = connectionBadgeHTML;
-            
-            document.getElementById('det-expired').textContent = expiredStr;
-            document.getElementById('det-rem-days').textContent = remDaysStr;
-            
-            document.getElementById('det-usage-limit').textContent = 'از ' + usageLimit;
-            document.getElementById('det-usage-used').textContent = usageUsed;
-            document.getElementById('det-usage-pct').textContent = usagePct;
-            
-            const pFill = document.getElementById('det-progress-fill');
-            pFill.className = progressFillClass;
-            pFill.style.width = pctVal + '%';
+            btn.innerHTML = originalText;
         }
 
-        function copyConfigLink() {
-            const content = document.getElementById('link-content');
-            if(content.textContent.trim() === '' || content.textContent.includes('در حال دریافت')) return;
+        function copyManConfig() {
+            const content = document.getElementById('man-config-text').value;
+            if(!content || content.includes('خطا') || content.includes('درحال دریافت')) return;
             
-            navigator.clipboard.writeText(content.textContent).then(() => {
-                alert('لینک با موفقیت کپی شد!');
+            navigator.clipboard.writeText(content).then(() => {
+                alert('با موفقیت کپی شد!');
             }).catch(err => {
                 alert('خطا در کپی کردن متن!');
             });
+        }
+
+        function downloadManConfig() {
+            const configTextEl = document.getElementById('man-config-text');
+            const content = configTextEl.value;
+            if(!content || content.includes('خطا') || content.includes('درحال دریافت')) return;
+
+            const type = configTextEl.getAttribute('data-type');
+            const user = window.usersData[activeManageModalId];
+            const username = (user && user.username) ? user.username : 'config';
+            
+            const fileName = username + (type === 'wg' ? '.conf' : '.txt');
+            
+            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 0);
         }
         // --- Filters & Sorting Event Listeners ---
         document.getElementById('au-filter-status').addEventListener('change', function() {
