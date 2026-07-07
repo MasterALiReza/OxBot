@@ -340,7 +340,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 let html = '';
                 users.forEach(user => {
                     html += `
-                    <div class="au-card" id="user-card-${user.id}" onclick="openUserDetails(${user.id})" style="cursor: pointer;">
+                    <div class="au-card" id="user-card-${user.id}" onclick="openUserDetails('${user.id}')" style="cursor: pointer;">
                         <!-- ۱. نام کاربری و لوکیشن و تقویم -->
                         <div class="au-col au-col-meta">
                             <div class="au-user-title">
@@ -393,7 +393,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
 
                         <!-- ۴. دکمه‌های عملیات سریع -->
                         <div class="au-col au-col-actions">
-                            <button class="au-btn-circle-action" onclick="openLinkModal(${user.id}); event.stopPropagation();" title="کپی لینک اشتراک">
+                            <button class="au-btn-circle-action" onclick="openLinkModal('${user.id}'); event.stopPropagation();" title="کپی لینک اشتراک">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                             </button>
                             
@@ -403,9 +403,9 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                                 </button>
                                 
                                 <div class="au-dropdown" id="dropdown-${user.id}">
-                                    <a href="#" class="au-dropdown-item" onclick="openLinkModal(${user.id}); return false;"><i class="fa-solid fa-link"></i> لینک اشتراک</a>
-                                    <a href="#" class="au-dropdown-item" onclick="openRenewModal(${user.id}, '${user.username}', '${user.location}'); return false;"><i class="fa-solid fa-rotate-right"></i> تمدید سرویس</a>
-                                    <a href="#" class="au-dropdown-item danger" onclick="deleteUser(${user.id}); return false;"><i class="fa-solid fa-trash"></i> حذف کاربر</a>
+                                    <a href="#" class="au-dropdown-item" onclick="openLinkModal('${user.id}'); return false;"><i class="fa-solid fa-link"></i> لینک اشتراک</a>
+                                    <a href="#" class="au-dropdown-item" onclick="openRenewModal('${user.id}', '${user.username}', '${user.location}'); return false;"><i class="fa-solid fa-rotate-right"></i> تمدید سرویس</a>
+                                    <a href="#" class="au-dropdown-item danger" onclick="deleteUser('${user.id}'); return false;"><i class="fa-solid fa-trash"></i> حذف کاربر</a>
                                 </div>
                             </div>
                         </div>
