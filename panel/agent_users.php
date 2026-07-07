@@ -295,10 +295,18 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
         
         // Modal functions
         function openModal(id) {
-            document.getElementById(id).style.display = 'flex';
+            const m = document.getElementById(id);
+            if(m) {
+                m.style.display = 'flex';
+                setTimeout(() => m.classList.add('show'), 10);
+            }
         }
         function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
+            const m = document.getElementById(id);
+            if(m) {
+                m.classList.remove('show');
+                setTimeout(() => m.style.display = 'none', 300);
+            }
         }
         // Data Fetching Logic
         let currentPage = 1;
@@ -373,7 +381,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                                 <span class="au-usage-lbl">مصرف <i class="fa-solid fa-circle-info" style="font-size: 0.75rem; opacity: 0.5;"></i></span>
                             </div>
                             <div class="au-progress-track">
-                                <div class="au-progress-fill" id="progress-fill-${user.id}" style="width: 0%;">
+                                <div class="au-progress-fill" id="progress-fill-${user.id}">
                                     <div class="au-progress-knob"></div>
                                 </div>
                             </div>
