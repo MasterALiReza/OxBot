@@ -20,26 +20,26 @@ if (isset($_SESSION['agent_id'])) {
     
     <style>
         :root {
-            --primary: #6c5ce7;
-            --primary-dark: #5b4bc4;
-            --bg-color: #0f111a;
-            --panel-bg: rgba(25, 28, 41, 0.7);
-            --text-main: #f1f2f6;
-            --text-muted: #a4b0be;
-            --border-color: rgba(255, 255, 255, 0.1);
-            --glass-bg: rgba(25, 28, 41, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.05);
-            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            --success: #00b894;
-            --danger: #ff7675;
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --bg-color: #070a13;
+            --panel-bg: rgba(17, 24, 39, 0.7);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --glass-bg: rgba(17, 24, 39, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            --success: #10b981;
+            --danger: #ef4444;
         }
 
         body {
             font-family: 'Vazirmatn', sans-serif;
             background-color: var(--bg-color);
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(108, 92, 231, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 85% 30%, rgba(0, 184, 148, 0.15) 0%, transparent 50%);
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
             background-attachment: fixed;
             color: var(--text-main);
             min-height: 100vh;
@@ -59,8 +59,8 @@ if (isset($_SESSION['agent_id'])) {
 
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 40px 30px;
@@ -85,14 +85,14 @@ if (isset($_SESSION['agent_id'])) {
             font-size: 36px;
             color: white;
             margin: 0 auto 24px;
-            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.35);
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(108, 92, 231, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
         }
 
         .login-title {
@@ -118,14 +118,14 @@ if (isset($_SESSION['agent_id'])) {
 
         .custom-input {
             width: 100%;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.25);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 16px 45px 16px 16px;
             color: white;
             font-family: inherit;
             font-size: 15px;
-            transition: all 0.3s ease;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
             text-align: left;
             direction: ltr;
         }
@@ -133,7 +133,7 @@ if (isset($_SESSION['agent_id'])) {
         .custom-input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
             background: rgba(0, 0, 0, 0.4);
         }
 
@@ -171,7 +171,7 @@ if (isset($_SESSION['agent_id'])) {
 
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(108, 92, 231, 0.4);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
         }
 
         .btn-login:active {
@@ -196,7 +196,7 @@ if (isset($_SESSION['agent_id'])) {
             opacity: 0;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 9999;
-            box-shadow: 0 4px 15px rgba(255, 118, 117, 0.3);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -209,7 +209,7 @@ if (isset($_SESSION['agent_id'])) {
         
         .alert-toast.success {
             background: var(--success);
-            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
 
         .spinner {

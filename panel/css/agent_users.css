@@ -2,23 +2,44 @@
 @import url('../fonts/vazirmatn/Vazirmatn-font-face.css');
 
 :root {
-    --au-bg: #0b1120;
-    --au-surface: #1e293b;
-    --au-surface-hover: #334155;
-    --au-border: rgba(255, 255, 255, 0.08);
-    --au-text: #f8fafc;
-    --au-text-muted: #94a3b8;
+    --au-bg: #070a13;
+    --au-surface: rgba(17, 24, 39, 0.7);
+    --au-surface-hover: rgba(31, 41, 55, 0.85);
+    --au-border: rgba(255, 255, 255, 0.05);
+    --au-text: #f3f4f6;
+    --au-text-muted: #9ca3af;
     --au-primary: #3b82f6;
     --au-success: #10b981;
     --au-danger: #ef4444;
-    --au-glass: rgba(30, 41, 59, 0.45);
-    --au-glass-border: rgba(255, 255, 255, 0.1);
+    --au-glass: rgba(17, 24, 39, 0.45);
+    --au-glass-border: rgba(255, 255, 255, 0.08);
     --au-radius: 16px;
-    --au-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --au-transition: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    --au-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
 }
 
 body.agent-panel-body {
     background-color: var(--au-bg);
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+    background-attachment: fixed;
     color: var(--au-text);
     font-family: 'Vazirmatn', sans-serif;
     margin: 0;
@@ -30,7 +51,9 @@ body.agent-panel-body {
 /* Sidebar */
 .au-sidebar {
     width: 260px;
-    background: var(--au-surface);
+    background: rgba(17, 24, 39, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-left: 1px solid var(--au-border);
     display: flex;
     flex-direction: column;
@@ -43,7 +66,7 @@ body.agent-panel-body {
 }
 
 .au-sidebar-header {
-    padding: 24px 20px;
+    padding: 28px 20px;
     border-bottom: 1px solid var(--au-border);
     display: flex;
     align-items: center;
@@ -61,7 +84,7 @@ body.agent-panel-body {
     font-weight: 700;
     font-size: 1.2rem;
     color: #fff;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
 }
 
 .au-sidebar-title {
@@ -72,6 +95,7 @@ body.agent-panel-body {
 .au-sidebar-title strong {
     font-size: 1.05rem;
     font-weight: 600;
+    letter-spacing: -0.2px;
 }
 
 .au-sidebar-title span {
@@ -80,6 +104,7 @@ body.agent-panel-body {
     display: flex;
     align-items: center;
     gap: 4px;
+    margin-top: 2px;
 }
 
 .au-sidebar-title span::before {
@@ -88,7 +113,7 @@ body.agent-panel-body {
     height: 6px;
     border-radius: 50%;
     background: var(--au-success);
-    box-shadow: 0 0 8px var(--au-success);
+    box-shadow: 0 0 10px var(--au-success);
 }
 
 .au-nav {
@@ -96,7 +121,7 @@ body.agent-panel-body {
     padding: 20px 12px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     overflow-y: auto;
 }
 
@@ -105,23 +130,25 @@ body.agent-panel-body {
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    border-radius: 10px;
+    border-radius: 12px;
     color: var(--au-text-muted);
     text-decoration: none;
     font-size: 0.95rem;
     font-weight: 500;
     transition: all var(--au-transition);
+    border: 1px solid transparent;
 }
 
 .au-nav-item:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.035);
     color: var(--au-text);
+    border-color: rgba(255, 255, 255, 0.02);
 }
 
 .au-nav-item.active {
-    background: var(--au-primary);
+    background: linear-gradient(135deg, var(--au-primary), #2563eb);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
 }
 
 .au-sidebar-footer {
@@ -141,28 +168,32 @@ body.agent-panel-body {
 .au-main {
     flex: 1;
     margin-right: 260px;
-    padding: 32px 40px;
+    padding: 40px 48px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 28px;
     min-height: 100vh;
 }
 
 .au-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
 }
 
 .au-header-text h1 {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
     font-weight: 700;
     margin: 0 0 6px 0;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .au-header-text p {
     color: var(--au-text-muted);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     margin: 0;
 }
 
@@ -176,39 +207,46 @@ body.agent-panel-body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 18px;
-    border-radius: 10px;
+    padding: 11px 20px;
+    border-radius: 12px;
     font-family: inherit;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    border: none;
+    border: 1px solid transparent;
     transition: all var(--au-transition);
 }
 
+.au-btn:active {
+    transform: scale(0.97);
+}
+
 .au-btn-primary {
-    background: var(--au-success);
+    background: linear-gradient(135deg, var(--au-success), #059669);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
 }
 
 .au-btn-primary:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
 }
 
 .au-btn-icon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     padding: 0;
-    border-radius: 10px;
-    background: var(--au-surface);
+    border-radius: 12px;
+    background: rgba(31, 41, 55, 0.5);
     color: var(--au-text);
     border: 1px solid var(--au-border);
+    backdrop-filter: blur(10px);
 }
 
 .au-btn-icon:hover {
     background: var(--au-surface-hover);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
 }
 
 /* Toolbar */
@@ -216,12 +254,13 @@ body.agent-panel-body {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    background: var(--au-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(17, 24, 39, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--au-glass-border);
-    padding: 16px;
+    padding: 18px;
     border-radius: var(--au-radius);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
 }
 
 .au-search {
@@ -234,86 +273,107 @@ body.agent-panel-body {
 
 .au-search svg {
     position: absolute;
-    right: 14px;
+    right: 16px;
     color: var(--au-text-muted);
+    transition: color var(--au-transition);
 }
 
 .au-search input {
     width: 100%;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.25);
     border: 1px solid var(--au-border);
-    border-radius: 10px;
-    padding: 10px 40px 10px 16px;
+    border-radius: 12px;
+    padding: 12px 46px 12px 16px;
     color: var(--au-text);
     font-family: inherit;
     font-size: 0.9rem;
     outline: none;
-    transition: border-color var(--au-transition);
+    transition: all var(--au-transition);
 }
 
 .au-search input:focus {
     border-color: var(--au-primary);
+    background: rgba(0, 0, 0, 0.4);
+    box-shadow: var(--au-glow);
+}
+
+.au-search input:focus + svg {
+    color: var(--au-primary);
 }
 
 .au-select {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.25);
     border: 1px solid var(--au-border);
-    border-radius: 10px;
-    padding: 10px 16px;
+    border-radius: 12px;
+    padding: 12px 16px;
     color: var(--au-text);
     font-family: inherit;
     font-size: 0.9rem;
     outline: none;
     appearance: none;
-    min-width: 140px;
+    min-width: 150px;
     cursor: pointer;
+    transition: all var(--au-transition);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 12px center;
+    background-size: 14px;
+    padding-left: 36px;
+}
+
+.au-select:focus {
+    border-color: var(--au-primary);
+    box-shadow: var(--au-glow);
 }
 
 .au-select option {
-    background: var(--au-surface);
+    background: #111827;
     color: var(--au-text);
     padding: 10px;
 }
 
 .au-input {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.25);
     border: 1px solid var(--au-border);
-    border-radius: 10px;
-    padding: 10px 16px;
+    border-radius: 12px;
+    padding: 12px 16px;
     color: var(--au-text);
     font-family: inherit;
     font-size: 0.9rem;
     outline: none;
-    transition: border-color var(--au-transition);
+    transition: all var(--au-transition);
 }
 
 .au-input:focus {
     border-color: var(--au-primary);
+    box-shadow: var(--au-glow);
 }
 
 /* User Cards */
 .au-users-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
 
 .au-card {
     background: var(--au-surface);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--au-border);
     border-radius: var(--au-radius);
-    padding: 16px 24px;
+    padding: 20px 28px;
     display: grid;
-    grid-template-columns: 1.5fr 1fr 1.8fr 110px;
-    gap: 24px;
+    grid-template-columns: 1.6fr 1fr 1.6fr 110px;
+    gap: 28px;
     align-items: center;
     transition: transform var(--au-transition), box-shadow var(--au-transition), border-color var(--au-transition);
 }
 
 .au-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* Columns Base styling */
@@ -335,10 +395,10 @@ body.agent-panel-body {
 }
 
 .au-username {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: var(--au-text);
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
 }
 
 .au-online-indicator {
@@ -350,7 +410,7 @@ body.agent-panel-body {
 }
 .au-online-indicator.online {
     background: var(--au-success);
-    box-shadow: 0 0 8px var(--au-success);
+    box-shadow: 0 0 10px var(--au-success);
 }
 .au-online-indicator.offline {
     background: var(--au-text-muted);
@@ -373,7 +433,7 @@ body.agent-panel-body {
     border-radius: 6px;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
 .au-meta-date {
@@ -381,11 +441,11 @@ body.agent-panel-body {
     font-size: 0.75rem;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
 .au-meta-date svg, .au-badge-location svg {
-    opacity: 0.8;
+    opacity: 0.7;
 }
 
 /* Col 2: Status & Expiry */
@@ -429,7 +489,6 @@ body.agent-panel-body {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.05);
     color: var(--au-text-muted);
-    transition: all 0.3s;
 }
 .au-badge-connection.online {
     color: var(--au-success);
@@ -452,7 +511,7 @@ body.agent-panel-body {
 
 /* Col 3: Data Usage Column */
 .au-col-usage {
-    gap: 6px;
+    gap: 8px;
     min-width: 180px;
 }
 
@@ -487,16 +546,16 @@ body.agent-panel-body {
     right: 0;
     top: 0;
     bottom: 0;
-    background: var(--au-success);
+    background: linear-gradient(90deg, var(--au-success), #34d399);
     border-radius: 999px;
     width: 0%;
-    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .au-progress-fill.warning {
-    background: #f59e0b;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
 }
 .au-progress-fill.danger {
-    background: var(--au-danger);
+    background: linear-gradient(90deg, var(--au-danger), #f87171);
 }
 
 .au-progress-knob {
@@ -508,7 +567,7 @@ body.agent-panel-body {
     height: 10px;
     border-radius: 50%;
     background: inherit;
-    border: 2px solid var(--au-surface);
+    border: 2px solid #111827;
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
     z-index: 2;
 }
@@ -534,22 +593,22 @@ body.agent-panel-body {
 .au-col-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     justify-content: flex-end;
 }
 
 .au-btn-circle-action {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
     color: var(--au-text-muted);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--au-transition);
     padding: 0;
 }
 
@@ -557,6 +616,7 @@ body.agent-panel-body {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.15);
     color: var(--au-text);
+    transform: scale(1.05);
 }
 
 .au-card-actions {
@@ -566,8 +626,8 @@ body.agent-panel-body {
 .au-dropdown {
     position: absolute;
     left: 0;
-    top: 42px;
-    background: #1e293b;
+    top: 44px;
+    background: #111827;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 6px;
@@ -576,7 +636,7 @@ body.agent-panel-body {
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--au-transition);
     z-index: 20;
 }
 
@@ -590,7 +650,7 @@ body.agent-panel-body {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 12px;
+    padding: 9px 12px;
     color: var(--au-text);
     text-decoration: none;
     font-size: 0.85rem;
@@ -640,6 +700,7 @@ body.agent-panel-body {
     background: var(--au-primary);
     border-color: var(--au-primary);
     color: #fff;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
 }
 
 /* Mobile Toggle */
@@ -647,34 +708,64 @@ body.agent-panel-body {
     display: none;
 }
 
-/* Responsive */
+/* Responsive Layout */
 @media (max-width: 1024px) {
     :root {
         --au-mobile-offset: 65px;
     }
     .au-sidebar {
         transform: translateX(100%);
+        box-shadow: -10px 0 30px rgba(0,0,0,0.5);
     }
     .au-sidebar.open {
         transform: translateX(0);
     }
     .au-main {
         margin-right: 0;
-        padding: 20px;
+        padding: 24px 20px;
     }
     .au-mobile-toggle {
         display: flex;
     }
+    
+    /* Bento-Grid layout for user cards on mobile/tablets */
     .au-card {
         grid-template-columns: 1fr;
-        gap: 16px;
-        padding: 16px;
+        gap: 20px;
+        padding: 22px;
+        border-radius: 20px;
     }
+    
     .au-col-actions {
-        justify-content: flex-start;
+        justify-content: space-between;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
-        padding-top: 12px;
+        padding-top: 16px;
         margin-top: 4px;
+        width: 100%;
+    }
+    
+    .au-col-actions > button, 
+    .au-col-actions > div {
+        flex: 1;
+    }
+    
+    .au-col-actions .au-btn-circle-action {
+        width: 100%;
+        border-radius: 10px;
+        height: 40px;
+        gap: 8px;
+    }
+    
+    /* Show labels on mobile circle buttons */
+    .au-col-actions .au-btn-circle-action::after {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .au-col-actions button[onclick*="openManageModal"]::after {
+        content: ' مدیریت سرویس';
+    }
+    .au-col-actions .au-btn-dropdown::after {
+        content: ' عملیات بیشتر';
     }
 }
 
@@ -691,25 +782,33 @@ body.agent-panel-body {
     }
     .au-header {
         flex-direction: column;
+        align-items: flex-start;
         gap: 15px;
+    }
+    .au-header-actions {
+        width: 100%;
+    }
+    .au-header-actions > button {
+        flex: 1;
     }
 }
 
-/* Modals */
+/* Modals with Glassmorphism and Backdrop Blur */
 .au-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    z-index: 100;
+    background: rgba(5, 8, 16, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 200;
     display: none;
     align-items: flex-start;
     justify-content: center;
     overflow-y: auto;
-    padding: 40px 20px;
+    padding: 40px 16px;
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -720,15 +819,15 @@ body.agent-panel-body {
 }
 
 .au-modal-content {
-    background: var(--au-bg);
+    background: rgba(17, 24, 39, 0.85);
     border: 1px solid var(--au-glass-border);
-    border-radius: var(--au-radius);
-    width: 90%;
-    max-width: 450px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
     margin: auto;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    transform: translateY(20px) scale(0.95);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transform: translateY(20px) scale(0.96);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
 }
@@ -741,34 +840,47 @@ body.agent-panel-body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
+    padding: 22px 26px;
     border-bottom: 1px solid var(--au-border);
 }
 
 .au-modal-header h2 {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 600;
 }
 
+.au-modal-header button {
+    background: none;
+    border: none;
+    color: var(--au-text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.au-modal-header button:hover {
+    color: #fff;
+}
+
 .au-modal-body {
-    padding: 24px;
+    padding: 26px;
 }
 
 .au-form-group {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
 .au-form-group label {
     display: block;
     margin-bottom: 8px;
     font-size: 0.9rem;
+    font-weight: 500;
     color: var(--au-text-muted);
 }
 
 .au-manage-grid {
     display: grid;
-    gap: 15px;
+    gap: 16px;
     grid-template-columns: 1fr 1fr;
 }
 
@@ -780,7 +892,7 @@ body.agent-panel-body {
 
 .au-alert {
     padding: 12px 16px;
-    border-radius: 8px;
+    border-radius: 10px;
     display: flex;
     align-items: flex-start;
     gap: 10px;
@@ -788,10 +900,11 @@ body.agent-panel-body {
     text-align: right;
     direction: rtl;
     justify-content: flex-start;
+    font-size: 0.85rem;
 }
 
 .au-alert-info {
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(59, 130, 246, 0.08);
     color: #60a5fa;
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.15);
 }
