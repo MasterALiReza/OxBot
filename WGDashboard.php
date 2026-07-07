@@ -203,7 +203,7 @@ function addpear($namepanel, $usernameac)
     
     $config = array(
         'name' => $usernameac,
-        'allowed_ips' => [$ipToAssign],
+        'allowed_ips' => [$ipToAssign . '/32'],
         'private_key' => $pubandprivate['private_key'],
         'public_key' => $pubandprivate['public_key'],
         'preshared_key' => $pubandprivate['preshared_key'],
