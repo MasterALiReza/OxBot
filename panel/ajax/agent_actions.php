@@ -1,7 +1,5 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-// ob_start();
+ob_start();
 require '../inc/config.php';
 
 $old_cwd = getcwd();
@@ -11,7 +9,7 @@ require_once 'botapi.php';
 require_once 'MHSanaei-3.2.php';
 chdir($old_cwd);
 
-// ob_end_clean();
+ob_end_clean();
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['agent_id'])) {
@@ -147,8 +145,8 @@ if ($action === 'renew_user') {
     }
 
     // Verify Invoice Ownership
-    $stmtInv = $pdo->prepare("SELECT * FROM invoice WHERE id_invoice = :id AND (id_user = :uid OR refral = :uid) LIMIT 1");
-    $stmtInv->execute([':id' => $invoice_id, ':uid' => $agent_id]);
+    $stmtInv = $pdo->prepare("SELECT * FROM invoice WHERE id_invoice = :id AND (id_user = :uid1 OR refral = :uid2) LIMIT 1");
+    $stmtInv->execute([':id' => $invoice_id, ':uid1' => $agent_id, ':uid2' => $agent_id]);
     $invoice = $stmtInv->fetch(PDO::FETCH_ASSOC);
 
     if (!$invoice) {
@@ -227,8 +225,8 @@ if ($action === 'delete_user') {
     }
 
     // Verify Invoice
-    $stmtInv = $pdo->prepare("SELECT * FROM invoice WHERE id_invoice = :id AND (id_user = :uid OR refral = :uid) LIMIT 1");
-    $stmtInv->execute([':id' => $invoice_id, ':uid' => $agent_id]);
+    $stmtInv = $pdo->prepare("SELECT * FROM invoice WHERE id_invoice = :id AND (id_user = :uid1 OR refral = :uid2) LIMIT 1");
+    $stmtInv->execute([':id' => $invoice_id, ':uid1' => $agent_id, ':uid2' => $agent_id]);
     $invoice = $stmtInv->fetch(PDO::FETCH_ASSOC);
 
     if (!$invoice) {
@@ -260,8 +258,8 @@ if ($action === 'delete_user') {
 if ($action === 'get_link') {
     $invoice_id = $_POST['invoice_id'] ?? '';
     
-    $stmtInv = $pdo->prepare("SELECT username, Service_location FROM invoice WHERE id_invoice = :id AND (id_user = :uid OR refral = :uid) LIMIT 1");
-    $stmtInv->execute([':id' => $invoice_id, ':uid' => $agent_id]);
+    $stmtInv = $pdo->prepare("SELECT username, Service_location FROM invoice WHERE id_invoice = :id AND (id_user = :uid1 OR refral = :uid2) LIMIT 1");
+    $stmtInv->execute([':id' => $invoice_id, ':uid1' => $agent_id, ':uid2' => $agent_id]);
     $invoice = $stmtInv->fetch(PDO::FETCH_ASSOC);
 
     if (!$invoice) {
