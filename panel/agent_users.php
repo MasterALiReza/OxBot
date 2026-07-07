@@ -324,6 +324,13 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 setTimeout(() => m.style.display = 'none', 300);
             }
         }
+
+        // Close modal when clicking on the dark background
+        window.addEventListener('click', function(e) {
+            if (e.target.classList.contains('au-modal')) {
+                closeModal(e.target.id);
+            }
+        });
         // Data Fetching Logic
         let currentPage = 1;
         let currentSearch = '';
