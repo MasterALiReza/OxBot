@@ -121,7 +121,7 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                 <div class="dash-card-title"><?= $textbotlang['panel']['dashTotalUsers'] ?></div>
-                <div style="display: flex; align-items: center; gap: 6px;">
+                <div class="dash-card-subtitle" style="display: flex; align-items: center; gap: 6px;">
                     <span class="glow-dot info"></span>
                     <span style="font-size: 0.72rem; color: var(--mute); font-weight: 600;">سرویس فعال کاربران</span>
                 </div>
@@ -152,7 +152,7 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                 <div class="dash-card-title"><?= $textbotlang['panel']['dashTotalRevenue'] ?></div>
-                <div style="display: flex; align-items: center; gap: 6px;">
+                <div class="dash-card-subtitle" style="display: flex; align-items: center; gap: 6px;">
                     <span class="glow-dot success"></span>
                     <span style="font-size: 0.72rem; color: var(--mute); font-weight: 600;">درآمد تایید شده</span>
                 </div>
@@ -188,7 +188,7 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                 <div class="dash-card-title"><?= $textbotlang['panel']['dashActiveService'] ?></div>
-                <div style="display: flex; align-items: center; gap: 6px;">
+                <div class="dash-card-subtitle" style="display: flex; align-items: center; gap: 6px;">
                     <span class="glow-dot warning"></span>
                     <span style="font-size: 0.72rem; color: var(--mute); font-weight: 600;">سرورهای متصل</span>
                 </div>
@@ -214,7 +214,7 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                 <div class="dash-card-title">تراکنش امروز</div>
-                <div style="display: flex; align-items: center; gap: 6px;">
+                <div class="dash-card-subtitle" style="display: flex; align-items: center; gap: 6px;">
                     <span class="glow-dot danger"></span>
                     <span style="font-size: 0.72rem; color: var(--mute); font-weight: 600;">گزارش‌های واریز</span>
                 </div>
