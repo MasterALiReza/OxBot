@@ -160,8 +160,8 @@ try {
     // ACTION: get_user_live
     // ──────────────────────────────────────────────────────────────────────
     if ($action === 'get_user_live') {
-        $id = (int) ($_GET['id'] ?? 0);
-        if ($id <= 0) {
+        $id = trim($_GET['id'] ?? '');
+        if ($id === '') {
             json_out(['status' => 'error', 'message' => 'شناسه نامعتبر است.']);
         }
 
