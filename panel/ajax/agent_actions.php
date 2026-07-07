@@ -1,5 +1,7 @@
 <?php
-ob_start();
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+// ob_start();
 require '../inc/config.php';
 
 $old_cwd = getcwd();
@@ -9,7 +11,7 @@ require_once 'botapi.php';
 require_once 'MHSanaei-3.2.php';
 chdir($old_cwd);
 
-ob_end_clean();
+// ob_end_clean();
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['agent_id'])) {
