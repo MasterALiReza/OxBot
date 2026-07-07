@@ -18,6 +18,8 @@ require_once 'function.php';
 require_once 'panels.php';
 chdir($old_cwd);
 
+$id_invoice = $_GET['id_invoice'] ?? '';
+
 if (empty($id_invoice)) {
     http_response_code(400);
     echo '<div style="padding:20px;text-align:center;color:var(--no);">درخواست نامعتبر است.</div>';
