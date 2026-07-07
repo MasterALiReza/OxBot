@@ -1,8 +1,12 @@
 <?php
 ob_start();
 require '../inc/config.php';
-require_once __DIR__ . '/../../botapi.php';
-require_once __DIR__ . '/../../MHSanaei-3.2.php';
+
+$old_cwd = getcwd();
+chdir(__DIR__ . '/../../');
+require_once 'botapi.php';
+require_once 'MHSanaei-3.2.php';
+chdir($old_cwd);
 
 ob_end_clean();
 header('Content-Type: application/json');
