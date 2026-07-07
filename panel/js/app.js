@@ -575,6 +575,17 @@ document.addEventListener('htmx:beforeRequest', function (e) {
     }
 });
 
+document.addEventListener('htmx:beforeHistorySave', function (e) {
+    var content = document.querySelector('main.content');
+    if (content && __previousContent) {
+        content.innerHTML = __previousContent;
+    }
+});
+
+document.addEventListener('htmx:historyRestore', function (e) {
+    _lb.done();
+});
+
 document.addEventListener('htmx:beforeSwap', function (evt) {
     // If response status is 401/403 or contains login page identifiers, redirect whole window
     var resp = evt.detail.xhr.responseText || '';
