@@ -830,8 +830,10 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 qrCodeInstance = null;
             }
 
-            document.getElementById('man-btn-renew').onclick = () => { closeModal('manage-modal'); openRenewModal(id, user.username, location); };
-            document.getElementById('man-btn-delete').onclick = () => { closeModal('manage-modal'); deleteUser(id); };
+            let btnRenew = document.getElementById('man-btn-renew');
+            if(btnRenew) btnRenew.onclick = () => { closeModal('manage-modal'); openRenewModal(id, user.username, location); };
+            let btnDel = document.getElementById('man-btn-delete');
+            if(btnDel) btnDel.onclick = () => { closeModal('manage-modal'); deleteUser(id); };
 
             await fetchManConfig(id);
         }
@@ -857,14 +859,18 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                     configText.setAttribute('data-type', isWireguard ? 'wg' : 'sub');
 
                     qrContainer.innerHTML = '';
-                    qrCodeInstance = new QRCode(qrContainer, {
-                        text: content,
-                        width: 220,
-                        height: 220,
-                        colorDark : "#000000",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.M
-                    });
+                    try {
+                        qrCodeInstance = new QRCode(qrContainer, {
+                            text: content,
+                            width: 220,
+                            height: 220,
+                            colorDark : "#000000",
+                            colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.M
+                        });
+                    } catch(qrErr) {
+                        qrContainer.innerHTML = '<div style="color:#ff4b4b; text-align:center; padding: 20px;">حجم کانفیگ برای بارکد بزرگ است.<br>لطفاً کانفیگ را دانلود یا کپی کنید.</div>';
+                    }
                 } else {
                     configText.value = json.message || 'خطا در دریافت لینک';
                     configType.textContent = 'خطا';
