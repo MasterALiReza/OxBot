@@ -132,52 +132,72 @@ function addpear($namepanel, $usernameac)
         );
     }
     
-    // Find the first available IP from the available subnets safely
-    $ipToAssign = null;
-    $subnet_found = null;
-    foreach ($ipconfig_body['data'] as $subnet => $ips) {
-        $subnet_found = $subnet;
-        if (is_array($ips)) {
-            foreach ($ips as $ip) {
-                $clean_ip = explode('/', $ip)[0];
-                if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                    $ipToAssign = $clean_ip;
-                    break 2;
-                }
-            }
-        } elseif (is_string($ips) && !empty($ips)) {
-            $clean_ip = explode('/', $ips)[0];
-            if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                $ipToAssign = $clean_ip;
-                break;
-            }
-        }
-    }
-    
-    // --- SMART CAPACITY LIMIT LAYER ---
+    // --- SMART CAPACITY LIMIT LAYER & IP ALLOCATION ---
+    // 1. Gather all used IPs first (from panel and database)
     $all_used_ips = array_merge(
         getUsedIPs($namepanel),
         getUsedIPsFromDb($namepanel)
     );
     
-    if (!empty($subnet_found) && isSubnetFull($subnet_found, $all_used_ips)) {
-        return array(
-            'status' => false,
-            'msg' => 'Server capacity is full'
-        );
-    }
-    // -----------------------------------
-
-    // Fallback: if WGDashboard returns empty/null available IPs, calculate the next IP
-    if (empty($ipToAssign) && !empty($subnet_found)) {
-        $ipToAssign = getNextAvailableIP($subnet_found, $all_used_ips);
+    // Normalize used IPs to array of clean IPv4 strings
+    $clean_used_ips = [];
+    foreach ($all_used_ips as $ip) {
+        $clean_ip = explode('/', $ip)[0];
+        if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $clean_used_ips[] = $clean_ip;
+        }
     }
     
-    // STRICT DEFENSIVE SHIELD: Validate IP address before sending request to WGDashboard panel API
+    // Find the first available IP from the available subnets safely
+    $ipToAssign = null;
+    $subnet_found = null;
+    $available_subnets = [];
+    
+    foreach ($ipconfig_body['data'] as $subnet => $ips) {
+        $available_subnets[] = $subnet;
+        if (is_array($ips)) {
+            foreach ($ips as $ip) {
+                $clean_ip = explode('/', $ip)[0];
+                if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                    // Check that it's NOT already used to prevent duplicate assignment (WGDashboard N/A bug)
+                    if (!in_array($clean_ip, $clean_used_ips)) {
+                        $ipToAssign = $clean_ip;
+                        $subnet_found = $subnet;
+                        break 2;
+                    }
+                }
+            }
+        } elseif (is_string($ips) && !empty($ips)) {
+            $clean_ip = explode('/', $ips)[0];
+            if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                // Check that it's NOT already used
+                if (!in_array($clean_ip, $clean_used_ips)) {
+                    $ipToAssign = $clean_ip;
+                    $subnet_found = $subnet;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // 2. Fallback: if WGDashboard returns empty/null or duplicate IPs, calculate the next IP
+    if (empty($ipToAssign) && !empty($available_subnets)) {
+        foreach ($available_subnets as $subnet) {
+            if (!isSubnetFull($subnet, $clean_used_ips)) {
+                $ipToAssign = getNextAvailableIP($subnet, $clean_used_ips);
+                if (!empty($ipToAssign)) {
+                    $subnet_found = $subnet;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // 3. Enforce the smart capacity limit & Validate IP
     if (empty($ipToAssign) || !filter_var($ipToAssign, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
         return array(
             'status' => false,
-            'msg' => 'Aborted: Invalid or empty IP address detected (' . var_export($ipToAssign, true) . ') to prevent WGDashboard infinite loop.'
+            'msg' => 'Server capacity is full or no IPs available.'
         );
     }
     
@@ -467,7 +487,7 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
     }
     
     $num_ips = 1 << (32 - $cidr);
-    $mask = ~($num_ips - 1);
+    $mask = -1 << (32 - $cidr);
     $network_long = $subnet_long & $mask;
     
     $used_longs = [];
@@ -503,13 +523,19 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
 function isSubnetFull($subnet_cidr, $used_ips_array)
 {
     if (empty($subnet_cidr) || strpos($subnet_cidr, '/') === false) {
-        $cidr = 24;
-    } else {
-        $cidr = intval(explode('/', $subnet_cidr)[1]);
+        $subnet_cidr .= '/24';
     }
+    
+    list($subnet_ip, $cidr) = explode('/', $subnet_cidr);
+    $cidr = intval($cidr);
 
     if ($cidr < 0 || $cidr > 32) {
         $cidr = 24;
+    }
+
+    $subnet_long = ip2long($subnet_ip);
+    if ($subnet_long === false) {
+        return false; // Invalid subnet (e.g., IPv6), do not block
     }
 
     // Mathematically account for skipped .0 and .255 IPs in subnets <= /24
@@ -519,10 +545,17 @@ function isSubnetFull($subnet_cidr, $used_ips_array)
         $capacity = pow(2, 32 - $cidr) - 3;
     }
 
+    $mask = -1 << (32 - $cidr);
+    $network = $subnet_long & $mask;
+
     $unique_ips = [];
     foreach ($used_ips_array as $ip) {
         $clean_ip = explode('/', $ip)[0];
-        $unique_ips[$clean_ip] = true;
+        $ip_long = ip2long($clean_ip);
+        // ONLY count IPs that actually belong to this specific subnet
+        if ($ip_long !== false && ($ip_long & $mask) === $network) {
+            $unique_ips[$clean_ip] = true;
+        }
     }
     
     $used_count = count($unique_ips);
