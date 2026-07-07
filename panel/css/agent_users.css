@@ -592,6 +592,7 @@ body.agent-panel-body {
 /* Col 4: Ellipsis dropdown + Direct copy link actions */
 .au-col-actions {
     display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 10px;
     justify-content: flex-end;
