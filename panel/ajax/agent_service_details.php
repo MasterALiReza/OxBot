@@ -299,9 +299,9 @@ try {
     }
     .btn-grid {
         position: sticky;
-        bottom: -20px;
-        margin: 24px -20px -20px -20px;
-        background: rgba(21, 28, 44, 0.95);
+        bottom: 0;
+        margin: 24px -20px 0 -20px;
+        background: rgba(21, 28, 44, 0.98);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border-top: 1px solid var(--bd);
@@ -399,7 +399,7 @@ try {
                 </div>
                 <div class="card-value" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
                     <span class="tag <?= $statusClass ?>"><?= $statusText ?></span>
-                    <span style="font-size: 0.85em; opacity: 0.9; font-weight: 500;"><?= htmlspecialchars($invoice['Service_location']) ?></span>
+                    <span style="font-size: 0.85em; opacity: 0.9; font-weight: 500; display: flex; align-items: center; gap: 4px;"><?= render_flags(htmlspecialchars($invoice['Service_location'])) ?></span>
                 </div>
             </div>
             <div class="card-desc">سفارش: <?= htmlspecialchars($invoice['id_invoice']) ?></div>
@@ -456,7 +456,7 @@ try {
                 <?= icon('activity', 15) ?>
                 <span>جزئیات اتصال و به‌روزرسانی</span>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 0.85em; margin-top: 4px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85em; margin-top: 4px;">
                 <div>
                     <span style="color: var(--mute);">آخرین اتصال:</span>
                     <div style="font-weight: 500; margin-top: 2px; color: <?= $panelType === 'WGDashboard' ? 'var(--dim)' : 'inherit' ?>;"><?= $panelType === 'WGDashboard' ? 'نامشخص (بدون پشتیبانی)' : $lastonline ?></div>
@@ -465,11 +465,11 @@ try {
                     <span style="color: var(--mute);">بروزرسانی لینک:</span>
                     <div style="font-weight: 500; margin-top: 2px; color: <?= ($lastupdate == 'بروزرسانی نشده' || $panelType === 'WGDashboard') ? 'var(--dim)' : 'inherit' ?>;"><?= $panelType === 'WGDashboard' ? 'ندارد' : $lastupdate ?></div>
                 </div>
-                <div>
+                <div style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 8px;">
                     <span style="color: var(--mute);">سیستم‌عامل/کلاینت:</span>
                     <?php $ua = $DataUserOut['sub_last_user_agent'] ?? ''; ?>
-                    <div style="font-weight: 500; margin-top: 2px; word-break: break-all; color: <?= (empty($ua) || $panelType === 'WGDashboard') ? 'var(--dim)' : 'inherit' ?>;" title="<?= htmlspecialchars($ua) ?>">
-                        <?= htmlspecialchars($panelType === 'WGDashboard' ? 'نامشخص' : (empty($ua) ? 'نامشخص (در این پنل ثبت نشده)' : trunc($ua, 22))) ?>
+                    <div style="font-weight: 500; margin-top: 2px; word-break: break-word; color: <?= (empty($ua) || $panelType === 'WGDashboard') ? 'var(--dim)' : 'inherit' ?>;" title="<?= htmlspecialchars($ua) ?>">
+                        <?= htmlspecialchars($panelType === 'WGDashboard' ? 'نامشخص' : (empty($ua) ? 'نامشخص (در این پنل ثبت نشده)' : trunc($ua, 60))) ?>
                     </div>
                 </div>
             </div>

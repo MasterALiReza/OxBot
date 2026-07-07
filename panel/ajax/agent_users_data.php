@@ -150,6 +150,7 @@ try {
                 'status_label'     => $status_label,
                 'plan_name'        => $name_product,
                 'location'         => $inv['Service_location'] ?? '—',
+                'location_html'    => render_flags(htmlspecialchars($inv['Service_location'] ?? '—')),
                 'created_at'       => $start_date,
                 'expires_at'       => $exp_date,
                 'rem_days'         => $rem_days,
