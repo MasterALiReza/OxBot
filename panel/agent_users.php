@@ -738,6 +738,21 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 });
         };
 
+        function toggleConfigsDropdown() {
+            const menu = document.getElementById('au-configs-dropdown-menu');
+            const chevron = document.getElementById('dropdown-chevron-icon');
+            const toggleBtn = document.querySelector('.au-configs-dropdown-toggle');
+            if (menu && (menu.style.display === 'none' || menu.style.display === '')) {
+                menu.style.display = 'flex';
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+                if (toggleBtn) toggleBtn.style.borderColor = 'var(--ac)';
+            } else if (menu) {
+                menu.style.display = 'none';
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+                if (toggleBtn) toggleBtn.style.borderColor = 'var(--bd)';
+            }
+        }
+
         async function refreshManStats() {
             if(!activeManageModalId) return;
             const btn = document.querySelector('#manage-modal .au-modal-footer button');
