@@ -281,6 +281,9 @@ if ($action === 'get_link') {
         if (empty($link) && !empty($res['configs'])) {
             $link = is_array($res['configs']) ? implode("\n", $res['configs']) : $res['configs'];
         }
+        if (empty($link) && !empty($res['links'])) {
+            $link = is_array($res['links']) ? implode("\n", $res['links']) : $res['links'];
+        }
     }
 
     echo json_encode(['status' => 'success', 'link' => $link]);
