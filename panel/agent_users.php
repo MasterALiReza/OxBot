@@ -222,88 +222,8 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 <button class="au-btn-icon" onclick="closeModal('manage-modal')"><?= icon('x', 20) ?></button>
             </div>
             
-            <div class="au-modal-body au-manage-grid" style="padding: 20px;">
-                
-                <!-- جزئیات خرید فاکتور -->
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
-                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 5px;"><i class="fa-solid fa-file-invoice"></i> جزئیات خرید فاکتور</div>
-                    <strong id="man-plan-name" style="font-size: 1rem; color: #fff; display: block; margin-bottom: 5px;">...</strong>
-                    <div style="font-size: 0.85rem; color: var(--au-text-muted);">مبلغ پرداختی: <span id="man-price">...</span></div>
-                </div>
-
-                <!-- وضعیت و مشخصات عمومی -->
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
-                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 5px;"><i class="fa-regular fa-user"></i> وضعیت و مشخصات عمومی</div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
-                        <span id="man-location" style="background: rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 4px; font-size: 0.8rem;">...</span>
-                        <span id="man-status">...</span>
-                    </div>
-                    <div style="font-size: 0.85rem; color: var(--au-text-muted);">سفارش: <span id="man-invoice-id">...</span></div>
-                </div>
-
-                <!-- اعتبار زمانی سرویس -->
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
-                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 5px;"><i class="fa-regular fa-clock"></i> اعتبار زمانی سرویس</div>
-                    <strong id="man-expired" style="font-size: 1.1rem; color: #fff; display: block; margin-bottom: 5px; direction: ltr; text-align: right;">...</strong>
-                    <div style="font-size: 0.8rem; color: var(--au-text-muted);">
-                        زمان باقی‌مانده: <span id="man-rem-days">...</span><br>
-                        (تاریخ خرید: <span id="man-created">...</span>)
-                    </div>
-                </div>
-
-                <!-- حجم مصرفی و باقیمانده -->
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
-                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 5px;"><i class="fa-solid fa-chart-simple"></i> حجم مصرفی و باقی‌مانده</div>
-                    <strong id="man-usage-rem" style="font-size: 1.1rem; color: #fff; display: block; margin-bottom: 5px;">...</strong>
-                    <div class="au-progress-track" style="height: 6px; margin: 10px 0;">
-                        <div class="au-progress-fill" id="man-progress-fill" style="width: 0%;"></div>
-                    </div>
-                    <div style="font-size: 0.8rem; color: var(--au-text-muted);">مصرف شده: <span id="man-usage-used">...</span> از <span id="man-usage-limit">...</span> (<span id="man-usage-pct">...</span>)</div>
-                </div>
-
-                <!-- جزئیات اتصال -->
-                <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
-                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 10px;"><i class="fa-solid fa-network-wired"></i> جزئیات اتصال و مشخصات</div>
-                    <div style="display: flex; justify-content: space-between; text-align: center;">
-                        <div style="flex: 1;">
-                            <div style="font-size: 0.8rem; color: var(--au-text-muted);">وضعیت اتصال:</div>
-                            <div id="man-connection" style="font-size: 0.9rem; margin-top: 5px;">...</div>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-size: 0.8rem; color: var(--au-text-muted);">نام کاربری:</div>
-                            <div id="man-username" style="font-size: 0.9rem; margin-top: 5px; color: var(--au-primary);">...</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- اشتراک و کانفیگ‌ها -->
-                <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
-                    <div style="color: var(--au-text-muted); font-size: 0.85rem; margin-bottom: 10px; display: flex; justify-content: space-between;">
-                        <span><i class="fa-solid fa-link"></i> اشتراک و کانفیگ‌ها</span>
-                        <span id="man-config-type" style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">درحال بررسی...</span>
-                    </div>
-                    
-                    <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; position: relative;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <button class="au-btn" style="font-size: 0.8rem; padding: 5px 10px; gap: 5px; background: rgba(255,255,255,0.1); color: #fff;" onclick="copyManConfig()"><i class="fa-solid fa-copy"></i> کپی</button>
-                            <button class="au-btn" style="font-size: 0.8rem; padding: 5px 10px; gap: 5px; background: #00d285; color: #000; border: none; font-weight: bold;" onclick="downloadManConfig()"><i class="fa-solid fa-download"></i> دانلود کانفیگ</button>
-                        </div>
-                        <textarea id="man-config-text" readonly style="width: 100%; height: 80px; background: transparent; border: none; color: var(--au-text-muted); font-family: monospace; font-size: 0.75rem; resize: none; direction: ltr;" placeholder="در حال دریافت کانفیگ..."></textarea>
-                    </div>
-
-                    <div style="text-align: center; margin-top: 15px;">
-                        <div style="font-size: 0.8rem; color: var(--au-text-muted); margin-bottom: 10px;"><i class="fa-solid fa-qrcode"></i> بارکد کانفیگ جهت اسکن در گوشی</div>
-                        <div id="man-qrcode" style="display: inline-block; background: #fff; padding: 10px; border-radius: 8px; min-width: 220px; min-height: 220px;"></div>
-                    </div>
-                </div>
-
-            </div>
-            
-            <div class="au-modal-footer" style="padding: 15px 20px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--au-border); display: flex; flex-direction: column; gap: 10px;">
-                <button class="au-btn" style="width: 100%; justify-content: center; background: rgba(255,255,255,0.05);" onclick="refreshManStats()"><i class="fa-solid fa-rotate"></i> بروزرسانی اطلاعات لحظه‌ای</button>
-                <div style="display: flex; gap: 10px;">
-                    <button class="au-btn au-btn-primary" style="flex: 1; justify-content: center;" id="man-btn-renew"><i class="fa-solid fa-plus"></i> تمدید سرویس</button>
-                </div>
+            <div id="manage-modal-body" class="au-modal-body" style="padding: 20px; max-height: 80vh; overflow-y: auto;">
+                <!-- Ajax content loads here -->
             </div>
         </div>
     </div>
@@ -762,124 +682,33 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
         }
 
         let activeManageModalId = null;
-        let qrCodeInstance = null;
 
         async function openManageModal(id) {
             activeManageModalId = id;
             openModal('manage-modal');
             
-            const user = window.usersData[id] || { username: 'نامشخص', plan_name: 'نامشخص', price: '0' };
+            const contentDiv = document.getElementById('manage-modal-body');
+            contentDiv.style.display = 'flex';
+            contentDiv.style.justifyContent = 'center';
+            contentDiv.style.alignItems = 'center';
+            contentDiv.innerHTML = '<div style="text-align:center; color:var(--au-text-muted); padding: 40px 0;"><i class="fa-solid fa-spinner fa-spin" style="margin-bottom:10px; font-size:1.5rem;"></i><br>در حال دریافت اطلاعات...</div>';
             
-            document.getElementById('man-plan-name').textContent = user.plan_name || 'نامشخص';
-            
-            // Format price
-            let priceFormatted = user.price ? Number(user.price).toLocaleString('fa-IR') : '0';
-            document.getElementById('man-price').textContent = priceFormatted + ' تومان';
-            document.getElementById('man-invoice-id').textContent = id;
-            
-            const statusBadgeHTML = document.getElementById(`status-badge-${id}`)?.outerHTML || '—';
-            const connectionBadgeHTML = document.getElementById(`connection-badge-${id}`)?.outerHTML || '—';
-            const location = document.querySelector(`#user-card-${id} .au-badge-location`)?.textContent.trim() || '—';
-            
-            document.getElementById('man-location').textContent = location;
-            document.getElementById('man-status').innerHTML = statusBadgeHTML;
-            document.getElementById('man-connection').innerHTML = connectionBadgeHTML;
-            document.getElementById('man-username').textContent = user.username || '—';
-
-            const created = document.querySelector(`#user-card-${id} .au-meta-date`)?.textContent.replace('ساخته شده:', '').trim() || '—';
-            const expiryText = document.getElementById(`expiry-text-${id}`)?.textContent || '—';
-            let expiredStr = '—', remDaysStr = '—';
-            if(expiryText !== '—') {
-                const match = expiryText.match(/پایان:\s*(.*?)\s*\((.*?)\)/);
-                if(match) {
-                    expiredStr = match[1];
-                    remDaysStr = match[2];
-                } else {
-                    expiredStr = expiryText;
-                }
-            }
-            document.getElementById('man-created').textContent = created;
-            document.getElementById('man-expired').textContent = expiredStr;
-            document.getElementById('man-rem-days').textContent = remDaysStr;
-
-            const usageLimit = document.getElementById(`usage-limit-${id}`)?.textContent.replace('از ', '').trim() || '—';
-            const usageUsed = document.getElementById(`usage-used-${id}`)?.textContent.trim() || '—';
-            const usagePct = document.getElementById(`usage-pct-${id}`)?.textContent.trim() || '٪۰';
-            const pctVal = usagePct.replace('٪', '').replace(/[۰-۹]/g, w => ['0','1','2','3','4','5','6','7','8','9'][w.charCodeAt(0)-1776] || w);
-            
-            const progressFillClass = document.getElementById(`progress-fill-${id}`)?.className || 'au-progress-fill';
-            
-            document.getElementById('man-usage-rem').textContent = `حجم کل: ${usageLimit}`;
-            document.getElementById('man-usage-used').textContent = usageUsed;
-            document.getElementById('man-usage-limit').textContent = usageLimit;
-            document.getElementById('man-usage-pct').textContent = usagePct;
-            
-            const pFill = document.getElementById('man-progress-fill');
-            pFill.className = progressFillClass;
-            pFill.style.width = pctVal + '%';
-
-            const configText = document.getElementById('man-config-text');
-            const configType = document.getElementById('man-config-type');
-            const qrContainer = document.getElementById('man-qrcode');
-            
-            configText.value = '';
-            configType.textContent = 'درحال دریافت...';
-            qrContainer.innerHTML = '';
-            if (qrCodeInstance) {
-                qrCodeInstance.clear();
-                qrCodeInstance = null;
-            }
-
-            let btnRenew = document.getElementById('man-btn-renew');
-            if(btnRenew) btnRenew.onclick = () => { closeModal('manage-modal'); openRenewModal(id, user.username, location); };
-            let btnDel = document.getElementById('man-btn-delete');
-            if(btnDel) btnDel.onclick = () => { closeModal('manage-modal'); deleteUser(id); };
-
-            await fetchManConfig(id);
-        }
-
-        async function fetchManConfig(invoiceId) {
-            const configText = document.getElementById('man-config-text');
-            const configType = document.getElementById('man-config-type');
-            const qrContainer = document.getElementById('man-qrcode');
-            
-            const formData = new FormData();
-            formData.append('action', 'get_link');
-            formData.append('invoice_id', invoiceId);
-
-            try {
-                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
-                const json = await res.json();
-                if(json.status === 'success') {
-                    const content = json.link.trim();
-                    configText.value = content;
-                    
-                    let isWireguard = content.includes('[Interface]') || content.includes('[Peer]');
-                    configType.textContent = isWireguard ? 'کانفیگ وایرگارد' : 'لینک سابسکریپشن (Sanaei/X-ui)';
-                    configText.setAttribute('data-type', isWireguard ? 'wg' : 'sub');
-
-                    qrContainer.innerHTML = '';
-                    try {
-                        qrCodeInstance = new QRCode(qrContainer, {
-                            text: content,
-                            width: 220,
-                            height: 220,
-                            colorDark : "#000000",
-                            colorLight : "#ffffff",
-                            correctLevel : QRCode.CorrectLevel.M
-                        });
-                    } catch(qrErr) {
-                        qrContainer.innerHTML = '<div style="color:#ff4b4b; text-align:center; padding: 20px;">حجم کانفیگ برای بارکد بزرگ است.<br>لطفاً کانفیگ را دانلود یا کپی کنید.</div>';
+            fetch('ajax/agent_service_details.php?id_invoice=' + encodeURIComponent(id))
+                .then(response => {
+                    if (!response.ok && response.status !== 400 && response.status !== 404 && response.status !== 500) {
+                        throw new Error('Network response was not ok');
                     }
-                } else {
-                    configText.value = json.message || 'خطا در دریافت لینک';
-                    configType.textContent = 'خطا';
-                }
-            } catch(e) {
-                configText.value = 'خطای ارتباط با سرور';
-                configType.textContent = 'خطا';
-            }
-        }
+                    return response.text();
+                })
+                .then(html => {
+                    contentDiv.style.display = 'block';
+                    contentDiv.innerHTML = html;
+                })
+                .catch(error => {
+                    contentDiv.style.display = 'block';
+                    contentDiv.innerHTML = '<div style="padding:20px;text-align:center;color:var(--au-danger);">خطا در ارتباط با سرور.</div>';
+                });
+        };
 
         async function refreshManStats() {
             if(!activeManageModalId) return;
