@@ -34,7 +34,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>پنل نمایندگی - مدیریت کاربران</title>
-    <link rel="stylesheet" href="css/agent_users.css">
+    <link rel="stylesheet" href="css/agent_users.css?v=<?= time() ?>">
     
     <!-- QRCode Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
