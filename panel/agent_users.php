@@ -731,19 +731,19 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
             openModal('details-modal');
             
             // Get data from DOM elements (from the card)
-            const username = document.querySelector(\`#user-card-\${id} .au-username\`)?.textContent || '—';
-            const location = document.querySelector(\`#user-card-\${id} .au-badge-location\`)?.textContent.trim() || '—';
-            const created = document.querySelector(\`#user-card-\${id} .au-meta-date\`)?.textContent.replace('ساخته شده:', '').trim() || '—';
+            const username = document.querySelector(`#user-card-${id} .au-username`)?.textContent || '—';
+            const location = document.querySelector(`#user-card-${id} .au-badge-location`)?.textContent.trim() || '—';
+            const created = document.querySelector(`#user-card-${id} .au-meta-date`)?.textContent.replace('ساخته شده:', '').trim() || '—';
             
             // Extract from DOM
-            const statusBadgeHTML = document.getElementById(\`status-badge-\${id}\`)?.outerHTML || '—';
-            const connectionBadgeHTML = document.getElementById(\`connection-badge-\${id}\`)?.outerHTML || '—';
+            const statusBadgeHTML = document.getElementById(`status-badge-${id}`)?.outerHTML || '—';
+            const connectionBadgeHTML = document.getElementById(`connection-badge-${id}`)?.outerHTML || '—';
             
-            const expiryText = document.getElementById(\`expiry-text-\${id}\`)?.textContent || '—';
+            const expiryText = document.getElementById(`expiry-text-${id}`)?.textContent || '—';
             let expiredStr = '—';
             let remDaysStr = '';
             if(expiryText !== '—') {
-                const match = expiryText.match(/پایان:\\s*(.*?)\\s*\\((.*?)\\)/);
+                const match = expiryText.match(/پایان:\s*(.*?)\s*\((.*?)\)/);
                 if(match) {
                     expiredStr = match[1];
                     remDaysStr = '(' + match[2] + ')';
@@ -752,12 +752,12 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 }
             }
 
-            const usageLimit = document.getElementById(\`usage-limit-\${id}\`)?.textContent.replace('از ', '').trim() || '—';
-            const usageUsed = document.getElementById(\`usage-used-\${id}\`)?.textContent.trim() || '—';
-            const usagePct = document.getElementById(\`usage-pct-\${id}\`)?.textContent.trim() || '٪۰';
+            const usageLimit = document.getElementById(`usage-limit-${id}`)?.textContent.replace('از ', '').trim() || '—';
+            const usageUsed = document.getElementById(`usage-used-${id}`)?.textContent.trim() || '—';
+            const usagePct = document.getElementById(`usage-pct-${id}`)?.textContent.trim() || '٪۰';
             const pctVal = usagePct.replace('٪', '').replace(/[۰-۹]/g, w => ['0','1','2','3','4','5','6','7','8','9'][w.charCodeAt(0)-1776] || w);
             
-            const progressFillClass = document.getElementById(\`progress-fill-\${id}\`)?.className || 'au-progress-fill';
+            const progressFillClass = document.getElementById(`progress-fill-${id}`)?.className || 'au-progress-fill';
 
             document.getElementById('det-username').textContent = username;
             document.getElementById('det-location').textContent = location;
