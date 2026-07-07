@@ -288,7 +288,8 @@ try {
     .card-value {
         font-size: 1.1em;
         font-weight: 600;
-        word-break: break-all;
+        word-break: keep-all;
+        word-wrap: break-word;
     }
     .card-desc {
         font-size: 0.78em;
@@ -454,9 +455,13 @@ try {
                     <?= icon('user', 15) ?>
                     <span>وضعیت و مشخصات عمومی</span>
                 </div>
-                <div class="card-value" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                    <span class="tag <?= $statusClass ?>"><?= $statusText ?></span>
-                    <span style="font-size: 0.85em; opacity: 0.9; font-weight: 500; display: flex; align-items: center; gap: 4px;"><?= render_flags(htmlspecialchars($invoice['Service_location'])) ?></span>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px; align-items: flex-start;">
+                    <div>
+                        <span class="tag <?= $statusClass ?>"><?= $statusText ?></span>
+                    </div>
+                    <span style="font-size: 0.85em; opacity: 0.9; font-weight: 600; display: flex; align-items: center; gap: 6px; word-break: keep-all; word-wrap: break-word; text-align: right; line-height: 1.4;">
+                        <?= render_flags(htmlspecialchars($invoice['Service_location'])) ?>
+                    </span>
                 </div>
             </div>
             <div class="card-desc">سفارش: <?= htmlspecialchars($invoice['id_invoice']) ?></div>
