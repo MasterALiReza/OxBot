@@ -4,6 +4,7 @@ require '../inc/config.php';
 
 $old_cwd = getcwd();
 chdir(__DIR__ . '/../../');
+require_once 'function.php';
 require_once 'botapi.php';
 require_once 'MHSanaei-3.2.php';
 chdir($old_cwd);
