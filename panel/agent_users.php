@@ -172,7 +172,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 <div class="au-form-group">
                     <label>نام کاربری (اختیاری - انگلیسی)</label>
-                    <input type="text" id="create-username" class="au-select" style="width: 100%; margin-bottom: 15px;" placeholder="مثال: ali_123" dir="ltr">
+                    <input type="text" id="create-username" class="au-input" style="width: 100%; margin-bottom: 15px;" placeholder="مثال: ali_123" dir="ltr">
                 </div>
                 <div id="create-error" style="color: var(--au-danger); font-size: 0.9rem; margin-bottom: 10px; display: none;"></div>
             </div>

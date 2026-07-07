@@ -269,6 +269,28 @@ body.agent-panel-body {
     cursor: pointer;
 }
 
+.au-select option {
+    background: var(--au-surface);
+    color: var(--au-text);
+    padding: 10px;
+}
+
+.au-input {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--au-border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: var(--au-text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color var(--au-transition);
+}
+
+.au-input:focus {
+    border-color: var(--au-primary);
+}
+
 /* User Cards */
 .au-users-list {
     display: flex;
@@ -653,6 +675,23 @@ body.agent-panel-body {
         border-top: 1px solid rgba(255, 255, 255, 0.05);
         padding-top: 12px;
         margin-top: 4px;
+    }
+}
+
+@media (max-width: 576px) {
+    .au-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .au-toolbar .au-search, 
+    .au-toolbar .au-select,
+    .au-toolbar .au-btn-icon {
+        width: 100%;
+        max-width: 100%;
+    }
+    .au-header {
+        flex-direction: column;
+        gap: 15px;
     }
 }
 
