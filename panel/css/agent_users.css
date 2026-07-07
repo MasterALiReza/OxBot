@@ -909,3 +909,47 @@ body.agent-panel-body {
     color: #60a5fa;
     border: 1px solid rgba(59, 130, 246, 0.15);
 }
+
+/* Collapsible Configurations Dropdown Styles */
+.au-configs-dropdown {
+    margin-top: 12px;
+    position: relative;
+}
+.au-configs-dropdown-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--sf2);
+    border: 1px solid var(--bd);
+    padding: 12px 16px;
+    border-radius: 10px;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+    font-size: 0.9em;
+}
+.au-configs-dropdown-toggle:hover {
+    border-color: var(--ac);
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.au-configs-dropdown-menu {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+    animation: auSlideDown 0.3s ease forwards;
+}
+@keyframes auSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

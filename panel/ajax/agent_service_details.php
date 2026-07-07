@@ -254,6 +254,49 @@ try {
         direction: ltr;
         text-align: left;
     }
+    /* Collapsible Configurations Dropdown Styles */
+    .au-configs-dropdown {
+        margin-top: 12px;
+        position: relative;
+    }
+    .au-configs-dropdown-toggle {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--sf2);
+        border: 1px solid var(--bd);
+        padding: 12px 16px;
+        border-radius: 10px;
+        color: var(--text);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+        font-size: 0.9em;
+    }
+    .au-configs-dropdown-toggle:hover {
+        border-color: var(--ac);
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .au-configs-dropdown-menu {
+        display: none;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 10px;
+        animation: auSlideDown 0.3s ease forwards;
+    }
+    @keyframes auSlideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
     .btn-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -433,89 +476,149 @@ try {
             </div>
             
             <?php if ($subUrl): ?>
-            <div style="display:flex; flex-direction:column; gap:4px; background: var(--sf2); padding: 10px 14px; border-radius: 8px; margin-bottom: 6px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:0.85em; color:var(--ac); cursor:pointer;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
-                        لینک اشتراک: برای کپی کردن کلیک کنید
+            <!-- Subscription QR Code at the beginning -->
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 8px; margin-bottom: 12px; gap: 6px;">
+                <span style="font-size: 0.8em; color: var(--mute); font-weight: 500;">کد QR لینک اشتراک</span>
+                <div style="padding: 10px; background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: inline-block;">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=<?= urlencode(trim($subUrl)) ?>" alt="Subscription QR Code" style="display: block; width: 130px; height: 130px;" />
+                </div>
+            </div>
+
+            <!-- Subscription URL below QR -->
+            <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;">
+                <span style="font-size: 0.8em; color: var(--mute);">لینک اشتراک:</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; background: var(--sf2); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--bd);">
+                    <span style="font-size:0.85em; color:var(--ac); cursor:pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 75%; direction: ltr; text-align: left;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
+                        <?= htmlspecialchars($subUrl) ?>
                     </span>
-                    <button class="btn btn-ghost btn-sm" style="padding: 2px 6px; display:flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
+                    <button class="btn btn-ghost btn-sm" style="padding: 4px 8px; display:flex; align-items:center; gap:4px; font-size: 0.8em;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
                         <?= icon('copy', 13) ?> کپی
                     </button>
                 </div>
-                <!-- Subscription QR Code -->
-                <details style="margin-top: 4px;">
-                    <summary style="font-size: 0.8em; color: var(--ac); cursor: pointer; list-style: none; outline: none; display: inline-flex; align-items: center; gap: 4px;">
-                        <?= icon('qr-code', 14) ?> نمایش QR کد لینک اشتراک
-                    </summary>
-                    <div style="text-align: center; padding: 10px; background: #fff; border-radius: 8px; margin-top: 6px; width: fit-content; margin-left: auto; margin-right: auto;">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?= urlencode(trim($subUrl)) ?>" alt="QR Code" style="display: block; width: 150px; height: 150px;" />
-                    </div>
-                </details>
             </div>
             <?php endif; ?>
 
             <?php if (!empty($configLinks)): ?>
-            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 14px;">
-                <?php foreach ($configLinks as $index => $link): if(empty(trim($link))) continue; 
+                <?php
+                $v2rayConfigs = [];
+                $wgConfigs = [];
+                foreach ($configLinks as $index => $link) {
+                    if (empty(trim($link))) continue;
                     $linkClean = trim($link);
                     $isWireguard = (stripos($linkClean, '[Interface]') !== false || stripos($linkClean, 'PrivateKey') !== false);
+                    if ($isWireguard) {
+                        $wgConfigs[] = ['index' => $index, 'link' => $linkClean];
+                    } else {
+                        $v2rayConfigs[] = ['index' => $index, 'link' => $linkClean];
+                    }
+                }
                 ?>
-                    <div style="background: var(--sf2); border: 1px solid var(--bd); border-radius: 10px; padding: 14px; display:flex; flex-direction:column; gap:8px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.9em; font-weight: 500;">
-                            <span style="display: flex; align-items: center; gap: 6px;">
-                                <?= icon('sliders', 14) ?> کانفیگ <?php if(count($configLinks) > 1) echo '#'.($index + 1); ?> <?= $isWireguard ? '(وایرگارد)' : '' ?>
-                            </span>
-                            <div style="display:flex; gap:8px;">
-                                <?php if ($isWireguard): ?>
-                                <button class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:4px;" onclick="downloadWGConfig(document.getElementById('wg-conf-<?= $index ?>').textContent, '<?= htmlspecialchars($invoice['username']) ?>_wg_<?= ($index + 1) ?>.conf')">
-                                    <?= icon('download', 14) ?> دانلود
-                                </button>
-                                <?php endif; ?>
-                                <button class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText(document.getElementById('wg-conf-<?= $index ?>').textContent).then(()=>alert('کپی شد!'))">
-                                    <?= icon('copy', 14) ?> کپی
-                                </button>
+
+                <!-- Render WireGuard Configs (if any) -->
+                <?php if (!empty($wgConfigs)): ?>
+                    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 14px;">
+                        <?php foreach ($wgConfigs as $wg): 
+                            $index = $wg['index'];
+                            $linkClean = $wg['link'];
+                        ?>
+                            <div style="background: var(--sf2); border: 1px solid var(--bd); border-radius: 10px; padding: 14px; display:flex; flex-direction:column; gap:8px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.9em; font-weight: 500;">
+                                    <span style="display: flex; align-items: center; gap: 6px;">
+                                        <?= icon('sliders', 14) ?> کانفیگ وایرگارد
+                                    </span>
+                                    <div style="display:flex; gap:8px;">
+                                        <button class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:4px;" onclick="downloadWGConfig(document.getElementById('wg-conf-<?= $index ?>').textContent, '<?= htmlspecialchars($invoice['username']) ?>_wg_<?= ($index + 1) ?>.conf')">
+                                            <?= icon('download', 14) ?> دانلود
+                                        </button>
+                                        <button class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText(document.getElementById('wg-conf-<?= $index ?>').textContent).then(()=>alert('کپی شد!'))">
+                                            <?= icon('copy', 14) ?> کپی
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="config-box" id="wg-conf-<?= $index ?>" style="margin-top: 4px;"><?= htmlspecialchars($linkClean) ?></div>
+                                <div style="margin-top: 10px; border-top: 1px solid var(--bd); padding-top: 10px; text-align: center;">
+                                    <span style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 8px;"><?= icon('qr-code', 13) ?> بارکد کانفیگ جهت اسکن در گوشی</span>
+                                    <div style="padding: 10px; background: #fff; border-radius: 8px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: var(--sh);">
+                                        <div id="qr-wg-<?= $index ?>" style="width: 150px; height: 150px; margin: 0 auto;"></div>
+                                    </div>
+                                </div>
+                                <script>
+                                    setTimeout(function() {
+                                        if(typeof QRCode !== 'undefined') {
+                                            new QRCode(document.getElementById('qr-wg-<?= $index ?>'), {
+                                                text: document.getElementById('wg-conf-<?= $index ?>').textContent,
+                                                width: 150,
+                                                height: 150,
+                                                colorDark: "#000000",
+                                                colorLight: "#ffffff",
+                                                correctLevel: QRCode.CorrectLevel.L
+                                            });
+                                        }
+                                    }, 100);
+                                </script>
                             </div>
-                        </div>
-                        <div class="config-box" id="wg-conf-<?= $index ?>" style="margin-top: 4px;"><?= htmlspecialchars($linkClean) ?></div>
-                        
-                        <!-- Config QR Code -->
-                        <?php if (!$isWireguard): ?>
-                        <details style="margin-top: 6px;" ontoggle="if(this.open && !this.dataset.qrRendered){ new QRCode(document.getElementById('qr-<?= $index ?>'), {text: document.getElementById('wg-conf-<?= $index ?>').textContent, width: 150, height: 150, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L}); this.dataset.qrRendered = true; }">
-                            <summary style="font-size: 0.85em; color: var(--ac); cursor: pointer; list-style: none; outline: none; display: inline-flex; align-items: center; gap: 4px;">
-                                <?= icon('qr-code', 14) ?> نمایش بارکد (QR Code) کانفیگ
-                            </summary>
-                            <div style="text-align: center; padding: 10px; background: #fff; border-radius: 8px; margin-top: 6px; width: fit-content; margin-left: auto; margin-right: auto;">
-                                <div id="qr-<?= $index ?>" style="width: 150px; height: 150px; margin: 0 auto;"></div>
-                            </div>
-                        </details>
-                        <?php else: ?>
-                        <!-- prominent QR code for WGDashboard without dropdown -->
-                        <div style="margin-top: 10px; border-top: 1px solid var(--bd); padding-top: 10px; text-align: center;">
-                            <span style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 8px;"><?= icon('qr-code', 13) ?> بارکد کانفیگ جهت اسکن در گوشی</span>
-                            <div style="padding: 10px; background: #fff; border-radius: 8px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: var(--sh);">
-                                <div id="qr-wg-<?= $index ?>" style="width: 150px; height: 150px; margin: 0 auto;"></div>
-                            </div>
-                        </div>
-                        <script>
-                            setTimeout(function() {
-                                if(typeof QRCode !== 'undefined') {
-                                    new QRCode(document.getElementById('qr-wg-<?= $index ?>'), {
-                                        text: document.getElementById('wg-conf-<?= $index ?>').textContent,
-                                        width: 150,
-                                        height: 150,
-                                        colorDark: "#000000",
-                                        colorLight: "#ffffff",
-                                        correctLevel: QRCode.CorrectLevel.L
-                                    });
-                                }
-                            }, 100);
-                        </script>
-                        <?php endif; ?>
+                        <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
-            </div>
+                <?php endif; ?>
+
+                <!-- Render V2Ray Configs (if any) in collapsible dropdown -->
+                <?php if (!empty($v2rayConfigs)): ?>
+                    <div class="au-configs-dropdown">
+                        <button type="button" class="au-configs-dropdown-toggle" onclick="toggleConfigsDropdown()">
+                            <span style="display: flex; align-items: center; gap: 8px;">
+                                <?= icon('sliders', 15) ?>
+                                <span>📋 لیست کانفیگ‌های فعال (<?= count($v2rayConfigs) ?> کانفیگ)</span>
+                            </span>
+                            <svg id="dropdown-chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.3s ease;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                        
+                        <div id="au-configs-dropdown-menu" class="au-configs-dropdown-menu">
+                            <?php foreach ($v2rayConfigs as $v2idx => $v2): 
+                                $index = $v2['index'];
+                                $linkClean = $v2['link'];
+                            ?>
+                                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--bd); border-radius: 8px; padding: 12px; display:flex; flex-direction:column; gap:6px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.85em; font-weight: 500;">
+                                        <span>کانفیگ #<?= ($v2idx + 1) ?></span>
+                                        <button class="btn btn-ghost btn-sm" style="padding: 2px 6px; font-size: 0.8em; display:inline-flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText(document.getElementById('wg-conf-<?= $index ?>').textContent).then(()=>alert('کپی شد!'))">
+                                            <?= icon('copy', 12) ?> کپی کانفیگ
+                                        </button>
+                                    </div>
+                                    <div class="config-box" id="wg-conf-<?= $index ?>" style="font-size: 0.8em; word-break: break-all; max-height: 60px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; font-family: monospace; direction: ltr; text-align: left; border: 1px solid rgba(255,255,255,0.05); color: var(--mute); margin-top: 4px;"><?= htmlspecialchars($linkClean) ?></div>
+                                    
+                                    <!-- Config QR Code -->
+                                    <details style="margin-top: 4px;" ontoggle="if(this.open && !this.dataset.qrRendered){ new QRCode(document.getElementById('qr-<?= $index ?>'), {text: document.getElementById('wg-conf-<?= $index ?>').textContent, width: 130, height: 130, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L}); this.dataset.qrRendered = true; }">
+                                        <summary style="font-size: 0.8em; color: var(--ac); cursor: pointer; list-style: none; outline: none; display: inline-flex; align-items: center; gap: 4px;">
+                                            <?= icon('qr-code', 13) ?> نمایش بارکد (QR Code)
+                                        </summary>
+                                        <div style="text-align: center; padding: 8px; background: #fff; border-radius: 8px; margin-top: 6px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                                            <div id="qr-<?= $index ?>" style="width: 130px; height: 130px; margin: 0 auto;"></div>
+                                        </div>
+                                    </details>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        function toggleConfigsDropdown() {
+                            const menu = document.getElementById('au-configs-dropdown-menu');
+                            const chevron = document.getElementById('dropdown-chevron-icon');
+                            const toggleBtn = document.querySelector('.au-configs-dropdown-toggle');
+                            if (menu.style.display === 'none' || menu.style.display === '') {
+                                menu.style.display = 'flex';
+                                chevron.style.transform = 'rotate(180deg)';
+                                toggleBtn.style.borderColor = 'var(--ac)';
+                            } else {
+                                menu.style.display = 'none';
+                                chevron.style.transform = 'rotate(0deg)';
+                                toggleBtn.style.borderColor = 'var(--bd)';
+                            }
+                        }
+                    </script>
+                <?php endif; ?>
             <?php else: ?>
-            <div style="font-size: 0.8em; color: var(--mute); text-align: center; margin-top: 8px;">هیچ کانفیگی یافت نشد.</div>
+                <div style="font-size: 0.8em; color: var(--mute); text-align: center; margin-top: 8px;">هیچ کانفیگی یافت نشد.</div>
             <?php endif; ?>
         </div>
     </div>
