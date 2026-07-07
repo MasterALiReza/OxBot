@@ -231,6 +231,18 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
     <script>
         const RAW_PRODUCTS = <?= json_encode($allowedProducts) ?>;
         
+        function downloadWGConfig(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
         // Modal functions
         function openModal(id) {
             const m = document.getElementById(id);
@@ -703,6 +715,22 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 .then(html => {
                     contentDiv.style.display = 'block';
                     contentDiv.innerHTML = html;
+                    
+                    // Render prominent WireGuard QR codes (since scripts in AJAX-loaded HTML don't run)
+                    contentDiv.querySelectorAll('[id^="qr-wg-"]').forEach(qrEl => {
+                        const index = qrEl.id.replace('qr-wg-', '');
+                        const confEl = document.getElementById('wg-conf-' + index);
+                        if (confEl && typeof QRCode !== 'undefined') {
+                            new QRCode(qrEl, {
+                                text: confEl.textContent,
+                                width: 150,
+                                height: 150,
+                                colorDark: "#000000",
+                                colorLight: "#ffffff",
+                                correctLevel: QRCode.CorrectLevel.L
+                            });
+                        }
+                    });
                 })
                 .catch(error => {
                     contentDiv.style.display = 'block';
