@@ -57,13 +57,34 @@ function db_count(PDO $pdo, string $sql, array $params = []): int
     return (int) db_query($pdo, $sql, $params)->fetchColumn();
 }
 function render_flags($text) {
-    $pattern = '/([\xf0\x9f\x87][\xa6-\xbf])([\xf0\x9f\x87][\xa6-\xbf])/';
-    return preg_replace_callback($pattern, function($matches) {
+    // 1. First, handle emoji regional indicator symbols
+    $emojiPattern = '/([\xf0\x9f\x87][\xa6-\xbf])([\xf0\x9f\x87][\xa6-\xbf])/';
+    $text = preg_replace_callback($emojiPattern, function($matches) {
         $char1 = ord($matches[1][3]) - 0xa6 + ord('a');
         $char2 = ord($matches[2][3]) - 0xa6 + ord('a');
         $countryCode = chr($char1) . chr($char2);
         return '<img src="https://flagcdn.com/w40/' . $countryCode . '.png" class="flag-icon" style="width: 21px; height: 14px; object-fit: cover; vertical-align: middle; margin: 0 3px; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);" alt="' . $countryCode . '">';
     }, $text);
+
+    // 2. Next, handle plain text codes like DEUSTRFI or IR
+    $countries = ['DE', 'US', 'TR', 'FI', 'IR', 'NL', 'GB', 'FR', 'CA', 'SG', 'AE', 'PL', 'RU', 'UA', 'CN', 'JP', 'KR', 'IN', 'AU', 'NZ', 'BR', 'ZA'];
+    $pattern = '/\b(' . implode('|', $countries) . ')+\b/';
+    $text = preg_replace_callback($pattern, function($matches) use ($countries) {
+        $word = $matches[0];
+        $chunks = str_split($word, 2);
+        $html = '';
+        foreach ($chunks as $chunk) {
+            if (in_array($chunk, $countries)) {
+                $code = strtolower($chunk);
+                $html .= '<img src="https://flagcdn.com/w40/' . $code . '.png" class="flag-icon" style="width: 21px; height: 14px; object-fit: cover; vertical-align: middle; margin: 0 3px; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15);" alt="' . $code . '">';
+            } else {
+                $html .= $chunk;
+            }
+        }
+        return $html;
+    }, $text);
+
+    return $text;
 }
 function require_auth(): void
 {
