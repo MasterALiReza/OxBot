@@ -564,7 +564,22 @@ try {
                 <!-- Render V2Ray Configs (if any) in collapsible dropdown -->
                 <?php if (!empty($v2rayConfigs)): ?>
                     <div class="au-configs-dropdown">
-                        <button type="button" class="au-configs-dropdown-toggle" onclick="toggleConfigsDropdown()">
+                        <button type="button" class="au-configs-dropdown-toggle" onclick="(function(){
+                            const menu = document.getElementById('au-configs-dropdown-menu');
+                            const chevron = document.getElementById('dropdown-chevron-icon');
+                            const toggleBtn = document.querySelector('.au-configs-dropdown-toggle');
+                            if (menu) {
+                                if (menu.style.display === 'none' || menu.style.display === '') {
+                                    menu.style.display = 'flex';
+                                    if (chevron) chevron.style.transform = 'rotate(180deg)';
+                                    if (toggleBtn) toggleBtn.style.borderColor = 'var(--ac)';
+                                } else {
+                                    menu.style.display = 'none';
+                                    if (chevron) chevron.style.transform = 'rotate(0deg)';
+                                    if (toggleBtn) toggleBtn.style.borderColor = 'var(--bd)';
+                                }
+                            }
+                        })()">
                             <span style="display: flex; align-items: center; gap: 8px;">
                                 <?= icon('sliders', 15) ?>
                                 <span>📋 لیست کانفیگ‌های فعال (<?= count($v2rayConfigs) ?> کانفیگ)</span>
@@ -572,7 +587,7 @@ try {
                             <svg id="dropdown-chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.3s ease;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </button>
                         
-                        <div id="au-configs-dropdown-menu" class="au-configs-dropdown-menu">
+                        <div id="au-configs-dropdown-menu" class="au-configs-dropdown-menu" style="display:none; flex-direction:column; gap:10px; margin-top:10px;">
                             <?php foreach ($v2rayConfigs as $v2idx => $v2): 
                                 $index = $v2['index'];
                                 $linkClean = $v2['link'];
@@ -584,31 +599,18 @@ try {
                                             <?= icon('copy', 12) ?> کپی کانفیگ
                                         </button>
                                     </div>
-                                    <div class="config-box" id="wg-conf-<?= $index ?>" style="font-size: 0.8em; word-break: break-all; max-height: 60px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; font-family: monospace; direction: ltr; text-align: left; border: 1px solid rgba(255,255,255,0.05); color: var(--mute); margin-top: 4px;"><?= htmlspecialchars($linkClean) ?></div>
+                                    <div class="config-box" id="wg-conf-<?= $index ?>" style="font-family: monospace; font-size: 0.75em; background: rgba(0,0,0,0.2); border: 1px dashed var(--bd); padding: 8px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; color: var(--ac); direction: ltr; text-align: left; max-height: 100px;"><?= htmlspecialchars($linkClean) ?></div>
                                     
-                                    <!-- Config QR Code -->
                                     <details style="margin-top: 4px;" ontoggle="if(this.open && !this.dataset.qrRendered){ new QRCode(document.getElementById('qr-<?= $index ?>'), {text: document.getElementById('wg-conf-<?= $index ?>').textContent, width: 130, height: 130, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L}); this.dataset.qrRendered = true; }">
-                                        <summary style="font-size: 0.8em; color: var(--ac); cursor: pointer; list-style: none; outline: none; display: inline-flex; align-items: center; gap: 4px;">
-                                            <?= icon('qr-code', 13) ?> نمایش بارکد (QR Code)
-                                        </summary>
-                                        <div style="text-align: center; padding: 8px; background: #fff; border-radius: 8px; margin-top: 6px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-                                            <div id="qr-<?= $index ?>" style="width: 130px; height: 130px; margin: 0 auto;"></div>
+                                        <summary style="font-size: 0.8em; color: var(--mute); cursor: pointer; user-select: none;">نمایش QR کد کانفیگ</summary>
+                                        <div style="display:flex; justify-content:center; padding: 10px 0;">
+                                            <div id="qr-<?= $index ?>"></div>
                                         </div>
                                     </details>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                     </div>
-                    
-                    <script>
-                        function toggleConfigsDropdown() {
-                            const menu = document.getElementById('au-configs-dropdown-menu');
-                            const chevron = document.getElementById('dropdown-chevron-icon');
-                            const toggleBtn = document.querySelector('.au-configs-dropdown-toggle');
-                            if (menu.style.display === 'none' || menu.style.display === '') {
-                                menu.style.display = 'flex';
-                                chevron.style.transform = 'rotate(180deg)';
-                                toggleBtn.style.borderColor = 'var(--ac)';
                             } else {
                                 menu.style.display = 'none';
                                 chevron.style.transform = 'rotate(0deg)';
