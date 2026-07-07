@@ -885,9 +885,10 @@ class ManagePanel
                     $download_config_body = json_decode($download_config['body'], true);
                     if (is_array($download_config_body)) {
                         $download_config_data = $download_config_body['data'] ?? $download_config_body;
-                        $subscription_url_val = isset($download_config_data['file']) ? strval($download_config_data['file']) : '';
+                        $subscription_url_val = isset($download_config_data['file']) ? strval($download_config_data['file']) : (isset($download_config_data['content']) ? strval($download_config_data['content']) : '');
                     } else {
-                        $subscription_url_val = 'Invalid config data format';
+                        // If it's not JSON, the WGDashboard API returns the raw text config
+                        $subscription_url_val = $download_config['body'];
                     }
                 }
                 

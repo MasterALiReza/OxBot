@@ -7,7 +7,10 @@ chdir(__DIR__ . '/../../');
 require_once 'function.php';
 require_once 'botapi.php';
 require_once 'MHSanaei-3.2.php';
+require_once 'panels.php';
 chdir($old_cwd);
+
+$ManagePanel = new ManagePanel();
 
 ob_end_clean();
 header('Content-Type: application/json');
@@ -90,8 +93,7 @@ if ($action === 'create_user') {
     $name_panel = $panelData ? $panelData['name_panel'] : $location;
 
     // Call Creation API
-    $args = [$name_panel, $product['code_product'], $username, $Data_Config];
-    $response = MHSanaei_router('createUser', $args);
+    $response = $ManagePanel->createUser($name_panel, $product['code_product'], $username, $Data_Config);
 
     if (isset($response['status']) && $response['status'] === 'successful') {
 
@@ -186,12 +188,8 @@ if ($action === 'renew_user') {
     $panelData = $stmtPnl->fetch(PDO::FETCH_ASSOC);
     $name_panel = $panelData ? $panelData['name_panel'] : $invoice['Service_location'];
 
-    // Call Renew API (extend)
-    // extend args: list($Method_extend, $new_limit, $time_day, $username, $code_product, $name_panel) = $args;
-    global $textbotlang;
-    $method = $textbotlang['keyboard']['resetVolumeAddTime'] ?? 'ریست حجم زمان قبلی و اضافه شدن حجم زمان جدید';
-    $args = [$method, $product['Volume_constraint'], $product['Service_time'], $invoice['username'], $product['code_product'], $name_panel];
-    $response = MHSanaei_router('extend', $args);
+    // Call Renew API
+    $response = $ManagePanel->extend($invoice['Service_location'], $product['Volume_constraint'], $product['Service_time'], $invoice['username'], $product['code_product'], $name_panel);
 
     if (isset($response['status']) && $response['status'] === true) {
 
@@ -241,8 +239,7 @@ if ($action === 'delete_user') {
     $name_panel = $panelData ? $panelData['name_panel'] : $invoice['Service_location'];
 
     // Call Delete API
-    $args = [$invoice['username'], $name_panel];
-    $response = MHSanaei_router('RemoveUser', $args);
+    $response = $ManagePanel->RemoveUser($name_panel, $invoice['username']);
 
     if (isset($response['status']) && $response['status'] === true) {
         // Delete or mark inactive
@@ -275,9 +272,16 @@ if ($action === 'get_link') {
     $panelData = $stmtPnl->fetch(PDO::FETCH_ASSOC);
     $name_panel = $panelData ? $panelData['name_panel'] : $invoice['Service_location'];
 
-    $res = MHSanaei_router('DataUser', [$name_panel, $invoice['username']]);
+    $res = $ManagePanel->DataUser($name_panel, $invoice['username']);
     if (isset($res['status']) && $res['status'] !== 'Unsuccessful') {
         $link = $res['subscription_url'] ?? '';
+        
+        // FIX FOR WGDashboard: Often the "subscription_url" actually contains the raw WireGuard .conf content
+        if (!empty($link) && (stripos(trim($link), '[Interface]') === 0 || stripos(trim($link), 'PrivateKey') !== false)) {
+            $res['links'] = array_merge((array)($res['links'] ?? []), [$link]);
+            $link = '';
+        }
+
         if (empty($link) && !empty($res['configs'])) {
             $link = is_array($res['configs']) ? implode("\n", $res['configs']) : $res['configs'];
         }

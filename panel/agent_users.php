@@ -177,6 +177,9 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                     <label>نام کاربری (اختیاری - انگلیسی)</label>
                     <input type="text" id="create-username" class="au-input" style="width: 100%; margin-bottom: 15px; text-align: right;" placeholder="مثال: ali_123" dir="ltr">
                 </div>
+                <div class="au-alert au-alert-info" style="margin-top: 15px; font-size: 0.85rem; text-align: right; direction: rtl;">
+                    <i class="fa-solid fa-circle-info"></i> نام کاربری باید انگلیسی و بدون فاصله باشد. به طور مثال: <b>ali_2024</b>
+                </div>
                 <div id="create-error" style="color: var(--au-danger); font-size: 0.9rem; margin-bottom: 10px; display: none;"></div>
             </div>
             <div class="au-modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--au-border); display: flex; justify-content: flex-end; gap: 10px;">
@@ -219,7 +222,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 <button class="au-btn-icon" onclick="closeModal('manage-modal')"><?= icon('x', 20) ?></button>
             </div>
             
-            <div class="au-modal-body" style="padding: 20px; display: grid; gap: 15px; grid-template-columns: 1fr 1fr;">
+            <div class="au-modal-body au-manage-grid" style="padding: 20px;">
                 
                 <!-- جزئیات خرید فاکتور -->
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--au-border); border-radius: 10px; padding: 15px;">
@@ -290,7 +293,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
 
                     <div style="text-align: center; margin-top: 15px;">
                         <div style="font-size: 0.8rem; color: var(--au-text-muted); margin-bottom: 10px;"><i class="fa-solid fa-qrcode"></i> بارکد کانفیگ جهت اسکن در گوشی</div>
-                        <div id="man-qrcode" style="display: inline-block; background: #fff; padding: 10px; border-radius: 8px; min-width: 150px; min-height: 150px;"></div>
+                        <div id="man-qrcode" style="display: inline-block; background: #fff; padding: 10px; border-radius: 8px; min-width: 220px; min-height: 220px;"></div>
                     </div>
                 </div>
 
@@ -300,7 +303,6 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 <button class="au-btn" style="width: 100%; justify-content: center; background: rgba(255,255,255,0.05);" onclick="refreshManStats()"><i class="fa-solid fa-rotate"></i> بروزرسانی اطلاعات لحظه‌ای</button>
                 <div style="display: flex; gap: 10px;">
                     <button class="au-btn au-btn-primary" style="flex: 1; justify-content: center;" id="man-btn-renew"><i class="fa-solid fa-plus"></i> تمدید سرویس</button>
-                    <button class="au-btn" style="flex: 1; justify-content: center; background: rgba(255,50,50,0.1); color: #ff4d4d; border: 1px solid rgba(255,50,50,0.2);" id="man-btn-delete"><i class="fa-solid fa-trash-can"></i> حذف کامل سرویس</button>
                 </div>
             </div>
         </div>
@@ -619,9 +621,10 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
             prodSelect.innerHTML = '<option value="">-- انتخاب پلن --</option>';
             if(!loc) return;
 
+            const locLower = String(loc).toLowerCase().trim();
             const filtered = RAW_PRODUCTS.filter(p => {
-                const pLoc = p.Location || p.location || '';
-                return pLoc === loc || pLoc === '/all';
+                const pLoc = String(p.Location || p.location || '').toLowerCase().trim();
+                return pLoc === locLower || pLoc === '/all';
             });
             filtered.forEach(p => {
                 const opt = document.createElement('option');
@@ -684,8 +687,9 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
             const prodSelect = document.getElementById('renew-product');
             prodSelect.innerHTML = '<option value="">-- انتخاب پلن --</option>';
             const filtered = RAW_PRODUCTS.filter(p => {
-                const pLoc = p.Location || p.location || '';
-                return pLoc === location || pLoc === '/all';
+                const pLoc = String(p.Location || p.location || '').toLowerCase().trim();
+                const targetLoc = String(location).toLowerCase().trim();
+                return pLoc === targetLoc || pLoc === '/all';
             });
             filtered.forEach(p => {
                 const opt = document.createElement('option');
@@ -855,11 +859,11 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                     qrContainer.innerHTML = '';
                     qrCodeInstance = new QRCode(qrContainer, {
                         text: content,
-                        width: 150,
-                        height: 150,
+                        width: 220,
+                        height: 220,
                         colorDark : "#000000",
                         colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.L
+                        correctLevel : QRCode.CorrectLevel.M
                     });
                 } else {
                     configText.value = json.message || 'خطا در دریافت لینک';

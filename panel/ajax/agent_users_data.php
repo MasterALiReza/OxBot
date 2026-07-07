@@ -82,7 +82,7 @@ try {
         if ($status === 'active') {
             $where .= ' AND i.Status = "active" AND (i.Service_time = 0 OR (i.time_sell + (i.Service_time * 86400)) > ' . time() . ')';
         } elseif ($status === 'expired') {
-            $where .= ' AND (i.Status = "inactive" OR (i.Service_time > 0 AND (i.time_sell + (i.Service_time * 86400)) <= ' . time() . '))';
+            $where .= ' AND (i.Status != "active" OR (i.Service_time > 0 AND (i.time_sell + (i.Service_time * 86400)) <= ' . time() . '))';
         }
 
         // Total count
