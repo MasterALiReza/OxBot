@@ -119,17 +119,17 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 <?= icon('search', 16) ?>
                 <input type="text" id="au-search-input" placeholder="جستجوی کاربر یا لوکیشن...">
             </div>
-            <select class="au-select">
-                <option>وضعیت (همه)</option>
-                <option>فعال</option>
-                <option>منقضی</option>
+            <select class="au-select" id="au-filter-status">
+                <option value="all">وضعیت (همه)</option>
+                <option value="active">فعال</option>
+                <option value="expired">منقضی</option>
             </select>
-            <select class="au-select">
-                <option>وضعیت اتصال (همه)</option>
-                <option>آنلاین</option>
-                <option>آفلاین</option>
+            <select class="au-select" id="au-filter-connection">
+                <option value="all">وضعیت اتصال (همه)</option>
+                <option value="online">آنلاین</option>
+                <option value="offline">آفلاین</option>
             </select>
-            <button class="au-btn au-btn-icon" title="مرتب سازی">
+            <button class="au-btn au-btn-icon" id="au-sort-btn" title="تغییر ترتیب زمانی">
                 <?= icon('sliders', 18) ?>
             </button>
         </div>
@@ -311,6 +311,9 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
         // Data Fetching Logic
         let currentPage = 1;
         let currentSearch = '';
+        let currentStatus = 'all';
+        let currentConnection = 'all';
+        let currentSort = 'desc';
 
         async function loadUsers(page = 1) {
             currentPage = page;
@@ -320,7 +323,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
             container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--au-text-muted);"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i><p style="margin-top: 15px;">در حال بارگذاری کاربران...</p></div>';
 
             try {
-                const res = await fetch(`ajax/agent_users_data.php?action=get_users&page=${page}&search=${encodeURIComponent(currentSearch)}`);
+                const res = await fetch(`ajax/agent_users_data.php?action=get_users&page=${page}&search=${encodeURIComponent(currentSearch)}&status=${currentStatus}&sort=${currentSort}`);
                 const json = await res.json();
                 
                 if (json.status !== 'success') {
@@ -451,6 +454,14 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 if (connBadge) {
                     connBadge.className = `au-badge-connection ${data.is_online}`;
                     connBadge.innerHTML = `<span class="dot">•</span> <span class="label">${data.online_label}</span>`;
+                }
+                
+                // Connection Filtering (Frontend side)
+                const userCard = document.getElementById(`user-card-${id}`);
+                if (userCard && currentConnection !== 'all') {
+                    if (data.is_online !== currentConnection) {
+                        userCard.style.display = 'none';
+                    }
                 }
                 
                 // 2. Update Username Online Indicator Dot
@@ -802,6 +813,30 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 alert('خطا در کپی کردن متن!');
             });
         }
+        // --- Filters & Sorting Event Listeners ---
+        document.getElementById('au-filter-status').addEventListener('change', function() {
+            currentStatus = this.value;
+            loadUsers(1);
+        });
+        
+        document.getElementById('au-filter-connection').addEventListener('change', function() {
+            currentConnection = this.value;
+            // Since connection is frontend-filtered, we reload the page users and let fetchLiveStats hide them
+            loadUsers(1);
+        });
+        
+        document.getElementById('au-sort-btn').addEventListener('click', function() {
+            currentSort = currentSort === 'desc' ? 'asc' : 'desc';
+            
+            // Toggle icon visual slightly
+            if (currentSort === 'asc') {
+                this.style.transform = 'scaleY(-1)';
+            } else {
+                this.style.transform = 'none';
+            }
+            
+            loadUsers(1);
+        });
     </script>
 
 

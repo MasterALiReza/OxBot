@@ -64,6 +64,8 @@ try {
         $limit  = 10;
         $offset = ($page - 1) * $limit;
         $search = trim($_GET['search'] ?? '');
+        $status = $_GET['status'] ?? 'all';
+        $sort   = $_GET['sort'] ?? 'desc';
 
         // Base WHERE clause — agent only sees their own invoices
         $where  = '(i.id_user = :aid1 OR i.refral = :aid2)';
@@ -75,16 +77,26 @@ try {
             $params[':s2'] = "%{$search}%";
             $params[':s3'] = "%{$search}%";
         }
+        
+        // Status Filter
+        if ($status === 'active') {
+            $where .= ' AND i.Status = "active" AND (i.Service_time = 0 OR (i.time_sell + (i.Service_time * 86400)) > ' . time() . ')';
+        } elseif ($status === 'expired') {
+            $where .= ' AND (i.Status = "inactive" OR (i.Service_time > 0 AND (i.time_sell + (i.Service_time * 86400)) <= ' . time() . '))';
+        }
 
         // Total count
         $stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM invoice i WHERE {$where}");
         $stmtCount->execute($params);
         $total      = (int) ($stmtCount->fetchColumn() ?: 0);
         $totalPages = (int) ceil($total / $limit);
+        
+        // Sorting Direction
+        $orderDir = strtoupper($sort) === 'ASC' ? 'ASC' : 'DESC';
 
         // Fetch rows
         $stmtRows = $pdo->prepare(
-            "SELECT * FROM invoice i WHERE {$where} ORDER BY i.time_sell DESC LIMIT {$limit} OFFSET {$offset}"
+            "SELECT * FROM invoice i WHERE {$where} ORDER BY i.time_sell {$orderDir} LIMIT {$limit} OFFSET {$offset}"
         );
         $stmtRows->execute($params);
         $invoices = $stmtRows->fetchAll(PDO::FETCH_ASSOC);
