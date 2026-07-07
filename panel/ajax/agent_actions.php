@@ -105,8 +105,8 @@ if ($action === 'create_user') {
         }
 
         $stmtInv = $pdo->prepare("INSERT IGNORE INTO invoice 
-            (id_user, id_invoice, username, time_sell, Service_location, name_product, price_product, Volume, Service_time, Status, notifctions, refral, link_sub) 
-            VALUES (:id_user, :id_invoice, :username, :time_sell, :Service_location, :name_product, :price_product, :Volume, :Service_time, :Status, :notifctions, :refral, :link_sub)");
+            (id_user, id_invoice, username, time_sell, Service_location, name_product, price_product, Volume, Service_time, Status, notifctions, refral) 
+            VALUES (:id_user, :id_invoice, :username, :time_sell, :Service_location, :name_product, :price_product, :Volume, :Service_time, :Status, :notifctions, :refral)");
 
         $stmtInv->execute([
             ':id_user' => $agent_id,
@@ -120,8 +120,7 @@ if ($action === 'create_user') {
             ':Service_time' => $product['Service_time'],
             ':Status' => 'active',
             ':notifctions' => $notifctions,
-            ':refral' => $agent_id,
-            ':link_sub' => $link_sub
+            ':refral' => $agent_id
         ]);
 
         echo json_encode(['status' => 'success', 'message' => 'سرویس ساخته شد']);
@@ -259,7 +258,7 @@ if ($action === 'delete_user') {
 if ($action === 'get_link') {
     $invoice_id = $_POST['invoice_id'] ?? '';
     
-    $stmtInv = $pdo->prepare("SELECT link_sub, username, Service_location FROM invoice WHERE id_invoice = :id AND (id_user = :uid OR refral = :uid) LIMIT 1");
+    $stmtInv = $pdo->prepare("SELECT username, Service_location FROM invoice WHERE id_invoice = :id AND (id_user = :uid OR refral = :uid) LIMIT 1");
     $stmtInv->execute([':id' => $invoice_id, ':uid' => $agent_id]);
     $invoice = $stmtInv->fetch(PDO::FETCH_ASSOC);
 
@@ -268,22 +267,19 @@ if ($action === 'get_link') {
         exit;
     }
 
-    $link = $invoice['link_sub'];
+    $link = '';
     
-    // Fallback if link is not in DB but can be retrieved via DataUser
-    if (empty($link)) {
-        // Fetch Panel Name
-        $stmtPnl = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE code_panel = :code LIMIT 1");
-        $stmtPnl->execute([':code' => $invoice['Service_location']]);
-        $panelData = $stmtPnl->fetch(PDO::FETCH_ASSOC);
-        $name_panel = $panelData ? $panelData['name_panel'] : $invoice['Service_location'];
+    // Fetch Panel Name
+    $stmtPnl = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE code_panel = :code LIMIT 1");
+    $stmtPnl->execute([':code' => $invoice['Service_location']]);
+    $panelData = $stmtPnl->fetch(PDO::FETCH_ASSOC);
+    $name_panel = $panelData ? $panelData['name_panel'] : $invoice['Service_location'];
 
-        $res = MHSanaei_router('DataUser', [$name_panel, $invoice['username']]);
-        if (isset($res['status']) && $res['status'] !== 'Unsuccessful') {
-            $link = $res['subscription_url'] ?? '';
-            if (empty($link) && !empty($res['configs'])) {
-                $link = is_array($res['configs']) ? implode("\n", $res['configs']) : $res['configs'];
-            }
+    $res = MHSanaei_router('DataUser', [$name_panel, $invoice['username']]);
+    if (isset($res['status']) && $res['status'] !== 'Unsuccessful') {
+        $link = $res['subscription_url'] ?? '';
+        if (empty($link) && !empty($res['configs'])) {
+            $link = is_array($res['configs']) ? implode("\n", $res['configs']) : $res['configs'];
         }
     }
 
