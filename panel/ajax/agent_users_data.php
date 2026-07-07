@@ -70,8 +70,10 @@ try {
         $params = [':aid1' => $agent_id, ':aid2' => $agent_id];
 
         if ($search !== '') {
-            $where .= ' AND (i.username LIKE :s OR i.name_product LIKE :s OR i.Service_location LIKE :s)';
-            $params[':s'] = "%{$search}%";
+            $where .= ' AND (i.username LIKE :s1 OR i.name_product LIKE :s2 OR i.Service_location LIKE :s3)';
+            $params[':s1'] = "%{$search}%";
+            $params[':s2'] = "%{$search}%";
+            $params[':s3'] = "%{$search}%";
         }
 
         // Total count

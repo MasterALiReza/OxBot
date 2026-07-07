@@ -172,7 +172,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 <div class="au-form-group">
                     <label>نام کاربری (اختیاری - انگلیسی)</label>
-                    <input type="text" id="create-username" class="au-input" style="width: 100%; margin-bottom: 15px;" placeholder="مثال: ali_123" dir="ltr">
+                    <input type="text" id="create-username" class="au-input" style="width: 100%; margin-bottom: 15px; text-align: right;" placeholder="مثال: ali_123" dir="ltr">
                 </div>
                 <div id="create-error" style="color: var(--au-danger); font-size: 0.9rem; margin-bottom: 10px; display: none;"></div>
             </div>
@@ -581,10 +581,13 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
             prodSelect.innerHTML = '<option value="">-- انتخاب پلن --</option>';
             if(!loc) return;
 
-            const filtered = RAW_PRODUCTS.filter(p => p.Location === loc || p.Location === '/all');
+            const filtered = RAW_PRODUCTS.filter(p => {
+                const pLoc = p.Location || p.location || '';
+                return pLoc === loc || pLoc === '/all';
+            });
             filtered.forEach(p => {
                 const opt = document.createElement('option');
-                opt.value = p.id;
+                opt.value = p.id || p.ID || p.id_product;
                 opt.textContent = `${p.name_product} - ${Number(p.price_product).toLocaleString()} تومان`;
                 prodSelect.appendChild(opt);
             });
@@ -642,10 +645,13 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
             
             const prodSelect = document.getElementById('renew-product');
             prodSelect.innerHTML = '<option value="">-- انتخاب پلن --</option>';
-            const filtered = RAW_PRODUCTS.filter(p => p.Location === location || p.Location === '/all');
+            const filtered = RAW_PRODUCTS.filter(p => {
+                const pLoc = p.Location || p.location || '';
+                return pLoc === location || pLoc === '/all';
+            });
             filtered.forEach(p => {
                 const opt = document.createElement('option');
-                opt.value = p.id;
+                opt.value = p.id || p.ID || p.id_product;
                 opt.textContent = `${p.name_product} - ${Number(p.price_product).toLocaleString()} تومان`;
                 prodSelect.appendChild(opt);
             });
