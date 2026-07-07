@@ -198,19 +198,76 @@ try {
         }
     }
     .bento-card {
-        background: var(--sf);
-        border: 1px solid var(--bd);
+        background: rgba(26, 34, 52, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 12px;
         padding: 14px 18px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: all 0.2s ease;
-        box-shadow: var(--sh);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.03);
+        position: relative;
+        overflow: hidden;
     }
+    .bento-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        width: 3.5px;
+        border-radius: 0 4px 4px 0;
+        opacity: 0.85;
+    }
+    /* Section specific borders/colors */
+    .bento-card.card-status::before {
+        background: var(--ac);
+    }
+    .bento-card.card-status {
+        border-right: 1px solid rgba(59, 130, 246, 0.15);
+    }
+    
+    .bento-card.card-purchase::before {
+        background: #eab308;
+    }
+    .bento-card.card-purchase {
+        border-right: 1px solid rgba(234, 179, 8, 0.15);
+    }
+    
+    .bento-card.card-volume::before {
+        background: #06b6d4;
+    }
+    .bento-card.card-volume {
+        border-right: 1px solid rgba(6, 182, 212, 0.15);
+    }
+    
+    .bento-card.card-expiration::before {
+        background: #10b981;
+    }
+    .bento-card.card-expiration {
+        border-right: 1px solid rgba(16, 185, 129, 0.15);
+    }
+    
+    .bento-card.card-connection::before {
+        background: #a855f7;
+    }
+    .bento-card.card-connection {
+        border-right: 1px solid rgba(168, 85, 247, 0.15);
+    }
+    
+    .bento-card.card-subscription::before {
+        background: #ec4899;
+    }
+    .bento-card.card-subscription {
+        border-right: 1px solid rgba(236, 72, 153, 0.15);
+    }
+    
     .bento-card:hover {
-        border-color: var(--bds);
+        border-color: rgba(255, 255, 255, 0.12);
+        background: rgba(26, 34, 52, 0.6);
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.05);
     }
     .bento-full {
         grid-column: 1 / -1;
@@ -391,7 +448,7 @@ try {
     
     <div class="bento-grid">
         <!-- Status & Location Card -->
-        <div class="bento-card">
+        <div class="bento-card card-status">
             <div>
                 <div class="card-title">
                     <?= icon('user', 15) ?>
@@ -406,7 +463,7 @@ try {
         </div>
 
         <!-- Purchase Info Card -->
-        <div class="bento-card">
+        <div class="bento-card card-purchase">
             <div>
                 <div class="card-title">
                     <?= icon('invoice', 15) ?>
@@ -420,7 +477,7 @@ try {
         </div>
 
         <!-- Volume Usage Card -->
-        <div class="bento-card">
+        <div class="bento-card card-volume">
             <div>
                 <div class="card-title">
                     <?= icon('chart', 15) ?>
@@ -439,7 +496,7 @@ try {
         </div>
 
         <!-- Expiration Card -->
-        <div class="bento-card">
+        <div class="bento-card card-expiration">
             <div>
                 <div class="card-title">
                     <?= icon('clock', 15) ?>
@@ -451,7 +508,7 @@ try {
         </div>
 
         <!-- Connection Details Card -->
-        <div class="bento-card bento-full">
+        <div class="bento-card bento-full card-connection">
             <div class="card-title">
                 <?= icon('activity', 15) ?>
                 <span>جزئیات اتصال و به‌روزرسانی</span>
@@ -476,7 +533,7 @@ try {
         </div>
 
         <!-- Subscription & Configs Card -->
-        <div class="bento-card bento-full">
+        <div class="bento-card bento-full card-subscription">
             <div class="card-title">
                 <?= icon('link', 15) ?>
                 <span>اشتراک و کانفیگ‌ها</span>
