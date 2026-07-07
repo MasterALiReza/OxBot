@@ -298,13 +298,20 @@ try {
         }
     }
     .btn-grid {
+        position: sticky;
+        bottom: -20px;
+        margin: 24px -20px -20px -20px;
+        background: rgba(21, 28, 44, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid var(--bd);
+        padding: 16px 20px;
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin-top: 8px;
-    }
-    .btn-grid-full {
-        grid-column: span 2;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        z-index: 10;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
     }
     .btn-sm-action {
         padding: 11px 16px;
@@ -611,13 +618,6 @@ try {
                             <?php endforeach; ?>
                         </div>
                     </div>
-                            } else {
-                                menu.style.display = 'none';
-                                chevron.style.transform = 'rotate(0deg)';
-                                toggleBtn.style.borderColor = 'var(--bd)';
-                            }
-                        }
-                    </script>
                 <?php endif; ?>
             <?php else: ?>
                 <div style="font-size: 0.8em; color: var(--mute); text-align: center; margin-top: 8px;">هیچ کانفیگی یافت نشد.</div>
@@ -627,12 +627,12 @@ try {
 
     <div class="btn-grid">
         <!-- Refresh (AJAX) -->
-        <button type="button" class="btn-sm-action btn-grid-full" style="background: var(--sf3); color: var(--text); border: 1px solid var(--bds);" onclick="openManageModal('<?= $id_invoice ?>')">
-            <?= icon('refresh-cw', 13) ?> بروزرسانی اطلاعات لحظه‌ای
+        <button type="button" class="btn-sm-action" style="background: var(--sf3); color: var(--text); border: 1px solid var(--bds);" onclick="openManageModal('<?= $id_invoice ?>')">
+            <?= icon('refresh-cw', 13) ?> بروزرسانی اطلاعات
         </button>
 
         <!-- Extend Service -->
-        <button type="button" class="btn-sm-action btn-grid-full" style="background:#3b82f6; color:#fff;" onclick="closeModal('manage-modal'); openRenewModal('<?= $id_invoice ?>', '<?= htmlspecialchars($invoice['username']) ?>', '<?= htmlspecialchars($invoice['Service_location']) ?>')">
+        <button type="button" class="btn-sm-action" style="background:#3b82f6; color:#fff;" onclick="closeModal('manage-modal'); openRenewModal('<?= $id_invoice ?>', '<?= htmlspecialchars($invoice['username']) ?>', '<?= htmlspecialchars($invoice['Service_location']) ?>')">
            <?= icon('plus', 13) ?> تمدید سرویس
         </button>
     </div>
