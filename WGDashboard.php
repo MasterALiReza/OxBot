@@ -123,15 +123,23 @@ function addpear($namepanel, $usernameac)
     }
     
     $response = json_decode($api_res['body'], true);
-    if (!is_array($response) || empty($response['data']['conf_address'])) {
+    $subnet = null;
+    if (is_array($response) && isset($response['data'])) {
+        if (!empty($response['data']['configurationInfo']['Address'])) {
+            $subnet = $response['data']['configurationInfo']['Address'];
+        } elseif (!empty($response['data']['conf_address'])) {
+            $subnet = $response['data']['conf_address'];
+        }
+    }
+    
+    if (empty($subnet)) {
         $body_preview = is_string($api_res['body']) ? substr($api_res['body'], 0, 300) : var_export($api_res['body'], true);
         return array(
             'status' => false,
-            'msg' => 'Invalid JSON or missing conf_address from WGDashboard. Response: ' . $body_preview
+            'msg' => 'Invalid JSON or missing subnet/Address info from WGDashboard. Response: ' . $body_preview
         );
     }
     
-    $subnet = $response['data']['conf_address'];
     if (strpos($subnet, ',') !== false) {
         $parts = explode(',', $subnet);
         foreach ($parts as $part) {
