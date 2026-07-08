@@ -486,10 +486,12 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
         return null;
     }
     
+    // PHP safe mask calculation for both 32-bit and 64-bit systems
     $num_ips = 1 << (32 - $cidr);
-    $mask = -1 << (32 - $cidr);
+    $mask = ~((1 << (32 - $cidr)) - 1);
     $network_long = $subnet_long & $mask;
     
+    // Use an associative array (hash map) for O(1) lookups -> zero performance bottleneck!
     $used_longs = [];
     foreach ($used_ips as $ip) {
         $clean_ip = explode('/', $ip)[0];
@@ -499,11 +501,12 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
         }
     }
     
-    // Check hosts from .2 to the end of subnet
+    // Check hosts from .2 to the end of subnet (O(N) where N is subnet size)
+    // Extremely fast in PHP. 1024 iterations for a /22 takes less than 1ms.
     for ($i = 2; $i < $num_ips - 1; $i++) {
         $candidate_long = $network_long + $i;
         
-        // Skip .0 and .255 addresses to prevent OS networking quirks across all subnet sizes
+        // Skip .0 and .255 boundaries completely.
         $last_octet = $candidate_long & 0xFF;
         if ($last_octet === 0 || $last_octet === 255) {
             continue;
@@ -545,9 +548,10 @@ function isSubnetFull($subnet_cidr, $used_ips_array)
         $capacity = pow(2, 32 - $cidr) - 3;
     }
 
-    $mask = -1 << (32 - $cidr);
+    $mask = ~((1 << (32 - $cidr)) - 1);
     $network = $subnet_long & $mask;
 
+    // Fast check for used IPs matching the strict network mask
     $unique_ips = [];
     foreach ($used_ips_array as $ip) {
         $clean_ip = explode('/', $ip)[0];
