@@ -91,6 +91,26 @@ function downloadconfig($namepanel, $publickey)
     $response = $req->get();
     return $response;
 }
+function getWgSubnet($namepanel) {
+    $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
+    if (!$marzban_list_get) return null;
+    $url = $marzban_list_get['url_panel'] . '/api/getWireguardConfigurationInfo?configurationName=' . $marzban_list_get['inboundid'];
+    $headers = array(
+        'Accept: application/json',
+        'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
+    );
+    $req = new CurlRequest($url);
+    $req->setHeaders($headers);
+    $api_res = $req->get();
+    if (!empty($api_res['status']) && $api_res['status'] == 200 && !empty($api_res['body'])) {
+        $response = json_decode($api_res['body'], true);
+        if (is_array($response) && !empty($response['data']['conf_address'])) {
+            return $response['data']['conf_address'];
+        }
+    }
+    return null;
+}
+
 function addpear($namepanel, $usernameac)
 {
 
@@ -102,37 +122,40 @@ function addpear($namepanel, $usernameac)
             'msg' => 'PHP sodium extension is missing. Cannot generate WireGuard keys.'
         );
     }
-    $ipconfig = ipslast($namepanel);
-    if (!empty($ipconfig['status']) && $ipconfig['status'] != 200) {
-        return array(
-            'status' => false,
-            'msg' => 'error code : ' . $ipconfig['status']
-        );
-    }
-    if (!empty($ipconfig['error'])) {
-        return array(
-            'status' => false,
-            'msg' => $ipconfig['error']
-        );
-    }
-    $ipconfig_body = json_decode($ipconfig['body'], true);
-    if (!is_array($ipconfig_body)) {
-        return array(
-            'status' => false,
-            'msg' => 'Invalid JSON from WGDashboard: ' . $ipconfig['body']
-        );
-    }
-    if (!empty($ipconfig_body['status']) && $ipconfig_body['status'] == false) {
-        return $ipconfig_body;
-    }
-    if (empty($ipconfig_body['data']) || !is_array($ipconfig_body['data'])) {
-        return array(
-            'status' => false,
-            'msg' => 'No available IPs found in WGDashboard or invalid data format'
-        );
-    }
     
     // --- SMART CAPACITY LIMIT LAYER & IP ALLOCATION ---
+    $ipconfig = ipslast($namepanel);
+    $ipconfig_body = null;
+    $available_subnets = [];
+    $is_ipconfig_failed = false;
+
+    // Detect WGDashboard bug (timeout or failure on large CIDRs like /22)
+    if (!empty($ipconfig['error']) || (!empty($ipconfig['status']) && $ipconfig['status'] != 200)) {
+        $is_ipconfig_failed = true;
+    } else {
+        $ipconfig_body = json_decode($ipconfig['body'], true);
+        if (!is_array($ipconfig_body) || (!empty($ipconfig_body['status']) && $ipconfig_body['status'] == false) || empty($ipconfig_body['data']) || !is_array($ipconfig_body['data'])) {
+            $is_ipconfig_failed = true;
+        }
+    }
+
+    if ($is_ipconfig_failed) {
+        // Fallback: Fetch subnet explicitly since getAvailableIPs crashed/timed out
+        $fallback_subnet = getWgSubnet($namepanel);
+        if ($fallback_subnet) {
+            $available_subnets[] = $fallback_subnet;
+        } else {
+            return array(
+                'status' => false,
+                'msg' => 'WGDashboard IP calculator timed out, and fallback subnet fetch failed. ' . ($ipconfig['error'] ?? '')
+            );
+        }
+    } else {
+        foreach ($ipconfig_body['data'] as $subnet => $ips) {
+            $available_subnets[] = $subnet;
+        }
+    }
+    
     // 1. Gather all used IPs first (from panel and database)
     $all_used_ips = array_merge(
         getUsedIPs($namepanel),
@@ -151,36 +174,36 @@ function addpear($namepanel, $usernameac)
     // Find the first available IP from the available subnets safely
     $ipToAssign = null;
     $subnet_found = null;
-    $available_subnets = [];
     
-    foreach ($ipconfig_body['data'] as $subnet => $ips) {
-        $available_subnets[] = $subnet;
-        if (is_array($ips)) {
-            foreach ($ips as $ip) {
-                $clean_ip = explode('/', $ip)[0];
+    if (!$is_ipconfig_failed && is_array($ipconfig_body['data'])) {
+        foreach ($ipconfig_body['data'] as $subnet => $ips) {
+            if (is_array($ips)) {
+                foreach ($ips as $ip) {
+                    $clean_ip = explode('/', $ip)[0];
+                    if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                        // Check that it's NOT already used to prevent duplicate assignment (WGDashboard N/A bug)
+                        if (!in_array($clean_ip, $clean_used_ips)) {
+                            $ipToAssign = $clean_ip;
+                            $subnet_found = $subnet;
+                            break 2;
+                        }
+                    }
+                }
+            } elseif (is_string($ips) && !empty($ips)) {
+                $clean_ip = explode('/', $ips)[0];
                 if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                    // Check that it's NOT already used to prevent duplicate assignment (WGDashboard N/A bug)
+                    // Check that it's NOT already used
                     if (!in_array($clean_ip, $clean_used_ips)) {
                         $ipToAssign = $clean_ip;
                         $subnet_found = $subnet;
-                        break 2;
+                        break;
                     }
-                }
-            }
-        } elseif (is_string($ips) && !empty($ips)) {
-            $clean_ip = explode('/', $ips)[0];
-            if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                // Check that it's NOT already used
-                if (!in_array($clean_ip, $clean_used_ips)) {
-                    $ipToAssign = $clean_ip;
-                    $subnet_found = $subnet;
-                    break;
                 }
             }
         }
     }
     
-    // 2. Fallback: if WGDashboard returns empty/null or duplicate IPs, calculate the next IP
+    // 2. Fallback: if WGDashboard returns empty/null, duplicate IPs, or timed out, calculate the next IP natively
     if (empty($ipToAssign) && !empty($available_subnets)) {
         foreach ($available_subnets as $subnet) {
             if (!isSubnetFull($subnet, $clean_used_ips)) {
