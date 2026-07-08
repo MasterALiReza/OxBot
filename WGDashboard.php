@@ -188,7 +188,20 @@ function addpear($namepanel, $usernameac)
         );
     }
 
-    // --- STEP 3: Get used IPs ONLY from our DB (no extra API call needed) ---
+    // --- STEP 3 & 4: Atomic IP assignment with advisory lock (prevents race condition) ---
+    // If two users buy simultaneously, MySQL lock ensures only one gets each IP.
+    global $pdo, $connect;
+    $lockName = 'wg_ip_assign_' . preg_replace('/[^a-zA-Z0-9_]/', '_', $namepanel);
+    $lockAcquired = false;
+    if ($pdo) {
+        try {
+            $lockStmt = $pdo->query("SELECT GET_LOCK('" . $lockName . "', 10)");
+            $lockAcquired = ($lockStmt && $lockStmt->fetchColumn() == 1);
+        } catch (\Exception $e) {
+            error_log("Advisory lock failed: " . $e->getMessage());
+        }
+    }
+
     $db_used_ips = getUsedIPsFromDb($namepanel);
     $clean_used_ips = [];
     foreach ($db_used_ips as $ip) {
@@ -198,19 +211,18 @@ function addpear($namepanel, $usernameac)
         }
     }
 
-    // --- STEP 4: Calculate next IP natively in PHP (O(n), ~1ms for /22) ---
     if (isSubnetFull($subnet, $clean_used_ips)) {
-        return array(
-            'status' => false,
-            'msg' => 'Server capacity is full or no IPs available.'
-        );
+        if ($lockAcquired && $pdo) {
+            try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
+        }
+        return array('status' => false, 'msg' => 'Server capacity is full or no IPs available.');
     }
     $ipToAssign = getNextAvailableIP($subnet, $clean_used_ips);
     if (empty($ipToAssign) || !filter_var($ipToAssign, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-        return array(
-            'status' => false,
-            'msg' => 'Server capacity is full or no IPs available.'
-        );
+        if ($lockAcquired && $pdo) {
+            try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
+        }
+        return array('status' => false, 'msg' => 'Server capacity is full or no IPs available.');
     }
 
     // --- STEP 5: POST to WGDashboard addPeers ---
@@ -258,6 +270,11 @@ function addpear($namepanel, $usernameac)
                 'msg' => 'WGDashboard did not respond in time: ' . $response['error']
             );
         }
+    }
+
+    // Release advisory lock after peer is confirmed added
+    if ($lockAcquired && $pdo) {
+        try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
     }
 
     $result_response = $response['body'];
@@ -409,7 +426,6 @@ function allowAccessPeers($location, $username)
 }
 function restrictPeers($location, $username)
 {
-
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
     $invoice = select("invoice", "user_info", "username", $username, "select");
     $user_info = $invoice ? json_decode($invoice['user_info'], true) : null;
@@ -417,29 +433,18 @@ function restrictPeers($location, $username)
     if (empty($data_user)) {
         return false;
     }
-    $curl = curl_init();
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => $marzban_list_get['url_panel'] . '/api/restrictPeers/' . $marzban_list_get['inboundid'],
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_COOKIEFILE => 'cookiewg.txt',
-        CURLOPT_POSTFIELDS => json_encode(array(
-            "peers" => array(
-                $data_user
-            )
-        )),
-        CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/json',
-            'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
-        ),
-    ));
-    $response = json_decode(curl_exec($curl), true);
-    return $response;
+    // Use CurlRequest with API key (safe) and proper timeout (not 0!)
+    $url = $marzban_list_get['url_panel'] . '/api/restrictPeers/' . $marzban_list_get['inboundid'];
+    $headers = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
+    );
+    $req = new CurlRequest($url);
+    $req->setHeaders($headers);
+    $req->setTimeout(15000);
+    $response = $req->post(json_encode(array('peers' => array($data_user))));
+    return !empty($response['body']) ? json_decode($response['body'], true) : false;
 }
 
 function getUsedIPs($namepanel)
@@ -491,23 +496,40 @@ function getUsedIPsFromDb($namepanel)
         return [];
     }
     try {
-        $stmt = $pdo->prepare("SELECT user_info FROM invoice WHERE Service_location = :location");
+        // Use JSON_EXTRACT for fast IP retrieval without parsing all JSON in PHP
+        // Falls back to PHP-side JSON parse if JSON_EXTRACT not supported
+        $stmt = $pdo->prepare(
+            "SELECT JSON_UNQUOTE(JSON_EXTRACT(user_info, '$.allowed_ips[0]')) AS ip0,
+                    JSON_UNQUOTE(JSON_EXTRACT(user_info, '$.allowed_ips[1]')) AS ip1
+             FROM invoice
+             WHERE Service_location = :location AND user_info IS NOT NULL AND user_info != ''"
+        );
         $stmt->execute([':location' => $namepanel]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as $row) {
-            if (!empty($row['user_info'])) {
-                $info = json_decode($row['user_info'], true);
-                if (is_array($info)) {
-                    if (isset($info['allowed_ips']) && is_array($info['allowed_ips'])) {
+            if (!empty($row['ip0']) && $row['ip0'] !== 'null') $used_ips[] = $row['ip0'];
+            if (!empty($row['ip1']) && $row['ip1'] !== 'null') $used_ips[] = $row['ip1'];
+        }
+    } catch (\Exception $e) {
+        // Fallback: PHP-side JSON parse (older MySQL without JSON_EXTRACT)
+        error_log("JSON_EXTRACT not supported, falling back: " . $e->getMessage());
+        try {
+            $stmt = $pdo->prepare("SELECT user_info FROM invoice WHERE Service_location = :location AND user_info IS NOT NULL");
+            $stmt->execute([':location' => $namepanel]);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($rows as $row) {
+                if (!empty($row['user_info'])) {
+                    $info = json_decode($row['user_info'], true);
+                    if (is_array($info) && isset($info['allowed_ips']) && is_array($info['allowed_ips'])) {
                         foreach ($info['allowed_ips'] as $ip) {
                             $used_ips[] = $ip;
                         }
                     }
                 }
             }
+        } catch (\Exception $e2) {
+            error_log("Failed to get used IPs from DB: " . $e2->getMessage());
         }
-    } catch (\Exception $e) {
-        error_log("Failed to get used IPs from DB: " . $e->getMessage());
     }
     return $used_ips;
 }
@@ -603,12 +625,12 @@ function isSubnetFull($subnet_cidr, $used_ips_array)
         return false; // Invalid subnet (e.g., IPv6), do not block
     }
 
-    // Mathematically account for skipped .0 and .255 IPs in subnets <= /24
-    if ($cidr <= 24) {
-        $capacity = pow(2, 32 - $cidr) - pow(2, 25 - $cidr) - 1;
-    } else {
-        $capacity = pow(2, 32 - $cidr) - 3;
-    }
+    // Calculate usable capacity correctly for all subnet sizes.
+    // For any subnet: total IPs - number of .0 boundaries - number of .255 boundaries - 1 (gateway .1)
+    $total_ips   = 1 << (32 - $cidr);
+    $num_slices  = max(1, $total_ips >> 8); // number of /24 blocks inside this subnet
+    $skipped     = ($num_slices * 2) + 1;   // .0 and .255 per slice, plus gateway .1
+    $capacity    = max(0, $total_ips - $skipped);
 
     $mask = ~((1 << (32 - $cidr)) - 1);
     $network = $subnet_long & $mask;
