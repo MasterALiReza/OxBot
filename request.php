@@ -41,7 +41,7 @@ class CurlRequest {
             $headers[] = "Authorization: Bearer {$this->authToken}";
         }
         if ($this->api_key) {
-            $headers[] = $this->authToken;
+            $headers[] = $this->api_key;
         }
 
         return $headers;

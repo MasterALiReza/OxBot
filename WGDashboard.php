@@ -265,6 +265,10 @@ function addpear($namepanel, $usernameac)
             $response['status'] = 200;
             $response['error'] = null;
         } else {
+            // Release lock before returning error
+            if ($lockAcquired && $pdo) {
+                try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
+            }
             return array(
                 'status' => false,
                 'msg' => 'WGDashboard did not respond in time: ' . $response['error']
@@ -362,7 +366,7 @@ function ResetUserDataUsagewg($publickey, $namepanel)
         "id" => $publickey,
         "type" => "total"
     );
-    $configpanel = json_encode($config, true);
+    $configpanel = json_encode($config);
     $url = $marzban_list_get['url_panel'] . '/api/resetPeerData/' . $marzban_list_get['inboundid'];
     $headers = array(
         'Accept: application/json',
