@@ -124,9 +124,10 @@ function addpear($namepanel, $usernameac)
     
     $response = json_decode($api_res['body'], true);
     if (!is_array($response) || empty($response['data']['conf_address'])) {
+        $body_preview = is_string($api_res['body']) ? substr($api_res['body'], 0, 300) : var_export($api_res['body'], true);
         return array(
             'status' => false,
-            'msg' => 'Invalid JSON or missing conf_address from WGDashboard.'
+            'msg' => 'Invalid JSON or missing conf_address from WGDashboard. Response: ' . $body_preview
         );
     }
     
