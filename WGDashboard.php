@@ -131,6 +131,16 @@ function addpear($namepanel, $usernameac)
     }
     
     $subnet = $response['data']['conf_address'];
+    if (strpos($subnet, ',') !== false) {
+        $parts = explode(',', $subnet);
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if (strpos($part, ':') === false && strpos($part, '/') !== false) {
+                $subnet = $part;
+                break;
+            }
+        }
+    }
     $peers = array_merge(
         $response['data']['configurationPeers'] ?? [],
         $response['data']['configurationRestrictedPeers'] ?? []
@@ -449,6 +459,16 @@ function getUsedIPsFromDb($namepanel)
 
 function getNextAvailableIP($subnet_cidr, $used_ips)
 {
+    if (strpos($subnet_cidr, ',') !== false) {
+        $parts = explode(',', $subnet_cidr);
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if (strpos($part, ':') === false && strpos($part, '/') !== false) {
+                $subnet_cidr = $part;
+                break;
+            }
+        }
+    }
     if (strpos($subnet_cidr, '/') === false) {
         $subnet_cidr .= '/24';
     }
@@ -502,6 +522,16 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
 
 function isSubnetFull($subnet_cidr, $used_ips_array)
 {
+    if (strpos($subnet_cidr, ',') !== false) {
+        $parts = explode(',', $subnet_cidr);
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if (strpos($part, ':') === false && strpos($part, '/') !== false) {
+                $subnet_cidr = $part;
+                break;
+            }
+        }
+    }
     if (empty($subnet_cidr) || strpos($subnet_cidr, '/') === false) {
         $subnet_cidr .= '/24';
     }

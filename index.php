@@ -3167,9 +3167,14 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     $text = strtolower($text);
     $username_ac = generateUsername($from_id, $marzban_list_get['MethodUsername'], $user['username'], $randomString, $text, $marzban_list_get['namecustom'], $user['namecustom']);
     $username_ac = strtolower($username_ac);
-    $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $username_ac);
+    if ($marzban_list_get['type'] === 'WGDashboard') {
+        $user_exists = in_array($username_ac, $usernameinvoice);
+    } else {
+        $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $username_ac);
+        $user_exists = isset($DataUserOut['username']) || in_array($username_ac, $usernameinvoice);
+    }
     $random_number = rand(1000000, 9999999);
-    if (isset($DataUserOut['username']) || in_array($username_ac, $usernameinvoice)) {
+    if ($user_exists) {
         $username_ac = $random_number . "_" . $username_ac;
     }
     $datac = array(
@@ -4053,9 +4058,14 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     $text = strtolower($text);
     $username_ac = generateUsername($from_id, $marzban_list_get['MethodUsername'], $username, $randomString, $text, $marzban_list_get['namecustom'], $user['namecustom']);
     $username_ac = strtolower($username_ac);
-    $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $username_ac);
+    if ($marzban_list_get['type'] === 'WGDashboard') {
+        $user_exists = in_array($username_ac, $usernameinvoice);
+    } else {
+        $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $username_ac);
+        $user_exists = isset($DataUserOut['username']) || in_array($username_ac, $usernameinvoice);
+    }
     $random_number = rand(1000000, 9999999);
-    if (isset($DataUserOut['username']) || in_array($username_ac, $usernameinvoice)) {
+    if ($user_exists) {
         $username_ac = $random_number . "_" . $username_ac;
     }
     if (isset($username_ac))
@@ -4130,8 +4140,13 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $priceproduct = $info_product['price_product'];
     }
     $username_ac = strtolower($user['Processing_value_tow']);
-    $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $username_ac);
-    if (isset($DataUserOut['username']) || in_array($username_ac, $usernameinvoice)) {
+    if ($marzban_list_get['type'] === 'WGDashboard') {
+        $user_exists = in_array($username_ac, $usernameinvoice);
+    } else {
+        $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $username_ac);
+        $user_exists = isset($DataUserOut['username']) || in_array($username_ac, $usernameinvoice);
+    }
+    if ($user_exists) {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['purchaseRestartProcess'], null, 'HTML');
         return;
     }
@@ -4908,8 +4923,13 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     for ($i = 0; $i < $user['Processing_value_four']; $i++) {
         $random_number = rand(1000000, 9999999);
         $username_acc = $username_ac . "_" . $i;
-        $get_username_Check = $ManagePanel->DataUser($marzban_list_get['name_panel'], $username_acc);
-        if (isset($get_username_Check['username']) || in_array($username_acc, $usernameinvoice)) {
+        if ($marzban_list_get['type'] === 'WGDashboard') {
+            $user_exists = in_array($username_acc, $usernameinvoice);
+        } else {
+            $get_username_Check = $ManagePanel->DataUser($marzban_list_get['name_panel'], $username_acc);
+            $user_exists = isset($get_username_Check['username']) || in_array($username_acc, $usernameinvoice);
+        }
+        if ($user_exists) {
             $username_acc = $random_number . "_" . $username_acc;
         }
         $randomString = bin2hex(random_bytes(4));
