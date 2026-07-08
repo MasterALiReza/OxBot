@@ -92,36 +92,42 @@ function downloadconfig($namepanel, $publickey)
     return $response;
 }
 
-function addpear($namepanel, $usernameac)
+/**
+ * getCachedSubnet: get subnet from DB cache or fetch from API (once per panel).
+ * Saves ~3-5s by skipping getWireguardConfigurationInfo on every peer creation.
+ */
+function getCachedSubnet($namepanel, $marzban_list_get)
 {
-
-    $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $pubandprivate = publickey();
-    if ($pubandprivate === false) {
-        return array(
-            'status' => false,
-            'msg' => 'PHP sodium extension is missing. Cannot generate WireGuard keys.'
-        );
+    global $pdo;
+    // Try DB cache first
+    if ($pdo) {
+        try {
+            $stmt = $pdo->prepare("SELECT subnet_cache FROM marzban_panel WHERE name_panel = :name LIMIT 1");
+            $stmt->execute([':name' => $namepanel]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($row && !empty($row['subnet_cache'])) {
+                return $row['subnet_cache'];
+            }
+        } catch (\Exception $e) {
+            // Column may not exist yet, will fall through to API fetch
+        }
     }
-    
-    // --- SMART CAPACITY LIMIT LAYER & IP ALLOCATION ---
-    // 1. Fetch Subnet and Used IPs from WGDashboard in ONE API CALL (avoid getAvailableIPs DoS bug)
+
+    // Cache miss: fetch from API
     $url = $marzban_list_get['url_panel'] . '/api/getWireguardConfigurationInfo?configurationName=' . $marzban_list_get['inboundid'];
-    $headers = array(
+    $headers = [
         'Accept: application/json',
         'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
-    );
+    ];
     $req = new CurlRequest($url);
+    $req->setTimeout(15000);
     $req->setHeaders($headers);
     $api_res = $req->get();
-    
+
     if (empty($api_res['status']) || $api_res['status'] != 200 || empty($api_res['body'])) {
-        return array(
-            'status' => false,
-            'msg' => 'Failed to connect to WGDashboard API or invalid response code. ' . ($api_res['error'] ?? '')
-        );
+        return null;
     }
-    
+
     $response = json_decode($api_res['body'], true);
     $subnet = null;
     if (is_array($response) && isset($response['data'])) {
@@ -131,18 +137,12 @@ function addpear($namepanel, $usernameac)
             $subnet = $response['data']['conf_address'];
         }
     }
-    
-    if (empty($subnet)) {
-        $body_preview = is_string($api_res['body']) ? substr($api_res['body'], 0, 300) : var_export($api_res['body'], true);
-        return array(
-            'status' => false,
-            'msg' => 'Invalid JSON or missing subnet/Address info from WGDashboard. Response: ' . $body_preview
-        );
-    }
-    
+
+    if (empty($subnet)) return null;
+
+    // Extract first IPv4 CIDR if multiple
     if (strpos($subnet, ',') !== false) {
-        $parts = explode(',', $subnet);
-        foreach ($parts as $part) {
+        foreach (explode(',', $subnet) as $part) {
             $part = trim($part);
             if (strpos($part, ':') === false && strpos($part, '/') !== false) {
                 $subnet = $part;
@@ -150,59 +150,76 @@ function addpear($namepanel, $usernameac)
             }
         }
     }
-    $peers = array_merge(
-        $response['data']['configurationPeers'] ?? [],
-        $response['data']['configurationRestrictedPeers'] ?? []
-    );
-    
-    $panel_used_ips = [];
-    foreach ($peers as $peer) {
-        if (isset($peer['allowed_ips']) && is_array($peer['allowed_ips'])) {
-            foreach ($peer['allowed_ips'] as $ip) {
-                $panel_used_ips[] = $ip;
-            }
+
+    // Save to DB cache for next time
+    if ($pdo) {
+        try {
+            // Add column if it doesn't exist (safe, runs once)
+            $pdo->exec("ALTER TABLE marzban_panel ADD COLUMN IF NOT EXISTS subnet_cache VARCHAR(50) DEFAULT NULL");
+            $stmt = $pdo->prepare("UPDATE marzban_panel SET subnet_cache = :subnet WHERE name_panel = :name");
+            $stmt->execute([':subnet' => $subnet, ':name' => $namepanel]);
+        } catch (\Exception $e) {
+            error_log("subnet_cache save failed: " . $e->getMessage());
         }
     }
-    
-    // 2. Gather used IPs from database
-    $all_used_ips = array_merge(
-        $panel_used_ips,
-        getUsedIPsFromDb($namepanel)
-    );
-    
-    // Normalize used IPs to array of clean IPv4 strings
+
+    return $subnet;
+}
+
+function addpear($namepanel, $usernameac)
+{
+    $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
+
+    // --- STEP 1: Generate keys (fast, no network) ---
+    $pubandprivate = publickey();
+    if ($pubandprivate === false) {
+        return array(
+            'status' => false,
+            'msg' => 'PHP sodium extension is missing. Cannot generate WireGuard keys.'
+        );
+    }
+
+    // --- STEP 2: Get subnet from DB cache (instant) or API (once per panel) ---
+    $subnet = getCachedSubnet($namepanel, $marzban_list_get);
+    if (empty($subnet)) {
+        return array(
+            'status' => false,
+            'msg' => 'Could not determine subnet for panel. Check WGDashboard connectivity.'
+        );
+    }
+
+    // --- STEP 3: Get used IPs ONLY from our DB (no extra API call needed) ---
+    $db_used_ips = getUsedIPsFromDb($namepanel);
     $clean_used_ips = [];
-    foreach ($all_used_ips as $ip) {
+    foreach ($db_used_ips as $ip) {
         $clean_ip = explode('/', $ip)[0];
         if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $clean_used_ips[] = $clean_ip;
         }
     }
-    
-    // 3. Generate the Next IP natively in PHP (Instant, O(1), and bulletproof)
-    $ipToAssign = null;
-    $subnet_found = null;
-    if (!isSubnetFull($subnet, $clean_used_ips)) {
-        $ipToAssign = getNextAvailableIP($subnet, $clean_used_ips);
-        if (!empty($ipToAssign)) {
-            $subnet_found = $subnet;
-        }
+
+    // --- STEP 4: Calculate next IP natively in PHP (O(n), ~1ms for /22) ---
+    if (isSubnetFull($subnet, $clean_used_ips)) {
+        return array(
+            'status' => false,
+            'msg' => 'Server capacity is full or no IPs available.'
+        );
     }
-    
-    // 3. Enforce the smart capacity limit & Validate IP
+    $ipToAssign = getNextAvailableIP($subnet, $clean_used_ips);
     if (empty($ipToAssign) || !filter_var($ipToAssign, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
         return array(
             'status' => false,
             'msg' => 'Server capacity is full or no IPs available.'
         );
     }
-    
+
+    // --- STEP 5: POST to WGDashboard addPeers ---
     $config = array(
-        'name' => $usernameac,
-        'allowed_ips' => [$ipToAssign . '/32'],
-        'private_key' => $pubandprivate['private_key'],
-        'public_key' => $pubandprivate['public_key'],
-        'preshared_key' => $pubandprivate['preshared_key'],
+        'name'         => $usernameac,
+        'allowed_ips'  => [$ipToAssign . '/32'],
+        'private_key'  => $pubandprivate['private_key'],
+        'public_key'   => $pubandprivate['public_key'],
+        'preshared_key'=> $pubandprivate['preshared_key'],
     );
     $configpanel = json_encode($config);
     $url = $marzban_list_get['url_panel'] . '/api/addPeers/' . $marzban_list_get['inboundid'];
@@ -213,7 +230,36 @@ function addpear($namepanel, $usernameac)
     );
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
+    // Allow up to 35s for WGDashboard's slow getAvailableIP on large subnets
+    $req->setTimeout(35000);
     $response = $req->post($configpanel);
+
+    // If curl error (timeout/connection refused), still return success if IP was assigned
+    // because WGDashboard may have added the peer before its slow check finished
+    if (!empty($response['error'])) {
+        // Try a quick GET to verify peer was actually added
+        $verifyUrl = $marzban_list_get['url_panel'] . '/api/getPeerByPublicKey?configurationName='
+            . $marzban_list_get['inboundid'] . '&publicKey=' . urlencode($pubandprivate['public_key']);
+        $vreq = new CurlRequest($verifyUrl);
+        $vreq->setTimeout(5000);
+        $vreq->setHeaders([
+            'Accept: application/json',
+            'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
+        ]);
+        $vres = $vreq->get();
+        $vdata = json_decode($vres['body'] ?? '', true);
+        if (!empty($vdata['status']) && !empty($vdata['data'])) {
+            // Peer exists — success despite timeout
+            $response['status'] = 200;
+            $response['error'] = null;
+        } else {
+            return array(
+                'status' => false,
+                'msg' => 'WGDashboard did not respond in time: ' . $response['error']
+            );
+        }
+    }
+
     $result_response = $response['body'];
     $response['body'] = $config;
     $response['body']['response'] = $result_response;
