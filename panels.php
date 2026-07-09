@@ -320,7 +320,19 @@ class ManagePanel
                     $peer_data['id'] = $peer_data['public_key'];
                 }
                 $peer_data['public_key'] = $peer_data['id'] ?? $peer_data['public_key'] ?? '';
-                
+
+                // IMPORTANT: Always use our calculated allowed_ips (guaranteed correct for /22+).
+                // WGDashboard may return N/A or empty allowed_ips for large subnets.
+                if (!empty($data_Output_body['allowed_ips'])) {
+                    $peer_data['allowed_ips'] = $data_Output_body['allowed_ips'];
+                }
+                if (!empty($data_Output_body['private_key'])) {
+                    $peer_data['private_key'] = $data_Output_body['private_key'];
+                }
+                if (!empty($data_Output_body['preshared_key'])) {
+                    $peer_data['preshared_key'] = $data_Output_body['preshared_key'];
+                }
+
                 // Add the jobs using the actual server-assigned peer ID
                 if ($data_limit != 0) {
                     setjob($Get_Data_Panel['name_panel'], "total_data", $data_limit, $peer_data['id']);

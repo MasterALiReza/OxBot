@@ -281,6 +281,19 @@ function addpear($namepanel, $usernameac)
         try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
     }
 
+    // --- STEP 6: Force-set correct IP via updatePeerSettings ---
+    // WGDashboard's addPeers may internally assign IPs differently (or fail for /22+),
+    // leaving the peer with no allowed_ips (shows N/A in panel & config has no Address).
+    // We immediately call updatePeerSettings to guarantee the correct IP is stored.
+    $ipUpdateResult = updatepear($namepanel, [
+        'id'          => $pubandprivate['public_key'],
+        'name'        => $usernameac,
+        'allowed_ips' => [$ipToAssign . '/32'],
+    ]);
+    if (empty($ipUpdateResult['status']) || $ipUpdateResult['status'] != 200) {
+        error_log("[WGDashboard] updatePeer IP failed for {$usernameac}: " . json_encode($ipUpdateResult));
+    }
+
     $result_response = $response['body'];
     $response['body'] = $config;
     $response['body']['response'] = $result_response;
