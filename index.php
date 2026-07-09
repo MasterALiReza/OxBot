@@ -4936,8 +4936,20 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         if (in_array($randomString, $id_invoice)) {
             $randomString = $random_number . $randomString;
         }
+        
+        $Status = "active";
+        $stmt = $connect->prepare("INSERT IGNORE INTO invoice (id_user, id_invoice, username,time_sell, Service_location, name_product, price_product, Volume, Service_time,Status,notifctions) VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?,?)");
+        $stmt->bind_param("sssssssssss", $from_id, $randomString, $username_acc, $date, $user['Processing_value'], $info_product['name_product'], $info_product['price_product'], $info_product['Volume_constraint'], $info_product['Service_time'], $Status, $notifctions);
+        $stmt->execute();
+        $stmt->close();
+
         $dataoutput = $ManagePanel->createUser($marzban_list_get['name_panel'], $info_product['code_product'], $username_acc, $datac);
         if ($dataoutput['username'] == null) {
+            $stmt = $connect->prepare("DELETE FROM invoice WHERE id_invoice = ?");
+            $stmt->bind_param("s", $randomString);
+            $stmt->execute();
+            $stmt->close();
+            
             $dataoutput['msg'] = json_encode($dataoutput['msg']);
             $msgError = $textbotlang['users']['sell']['errorConfig'];
             if ($i > 0) {
@@ -4963,11 +4975,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             step('home', $from_id);
             return;
         }
-        $stmt = $connect->prepare("INSERT IGNORE INTO invoice (id_user, id_invoice, username,time_sell, Service_location, name_product, price_product, Volume, Service_time,Status,notifctions) VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?,?)");
-        $Status = "active";
-        $stmt->bind_param("sssssssssss", $from_id, $randomString, $username_acc, $date, $user['Processing_value'], $info_product['name_product'], $info_product['price_product'], $info_product['Volume_constraint'], $info_product['Service_time'], $Status, $notifctions);
-        $stmt->execute();
-        $stmt->close();
+        
         $service_links = formatServiceDeliveryLinks($marzban_list_get, $dataoutput);
         $output_config_link = $service_links['main'];
         $config = $service_links['extra'];
