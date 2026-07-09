@@ -6885,8 +6885,8 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             $res = sendmessage($from_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json, 'html');
             write_debug_log("sendmessage result: " . json_encode($res));
         }
-    } catch (Exception $e) {
-        write_debug_log("Exception in extend block: " . $e->getMessage());
+    } catch (Throwable $e) {
+        write_debug_log("Throwable in extend block: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine());
         sendmessage($from_id, "خطا در پردازش تمدید سرویس: " . $e->getMessage(), null, 'html');
         error_log("Extend Service Error: " . $e->getMessage());
     }
