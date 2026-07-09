@@ -202,14 +202,19 @@ function addpear($namepanel, $usernameac)
         }
     }
 
+    // Merge IPs from BOTH our DB and WGDashboard API to prevent duplicate assignment.
+    // Our DB covers peers created by the bot; WGDashboard API covers peers created manually.
     $db_used_ips = getUsedIPsFromDb($namepanel);
+    $api_used_ips = getUsedIPs($namepanel);
+    $all_used_ips = array_merge($db_used_ips, $api_used_ips);
     $clean_used_ips = [];
-    foreach ($db_used_ips as $ip) {
+    foreach ($all_used_ips as $ip) {
         $clean_ip = explode('/', $ip)[0];
         if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-            $clean_used_ips[] = $clean_ip;
+            $clean_used_ips[$clean_ip] = true; // Use hash map for dedup
         }
     }
+    $clean_used_ips = array_keys($clean_used_ips);
 
     if (isSubnetFull($subnet, $clean_used_ips)) {
         if ($lockAcquired && $pdo) {
@@ -226,14 +231,20 @@ function addpear($namepanel, $usernameac)
     }
 
     // --- STEP 5: POST to WGDashboard addPeers ---
-    $config = array(
-        'name'         => $usernameac,
-        'allowed_ips'  => [$ipToAssign . '/32'],
-        'private_key'  => $pubandprivate['private_key'],
-        'public_key'   => $pubandprivate['public_key'],
-        'preshared_key'=> $pubandprivate['preshared_key'],
+    $peerConfig = array(
+        'name'                    => $usernameac,
+        'allowed_ips'             => [$ipToAssign . '/32'],
+        'allowed_ips_validation'  => false,
+        'private_key'             => $pubandprivate['private_key'],
+        'public_key'              => $pubandprivate['public_key'],
+        'preshared_key'           => $pubandprivate['preshared_key'],
+        'endpoint_allowed_ip'     => '0.0.0.0/0',
+        'dns_addresses'           => '1.1.1.1',
+        'mtu'                     => 1420,
+        'keep_alive'              => 21,
     );
-    $configpanel = json_encode($config);
+    // addPeers expects the peer config as a single JSON object
+    $configpanel = json_encode($peerConfig);
     $url = $marzban_list_get['url_panel'] . '/api/addPeers/' . $marzban_list_get['inboundid'];
     $headers = array(
         'Accept: application/json',
@@ -282,20 +293,28 @@ function addpear($namepanel, $usernameac)
     }
 
     // --- STEP 6: Force-set correct IP via updatePeerSettings ---
-    // WGDashboard's addPeers may internally assign IPs differently (or fail for /22+),
+    // WGDashboard's addPeers may internally fail IP assignment for /22+,
     // leaving the peer with no allowed_ips (shows N/A in panel & config has no Address).
-    // We immediately call updatePeerSettings to guarantee the correct IP is stored.
+    // We immediately call updatePeerSettings with ALL required fields to guarantee success.
     $ipUpdateResult = updatepear($namepanel, [
-        'id'          => $pubandprivate['public_key'],
-        'name'        => $usernameac,
-        'allowed_ips' => [$ipToAssign . '/32'],
+        'id'                     => $pubandprivate['public_key'],
+        'name'                   => $usernameac,
+        'allowed_ips'            => [$ipToAssign . '/32'],
+        'allowed_ips_validation' => false,
+        'endpoint_allowed_ip'    => '0.0.0.0/0',
+        'dns_addresses'          => '1.1.1.1',
+        'mtu'                    => 1420,
+        'keep_alive'             => 21,
+        'preshared_key'          => $pubandprivate['preshared_key'],
+        'private_key'            => $pubandprivate['private_key'],
     ]);
     if (empty($ipUpdateResult['status']) || $ipUpdateResult['status'] != 200) {
         error_log("[WGDashboard] updatePeer IP failed for {$usernameac}: " . json_encode($ipUpdateResult));
     }
 
     $result_response = $response['body'];
-    $response['body'] = $config;
+    // Use peerConfig (has all fields) instead of old $config
+    $response['body'] = $peerConfig;
     $response['body']['response'] = $result_response;
     return $response;
 }
