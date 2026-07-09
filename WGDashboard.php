@@ -195,7 +195,7 @@ function addpear($namepanel, $usernameac)
     $lockAcquired = false;
     if ($pdo) {
         try {
-            $lockStmt = $pdo->query("SELECT GET_LOCK('" . $lockName . "', 10)");
+            $lockStmt = $pdo->query("SELECT GET_LOCK('" . $lockName . "', 120)");
             $lockAcquired = ($lockStmt && $lockStmt->fetchColumn() == 1);
         } catch (\Exception $e) {
             error_log("Advisory lock failed: " . $e->getMessage());
@@ -239,9 +239,9 @@ function addpear($namepanel, $usernameac)
         'public_key'              => $pubandprivate['public_key'],
         'preshared_key'           => $pubandprivate['preshared_key'],
         'endpoint_allowed_ip'     => '0.0.0.0/0',
-        'dns_addresses'           => '1.1.1.1',
+        'DNS'                     => '1.1.1.1',
         'mtu'                     => 1420,
-        'keep_alive'              => 21,
+        'keepalive'               => 21,
     );
     // addPeers expects the peer config as a single JSON object
     $configpanel = json_encode($peerConfig);
@@ -253,8 +253,8 @@ function addpear($namepanel, $usernameac)
     );
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
-    // Allow up to 35s for WGDashboard's slow getAvailableIP on large subnets
-    $req->setTimeout(35000);
+    // Allow up to 90s for WGDashboard's slow getAvailableIP on large subnets and WG restart
+    $req->setTimeout(90000);
     $response = $req->post($configpanel);
 
     // If curl error (timeout/connection refused), still return success if IP was assigned
@@ -290,12 +290,11 @@ function addpear($namepanel, $usernameac)
     $ipUpdateResult = updatepear($namepanel, [
         'id'                     => $pubandprivate['public_key'],
         'name'                   => $usernameac,
-        'allowed_ips'            => [$ipToAssign . '/32'],
-        'allowed_ips_validation' => false,
+        'allowed_ip'             => $ipToAssign . '/32',
         'endpoint_allowed_ip'    => '0.0.0.0/0',
-        'dns_addresses'          => '1.1.1.1',
+        'DNS'                    => '1.1.1.1',
         'mtu'                    => 1420,
-        'keep_alive'             => 21,
+        'keepalive'              => 21,
         'preshared_key'          => $pubandprivate['preshared_key'],
         'private_key'            => $pubandprivate['private_key'],
     ]);
@@ -340,9 +339,11 @@ function setjob($namepanel, $type, $value, $publickey)
 function updatepear($namepanel, array $config)
 {
     // STRICT DEFENSIVE SHIELD: Validate IP address before sending request to WGDashboard panel API
-    if (isset($config['allowed_ips']) && is_array($config['allowed_ips'])) {
-        foreach ($config['allowed_ips'] as $ip) {
-            $clean_ip = explode('/', $ip)[0];
+    if (isset($config['allowed_ip'])) {
+        // allowed_ip is a string like "10.0.0.9/32" or "10.0.0.9/32, 10.0.0.10/32"
+        $ips = explode(',', $config['allowed_ip']);
+        foreach ($ips as $ip) {
+            $clean_ip = explode('/', trim($ip))[0];
             if (!filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
                 return array(
                     'status' => false,
