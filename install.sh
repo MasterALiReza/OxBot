@@ -2038,12 +2038,15 @@ EOF
     # Function to update cron
     update_cron() {
         local cron_line="$1"
+        local TEMP_CRON=$(mktemp)
         # Safely remove both standard and old marzban backup scripts from crontab to avoid duplicates
-        crontab -l 2>/dev/null | grep -v "mirza_backup.sh" | grep -v "backup_mirza_marzban.sh" | crontab - && {
-            echo -e "\033[92mRemoved previous backup schedule.\033[0m"
-        } || {
-            echo -e "\033[31mFailed to remove existing cron.\033[0m"
-        }
+        crontab -l 2>/dev/null | grep -v "mirza_backup.sh" | grep -v "backup_mirza_marzban.sh" > "$TEMP_CRON"
+        if [ -s "$TEMP_CRON" ]; then
+            crontab "$TEMP_CRON" 2>/dev/null
+        else
+            crontab -r 2>/dev/null
+        fi
+        
         if [ -n "$cron_line" ]; then
             (crontab -l 2>/dev/null; echo "$cron_line") | crontab - && {
                 echo -e "\033[92mBackup scheduled: $(translate_cron "$cron_line")\033[0m"
@@ -2052,6 +2055,7 @@ EOF
                 echo -e "\033[31mFailed to schedule backup.\033[0m"
             }
         fi
+        rm -f "$TEMP_CRON"
     }
     # Process user choice
     case $backup_option in
@@ -2061,11 +2065,22 @@ EOF
         4) update_cron "0 0 * * 0 bash $BACKUP_SCRIPT" ;;
         5)
             if [ -n "$CURRENT_CRON" ]; then
-                crontab -l 2>/dev/null | grep -v "$BACKUP_SCRIPT" | crontab - && {
-                    echo -e "\033[92mAutomated backup disabled.\033[0m"
-                } || {
-                    echo -e "\033[31mFailed to disable backup.\033[0m"
-                }
+                local TEMP_CRON=$(mktemp)
+                crontab -l 2>/dev/null | grep -v "mirza_backup.sh" | grep -v "backup_mirza_marzban.sh" > "$TEMP_CRON"
+                if [ -s "$TEMP_CRON" ]; then
+                    crontab "$TEMP_CRON" 2>/dev/null && {
+                        echo -e "\033[92mAutomated backup disabled.\033[0m"
+                    } || {
+                        echo -e "\033[31mFailed to disable backup.\033[0m"
+                    }
+                else
+                    crontab -r 2>/dev/null && {
+                        echo -e "\033[92mAutomated backup disabled.\033[0m"
+                    } || {
+                        echo -e "\033[31mFailed to disable backup.\033[0m"
+                    }
+                fi
+                rm -f "$TEMP_CRON"
             else
                 echo -e "\033[93mNo backup schedule to disable.\033[0m"
             fi
