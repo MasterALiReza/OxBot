@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * fix_na_ips.php
  * =====================================================
@@ -24,9 +24,8 @@ echo "  Mode: " . ($isDryRun ? "DRY-RUN (no changes)" : "LIVE") . "\n";
 echo "==============================\n\n";
 
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/functions.php';
 
-// Load WGDashboard helpers; guard double-include
+// Load WGDashboard helpers (includes getNextAvailableIP, getUsedIPsFromDb, etc.)
 if (!function_exists('getNextAvailableIP')) {
     require_once __DIR__ . '/WGDashboard.php';
 }
