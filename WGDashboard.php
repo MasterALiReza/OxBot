@@ -87,8 +87,8 @@ function downloadconfig($namepanel, $publickey)
         'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
     );
 
-    $max_retries = 6;
-    $retry_delay = 2; // seconds
+    $max_retries = 20;
+    $retry_delay = 500000; // microseconds (0.5s)
     $response = null;
 
     for ($i = 0; $i < $max_retries; $i++) {
@@ -102,7 +102,7 @@ function downloadconfig($namepanel, $publickey)
         }
 
         // If not successful (e.g. peer not found due to WGDashboard sync delay), wait and retry
-        sleep($retry_delay);
+        usleep($retry_delay);
     }
 
     return $response;
@@ -170,8 +170,13 @@ function getCachedSubnet($namepanel, $marzban_list_get)
     // Save to DB cache for next time
     if ($pdo) {
         try {
-            // Add column if it doesn't exist (safe, runs once)
-            $pdo->exec("ALTER TABLE marzban_panel ADD COLUMN IF NOT EXISTS subnet_cache VARCHAR(50) DEFAULT NULL");
+            // Check if column exists, add if not (compatible with MySQL 5.7)
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'marzban_panel' AND column_name = 'subnet_cache'");
+            $stmt->execute();
+            if ($stmt->fetchColumn() == 0) {
+                $pdo->exec("ALTER TABLE marzban_panel ADD COLUMN subnet_cache VARCHAR(50) DEFAULT NULL");
+            }
+            
             $stmt = $pdo->prepare("UPDATE marzban_panel SET subnet_cache = :subnet WHERE name_panel = :name");
             $stmt->execute([':subnet' => $subnet, ':name' => $namepanel]);
         } catch (\Exception $e) {
@@ -302,7 +307,7 @@ function addpear($namepanel, $usernameac)
     // --- STEP 6: Force-set correct IP via updatePeerSettings with retries ---
     // WGDashboard's addPeers API has a bug where passing allowed_ips as array sets IP to N/A.
     // Passing as string causes format error. So we pass array, let it set N/A, then update.
-    $max_update_retries = 6;
+    $max_update_retries = 20;
     $ipUpdateResult = null;
     for ($i = 0; $i < $max_update_retries; $i++) {
         $ipUpdateResult = updatepear($namepanel, [
@@ -319,7 +324,7 @@ function addpear($namepanel, $usernameac)
         if (!empty($ipUpdateResult['status']) && $ipUpdateResult['status'] == 200) {
             break;
         }
-        sleep(2);
+        usleep(500000); // 0.5s delay
     }
     if (empty($ipUpdateResult['status']) || $ipUpdateResult['status'] != 200) {
         error_log("[WGDashboard] updatePeer IP failed for {$usernameac} after retries.");
