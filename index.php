@@ -1,4 +1,7 @@
 <?php
+function write_debug_log($msg) {
+    file_put_contents(__DIR__ . '/debug_log.txt', date('[Y-m-d H:i:s] ') . $msg . "\n", FILE_APPEND);
+}
 $version = file_get_contents('version');
 date_default_timezone_set('Asia/Tehran');
 ini_set('default_charset', 'UTF-8');
@@ -94,6 +97,7 @@ if ($from_id != 0) {
     $stmt->execute();
 }
 $user = select("user", "*", "id", $from_id, "select");
+write_debug_log("Req: FromID=" . $from_id . " | Text='" . $text . "' | DataIn='" . $datain . "' | Step='" . ($user ? $user['step'] : 'none') . "'");
 if ($user == false) {
     $user = array();
     $user = array(
@@ -163,6 +167,23 @@ $time_Start = jdate('Y/m/d');
 $date_start = jdate('H:i:s', time());
 if ($user['username'] == "none" || $user['username'] == null || $user['username'] != $username) {
     update("user", "username", $username, "id", $from_id);
+}
+if ($text == "/getlogs" && in_array($from_id, $admin_ids)) {
+    if (file_exists(__DIR__ . '/debug_log.txt')) {
+        $logs = file_get_contents(__DIR__ . '/debug_log.txt');
+        $logs = substr($logs, -4000);
+        sendmessage($from_id, "<pre>" . htmlspecialchars($logs) . "</pre>", null, 'html');
+    } else {
+        sendmessage($from_id, "No logs found.", null, 'html');
+    }
+    return;
+}
+if ($text == "/clearlogs" && in_array($from_id, $admin_ids)) {
+    if (file_exists(__DIR__ . '/debug_log.txt')) {
+        unlink(__DIR__ . '/debug_log.txt');
+        sendmessage($from_id, "Logs cleared.", null, 'html');
+    }
+    return;
 }
 if ($user['register'] == "none") {
     update("user", "register", time(), "id", $from_id);
@@ -6821,12 +6842,15 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     sendmessage($from_id, sprintf($textbotlang['users']['priceArze']['tetherPrice'], $price), null, 'HTML');
 } elseif ($text == $textbotlang['textbot']['extend'] or $datain == "extendbtn") {
     try {
+        write_debug_log("Extend button block entered");
         try {
             $pdo->query("SELECT Service_location FROM invoice LIMIT 1");
         } catch (Exception $db_e) {
+            write_debug_log("Service_location missing, creating it");
             try {
                 $pdo->exec("ALTER TABLE invoice ADD Service_location VARCHAR(200)");
             } catch (Exception $alter_e) {
+                write_debug_log("Failed to auto-add Service_location: " . $alter_e->getMessage());
                 error_log("Failed to auto-add Service_location: " . $alter_e->getMessage());
             }
         }
@@ -6835,7 +6859,9 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         $stmt->bindParam(':id_user', $from_id);
         $stmt->execute();
         $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        write_debug_log("Found locations: " . count($locations));
         if (empty($locations)) {
+            write_debug_log("Locations empty. Sending emptyServiceforExtend");
             sendmessage($from_id, $textbotlang['users']['extend']['emptyServiceforExtend'], null, 'html');
             return;
         }
@@ -6849,12 +6875,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         }
         $keyboardlists['inline_keyboard'][] = [['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser']];
         $keyboard_json = json_encode($keyboardlists);
+        write_debug_log("Keyboard JSON created: " . $keyboard_json);
         if ($datain == "extendbtn") {
+            write_debug_log("Editing message text for callback extendbtn");
             Editmessagetext($from_id, $message_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json);
         } else {
+            write_debug_log("Sending message for text extend");
             sendmessage($from_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json, 'html');
         }
     } catch (Exception $e) {
+        write_debug_log("Exception in extend block: " . $e->getMessage());
         sendmessage($from_id, "خطا در پردازش تمدید سرویس: " . $e->getMessage(), null, 'html');
         error_log("Extend Service Error: " . $e->getMessage());
     }
