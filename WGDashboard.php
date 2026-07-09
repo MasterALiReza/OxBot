@@ -299,10 +299,6 @@ function addpear($namepanel, $usernameac)
         }
     }
 
-    // Release advisory lock after peer is confirmed added
-    if ($lockAcquired && $pdo) {
-        try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
-    }
 
     // --- STEP 6: Force-set correct IP via updatePeerSettings with retries ---
     // WGDashboard's addPeers API has a bug where passing allowed_ips as array sets IP to N/A.
@@ -328,6 +324,11 @@ function addpear($namepanel, $usernameac)
     }
     if (empty($ipUpdateResult['status']) || $ipUpdateResult['status'] != 200) {
         error_log("[WGDashboard] updatePeer IP failed for {$usernameac} after retries.");
+    }
+
+    // Release advisory lock after peer is confirmed added and IP is successfully updated
+    if ($lockAcquired && $pdo) {
+        try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
     }
 
     $result_response = $response['body'];
