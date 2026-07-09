@@ -6820,27 +6820,43 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     $price = $rates['USD'];
     sendmessage($from_id, sprintf($textbotlang['users']['priceArze']['tetherPrice'], $price), null, 'HTML');
 } elseif ($text == $textbotlang['textbot']['extend'] or $datain == "extendbtn") {
-    $stmt = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
-    $stmt->bindParam(':id_user', $from_id);
-    $stmt->execute();
-    $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    if (empty($locations)) {
-        sendmessage($from_id, $textbotlang['users']['extend']['emptyServiceforExtend'], null, 'html');
-        return;
-    }
-    
-    $keyboardlists = ['inline_keyboard' => []];
-    foreach ($locations as $loc) {
-        $keyboardlists['inline_keyboard'][] = [
-            ['text' => "🗄 " . $loc['Service_location'], 'callback_data' => "extpnl|" . $loc['Service_location']]
-        ];
-    }
-    $keyboardlists['inline_keyboard'][] = [['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser']];
-    $keyboard_json = json_encode($keyboardlists);
-    if ($datain == "extendbtn") {
-        Editmessagetext($from_id, $message_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json);
-    } else {
-        sendmessage($from_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json, 'html');
+    try {
+        try {
+            $pdo->query("SELECT Service_location FROM invoice LIMIT 1");
+        } catch (Exception $db_e) {
+            try {
+                $pdo->exec("ALTER TABLE invoice ADD Service_location VARCHAR(200)");
+            } catch (Exception $alter_e) {
+                error_log("Failed to auto-add Service_location: " . $alter_e->getMessage());
+            }
+        }
+
+        $stmt = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+        $stmt->bindParam(':id_user', $from_id);
+        $stmt->execute();
+        $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (empty($locations)) {
+            sendmessage($from_id, $textbotlang['users']['extend']['emptyServiceforExtend'], null, 'html');
+            return;
+        }
+        
+        $keyboardlists = ['inline_keyboard' => []];
+        foreach ($locations as $loc) {
+            $loc_name = empty($loc['Service_location']) ? "سایر" : $loc['Service_location'];
+            $keyboardlists['inline_keyboard'][] = [
+                ['text' => "🗄 " . $loc_name, 'callback_data' => "extpnl|" . $loc_name]
+            ];
+        }
+        $keyboardlists['inline_keyboard'][] = [['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser']];
+        $keyboard_json = json_encode($keyboardlists);
+        if ($datain == "extendbtn") {
+            Editmessagetext($from_id, $message_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json);
+        } else {
+            sendmessage($from_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json, 'html');
+        }
+    } catch (Exception $e) {
+        sendmessage($from_id, "خطا در پردازش تمدید سرویس: " . $e->getMessage(), null, 'html');
+        error_log("Extend Service Error: " . $e->getMessage());
     }
 } elseif (preg_match('/^extpnl\|(.*)/', $datain, $match)) {
     $selected_panel = $match[1];
