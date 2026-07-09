@@ -260,18 +260,9 @@ function addpear($namepanel, $usernameac)
     // If curl error (timeout/connection refused), still return success if IP was assigned
     // because WGDashboard may have added the peer before its slow check finished
     if (!empty($response['error'])) {
-        // Try a quick GET to verify peer was actually added
-        $verifyUrl = $marzban_list_get['url_panel'] . '/api/getPeerByPublicKey?configurationName='
-            . $marzban_list_get['inboundid'] . '&publicKey=' . urlencode($pubandprivate['public_key']);
-        $vreq = new CurlRequest($verifyUrl);
-        $vreq->setTimeout(5000);
-        $vreq->setHeaders([
-            'Accept: application/json',
-            'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
-        ]);
-        $vres = $vreq->get();
-        $vdata = json_decode($vres['body'] ?? '', true);
-        if (!empty($vdata['status']) && !empty($vdata['data'])) {
+        // Try a quick GET to verify peer was actually added using existing get_userwg
+        $vdata = get_userwg($usernameac, $namepanel);
+        if (!empty($vdata) && (isset($vdata['id']) || isset($vdata['publicKey']) || isset($vdata['name']))) {
             // Peer exists — success despite timeout
             $response['status'] = 200;
             $response['error'] = null;
