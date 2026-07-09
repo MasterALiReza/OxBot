@@ -86,9 +86,25 @@ function downloadconfig($namepanel, $publickey)
         'Accept: application/json',
         'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
     );
-    $req = new CurlRequest($url);
-    $req->setHeaders($headers);
-    $response = $req->get();
+
+    $max_retries = 6;
+    $retry_delay = 2; // seconds
+    $response = null;
+
+    for ($i = 0; $i < $max_retries; $i++) {
+        $req = new CurlRequest($url);
+        $req->setHeaders($headers);
+        $response = $req->get();
+
+        $body = json_decode($response['body'], true);
+        if (isset($body['status']) && $body['status'] === true) {
+            return $response;
+        }
+
+        // If not successful (e.g. peer not found due to WGDashboard sync delay), wait and retry
+        sleep($retry_delay);
+    }
+
     return $response;
 }
 
@@ -233,7 +249,7 @@ function addpear($namepanel, $usernameac)
     // --- STEP 5: POST to WGDashboard addPeers ---
     $peerConfig = array(
         'name'                    => $usernameac,
-        'allowed_ips'             => [$ipToAssign . '/32'],
+        'allowed_ips'             => $ipToAssign . '/32',
         'allowed_ips_validation'  => false,
         'private_key'             => $pubandprivate['private_key'],
         'public_key'              => $pubandprivate['public_key'],
@@ -283,24 +299,6 @@ function addpear($namepanel, $usernameac)
         try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
     }
 
-    // --- STEP 6: Force-set correct IP via updatePeerSettings ---
-    // WGDashboard's addPeers may internally fail IP assignment for /22+,
-    // leaving the peer with no allowed_ips (shows N/A in panel & config has no Address).
-    // We immediately call updatePeerSettings with ALL required fields to guarantee success.
-    $ipUpdateResult = updatepear($namepanel, [
-        'id'                     => $pubandprivate['public_key'],
-        'name'                   => $usernameac,
-        'allowed_ip'             => $ipToAssign . '/32',
-        'endpoint_allowed_ip'    => '0.0.0.0/0',
-        'DNS'                    => '1.1.1.1',
-        'mtu'                    => 1420,
-        'keepalive'              => 21,
-        'preshared_key'          => $pubandprivate['preshared_key'],
-        'private_key'            => $pubandprivate['private_key'],
-    ]);
-    if (empty($ipUpdateResult['status']) || $ipUpdateResult['status'] != 200) {
-        error_log("[WGDashboard] updatePeer IP failed for {$usernameac}: " . json_encode($ipUpdateResult));
-    }
 
     $result_response = $response['body'];
     // Use peerConfig (has all fields) instead of old $config
