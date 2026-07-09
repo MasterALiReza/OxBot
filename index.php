@@ -987,6 +987,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         step('home', $from_id);
         return;
     }
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
     $marzban = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
     if ($marzban['name_panel'] != null) {
         update("user", "Processing_value_four", $marzban['name_panel'], "id", $from_id);
@@ -1412,6 +1413,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
 } elseif (preg_match('/removeauto-(\w+)/', $datain, $dataget)) {
     $id_invoice = $dataget[1];
     $nameloc = select("invoice", "*", "id_invoice", $id_invoice, "select");
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
     $ManagePanel->RemoveUser($nameloc['Service_location'], $nameloc['username']);
     update('invoice', 'status', 'removebyuser', 'id_invoice', $id_invoice);
@@ -1440,6 +1442,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         sendmessage($from_id, $textbotlang['users']['status']['userNotFound'], null, 'html');
         return;
     }
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     if ($DataUserOut['status'] == "Unsuccessful") {
         $infoconfig = isset($nameloc['user_info']) ? json_decode($nameloc['user_info'], true) : [];
@@ -1521,6 +1524,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['featureUnavailable'], null, 'html');
         return;
     }
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     if ($DataUserOut['status'] == "on_hold") {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['notConnectedCannotChangeStatus'], null, 'html');
@@ -1558,6 +1562,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
 } elseif (preg_match('/confirmaccountdisable_(\w+)/', $datain, $dataget)) {
     $id_invoice = $dataget[1];
     $nameloc = select("invoice", "*", "id_invoice", $id_invoice, "select");
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
     $bakinfos = json_encode([
         'inline_keyboard' => [
@@ -1584,6 +1589,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['renewError'], null, 'HTML');
         return;
     }
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
     if ($marzban_list_get['status_extend'] == "off_extend") {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['renewNotSupportedPanel'], null, 'html');
@@ -1667,6 +1673,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
 } elseif ($user['step'] == "gettimecustomvolomforextend") {
     $userdate = json_decode($user['Processing_value'], true);
     $nameloc = select("invoice", "*", "id_invoice", $userdate['id_invoice'], "select");
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
     $mainvolume = json_decode($marzban_list_get['mainvolume'], true);
     $mainvolume = $mainvolume[$user['agent']];
@@ -1695,6 +1702,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $monthenumber = $dataget[1];
     $userdate = json_decode($user['Processing_value'], true);
     $nameloc = select("invoice", "*", "id_invoice", $userdate['id_invoice'], "select");
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
     $loc_cond = getProductLocCondition($nameloc['Service_location']);
     $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = :agent AND Service_time = :monthe AND one_buy_status = '0'");
     $stmt->execute([
@@ -6412,8 +6420,11 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     }
 } elseif (preg_match('/Extra_volumes_(\w+)_(.*)/', $datain, $dataget)) {
     $usernamepanel = $dataget[1];
-    $locations = select("marzban_panel", "*", "code_panel", $dataget[2], "select");
-    $location = $locations['name_panel'];
+    $id_invoice = $dataget[2];
+    $nameloc = select("invoice", "*", "id_invoice", $id_invoice, "select");
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
+    $location = $nameloc['Service_location'];
+    $locations = select("marzban_panel", "*", "name_panel", $location, "select");
     $eextraprice = json_decode($locations['priceextravolume'], true);
     $extrapricevalue = $eextraprice[$user['agent']];
     update("user", "Processing_value", $usernamepanel, "id", $from_id);
@@ -7081,7 +7092,7 @@ if (isset($update['message']['successful_payment'])) {
     update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
 } elseif (preg_match('/extends_(\w+)_(.*)/', $datain, $dataget)) {
     $username = $dataget[1];
-    $location = select("marzban_panel", "*", "code_panel", $user['Processing_value_four'], "select");
+    $location = select("marzban_panel", "*", "name_panel", $user['Processing_value_four'], "select");
     if ($location == false) {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['genericErrorRestart'], null, 'html');
         return;
@@ -7090,7 +7101,7 @@ if (isset($update['message']['successful_payment'])) {
     update("user", "Processing_value", $location, "id", $from_id);
     $loc_cond = getProductLocCondition($location);
     $query = "SELECT * FROM product WHERE $loc_cond AND agent= '{$user['agent']}'";
-    $marzban_list_get = select("marzban_panel", "*", "code_panel", $location, "select");
+    $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
     $statuscustomvolume = json_decode($marzban_list_get['customvolume'], true)[$user['agent']];
     if ($marzban_list_get['MethodUsername'] == $textbotlang['users']['customusername'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customUsernameRandom']) {
         $datakeyboard = "prodcutservicesom_";

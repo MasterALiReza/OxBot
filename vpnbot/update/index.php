@@ -1343,6 +1343,7 @@ $textonebuy
         step('home', $from_id);
         return;
     }
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
     $marzban = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
     if ($marzban['name_panel'] != null) {
         update("user", "Processing_value_four", $marzban['name_panel'], "id", $from_id);
@@ -1564,6 +1565,7 @@ $output
         sendmessage($from_id, "❌ تمدید با خطا مواجه گردید مراحل تمدید را مجددا انجام دهید.", null, 'HTML');
         return;
     }
+    $nameloc['Service_location'] = getActualPanelForUser($pdo, $nameloc['Service_location'], $nameloc['username'], $ManagePanel);
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
     if ($marzban_list_get['status_extend'] == "off_extend") {
         sendmessage($from_id, "❌ امکان تمدید در این پنل وجود ندارد", null, 'html');

@@ -2332,3 +2332,20 @@ function getCategoryPanelsKeyboard($pdo, $cat_id, $agent, $callback_prefix, $bac
     return json_encode($keyboard);
 }
 
+
+function getActualPanelForUser($pdo, $location, $username, $ManagePanel) {
+    if (strpos($location, 'category_') !== 0) {
+        return $location; // Already a panel
+    }
+    $cat_id = str_replace('category_', '', $location);
+    $panels = select("marzban_panel", "*", "panel_category_id", $cat_id, "All");
+    if ($panels) {
+        foreach ($panels as $p) {
+            $check = $ManagePanel->DataUser($p['name_panel'], $username);
+            if (isset($check['status']) && $check['status'] !== 'Unsuccessful' && isset($check['username']) && $check['username'] == $username) {
+                return $p['name_panel'];
+            }
+        }
+    }
+    return $location; // Fallback
+}
