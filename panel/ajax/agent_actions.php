@@ -47,8 +47,9 @@ if ($action === 'create_user') {
     }
 
     // Check product access
-    $stmt = $pdo->prepare("SELECT * FROM product WHERE id = :id AND (agent = :agent OR agent = 'all') AND (Location = :loc OR Location = '/all') LIMIT 1");
-    $stmt->execute([':id' => $product_id, ':agent' => $agentType, ':loc' => $location]);
+    $loc_cond = getProductLocCondition($location);
+    $stmt = $pdo->prepare("SELECT * FROM product WHERE id = :id AND (agent = :agent OR agent = 'all') AND $loc_cond LIMIT 1");
+    $stmt->execute([':id' => $product_id, ':agent' => $agentType]);
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$product) {
@@ -157,8 +158,9 @@ if ($action === 'renew_user') {
     }
 
     // Check product access
-    $stmt = $pdo->prepare("SELECT * FROM product WHERE id = :id AND (agent = :agent OR agent = 'all') AND (Location = :loc OR Location = '/all') LIMIT 1");
-    $stmt->execute([':id' => $product_id, ':agent' => $agentType, ':loc' => $invoice['Service_location']]);
+    $loc_cond = getProductLocCondition($invoice['Service_location']);
+    $stmt = $pdo->prepare("SELECT * FROM product WHERE id = :id AND (agent = :agent OR agent = 'all') AND $loc_cond LIMIT 1");
+    $stmt->execute([':id' => $product_id, ':agent' => $agentType]);
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$product) {

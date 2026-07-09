@@ -809,9 +809,9 @@ function DirectPayment($order_id, $image = 'images.jpg')
     update("user", "Processing_value_four", "0", "id", $Balance_id['id']);
     if ($steppay[0] == "getconfigafterpay") {
         $get_invoice = select("invoice", "*", "username", $steppay[1], "select");
-        $stmt = $pdo->prepare("SELECT * FROM product WHERE name_product = :name_product AND (Location = :Service_location  or Location = '/all')");
+        $loc_cond = getProductLocCondition($get_invoice['Service_location']);
+        $stmt = $pdo->prepare("SELECT * FROM product WHERE name_product = :name_product AND $loc_cond");
         $stmt->bindParam(':name_product', $get_invoice['name_product'], PDO::PARAM_STR);
-        $stmt->bindParam(':Service_location', $get_invoice['Service_location'], PDO::PARAM_STR);
         $stmt->execute();
         $info_product = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($get_invoice['name_product'] == $textbotlang['extracted']['index_php']['customVolumeButton'] || $get_invoice['name_product'] == $textbotlang['extracted']['index_php']['customServiceButton']) {
@@ -822,9 +822,9 @@ function DirectPayment($order_id, $image = 'images.jpg')
             $info_product['Service_time'] = $get_invoice['Service_time'];
             $info_product['price_product'] = $get_invoice['price_product'];
         } else {
-            $stmt = $pdo->prepare("SELECT * FROM product WHERE name_product = :name_product AND (Location = :Service_location  or Location = '/all')");
+            $loc_cond = getProductLocCondition($get_invoice['Service_location']);
+            $stmt = $pdo->prepare("SELECT * FROM product WHERE name_product = :name_product AND $loc_cond");
             $stmt->bindParam(':name_product', $get_invoice['name_product'], PDO::PARAM_STR);
-            $stmt->bindParam(':Service_location', $get_invoice['Service_location'], PDO::PARAM_STR);
             $stmt->execute();
             $info_product = $stmt->fetch(PDO::FETCH_ASSOC);
         }
@@ -1017,7 +1017,8 @@ function DirectPayment($order_id, $image = 'images.jpg')
             $prodcut['Service_time'] = $service_other['Service_time'];
             $prodcut['Volume_constraint'] = $service_other['volumebuy'];
         } else {
-            $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = '{$nameloc['Service_location']}' OR Location = '/all') AND agent= '{$Balance_id['agent']}' AND code_product = '$codeproduct'");
+            $loc_cond = getProductLocCondition($nameloc['Service_location']);
+            $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent= '{$Balance_id['agent']}' AND code_product = '$codeproduct'");
             $stmt->execute();
             $prodcut = $stmt->fetch(PDO::FETCH_ASSOC);
         }

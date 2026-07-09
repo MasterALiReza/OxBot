@@ -2,6 +2,11 @@
 require_once __DIR__ . '/../inc/config.php';
 require_once __DIR__ . '/../../panels.php';
 
+$old_cwd = getcwd();
+chdir(__DIR__ . '/../../');
+require_once 'function.php';
+chdir($old_cwd);
+
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['admin_id'])) {
@@ -45,8 +50,9 @@ if ($stmt->fetchColumn() > 0) {
 }
 
 // Find selected product info
-$stmt = $pdo->prepare("SELECT * FROM product WHERE name_product = ? AND (Location = ? OR Location = '/all') LIMIT 1");
-$stmt->execute([$product_name, $panel_name]);
+$loc_cond = getProductLocCondition($panel_name);
+$stmt = $pdo->prepare("SELECT * FROM product WHERE name_product = ? AND $loc_cond LIMIT 1");
+$stmt->execute([$product_name]);
 $info_product = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$info_product) {

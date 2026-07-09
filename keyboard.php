@@ -947,8 +947,8 @@ $result = $stmt->fetchAll();
 $table_exists = count($result) > 0;
 if ($table_exists) {
     $product = [];
-    $stmt = $pdo->prepare("SELECT * FROM product WHERE Location = :text or Location = '/all' ");
-    $stmt->bindParam(':text', $text, PDO::PARAM_STR);
+    $loc_cond = getProductLocCondition($text);
+    $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond");
     $stmt->execute();
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $product[] = [$row['name_product']];
@@ -1639,8 +1639,8 @@ function KeyboardCategory($location, $agent, $backuser = "backuser")
     $stmt->execute();
     $list_category = ['inline_keyboard' => [],];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $stmts = $pdo->prepare("SELECT * FROM product WHERE (Location = :location OR Location = '/all') AND category = :category AND agent = :agent");
-        $stmts->bindParam(':location', $location, PDO::PARAM_STR);
+        $loc_cond = getProductLocCondition($location);
+        $stmts = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND category = :category AND agent = :agent");
         $stmts->bindParam(':category', $row['remark'], PDO::PARAM_STR);
         $stmts->bindParam(':agent', $agent);
         $stmts->execute();
