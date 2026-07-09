@@ -6851,9 +6851,14 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     $page = 1;
     $items_per_page = 20;
     $start_index = ($page - 1) * $items_per_page;
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
-    $stmt->bindParam(':id_user', $from_id);
-    $stmt->bindParam(':loc', $selected_panel);
+    if ($selected_panel == "سایر") {
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+        $stmt->bindParam(':id_user', $from_id);
+    } else {
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+        $stmt->bindParam(':id_user', $from_id);
+        $stmt->bindParam(':loc', $selected_panel);
+    }
     $stmt->execute();
     $keyboardlists = [
         'inline_keyboard' => [],
@@ -6876,9 +6881,14 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         }
     }
     
-    $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold')");
-    $stmt_count->bindParam(':id_user', $from_id);
-    $stmt_count->bindParam(':loc', $selected_panel);
+    if ($selected_panel == "سایر") {
+        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold')");
+        $stmt_count->bindParam(':id_user', $from_id);
+    } else {
+        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold')");
+        $stmt_count->bindParam(':id_user', $from_id);
+        $stmt_count->bindParam(':loc', $selected_panel);
+    }
     $stmt_count->execute();
     $numpage = $stmt_count->fetchColumn();
     
