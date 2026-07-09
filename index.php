@@ -6878,10 +6878,12 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         write_debug_log("Keyboard JSON created: " . $keyboard_json);
         if ($datain == "extendbtn") {
             write_debug_log("Editing message text for callback extendbtn");
-            Editmessagetext($from_id, $message_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json);
+            $res = Editmessagetext($from_id, $message_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json);
+            write_debug_log("Editmessagetext result: " . json_encode($res));
         } else {
             write_debug_log("Sending message for text extend");
-            sendmessage($from_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json, 'html');
+            $res = sendmessage($from_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json, 'html');
+            write_debug_log("sendmessage result: " . json_encode($res));
         }
     } catch (Exception $e) {
         write_debug_log("Exception in extend block: " . $e->getMessage());
