@@ -388,6 +388,8 @@ if ($user['joinchannel'] != "active") {
                     $marzbanDiscountaffiliates = select("affiliates", "*", null, null, "select");
                     $Balance_add_user = $useraffiliates['Balance'] + $marzbanDiscountaffiliates['price_Discount'];
                     update("user", "Balance", $Balance_add_user, "id", $affiliatesid);
+                    $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'deposit', ?, 'هدیه زیرمجموعه گیری')");
+                    $stmt_wal->execute([$affiliatesid, $marzbanDiscountaffiliates['price_Discount']]);
                     $addbalancediscount = number_format($marzbanDiscountaffiliates['price_Discount'], 0);
                     sendmessage($affiliatesid, strtr($textbotlang['extracted']['index_php']['affiliateBalanceGift'], ['{addbalancediscount}' => $addbalancediscount, '{from_id}' => $from_id]), null, 'html');
                 }
@@ -4377,6 +4379,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     if (intval($priceproduct) != 0) {
         $Balance_prim = $user['Balance'] - $priceproduct;
         update("user", "Balance", $Balance_prim, "id", $from_id);
+        $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'purchase', ?, 'خرید سرویس')");
+        $stmt_wal->execute([$from_id, $priceproduct]);
     }
     if ($marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customTextSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['usernameSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['numericIdSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['agentCustomTextSequential']) {
         $value = intval($user['number_username']) + 1;
@@ -5014,6 +5018,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
                 $user_Balance_new = select("user", "*", "id", $from_id, "select");
                 $Balance_prim = $user_Balance_new['Balance'] - $charged_amount;
                 update("user", "Balance", $Balance_prim, "id", $from_id);
+                $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'purchase', ?, 'خرید سرویس (عمده)')");
+                $stmt_wal->execute([$from_id, $charged_amount]);
                 $msgError .= "\n\n💳 <b>تعداد {$i} سرویس ساخته شد و فقط هزینه آنها کسر گردید. مابقی مبلغ در کیف پول شما محفوظ است.</b>";
             } else {
                 $msgError .= "\n\n💳 <b>هیچ مبلغی از کیف پول شما کسر نشد.</b>";
@@ -5053,6 +5059,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     $user_Balance = select("user", "*", "id", $from_id, "select");
     $Balance_prim = $user_Balance['Balance'] - $priceproduct;
     update("user", "Balance", $Balance_prim, "id", $from_id);
+    $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'purchase', ?, 'خرید سرویس (عمده کامل)')");
+    $stmt_wal->execute([$from_id, $priceproduct]);
     $balanceformatsell = number_format(select("user", "Balance", "id", $from_id, "select")['Balance'], 0);
     $balanceformatsellbefore = number_format($user['Balance'], 0);
     $pricebulk = $info_product['price_product'] * intval($user['Processing_value_four']);
@@ -6400,8 +6408,12 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     $useraffiliates = select("user", "*", 'id', $reagent['reagent'], "select");
     $Balance_add_regent = $useraffiliates['Balance'] + $price_gift_Start;
     update("user", "Balance", $Balance_add_regent, "id", $reagent['reagent']);
+    $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'deposit', ?, 'هدیه دعوت')");
+    $stmt_wal->execute([$reagent['reagent'], $price_gift_Start]);
     $Balance_add_user = $user['Balance'] + $price_gift_Start;
     update("user", "Balance", $Balance_add_user, "id", $from_id);
+    $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'deposit', ?, 'هدیه ورود با دعوتنامه')");
+    $stmt_wal->execute([$from_id, $price_gift_Start]);
     $addbalancediscount = number_format($price_gift_Start, 0);
     sendmessage($reagent['reagent'], $textbotlang['extracted']['index_php']['affiliateJoinedGift'], null, 'html');
     sendmessage($from_id, $textbotlang['extracted']['index_php']['affiliateJoinGiftActivated'], null, 'html');
@@ -7075,10 +7087,21 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             if ($loc_name !== "سایر") {
                 if (!function_exists('get_clean_display_name')) {
                     function get_clean_display_name($name) {
+                        $suffix = '';
+                        if (preg_match('/\((.*?)\)/u', $name, $matches)) {
+                            $p_content = $matches[1];
+                            if (stripos($p_content, 'سوپر') !== false) {
+                                $suffix = ' (سوپر)';
+                            } elseif (stripos($p_content, 'نرمال') !== false) {
+                                $suffix = ' (نرمال)';
+                            } elseif (stripos($p_content, 'vip') !== false || stripos($p_content, 'وی آی پی') !== false) {
+                                $suffix = ' (VIP)';
+                            }
+                        }
                         $name = preg_replace('/\s*\(.*?\)/u', '', $name);
                         $name = preg_replace('/\s*\[.*?\]/u', '', $name);
                         $name = preg_replace('/[\x{1F300}-\x{1F9FF}]|[\x{1F600}-\x{1F64F}]|[\x{1F680}-\x{1F6FF}]|[\x{2600}-\x{27BF}]|[\x{1F1E6}-\x{1F1FF}]{2}/u', '', $name);
-                        return trim(preg_replace('/\s+/', ' ', $name));
+                        return trim(preg_replace('/\s+/', ' ', $name)) . $suffix;
                     }
                 }
                 $clean_name = get_clean_display_name($loc_name);
