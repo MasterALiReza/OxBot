@@ -6866,6 +6866,42 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             write_debug_log("Failed to log debug DB info: " . $debug_db_e->getMessage());
         }
 
+        // Auto-heal old/renamed panel names in invoices
+        try {
+            $stmt_locs_check = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+            $stmt_locs_check->bindParam(':id_user', $from_id);
+            $stmt_locs_check->execute();
+            $locs_check = $stmt_locs_check->fetchAll(PDO::FETCH_COLUMN);
+            
+            $stmt_panels_check = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE status = 'active'");
+            $stmt_panels_check->execute();
+            $active_panels_check = $stmt_panels_check->fetchAll(PDO::FETCH_COLUMN);
+            
+            foreach ($locs_check as $loc) {
+                if (empty($loc) || in_array($loc, $active_panels_check)) {
+                    continue;
+                }
+                
+                $stmt_inv_chk = $pdo->prepare("SELECT username FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') LIMIT 1");
+                $stmt_inv_chk->execute([':id_user' => $from_id, ':loc' => $loc]);
+                $username_chk = $stmt_inv_chk->fetchColumn();
+                
+                if ($username_chk) {
+                    foreach ($active_panels_check as $panel_name) {
+                        $check = $ManagePanel->DataUser($panel_name, $username_chk);
+                        if (isset($check['status']) && $check['status'] !== 'Unsuccessful' && isset($check['username']) && $check['username'] == $username_chk) {
+                            $stmt_update = $pdo->prepare("UPDATE invoice SET Service_location = ? WHERE Service_location = ?");
+                            $stmt_update->execute([$panel_name, $loc]);
+                            write_debug_log("Auto-healed invoice location: mapped '{$loc}' to '{$panel_name}' for user {$username_chk}");
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Exception $heal_e) {
+            write_debug_log("Failed to auto-heal invoice locations: " . $heal_e->getMessage());
+        }
+
         try {
             $pdo->query("SELECT Service_location FROM invoice LIMIT 1");
         } catch (Exception $db_e) {
