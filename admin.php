@@ -127,11 +127,6 @@ if (false) {
  * @var mixed $userslist
  */
 #----------------[  admin section  ]------------------#
-if(!defined('base_dir')) {
-    exit();
-}
-write_debug_log("ADMIN.PHP REACHED: datain=" . $datain . ", from_id=" . $from_id);
-
 $textadmin = ["panel", "/panel", $textbotlang['Admin']['panelAdmin'] ?? '👨‍💼 پنل مدیریت'];
 $text_panel_admin_login_template = sprintf($textbotlang['Admin']['adminphp']['msg_panel_admin_bot_report'], $version);
 
