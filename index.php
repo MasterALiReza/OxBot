@@ -572,14 +572,18 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         $total_referrals = intval($user['affiliatescount'] ?? 0);
         $active_referrals = intval($user['active_referrals_count'] ?? 0);
 
-        $aff_comm = select("affiliates", "*", null, null, "select");
+        $aff_comm = select("affiliates", "*", null, null, "select") ?: [];
+        $gold_thr = intval($aff_comm['gold_threshold'] ?? 100);
+        $silver_thr = intval($aff_comm['silver_threshold'] ?? 50);
+
         $tier = "برنزی 🥉";
         $porsant = $setting['affiliatespercentage'] ?? 0;
-        if ($active_referrals >= intval($aff_comm['gold_threshold'] ?? 0)) {
-            $porsant = $aff_comm['gold_percentage'] ?? 0;
+
+        if ($active_referrals >= $gold_thr) {
+            $porsant = $aff_comm['gold_percentage'] ?? $porsant;
             $tier = "طلایی 🥇";
-        } elseif ($active_referrals >= intval($aff_comm['silver_threshold'] ?? 0)) {
-            $porsant = $aff_comm['silver_percentage'] ?? 0;
+        } elseif ($active_referrals >= $silver_thr) {
+            $porsant = $aff_comm['silver_percentage'] ?? $porsant;
             $tier = "نقره‌ای 🥈";
         }
 
@@ -6482,13 +6486,18 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     $affiliate_balance = $affUser['affiliate_balance'] ?? 0;
     $active_referrals_count = $affUser['active_referrals_count'] ?? 0;
 
+    $affiliatescommission = $affiliatescommission ?? [];
+    $gold_thr = intval($affiliatescommission['gold_threshold'] ?? 100);
+    $silver_thr = intval($affiliatescommission['silver_threshold'] ?? 50);
+
     $tier_name = "برنزی 🥉";
-    $Percent_porsant = $setting['affiliatespercentage'];
-    if ($active_referrals_count >= intval($affiliatescommission['gold_threshold'])) {
-        $Percent_porsant = $affiliatescommission['gold_percentage'];
+    $Percent_porsant = $setting['affiliatespercentage'] ?? 0;
+
+    if ($active_referrals_count >= $gold_thr) {
+        $Percent_porsant = $affiliatescommission['gold_percentage'] ?? $Percent_porsant;
         $tier_name = "طلایی 🥇";
-    } elseif ($active_referrals_count >= intval($affiliatescommission['silver_threshold'])) {
-        $Percent_porsant = $affiliatescommission['silver_percentage'];
+    } elseif ($active_referrals_count >= $silver_thr) {
+        $Percent_porsant = $affiliatescommission['silver_percentage'] ?? $Percent_porsant;
         $tier_name = "نقره‌ای 🥈";
     }
 
@@ -6604,13 +6613,18 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     $total_referrals = intval($user['affiliatescount'] ?? 0);
     $active_referrals = intval($user['active_referrals_count'] ?? 0);
     
+    $aff_settings = $aff_settings ?? [];
+    $gold_thr = intval($aff_settings['gold_threshold'] ?? 100);
+    $silver_thr = intval($aff_settings['silver_threshold'] ?? 50);
+
     $tier = "برنزی 🥉";
     $porsant = $setting['affiliatespercentage'] ?? 0;
-    if ($active_referrals >= intval($aff_settings['gold_threshold'] ?? 0)) {
-        $porsant = $aff_settings['gold_percentage'] ?? 0;
+
+    if ($active_referrals >= $gold_thr) {
+        $porsant = $aff_settings['gold_percentage'] ?? $porsant;
         $tier = "طلایی 🥇";
-    } elseif ($active_referrals >= intval($aff_settings['silver_threshold'] ?? 0)) {
-        $porsant = $aff_settings['silver_percentage'] ?? 0;
+    } elseif ($active_referrals >= $silver_thr) {
+        $porsant = $aff_settings['silver_percentage'] ?? $porsant;
         $tier = "نقره‌ای 🥈";
     }
 
