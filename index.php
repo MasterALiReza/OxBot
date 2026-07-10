@@ -619,6 +619,13 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $stmt->execute([':amount1' => $amount, ':amount2' => $amount, ':amount3' => $amount, ':id' => $from_id]);
     
     if ($stmt->rowCount() > 0) {
+        // Log the transfer
+        $stmt_log_aff = $pdo->prepare("INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'transfer_to_main', ?, 'انتقال به کیف پول اصلی توسط کاربر')");
+        $stmt_log_aff->execute([$from_id, $amount]);
+
+        $stmt_log_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'deposit_from_affiliate', ?, 'شارژ از طریق انتقال موجودی بازاریابی')");
+        $stmt_log_wal->execute([$from_id, $amount]);
+
         // Fetch new wallet balance to display to user
         $stmt = $pdo->prepare("SELECT Balance FROM user WHERE id = :id");
         $stmt->execute([':id' => $from_id]);
@@ -6873,29 +6880,75 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             $stmt_locs_check->execute();
             $locs_check = $stmt_locs_check->fetchAll(PDO::FETCH_COLUMN);
             
-            $stmt_panels_check = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE status = 'active'");
+            $stmt_panels_check = $pdo->prepare("SELECT name_panel, code_panel FROM marzban_panel WHERE status = 'active'");
             $stmt_panels_check->execute();
-            $active_panels_check = $stmt_panels_check->fetchAll(PDO::FETCH_COLUMN);
+            $active_panels_info = $stmt_panels_check->fetchAll(PDO::FETCH_ASSOC);
+            
+            $active_panels_check = array_column($active_panels_info, 'name_panel');
+            
+            // Hardcoded historical mappings for known renamed panels
+            $historical_mappings = [
+                'متصل نت ملی' => 'مولتی لوکیشن V2Ray 🇩🇪🇺🇸🇹🇷🇫🇮',
+                'متصل نت ملی 🍭' => 'مولتی لوکیشن V2Ray 🇩🇪🇺🇸🇹🇷🇫🇮',
+                'وایرگارد گیمینگ' => 'تمامی گیمها ترکیه 🇹🇷 (کیفیت سوپر ✅)',
+                'وایرگارد گیمینگ 🇹🇷 🎮' => 'تمامی گیمها ترکیه 🇹🇷 (کیفیت سوپر ✅)',
+            ];
             
             foreach ($locs_check as $loc) {
                 if (empty($loc) || in_array($loc, $active_panels_check)) {
                     continue;
                 }
                 
-                $stmt_inv_chk = $pdo->prepare("SELECT username FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') LIMIT 1");
-                $stmt_inv_chk->execute([':id_user' => $from_id, ':loc' => $loc]);
-                $username_chk = $stmt_inv_chk->fetchColumn();
+                $mapped_panel = null;
                 
-                if ($username_chk) {
-                    foreach ($active_panels_check as $panel_name) {
-                        $check = $ManagePanel->DataUser($panel_name, $username_chk);
-                        if (isset($check['status']) && $check['status'] !== 'Unsuccessful' && isset($check['username']) && $check['username'] == $username_chk) {
-                            $stmt_update = $pdo->prepare("UPDATE invoice SET Service_location = ? WHERE Service_location = ?");
-                            $stmt_update->execute([$panel_name, $loc]);
-                            write_debug_log("Auto-healed invoice location: mapped '{$loc}' to '{$panel_name}' for user {$username_chk}");
-                            break;
+                // 1. Check historical mapping
+                $trimmed_loc = trim($loc);
+                if (isset($historical_mappings[$trimmed_loc])) {
+                    $mapped_panel = $historical_mappings[$trimmed_loc];
+                }
+                
+                // 2. Check via product table Location
+                if (!$mapped_panel) {
+                    $stmt_inv_prod = $pdo->prepare("SELECT name_product FROM invoice WHERE Service_location = :loc LIMIT 1");
+                    $stmt_inv_prod->execute([':loc' => $loc]);
+                    $prod_name = $stmt_inv_prod->fetchColumn();
+                    if ($prod_name) {
+                        $stmt_prod_loc = $pdo->prepare("SELECT Location FROM product WHERE name_product = :name LIMIT 1");
+                        $stmt_prod_loc->execute([':name' => $prod_name]);
+                        $prod_loc = $stmt_prod_loc->fetchColumn();
+                        if ($prod_loc) {
+                            foreach ($active_panels_info as $p_info) {
+                                if ($p_info['code_panel'] === $prod_loc || $p_info['name_panel'] === $prod_loc) {
+                                    $mapped_panel = $p_info['name_panel'];
+                                    break;
+                                }
+                            }
                         }
                     }
+                }
+                
+                // 3. Check via API (DataUser)
+                if (!$mapped_panel) {
+                    $stmt_inv_chk = $pdo->prepare("SELECT username FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') LIMIT 1");
+                    $stmt_inv_chk->execute([':id_user' => $from_id, ':loc' => $loc]);
+                    $username_chk = $stmt_inv_chk->fetchColumn();
+                    
+                    if ($username_chk) {
+                        foreach ($active_panels_check as $panel_name) {
+                            $check = $ManagePanel->DataUser($panel_name, $username_chk);
+                            if (isset($check['status']) && $check['status'] !== 'Unsuccessful' && isset($check['username']) && $check['username'] == $username_chk) {
+                                $mapped_panel = $panel_name;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Apply update if mapped
+                if ($mapped_panel && in_array($mapped_panel, $active_panels_check)) {
+                    $stmt_update = $pdo->prepare("UPDATE invoice SET Service_location = ? WHERE Service_location = ?");
+                    $stmt_update->execute([$mapped_panel, $loc]);
+                    write_debug_log("Auto-healed invoice location: mapped '{$loc}' to '{$mapped_panel}'");
                 }
             }
         } catch (Exception $heal_e) {
