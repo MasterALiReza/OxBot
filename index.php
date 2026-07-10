@@ -6866,13 +6866,95 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             return;
         }
         
+        // Auto-skip if the user only has services in exactly one location/panel
+        if (count($locations) == 1) {
+            write_debug_log("Only 1 location found, auto-skipping panel selection");
+            $loc = $locations[0];
+            $selected_panel = empty($loc['Service_location']) ? "سایر" : $loc['Service_location'];
+            update("user", "Processing_value_four", $selected_panel, "id", $from_id);
+            
+            $pages = 1;
+            update("user", "pagenumber", $pages, "id", $from_id);
+            $page = 1;
+            $items_per_page = 20;
+            $start_index = ($page - 1) * $items_per_page;
+            
+            if ($selected_panel == "سایر") {
+                $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+                $stmt->bindParam(':id_user', $from_id);
+            } else {
+                $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+                $stmt->bindParam(':id_user', $from_id);
+                $stmt->bindParam(':loc', $selected_panel);
+            }
+            $stmt->execute();
+            
+            $keyboardlists = [
+                'inline_keyboard' => [],
+            ];
+
+            if ($statusnote) {
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $data = "";
+                    if ($row['note'] != null)
+                        $data = " | {$row['note']}";
+                    $keyboardlists['inline_keyboard'][] = [
+                        ['text' => "✨" . $row['username'] . $data . "✨", 'callback_data' => "extend_" . $row['id_invoice']]
+                    ];
+                }
+            } else {
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $keyboardlists['inline_keyboard'][] = [
+                        ['text' => "✨" . $row['username'] . "✨", 'callback_data' => "extend_" . $row['id_invoice']]
+                    ];
+                }
+            }
+            
+            if ($selected_panel == "سایر") {
+                $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold')");
+                $stmt_count->bindParam(':id_user', $from_id);
+            } else {
+                $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold')");
+                $stmt_count->bindParam(':id_user', $from_id);
+                $stmt_count->bindParam(':loc', $selected_panel);
+            }
+            $stmt_count->execute();
+            $numpage = $stmt_count->fetchColumn();
+            
+            $pagination_buttons = [];
+            if ($numpage > $items_per_page) {
+                $pagination_buttons[] = ['text' => $textbotlang['users']['page']['next'], 'callback_data' => 'next_page_extends'];
+            }
+            if (!empty($pagination_buttons)) {
+                $keyboardlists['inline_keyboard'][] = $pagination_buttons;
+            }
+            
+            $keyboardlists['inline_keyboard'][] = [['text' => "بازگشت", 'callback_data' => 'backuser']];
+            $keyboard_json = json_encode($keyboardlists);
+            
+            if ($datain == "extendbtn") {
+                $res = Editmessagetext($from_id, $message_id, "لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . ":", $keyboard_json);
+                write_debug_log("Auto-skip Editmessagetext: " . json_encode($res));
+            } else {
+                $res = sendmessage($from_id, "لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . ":", $keyboard_json, 'html');
+                write_debug_log("Auto-skip sendmessage: " . json_encode($res));
+            }
+            return;
+        }
+        
         $keyboardlists = ['inline_keyboard' => []];
+        $row = [];
         foreach ($locations as $loc) {
             $loc_name = empty($loc['Service_location']) ? "سایر" : $loc['Service_location'];
             $loc_hash = sprintf("%u", crc32($loc_name));
-            $keyboardlists['inline_keyboard'][] = [
-                ['text' => "🗄 " . $loc_name, 'callback_data' => "extpnl|" . $loc_hash]
-            ];
+            $row[] = ['text' => "🗄 " . $loc_name, 'callback_data' => "extpnl|" . $loc_hash];
+            if (count($row) == 2) {
+                $keyboardlists['inline_keyboard'][] = $row;
+                $row = [];
+            }
+        }
+        if (!empty($row)) {
+            $keyboardlists['inline_keyboard'][] = $row;
         }
         $keyboardlists['inline_keyboard'][] = [['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser']];
         $keyboard_json = json_encode($keyboardlists);
