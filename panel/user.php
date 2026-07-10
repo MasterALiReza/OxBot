@@ -1107,7 +1107,11 @@ include __DIR__ . '/inc/layout_head.php';
                                             'deposit' => ['افزایش موجودی دستی', 'var(--emerald)'],
                                             'deduct' => ['کاهش موجودی دستی', 'var(--rose)'],
                                             'zero' => ['صفر کردن موجودی', 'var(--rose)'],
-                                            'transfer_to_main' => ['انتقال به کیف پول اصلی', 'var(--ac)']
+                                            'transfer_to_main' => ['انتقال به کیف پول اصلی', 'var(--ac)'],
+                                            'commission' => ['پورسانت خرید زیرمجموعه', 'var(--emerald)'],
+                                            'invite_reward' => ['هدیه دعوت کاربر', 'var(--emerald)'],
+                                            'withdrawal_request' => ['درخواست تسویه', 'var(--rose)'],
+                                            'withdrawal_refund' => ['برگشت تسویه رد شده', 'var(--emerald)']
                                         ];
                                         $typeInfo = $actionMap[$l['action_type']] ?? [$l['action_type'], 'var(--text)'];
                                         ?>
