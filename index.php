@@ -6843,6 +6843,17 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
 } elseif ($text == $textbotlang['textbot']['extend'] or $datain == "extendbtn") {
     try {
         write_debug_log("Extend button block entered");
+        
+        // Debug DB info
+        try {
+            $db_panels = $pdo->query("SELECT id, name_panel, code_panel, url_panel, status FROM marzban_panel")->fetchAll(PDO::FETCH_ASSOC);
+            write_debug_log("DB PANELS: " . json_encode($db_panels));
+            $db_inv_locs = $pdo->query("SELECT DISTINCT Service_location FROM invoice")->fetchAll(PDO::FETCH_COLUMN);
+            write_debug_log("DB UNIQUE INVOICE LOCATIONS: " . json_encode($db_inv_locs));
+        } catch (Exception $debug_db_e) {
+            write_debug_log("Failed to log debug DB info: " . $debug_db_e->getMessage());
+        }
+
         try {
             $pdo->query("SELECT Service_location FROM invoice LIMIT 1");
         } catch (Exception $db_e) {
