@@ -871,6 +871,7 @@ include __DIR__ . '/inc/layout_head.php';
                                 </tr>
                             <?php else:
                                 $methodLabels = [
+                                    'wallet' => 'کیف پول',
                                     'cart to cart' => $textbotlang['panel']['userMethodCardToCard'],
                                     'add balance by admin' => $textbotlang['panel']['userMethodAdminAdd'],
                                     'low balance by admin' => $textbotlang['panel']['userMethodAdminDeduct'],

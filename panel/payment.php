@@ -86,6 +86,7 @@ $statusMap = [
   'waiting' => ['tag-warn', $textbotlang['panel']['paymentStatusWaiting']],
 ];
 $methodMap = [
+  'wallet' => 'کیف پول',
   'cart to cart' => $textbotlang['panel']['paymentMethodCardToCard'],
   'low balance by admin' => $textbotlang['panel']['paymentMethodAdminDeduct'],
   'add balance by admin' => $textbotlang['panel']['paymentMethodAdminAdd'],

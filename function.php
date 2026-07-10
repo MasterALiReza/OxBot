@@ -2141,6 +2141,13 @@ function awardAffiliateCommission($user_id, $price) {
         $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = COALESCE(affiliate_balance, 0) + :reward WHERE id = :ref_id");
         $stmt->execute([':reward' => $rewardAmount, ':ref_id' => $referrer_id]);
         
+        // Log the commission in affiliate_log and wallet_log
+        $stmt_log_aff = $pdo->prepare("INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'commission', ?, ?)");
+        $stmt_log_aff->execute([$referrer_id, $rewardAmount, "پورسانت خرید زیرمجموعه $user_id"]);
+
+        $stmt_log_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'deposit', ?, ?)");
+        $stmt_log_wal->execute([$referrer_id, $rewardAmount, "پورسانت خرید زیرمجموعه $user_id"]);
+        
         if (function_exists('telegram')) {
             global $textbotlang;
             // Send notification to referrer
@@ -2349,3 +2356,11 @@ function getActualPanelForUser($pdo, $location, $username, $ManagePanel) {
     }
     return $location; // Fallback
 }
+
+function logWalletPurchaseToPaymentReport($pdo, $user_id, $amount, $description) {
+    $random_order_id = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyz"), 0, 10);
+    $time = date('Y/m/d H:i:s');
+    $stmt = $pdo->prepare("INSERT INTO Payment_report (id_user, id_order, time, price, payment_Status, Payment_Method, id_invoice) VALUES (?, ?, ?, ?, 'paid', 'wallet', ?)");
+    $stmt->execute([$user_id, $random_order_id, $time, $amount, $random_order_id]);
+}
+
