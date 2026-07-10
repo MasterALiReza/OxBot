@@ -32,12 +32,31 @@ if (!function_exists('getNextAvailableIP')) {
     require_once __DIR__ . '/../WGDashboard.php';
 }
 
-// ─── 1. Fetch Unique WGDashboard Servers from Database ──────────────────
-$panels_result = $connect->query("SELECT DISTINCT url_panel, password_panel FROM marzban_panel WHERE type = 'WGDashboard'");
+// ─── 1. Fetch WGDashboard Servers and their Interfaces from Database ────
+$panels_result = $connect->query("SELECT url_panel, password_panel, inboundid FROM marzban_panel WHERE type = 'WGDashboard'");
 if (!$panels_result) {
     die("ERROR: Could not query marzban_panel table.\n");
 }
-$servers = $panels_result->fetch_all(MYSQLI_ASSOC);
+
+$servers = [];
+while ($row = $panels_result->fetch_assoc()) {
+    $url = rtrim($row['url_panel'], '/');
+    $pw = $row['password_panel'];
+    $interface = trim($row['inboundid']);
+    if (empty($interface)) $interface = 'wg0'; // Default
+
+    $hash = md5($url . $pw);
+    if (!isset($servers[$hash])) {
+        $servers[$hash] = [
+            'url_panel' => $url,
+            'password_panel' => $pw,
+            'allowed_interfaces' => []
+        ];
+    }
+    if (!in_array($interface, $servers[$hash]['allowed_interfaces'])) {
+        $servers[$hash]['allowed_interfaces'][] = $interface;
+    }
+}
 
 if (empty($servers)) {
     echo "No WGDashboard servers found in database. Exiting.\n";
@@ -51,11 +70,13 @@ $totalFailed  = 0;
 $totalSkipped = 0;
 
 foreach ($servers as $server) {
-    $apiBase = rtrim($server['url_panel'], '/');
+    $apiBase = $server['url_panel'];
     $apiKey  = $server['password_panel'];
+    $allowedInterfaces = $server['allowed_interfaces'];
 
     echo "─────────────────────────────────────────\n";
-    echo "Server URL : {$apiBase}\n\n";
+    echo "Server URL : {$apiBase}\n";
+    echo "Allowed Interfaces : " . implode(", ", $allowedInterfaces) . "\n\n";
 
     // ─── 2. Get All Configurations from Server ────────────────────────────
     $confUrl = $apiBase . '/api/getWireguardConfigurations';
@@ -103,6 +124,11 @@ foreach ($servers as $server) {
         }
         
         if (!$confName) continue;
+        
+        if (!in_array($confName, $allowedInterfaces)) {
+            echo "  => Skipping Interface: {$confName} (Not managed by bot on this server)\n";
+            continue;
+        }
 
         echo "  => Checking Interface: {$confName}\n";
 
