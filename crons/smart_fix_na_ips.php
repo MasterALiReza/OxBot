@@ -90,8 +90,16 @@ foreach ($servers as $server) {
         continue;
     }
 
-    foreach ($configs as $confData) {
-        $confName = is_string($confData) ? $confData : ($confData['name'] ?? null);
+    foreach ($configs as $key => $confData) {
+        $confName = null;
+        if (is_string($confData)) {
+            $confName = $confData;
+        } elseif (is_array($confData) && !empty($confData['name'])) {
+            $confName = $confData['name'];
+        } elseif (is_string($key) && !is_numeric($key)) {
+            $confName = $key;
+        }
+        
         if (!$confName) continue;
 
         echo "  => Checking Interface: {$confName}\n";
