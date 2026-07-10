@@ -7086,22 +7086,33 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             $stmt_count->execute();
             $numpage = $stmt_count->fetchColumn();
             
-            $pagination_buttons = [];
+            $total_pages = ceil($numpage / $items_per_page);
+            if ($total_pages == 0) $total_pages = 1;
+            
+            $next_page_num = ($page >= $total_pages) ? 1 : $page + 1;
+            $next_count = ($next_page_num < $total_pages) ? $items_per_page : ($numpage - ($total_pages - 1) * $items_per_page);
+            
+            $prev_page_num = ($page <= 1) ? $total_pages : $page - 1;
+            $prev_count = ($prev_page_num < $total_pages) ? $items_per_page : ($numpage - ($total_pages - 1) * $items_per_page);
+            
             if ($numpage > $items_per_page) {
-                $pagination_buttons[] = ['text' => $textbotlang['users']['page']['next'], 'callback_data' => 'next_page_extends'];
-            }
-            if (!empty($pagination_buttons)) {
-                $keyboardlists['inline_keyboard'][] = $pagination_buttons;
+                $keyboardlists['inline_keyboard'][] = [
+                    ['text' => "⬅️ قبلی (" . $prev_count . ")", 'callback_data' => 'previous_page_extends'],
+                    ['text' => "بعدی (" . $next_count . ") ➡️", 'callback_data' => 'next_page_extends']
+                ];
             }
             
             $keyboardlists['inline_keyboard'][] = [['text' => "بازگشت", 'callback_data' => 'backuser']];
             $keyboard_json = json_encode($keyboardlists);
             
+            $msg_text = "📂 <b>لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . "</b>\n\n";
+            $msg_text .= "📊 تعداد کل سرویس‌ها: <b>" . $numpage . "</b> | صفحه <b>" . $page . "</b> از <b>" . $total_pages . "</b>";
+            
             if ($datain == "extendbtn") {
-                $res = Editmessagetext($from_id, $message_id, "لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . ":", $keyboard_json);
+                $res = Editmessagetext($from_id, $message_id, $msg_text, $keyboard_json);
                 write_debug_log("Auto-skip Editmessagetext: " . json_encode($res));
             } else {
-                $res = sendmessage($from_id, "لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . ":", $keyboard_json, 'html');
+                $res = sendmessage($from_id, $msg_text, $keyboard_json, 'html');
                 write_debug_log("Auto-skip sendmessage: " . json_encode($res));
             }
             return;
@@ -7229,16 +7240,28 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     $stmt_count->execute();
     $numpage = $stmt_count->fetchColumn();
     
-    $pagination_buttons = [];
+    $total_pages = ceil($numpage / $items_per_page);
+    if ($total_pages == 0) $total_pages = 1;
+    
+    $next_page_num = ($page >= $total_pages) ? 1 : $page + 1;
+    $next_count = ($next_page_num < $total_pages) ? $items_per_page : ($numpage - ($total_pages - 1) * $items_per_page);
+    
+    $prev_page_num = ($page <= 1) ? $total_pages : $page - 1;
+    $prev_count = ($prev_page_num < $total_pages) ? $items_per_page : ($numpage - ($total_pages - 1) * $items_per_page);
+    
     if ($numpage > $items_per_page) {
-        $pagination_buttons[] = ['text' => $textbotlang['users']['page']['next'], 'callback_data' => 'next_page_extends'];
-    }
-    if (!empty($pagination_buttons)) {
-        $keyboardlists['inline_keyboard'][] = $pagination_buttons;
+        $keyboardlists['inline_keyboard'][] = [
+            ['text' => "⬅️ قبلی (" . $prev_count . ")", 'callback_data' => 'previous_page_extends'],
+            ['text' => "بعدی (" . $next_count . ") ➡️", 'callback_data' => 'next_page_extends']
+        ];
     }
     $keyboardlists['inline_keyboard'][] = [['text' => "بازگشت", 'callback_data' => 'extendbtn']];
     $keyboard_json = json_encode($keyboardlists);
-    Editmessagetext($from_id, $message_id, "لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . ":", $keyboard_json);
+    
+    $msg_text = "📂 <b>لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . "</b>\n\n";
+    $msg_text .= "📊 تعداد کل سرویس‌ها: <b>" . $numpage . "</b> | صفحه <b>" . $page . "</b> از <b>" . $total_pages . "</b>";
+    
+    Editmessagetext($from_id, $message_id, $msg_text, $keyboard_json);
 } elseif ($datain == 'next_page_extends') {
     $selected_panel = $user['Processing_value_four'];
     if ($selected_panel == "سایر") {
@@ -7290,16 +7313,29 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             ];
         }
     }
+    $total_pages = ceil($numpage / $items_per_page);
+    if ($total_pages == 0) $total_pages = 1;
+    
+    $n_page = ($next_page >= $total_pages) ? 1 : $next_page + 1;
+    $next_count = ($n_page < $total_pages) ? $items_per_page : ($numpage - ($total_pages - 1) * $items_per_page);
+    
+    $p_page = ($next_page <= 1) ? $total_pages : $next_page - 1;
+    $prev_count = ($p_page < $total_pages) ? $items_per_page : ($numpage - ($total_pages - 1) * $items_per_page);
+    
     $pagination_buttons = [
-        ['text' => $textbotlang['users']['page']['next'], 'callback_data' => 'next_page_extends'],
-        ['text' => $textbotlang['users']['page']['previous'], 'callback_data' => 'previous_page_extends']
+        ['text' => "⬅️ قبلی (" . $prev_count . ")", 'callback_data' => 'previous_page_extends'],
+        ['text' => "بعدی (" . $next_count . ") ➡️", 'callback_data' => 'next_page_extends']
     ];
     $backuser = [['text' => "بازگشت", 'callback_data' => 'extendbtn']];
     $keyboardlists['inline_keyboard'][] = $pagination_buttons;
     $keyboardlists['inline_keyboard'][] = $backuser;
     $keyboard_json = json_encode($keyboardlists);
+    
+    $msg_text = "📂 <b>لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . "</b>\n\n";
+    $msg_text .= "📊 تعداد کل سرویس‌ها: <b>" . $numpage . "</b> | صفحه <b>" . $next_page . "</b> از <b>" . $total_pages . "</b>";
+    
     update("user", "pagenumber", $next_page, "id", $from_id);
-    Editmessagetext($from_id, $message_id, "لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . ":", $keyboard_json);
+    Editmessagetext($from_id, $message_id, $msg_text, $keyboard_json);
 } elseif ($datain == 'previous_page_extends') {
     $selected_panel = $user['Processing_value_four'];
     if ($selected_panel == "سایر") {
@@ -7352,16 +7388,29 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             ];
         }
     }
+    $total_pages = ceil($numpage / $items_per_page);
+    if ($total_pages == 0) $total_pages = 1;
+    
+    $n_page = ($previous_page >= $total_pages) ? 1 : $previous_page + 1;
+    $next_count = ($n_page < $total_pages) ? $items_per_page : ($numpage - ($total_pages - 1) * $items_per_page);
+    
+    $p_page = ($previous_page <= 1) ? $total_pages : $previous_page - 1;
+    $prev_count = ($p_page < $total_pages) ? $items_per_page : ($numpage - ($total_pages - 1) * $items_per_page);
+    
     $pagination_buttons = [
-        ['text' => $textbotlang['users']['page']['next'], 'callback_data' => 'next_page_extends'],
-        ['text' => $textbotlang['users']['page']['previous'], 'callback_data' => 'previous_page_extends']
+        ['text' => "⬅️ قبلی (" . $prev_count . ")", 'callback_data' => 'previous_page_extends'],
+        ['text' => "بعدی (" . $next_count . ") ➡️", 'callback_data' => 'next_page_extends']
     ];
     $backuser = [['text' => "بازگشت", 'callback_data' => 'extendbtn']];
     $keyboardlists['inline_keyboard'][] = $pagination_buttons;
     $keyboardlists['inline_keyboard'][] = $backuser;
     $keyboard_json = json_encode($keyboardlists);
+    
+    $msg_text = "📂 <b>لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . "</b>\n\n";
+    $msg_text .= "📊 تعداد کل سرویس‌ها: <b>" . $numpage . "</b> | صفحه <b>" . $previous_page . "</b> از <b>" . $total_pages . "</b>";
+    
     update("user", "pagenumber", $previous_page, "id", $from_id);
-    Editmessagetext($from_id, $message_id, "لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . ":", $keyboard_json);
+    Editmessagetext($from_id, $message_id, $msg_text, $keyboard_json);
 } elseif ($datain == "linkappdownlod") {
     $countapp = select("app", "*", null, null, "count");
     if ($countapp == 0) {
