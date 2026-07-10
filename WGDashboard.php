@@ -101,6 +101,11 @@ function downloadconfig($namepanel, $publickey)
             return $response;
         }
 
+        // Abort early if the peer definitely does not exist (to avoid a 10s wait block for deleted peers)
+        if (isset($body['status']) && $body['status'] === false && isset($body['message']) && stripos($body['message'], 'does not exist') !== false) {
+            return $response;
+        }
+
         // If not successful (e.g. peer not found due to WGDashboard sync delay), wait and retry
         usleep($retry_delay);
     }

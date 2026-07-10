@@ -185,15 +185,20 @@ if ($text == "/getdbinfo" && in_array($from_id, $admin_ids)) {
     }
     return;
 }
-if ($text == "/getlogs" && in_array($from_id, $admin_ids)) {
+if (preg_match('/^\/getlogs\s*(\d*)/', $text, $matches) && in_array($from_id, $admin_ids)) {
+    $lines = !empty($matches[1]) ? intval($matches[1]) : 50;
     $logFile = __DIR__ . '/debug_log.php';
     if (!file_exists($logFile)) $logFile = __DIR__ . '/debug_log.txt';
     if (file_exists($logFile)) {
-        $output = shell_exec("tail -n 50 " . escapeshellarg($logFile) . " | grep -v '<?php'");
-        $tmpFile = __DIR__ . '/debug_log_tmp.txt';
-        file_put_contents($tmpFile, $output);
-        sendDocument($from_id, $tmpFile, "آخرین لاگ‌های سرور");
-        unlink($tmpFile);
+        $output = shell_exec("tail -n $lines " . escapeshellarg($logFile) . " | grep -v '<?php'");
+        if (strlen($output) < 3500 && !empty(trim($output))) {
+            sendmessage($from_id, "<b>آخرین $lines لاگ سرور:</b>\n<pre>" . htmlspecialchars($output) . "</pre>", null, 'html');
+        } else {
+            $tmpFile = __DIR__ . '/debug_log_tmp.txt';
+            file_put_contents($tmpFile, $output);
+            sendDocument($from_id, $tmpFile, "آخرین $lines لاگ سرور");
+            unlink($tmpFile);
+        }
     } else {
         sendmessage($from_id, "No logs found.", null, 'html');
     }
@@ -211,10 +216,14 @@ if (preg_match('/^\/apilogs\s*(\d*)/', $text, $matches) && in_array($from_id, $a
     if (!file_exists($logFile)) $logFile = __DIR__ . '/api_debug.log';
     if (file_exists($logFile)) {
         $output = shell_exec("tail -n $lines " . escapeshellarg($logFile) . " | grep -v '<?php'");
-        $tmpFile = __DIR__ . '/api_debug_tmp.txt';
-        file_put_contents($tmpFile, $output);
-        sendDocument($from_id, $tmpFile, "آخرین $lines لاگ API");
-        unlink($tmpFile);
+        if (strlen($output) < 3500 && !empty(trim($output))) {
+            sendmessage($from_id, "<b>آخرین $lines لاگ API:</b>\n<pre>" . htmlspecialchars($output) . "</pre>", null, 'html');
+        } else {
+            $tmpFile = __DIR__ . '/api_debug_tmp.txt';
+            file_put_contents($tmpFile, $output);
+            sendDocument($from_id, $tmpFile, "آخرین $lines لاگ API");
+            unlink($tmpFile);
+        }
     } else {
         sendmessage($from_id, "فایل لاگ API هنوز ساخته نشده است.", null, 'html');
     }

@@ -192,7 +192,12 @@ foreach ($servers as $server) {
         // ─── 4. Find N/A peers ───────────────────────────────────────────
         $naPeers = [];
         foreach ($allPeers as $peer) {
-            $allowedIps = $peer['allowed_ips'] ?? [];
+            $rawIps = $peer['allowed_ips'] ?? $peer['allowed_ip'] ?? $peer['AllowedIPs'] ?? [];
+            if (is_string($rawIps)) {
+                $rawIps = array_map('trim', explode(',', $rawIps));
+            }
+            $allowedIps = is_array($rawIps) ? $rawIps : [];
+
             $isNA = false;
             if (empty($allowedIps)) {
                 $isNA = true;
@@ -223,7 +228,13 @@ foreach ($servers as $server) {
         // ─── 5. Build used IPs list ──────────────────────────────────────
         $usedIps = [];
         foreach ($allPeers as $peer) {
-            foreach ($peer['allowed_ips'] ?? [] as $ip) {
+            $rawIps = $peer['allowed_ips'] ?? $peer['allowed_ip'] ?? $peer['AllowedIPs'] ?? [];
+            if (is_string($rawIps)) {
+                $rawIps = array_map('trim', explode(',', $rawIps));
+            }
+            $allowedIps = is_array($rawIps) ? $rawIps : [];
+
+            foreach ($allowedIps as $ip) {
                 $cleanIp = explode('/', trim($ip))[0];
                 if (filter_var($cleanIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
                     $usedIps[$cleanIp] = true;
