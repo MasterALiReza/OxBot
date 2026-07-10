@@ -6288,7 +6288,13 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
                 'parse_mode' => "HTML",
             ]);
         }
-        sendmessage($id_admin, $textsendrasid, $Confirm_pay, 'HTML');
+        $res_msg = sendmessage($id_admin, $textsendrasid, $Confirm_pay, 'HTML');
+        if (isset($res_msg['ok']) && $res_msg['ok'] && isset($res_msg['result']['message_id'])) {
+            $msg_id = $res_msg['result']['message_id'];
+            $sql_insert = "INSERT INTO admin_payment_messages (id_order, admin_id, message_id) VALUES (?, ?, ?)";
+            $stmt_insert = $pdo->prepare($sql_insert);
+            $stmt_insert->execute([$PaymentReport['id_order'], $id_admin, $msg_id]);
+        }
     }
     if ($user['Processing_value_tow'] == "getconfigafterpay") {
         update("invoice", "Status", "waiting", "username", $user['Processing_value_one']);
@@ -6412,7 +6418,13 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             'caption' => $caption,
             'parse_mode' => "HTML",
         ]);
-        sendmessage($id_admin, $textsendrasid, $Confirm_pay, 'HTML');
+        $res_msg = sendmessage($id_admin, $textsendrasid, $Confirm_pay, 'HTML');
+        if (isset($res_msg['ok']) && $res_msg['ok'] && isset($res_msg['result']['message_id'])) {
+            $msg_id = $res_msg['result']['message_id'];
+            $sql_insert = "INSERT INTO admin_payment_messages (id_order, admin_id, message_id) VALUES (?, ?, ?)";
+            $stmt_insert = $pdo->prepare($sql_insert);
+            $stmt_insert->execute([$PaymentReport['id_order'], $id_admin, $msg_id]);
+        }
     }
     $split_data = explode('|', $PaymentReport['id_invoice']);
     if ($split_data[0] == "getconfigafterpay") {

@@ -3231,7 +3231,27 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
                 ]
             ]
         ]);
-        Editmessagetext($chat_id, $message_id, $text_fail, $Confirm_pay_fail);
+        telegram('editMessageCaption', [
+            'chat_id' => $chat_id,
+            'message_id' => $message_id,
+            'caption' => $text_fail,
+            'parse_mode' => 'HTML',
+            'reply_markup' => $Confirm_pay_fail
+        ]);
+        
+        // Sync for all admins
+        $stmt_msg = $pdo->prepare("SELECT admin_id, message_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ?");
+        $stmt_msg->execute([$order_id, $chat_id]);
+        $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($admin_msgs as $am) {
+            telegram('editMessageCaption', [
+                'chat_id' => $am['admin_id'],
+                'message_id' => $am['message_id'],
+                'caption' => $text_fail,
+                'parse_mode' => 'HTML',
+                'reply_markup' => $Confirm_pay_fail
+            ]);
+        }
         
         update("user", "Processing_value_one", "none", "id", $Balance_id['id']);
         update("user", "Processing_value_tow", "none", "id", $Balance_id['id']);
@@ -3269,6 +3289,18 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         'message_id' => $message_id,
         'reply_markup' => $Confirm_pay
     ]);
+
+    // Sync for all admins
+    $stmt_msg = $pdo->prepare("SELECT admin_id, message_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ?");
+    $stmt_msg->execute([$order_id, $chat_id]);
+    $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($admin_msgs as $am) {
+        telegram('editMessageReplyMarkup', [
+            'chat_id' => $am['admin_id'],
+            'message_id' => $am['message_id'],
+            'reply_markup' => $Confirm_pay
+        ]);
+    }
 } elseif (preg_match('/reject_pay_(\w+)/', $datain, $datagetr) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $id_order = $datagetr[1];
     file_put_contents('log.txt', "\n[reject_pay] matched for id_order: " . $id_order, FILE_APPEND);
@@ -3337,12 +3369,34 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         'message_id' => $message_id,
         'reply_markup' => $Confirm_pay_fail
     ]);
+
+    // Sync for all admins
+    $stmt_msg = $pdo->prepare("SELECT admin_id, message_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ?");
+    $stmt_msg->execute([$id_order, $chat_id]);
+    $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($admin_msgs as $am) {
+        telegram('editMessageReplyMarkup', [
+            'chat_id' => $am['admin_id'],
+            'message_id' => $am['message_id'],
+            'reply_markup' => $Confirm_pay_fail
+        ]);
+    }
 } elseif ($user['step'] == "reject-dec") {
     $Payment_report = select("Payment_report", "*", "id_order", $user['Processing_value_one'], "select");
     update("Payment_report", "dec_not_confirmed", $text, "id_order", $user['Processing_value_one']);
     $text_reject = sprintf($textbotlang['Admin']['adminphp']['err_user_payment'], $text, $user['Processing_value_one']);
     sendmessage($from_id, $textbotlang['Admin']['Payment']['rejected'], $keyboardadmin, 'HTML');
     sendmessage($user['Processing_value'], $text_reject, null, 'HTML');
+    
+    // Notify other admins about the rejection reason
+    $stmt_msg = $pdo->prepare("SELECT admin_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ? GROUP BY admin_id");
+    $stmt_msg->execute([$user['Processing_value_one'], $from_id]);
+    $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+    $reason_msg = "❌ رسید سفارش <code>{$user['Processing_value_one']}</code> توسط همکار شما رد شد.\n\n💬 دلیل رد: {$text}";
+    foreach ($admin_msgs as $am) {
+        sendmessage($am['admin_id'], $reason_msg, null, 'HTML');
+    }
+    
     step('home', $from_id);
     $text_report = sprintf($textbotlang['Admin']['adminphp']['err_user_admin_payment'], $Payment_report['Payment_Method'], $from_id, $username, $Payment_report['price'], $text, $Payment_report['id_user']);
     if (strlen($setting['Channel_Report']) > 0) {

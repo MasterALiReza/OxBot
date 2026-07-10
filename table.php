@@ -1436,6 +1436,11 @@ try {
         if (!$result) {
             echo "table withdrawal_requests " . mysqli_error($connect);
         }
+        $result = $connect->query("CREATE TABLE IF NOT EXISTS admin_payment_messages (
+          id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          id_order varchar(200) NOT NULL,
+          admin_id varchar(200) NOT NULL,
+          message_id varchar(200) NOT NULL)");
     }
 } catch (Exception $e) {
     file_put_contents('error_log', $e->getMessage());
