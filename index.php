@@ -7254,16 +7254,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $status_emoji = "🟢";
                 $status_suffix = "";
-                if ($row['status'] == 'end_of_time' || $row['status'] == 'sendedwarn') {
+                if ($row['Status'] == 'end_of_time' || $row['Status'] == 'sendedwarn') {
                     $status_emoji = "🔴";
                     $status_suffix = " (منقضی)";
-                } elseif ($row['status'] == 'end_of_volume') {
+                } elseif ($row['Status'] == 'end_of_volume') {
                     $status_emoji = "🔴";
                     $status_suffix = " (پایان حجم)";
-                } elseif ($row['status'] == 'send_on_hold') {
+                } elseif ($row['Status'] == 'send_on_hold') {
                     $status_emoji = "🔴";
                     $status_suffix = " (غیرفعال)";
-                } elseif ($row['status'] == 'disabledn') {
+                } elseif ($row['Status'] == 'disabledn') {
                     $status_emoji = "🔴";
                     $status_suffix = " (حذف شده)";
                 }
@@ -7436,16 +7436,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $status_emoji = "🟢";
         $status_suffix = "";
-        if ($row['status'] == 'end_of_time' || $row['status'] == 'sendedwarn') {
+        if ($row['Status'] == 'end_of_time' || $row['Status'] == 'sendedwarn') {
             $status_emoji = "🔴";
             $status_suffix = " (منقضی)";
-        } elseif ($row['status'] == 'end_of_volume') {
+        } elseif ($row['Status'] == 'end_of_volume') {
             $status_emoji = "🔴";
             $status_suffix = " (پایان حجم)";
-        } elseif ($row['status'] == 'send_on_hold') {
+        } elseif ($row['Status'] == 'send_on_hold') {
             $status_emoji = "🔴";
             $status_suffix = " (غیرفعال)";
-        } elseif ($row['status'] == 'disabledn') {
+        } elseif ($row['Status'] == 'disabledn') {
             $status_emoji = "🔴";
             $status_suffix = " (حذف شده)";
         }
@@ -7550,16 +7550,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $status_emoji = "🟢";
         $status_suffix = "";
-        if ($row['status'] == 'end_of_time' || $row['status'] == 'sendedwarn') {
+        if ($row['Status'] == 'end_of_time' || $row['Status'] == 'sendedwarn') {
             $status_emoji = "🔴";
             $status_suffix = " (منقضی)";
-        } elseif ($row['status'] == 'end_of_volume') {
+        } elseif ($row['Status'] == 'end_of_volume') {
             $status_emoji = "🔴";
             $status_suffix = " (پایان حجم)";
-        } elseif ($row['status'] == 'send_on_hold') {
+        } elseif ($row['Status'] == 'send_on_hold') {
             $status_emoji = "🔴";
             $status_suffix = " (غیرفعال)";
-        } elseif ($row['status'] == 'disabledn') {
+        } elseif ($row['Status'] == 'disabledn') {
             $status_emoji = "🔴";
             $status_suffix = " (حذف شده)";
         }
@@ -7654,16 +7654,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $status_emoji = "🟢";
         $status_suffix = "";
-        if ($row['status'] == 'end_of_time' || $row['status'] == 'sendedwarn') {
+        if ($row['Status'] == 'end_of_time' || $row['Status'] == 'sendedwarn') {
             $status_emoji = "🔴";
             $status_suffix = " (منقضی)";
-        } elseif ($row['status'] == 'end_of_volume') {
+        } elseif ($row['Status'] == 'end_of_volume') {
             $status_emoji = "🔴";
             $status_suffix = " (پایان حجم)";
-        } elseif ($row['status'] == 'send_on_hold') {
+        } elseif ($row['Status'] == 'send_on_hold') {
             $status_emoji = "🔴";
             $status_suffix = " (غیرفعال)";
-        } elseif ($row['status'] == 'disabledn') {
+        } elseif ($row['Status'] == 'disabledn') {
             $status_emoji = "🔴";
             $status_suffix = " (حذف شده)";
         }
@@ -7857,16 +7857,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $status_emoji = "🟢";
             $status_suffix = "";
-            if ($row['status'] == 'end_of_time' || $row['status'] == 'sendedwarn') {
+            if ($row['Status'] == 'end_of_time' || $row['Status'] == 'sendedwarn') {
                 $status_emoji = "🔴";
                 $status_suffix = " (منقضی)";
-            } elseif ($row['status'] == 'end_of_volume') {
+            } elseif ($row['Status'] == 'end_of_volume') {
                 $status_emoji = "🔴";
                 $status_suffix = " (پایان حجم)";
-            } elseif ($row['status'] == 'send_on_hold') {
+            } elseif ($row['Status'] == 'send_on_hold') {
                 $status_emoji = "🔴";
                 $status_suffix = " (غیرفعال)";
-            } elseif ($row['status'] == 'disabledn') {
+            } elseif ($row['Status'] == 'disabledn') {
                 $status_emoji = "🔴";
                 $status_suffix = " (حذف شده)";
             }
