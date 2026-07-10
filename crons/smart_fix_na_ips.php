@@ -306,10 +306,9 @@ foreach ($servers as $server) {
                 $userInfoJson = json_encode($userInfo);
 
                 $updateInvoice = $connect->prepare(
-                    "UPDATE invoice SET ip = ?, user_info = ? WHERE id_invoice = ?"
+                    "UPDATE invoice SET user_info = ? WHERE id_invoice = ?"
                 );
-                $newIpVal = $newIp . '/32';
-                $updateInvoice->bind_param("ssi", $newIpVal, $userInfoJson, $id_invoice);
+                $updateInvoice->bind_param("si", $userInfoJson, $id_invoice);
                 $updateInvoice->execute();
                 
                 echo "          -> Updated DB invoice id: {$id_invoice}\n";
