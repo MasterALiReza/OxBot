@@ -94,8 +94,14 @@ class ServiceMonitor
 
         // Get username data from panel
         $userData = $this->Panel->DataUser($invoice['Service_location'], $username);
-        if (!$userData || $userData['status'] == "Unsuccessful")
+        if (!$userData)
             return;
+        if ($userData['status'] == "Unsuccessful") {
+            if (isset($userData['msg']) && $userData['msg'] == "User not found") {
+                update("invoice", "Status", "disabledn", "id_invoice", $invoice['id_invoice']);
+            }
+            return;
+        }
         return [
             'invoice' => $invoice,
             'panel' => $panelInfo,
