@@ -90,16 +90,15 @@ foreach ($servers as $server) {
         continue;
     }
 
-    var_dump($configs);
-    exit("--- DEBUG DUMP ---");
-
     foreach ($configs as $key => $confData) {
         $confName = null;
         if (is_string($confData)) {
             $confName = $confData;
-        } elseif (is_array($confData) && !empty($confData['name'])) {
-            $confName = $confData['name'];
-        } elseif (is_string($key) && !is_numeric($key)) {
+        } elseif (is_array($confData)) {
+            $confName = $confData['Name'] ?? $confData['name'] ?? null;
+        }
+        
+        if (!$confName && is_string($key) && !is_numeric($key)) {
             $confName = $key;
         }
         
