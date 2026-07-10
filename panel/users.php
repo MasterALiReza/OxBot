@@ -86,7 +86,7 @@ if ($isSuperAdmin && $_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 db_query($pdo, "DELETE FROM admin WHERE id_admin = ?", [$id_admin]);
                 require_once __DIR__ . '/../botapi.php';
-                sendmessage($id_admin, "شما از مدیریت ربات حذف شدید.\nبرای دسترسی به منوی کاربری ربات، لطفاً دستور /start را ارسال کنید.", json_encode(['remove_keyboard' => true]));
+                sendmessage($id_admin, "شما از مدیریت ربات حذف شدید.\nبرای دسترسی به منوی کاربری ربات، لطفاً دستور /start را ارسال کنید.", json_encode(['remove_keyboard' => true]), 'HTML');
                 flash('success', 'ادمین با موفقیت حذف شد.');
             } catch (Exception $e) {
                 flash('error', 'خطا در حذف ادمین.');

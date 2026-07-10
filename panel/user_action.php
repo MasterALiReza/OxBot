@@ -53,6 +53,7 @@ switch ($action) {
     case 'zerobalance':
         db_query($pdo, "UPDATE user SET Balance = 0 WHERE id = ?", [$id]);
         $textkam = sprintf($textbotlang['Admin']['adminphp']['err_user_balance_amount_2'] ?? "❌ مبلغ %s تومان از موجودی شما کسر شد.", "کامل");
+        require_once __DIR__ . '/../botapi.php';
         telegram('sendMessage', [
             'chat_id' => $id,
             'text' => "❌ <b>کسر موجودی</b>\n\nموجودی کیف پول شما توسط مدیریت صفر شد.\n💰 موجودی فعلی شما: <b>0</b> تومان",
@@ -125,6 +126,7 @@ switch ($action) {
             if ($stmt->rowCount() > 0) {
                 db_query($pdo, "INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'zero', ?, 'صفر کردن موجودی توسط مدیریت')", [$id, $current_bal]);
                 
+                require_once __DIR__ . '/../botapi.php';
                 if (function_exists('telegram')) {
                     telegram('sendMessage', [
                         'chat_id' => $id,

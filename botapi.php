@@ -68,7 +68,7 @@ function telegram($method, $datas = [], $token = null)
 
     return $decodedResponse;
 }
-function sendmessage($chat_id,$text,$keyboard,$parse_mode,$bot_token = null){
+function sendmessage($chat_id,$text,$keyboard = null,$parse_mode = null,$bot_token = null){
     if(intval($chat_id) == 0)return ['ok' => false];
     return telegram('sendmessage',[
         'chat_id' => $chat_id,
