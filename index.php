@@ -2122,6 +2122,8 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     }
     $Balance_Low_user = $user['Balance'] - $pricelastextend;
     update("user", "Balance", $Balance_Low_user, "id", $from_id);
+    $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'purchase', ?, 'تمدید سرویس')");
+    $stmt_wal->execute([$from_id, $pricelastextend]);
     $stmt = $connect->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price,output,status) VALUES (?, ?, ?, ?,?,?,?,?)");
     $dateacc = date('Y/m/d H:i:s');
     $value = json_encode(array(
@@ -2346,6 +2348,8 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     }
     $Balance_Low_user = $user['Balance'] - $volumepricelast;
     update("user", "Balance", $Balance_Low_user, "id", $from_id);
+    $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'purchase', ?, 'خرید حجم اضافه')");
+    $stmt_wal->execute([$from_id, $volumepricelast]);
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     $data_for_database = json_encode(array(
         'volume_value' => intval($volume) / intval($extrapricevalue),
@@ -2609,6 +2613,8 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     if (intval($Pricechange) != 0) {
         $Balance_Low_user = $user['Balance'] - $Pricechange;
         update("user", "Balance", $Balance_Low_user, "id", $from_id);
+        $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'purchase', ?, 'تغییر لوکیشن سرویس')");
+        $stmt_wal->execute([$from_id, $Pricechange]);
     }
     update("invoice", "Service_location", $marzban_list_get_new['name_panel'], "username", $nameloc['username']);
     if ($marzban_list_get_new['inboundid'] != null) {
@@ -2882,6 +2888,8 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         return;
     }
     update("user", "Balance", $Balance_Low_user, "id", $from_id);
+    $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'purchase', ?, 'خرید زمان اضافه')");
+    $stmt_wal->execute([$from_id, $pricelasttime]);
     $stmt = $pdo->prepare("INSERT IGNORE INTO service_other (id_user, username, value, type, time, price, output) VALUES (:id_user, :username, :value, :type, :time, :price, :output)");
     $value = $data_for_database;
     $dateacc = date('Y/m/d H:i:s');
@@ -6580,6 +6588,8 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     }
     $Balance_Low_user = $user['Balance'] - $volume;
     update("user", "Balance", $Balance_Low_user, "id", $from_id);
+    $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'purchase', ?, 'ارتقا/تمدید سرویس')");
+    $stmt_wal->execute([$from_id, $volume]);
     $back = json_encode([
         'inline_keyboard' => [
             [
@@ -7059,7 +7069,25 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         foreach ($locations as $loc) {
             $loc_name = empty($loc['Service_location']) ? "سایر" : $loc['Service_location'];
             $loc_hash = sprintf("%u", crc32($loc_name));
-            $row[] = ['text' => "🗄 " . $loc_name, 'callback_data' => "extpnl|" . $loc_hash];
+            
+            // Clean up the name for user display to fit within 2 columns without ugly truncation
+            $clean_name = $loc_name;
+            if ($loc_name !== "سایر") {
+                if (!function_exists('get_clean_display_name')) {
+                    function get_clean_display_name($name) {
+                        $name = preg_replace('/\s*\(.*?\)/u', '', $name);
+                        $name = preg_replace('/\s*\[.*?\]/u', '', $name);
+                        $name = preg_replace('/[\x{1F300}-\x{1F9FF}]|[\x{1F600}-\x{1F64F}]|[\x{1F680}-\x{1F6FF}]|[\x{2600}-\x{27BF}]|[\x{1F1E6}-\x{1F1FF}]{2}/u', '', $name);
+                        return trim(preg_replace('/\s+/', ' ', $name));
+                    }
+                }
+                $clean_name = get_clean_display_name($loc_name);
+                if (empty($clean_name)) {
+                    $clean_name = $loc_name;
+                }
+            }
+            
+            $row[] = ['text' => "🗄 " . $clean_name, 'callback_data' => "extpnl|" . $loc_hash];
             if (count($row) == 2) {
                 $keyboardlists['inline_keyboard'][] = $row;
                 $row = [];
@@ -7492,6 +7520,8 @@ if (isset($update['message']['successful_payment'])) {
     }
     $Balance_Low_user = $user['Balance'] - $prodcut['price_product'];
     update("user", "Balance", $Balance_Low_user, "id", $from_id);
+    $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'purchase', ?, 'خرید سرویس جدید')");
+    $stmt_wal->execute([$from_id, $prodcut['price_product']]);
     $extend = $ManagePanel->extend($marzban_list_get['Methodextend'], $prodcut['Volume_constraint'], $prodcut['Service_time'], $usernamePanelExtends, $prodcut['code_product'], $marzban_list_get['code_panel']);
     if ($extend['status'] == false) {
         $extend['msg'] = json_encode($extend['msg']);

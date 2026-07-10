@@ -116,6 +116,27 @@ try {
 }
 //-----------------------------------------------------------------
 try {
+    $tableName = 'wallet_log';
+    $stmt = $pdo->prepare("SELECT 1 FROM information_schema.tables WHERE table_name = :tableName");
+    $stmt->bindParam(':tableName', $tableName);
+    $stmt->execute();
+    $tableExists = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$tableExists) {
+        $stmt = $pdo->prepare("CREATE TABLE $tableName (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id VARCHAR(500) NOT NULL,
+            action_type VARCHAR(50) NOT NULL,
+            amount INT NOT NULL,
+            description TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $stmt->execute();
+    }
+} catch (PDOException $e) {
+    file_put_contents('error_log_wallet_log', $e->getMessage());
+}
+//-----------------------------------------------------------------
+try {
 
     $tableName = 'help';
     $stmt = $pdo->prepare("SELECT 1 FROM information_schema.tables WHERE table_name = :tableName");

@@ -127,6 +127,11 @@ if (false) {
  * @var mixed $userslist
  */
 #----------------[  admin section  ]------------------#
+if(!defined('base_dir')) {
+    exit();
+}
+write_debug_log("ADMIN.PHP REACHED: datain=" . $datain . ", from_id=" . $from_id);
+
 $textadmin = ["panel", "/panel", $textbotlang['Admin']['panelAdmin'] ?? '👨‍💼 پنل مدیریت'];
 $text_panel_admin_login_template = sprintf($textbotlang['Admin']['adminphp']['msg_panel_admin_bot_report'], $version);
 
@@ -2978,6 +2983,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     ]);
     return;
 } elseif (strpos($datain, 'admin_approve_withdraw_') === 0) {
+    write_debug_log("ADMIN APPROVE REACHED for datain: " . $datain);
     $w_id = (int)str_replace('admin_approve_withdraw_', '', $datain);
     
     // Check if it's still pending
@@ -3011,6 +3017,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         ]);
     }
 } elseif (strpos($datain, 'admin_reject_withdraw_') === 0) {
+    write_debug_log("ADMIN REJECT REACHED for datain: " . $datain);
     $w_id = (int)str_replace('admin_reject_withdraw_', '', $datain);
     
     $stmt = $pdo->prepare("SELECT * FROM withdrawal_requests WHERE id = ?");
