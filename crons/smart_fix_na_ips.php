@@ -301,7 +301,8 @@ foreach ($servers as $server) {
                 $row = $invoiceResult->fetch_assoc();
                 $id_invoice = $row['id_invoice'];
                 
-                $userInfo = json_decode($row['user_info'], true) ?: [];
+                $userInfoStr = $row['user_info'] ?? '';
+                $userInfo = $userInfoStr ? (json_decode($userInfoStr, true) ?: []) : [];
                 $userInfo['allowed_ips'] = [$newIp . '/32'];
                 $userInfoJson = json_encode($userInfo);
 
