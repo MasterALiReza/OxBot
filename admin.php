@@ -3385,6 +3385,13 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
                 $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance + ? WHERE id = ?");
                 $stmt->execute([$w_req['amount'], $w_req['user_id']]);
                 
+                // Log the refund in affiliate_log and wallet_log
+                $stmt_log_aff = $pdo->prepare("INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'withdrawal_refund', ?, ?)");
+                $stmt_log_aff->execute([$w_req['user_id'], $w_req['amount'], "بازگشت مبلغ درخواست تسویه رد شده"]);
+
+                $stmt_log_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'refund', ?, ?)");
+                $stmt_log_wal->execute([$w_req['user_id'], $w_req['amount'], "بازگشت مبلغ درخواست تسویه رد شده"]);
+                
                 // Send to user
                 $reason = htmlspecialchars($text);
                 $msg = "❌ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان رد شد و مبلغ به کیف پول پورسانت شما بازگشت داده شد.\n\nدلیل: $reason";

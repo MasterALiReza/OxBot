@@ -545,6 +545,13 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $stmt->execute([':amount' => $amount, ':amount2' => $amount, ':id' => $from_id]);
     
     if ($stmt->rowCount() > 0) {
+        // Log the withdrawal request in affiliate_log and wallet_log
+        $stmt_log_aff = $pdo->prepare("INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'withdrawal_request', ?, ?)");
+        $stmt_log_aff->execute([$from_id, $amount, "ثبت درخواست تسویه به شماره کارت $card_number"]);
+
+        $stmt_log_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'withdraw', ?, ?)");
+        $stmt_log_wal->execute([$from_id, $amount, "ثبت درخواست تسویه به شماره کارت $card_number"]);
+
         $stmt = $pdo->prepare("INSERT INTO withdrawal_requests (user_id, amount, card_number, card_name, status, time) VALUES (:u, :a, :c, :n, 'pending', :t)");
         $stmt->execute([
             ':u' => $from_id,
@@ -6593,8 +6600,27 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         sendmessage($from_id, "❌ موجودی شما برای تسویه کافی نیست. (حداقل 50,000 تومان)", null, 'HTML');
         return;
     }
+    
+    $total_referrals = intval($user['affiliatescount'] ?? 0);
+    $active_referrals = intval($user['active_referrals_count'] ?? 0);
+    
+    $tier = "برنزی 🥉";
+    $porsant = $setting['affiliatespercentage'] ?? 0;
+    if ($active_referrals >= intval($aff_settings['gold_threshold'] ?? 0)) {
+        $porsant = $aff_settings['gold_percentage'] ?? 0;
+        $tier = "طلایی 🥇";
+    } elseif ($active_referrals >= intval($aff_settings['silver_threshold'] ?? 0)) {
+        $porsant = $aff_settings['silver_percentage'] ?? 0;
+        $tier = "نقره‌ای 🥈";
+    }
+
     update("user", "step", "get_withdraw_amount", "id", $from_id);
-    $msg = "💰 موجودی قابل تسویه: " . number_format($affiliate_balance) . " تومان\n\n";
+    
+    $msg = "📊 <b>وضعیت بازاریابی شما:</b>\n";
+    $msg .= "👥 کل زیرمجموعه‌ها: " . number_format($total_referrals) . " نفر\n";
+    $msg .= "👥 زیرمجموعه‌های فعال: " . number_format($active_referrals) . " نفر\n";
+    $msg .= "💎 سطح پورسانت: $tier (پورسانت {$porsant}٪)\n\n";
+    $msg .= "💰 موجودی قابل تسویه: " . number_format($affiliate_balance) . " تومان\n\n";
     $msg .= "لطفا مبلغی که قصد تسویه و واریز به کارت را دارید به تومان وارد کنید (فقط عدد انگلیسی):\n\n";
     $msg .= "برای انصراف /start را ارسال کنید.";
     sendmessage($from_id, $msg, $backuser, 'HTML');
