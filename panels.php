@@ -1632,9 +1632,19 @@ class ManagePanel
             );
         } elseif ($Get_Data_Panel['type'] == "WGDashboard") {
             $data_user = get_userwg($username, $name_panel);
+            $extracted_ip = $data_user['allowedIPs'] ?? $data_user['allowed_ips'] ?? $data_user['allowed_ip'] ?? null;
+            if (is_array($extracted_ip)) {
+                $extracted_ip_str = implode(', ', $extracted_ip);
+                $extracted_ip_arr = $extracted_ip;
+            } else {
+                $extracted_ip_str = $extracted_ip;
+                $extracted_ip_arr = $extracted_ip ? explode(',', $extracted_ip) : [];
+            }
+            
             $configs = array(
-                "DNS" => $data_user['DNS'],
-                "allowed_ip" => $data_user['allowed_ip'],
+                "DNS" => $data_user['DNS'] ?? "1.1.1.1",
+                "allowed_ip" => $extracted_ip_str,
+                "allowed_ips" => $extracted_ip_arr,
                 "endpoint_allowed_ip" => "0.0.0.0/0",
                 "jobs" => $data_user['jobs'],
                 "id" => $data_user['id'],
