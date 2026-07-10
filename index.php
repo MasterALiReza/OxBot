@@ -170,9 +170,7 @@ if ($user['username'] == "none" || $user['username'] == null || $user['username'
 }
 if ($text == "/getlogs" && in_array($from_id, $admin_ids)) {
     if (file_exists(__DIR__ . '/debug_log.txt')) {
-        $logs = file_get_contents(__DIR__ . '/debug_log.txt');
-        $logs = substr($logs, -4000);
-        sendmessage($from_id, "<pre>" . htmlspecialchars($logs) . "</pre>", null, 'html');
+        sendDocument($from_id, __DIR__ . '/debug_log.txt', "آخرین لاگ‌های سرور");
     } else {
         sendmessage($from_id, "No logs found.", null, 'html');
     }
