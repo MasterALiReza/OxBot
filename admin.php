@@ -3150,23 +3150,22 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'show_alert' => true,
             'cache_time' => 5,
         ));
-        if ($Payment_report['payment_Status'] == "reject") {
-            $textconfrom = "❌ این تراکنش لغو شده است (به دلیل خطا در ساخت سرویس در پنل).\nمبلغ به کیف پول کاربر عودت داده شد.";
-            $Confirm_pay_fail = json_encode([
-                'inline_keyboard' => [
-                    [
-                        ['text' => '❌ ناموفق', 'callback_data' => "confirmpaid_failed"],
-                    ],
-                    [
-                        ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
-                    ]
+        
+        $final_keyboard = json_encode([
+            'inline_keyboard' => [
+                [
+                    ['text' => $Payment_report['payment_Status'] == "reject" ? '❌ ناموفق' : '✅ تایید شده', 'callback_data' => "confirmpaid_failed"],
+                ],
+                [
+                    ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
                 ]
-            ]);
-            Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay_fail);
-        } else {
-            $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-            Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
-        }
+            ]
+        ]);
+        telegram('editMessageReplyMarkup', [
+            'chat_id' => $chat_id,
+            'message_id' => $message_id,
+            'reply_markup' => $final_keyboard
+        ]);
         return;
     }
     $sql = "SELECT * FROM Payment_report WHERE id_user = '{$Payment_report['id_user']}' AND payment_Status != 'paid' AND payment_Status != 'Unpaid' AND payment_Status != 'expire' AND payment_Status != 'reject' AND  (id_invoice  LIKE CONCAT('%','getconfigafterpay', '%') OR id_invoice  LIKE CONCAT('%','getextenduser', '%') OR id_invoice  LIKE CONCAT('%','getextravolumeuser', '%') OR id_invoice  LIKE CONCAT('%','getextratimeuser', '%'))";
@@ -3265,6 +3264,11 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     update("user", "Processing_value_tow", "none", "id", $Balance_id['id']);
     update("user", "Processing_value_four", "none", "id", $Balance_id['id']);
 
+    telegram('editMessageReplyMarkup', [
+        'chat_id' => $chat_id,
+        'message_id' => $message_id,
+        'reply_markup' => $Confirm_pay
+    ]);
 } elseif (preg_match('/reject_pay_(\w+)/', $datain, $datagetr) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $id_order = $datagetr[1];
     file_put_contents('log.txt', "\n[reject_pay] matched for id_order: " . $id_order, FILE_APPEND);
@@ -3287,6 +3291,22 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'show_alert' => true,
             'cache_time' => 5,
         ));
+        
+        $final_keyboard = json_encode([
+            'inline_keyboard' => [
+                [
+                    ['text' => $Payment_report['payment_Status'] == "reject" ? '❌ ناموفق' : '✅ تایید شده', 'callback_data' => "confirmpaid_failed"],
+                ],
+                [
+                    ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
+                ]
+            ]
+        ]);
+        telegram('editMessageReplyMarkup', [
+            'chat_id' => $chat_id,
+            'message_id' => $message_id,
+            'reply_markup' => $final_keyboard
+        ]);
         return;
     }
 
@@ -3301,7 +3321,22 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 
     sendmessage($from_id, $textbotlang['Admin']['Payment']['reasonRejecting'], $backadmin, 'HTML');
     step('reject-dec', $from_id);
-    Editmessagetext($chat_id, $message_id, $text_inline, null);
+    
+    $Confirm_pay_fail = json_encode([
+        'inline_keyboard' => [
+            [
+                ['text' => '❌ ناموفق', 'callback_data' => "confirmpaid_failed"],
+            ],
+            [
+                ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
+            ]
+        ]
+    ]);
+    telegram('editMessageReplyMarkup', [
+        'chat_id' => $chat_id,
+        'message_id' => $message_id,
+        'reply_markup' => $Confirm_pay_fail
+    ]);
 } elseif ($user['step'] == "reject-dec") {
     $Payment_report = select("Payment_report", "*", "id_order", $user['Processing_value_one'], "select");
     update("Payment_report", "dec_not_confirmed", $text, "id_order", $user['Processing_value_one']);
