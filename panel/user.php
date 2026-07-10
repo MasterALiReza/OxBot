@@ -250,6 +250,39 @@ $expiredServices = count(array_filter($invoices, fn($inv) => in_array($inv['Stat
 $paidCount = count(array_filter($payments, fn($p) => in_array($p['payment_Status'] ?? '', ['paid', 'success'])));
 $convRate = count($payments) > 0 ? round($paidCount / count($payments) * 100) : 0;
 
+$total_referrals_count = 0;
+$total_referral_spent = 0;
+$total_gateway_paid = 0;
+$user_commission_percent = 5;
+
+try {
+    $sett_row = db_fetch($pdo, "SELECT affiliatespercentage FROM setting LIMIT 1");
+    $user_commission_percent = (int)($sett_row['affiliatespercentage'] ?? 5);
+
+    $aff_settings = db_fetch($pdo, "SELECT * FROM affiliates LIMIT 1");
+    if ($aff_settings) {
+        $active_refs = (int)($user['active_referrals_count'] ?? 0);
+        if ($active_refs >= (int)($aff_settings['gold_threshold'] ?? 100)) {
+            $user_commission_percent = (int)($aff_settings['gold_percentage'] ?? 20);
+        } elseif ($active_refs >= (int)($aff_settings['silver_threshold'] ?? 50)) {
+            $user_commission_percent = (int)($aff_settings['silver_percentage'] ?? 15);
+        }
+    }
+
+    $all_ref_users = db_fetchAll($pdo, "SELECT id FROM user WHERE affiliates = ?", [$id]);
+    $total_referrals_count = count($all_ref_users);
+    $all_ref_ids = array_column($all_ref_users, 'id');
+    if (!empty($all_ref_ids)) {
+        $placeholders = implode(',', array_fill(0, count($all_ref_ids), '?'));
+        $ref_spent_query = db_fetch($pdo, "SELECT SUM(price_product) as total FROM invoice WHERE id_user IN ($placeholders) AND (Status = 'active' OR Status = 'completed' OR Status = 'expired' OR Status = 'end_of_time' OR Status = 'end_of_volume')", $all_ref_ids);
+        $total_referral_spent = (int)($ref_spent_query['total'] ?? 0);
+    }
+
+    $gateway_spent_query = db_fetch($pdo, "SELECT SUM(price) as total FROM Payment_report WHERE id_user = ? AND (payment_Status = 'paid' OR payment_Status = 'success') AND Payment_Method != 'wallet'", [$id]);
+    $total_gateway_paid = (int)($gateway_spent_query['total'] ?? 0);
+} catch (Exception $e) {
+}
+
 $agent = $user['agent'] ?? 'f';
 $isBlocked = ($user['User_Status'] ?? '') === 'block';
 $fullName = $user['namecustom'] ?? '';
@@ -1011,6 +1044,44 @@ include __DIR__ . '/inc/layout_head.php';
             <?php endif; ?>
 
             <div id="paneAffHistory" style="display:none">
+                <div style="background: linear-gradient(135deg, var(--bg-card), rgba(30, 41, 59, 0.5)); border: 1px solid var(--bd); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <h4 style="margin: 0; font-size: 1.1rem; color: var(--text); display: flex; align-items: center; gap: 8px;">
+                            <?= icon('activity', 20) ?> تحلیل مالی و منبع درآمد کاربر
+                        </h4>
+                        <span style="background: rgba(16, 185, 129, 0.1); color: var(--emerald); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                            بررسی خودکار سیستم
+                        </span>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 0.85rem; color: var(--mute); margin-bottom: 6px;">مجموع خرید زیرمجموعه‌ها</div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: var(--ac);"><?= number_format($total_referral_spent) ?> <span style="font-size: 0.75rem;">تومان</span></div>
+                        </div>
+                        
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 0.85rem; color: var(--mute); margin-bottom: 6px;">کل پورسانت کسب شده (تخمینی)</div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: var(--emerald);"><?= number_format($total_referral_spent * $user_commission_percent / 100) ?> <span style="font-size: 0.75rem;">تومان</span></div>
+                            <div style="font-size: 0.75rem; color: var(--mute); margin-top: 4px;">بر اساس نرخ پورسانت <?= $user_commission_percent ?>٪ کاربر</div>
+                        </div>
+
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 0.85rem; color: var(--mute); margin-bottom: 6px;">کل پرداخت مستقیم بانکی</div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: <?= $total_gateway_paid > 0 ? 'var(--emerald)' : 'var(--rose)' ?>;"><?= number_format($total_gateway_paid) ?> <span style="font-size: 0.75rem;">تومان</span></div>
+                        </div>
+                    </div>
+
+                    <?php if ($total_gateway_paid === 0 && $total_referral_spent > 0): ?>
+                        <div style="margin-top: 16px; padding: 12px; background: rgba(245, 158, 11, 0.08); border-left: 4px solid #f59e0b; border-radius: 6px; display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="color: #f59e0b; font-size: 1.2rem; margin-top: 2px;">⚠️</span>
+                            <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text-dim);">
+                                <b>اطلاعیه مدیریت:</b> این کاربر هیچ‌گونه پرداخت مستقیم از طریق درگاه‌های بانکی یا کارت‌به‌کارت نداشته است. موجودی و خریدهای فعلی او <b>کاملاً از محل سود پورسانت و زیرمجموعه‌گیری</b> تامین شده است.
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
                 <div style="padding: 10px 0;">
                     <h3 style="font-size: 1.1rem; margin-bottom: 12px; display:flex; align-items:center; gap:8px;">
                         <?= icon('credit-card', 18) ?> درخواست‌های تسویه نقدی به کارت
