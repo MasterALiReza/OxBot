@@ -7255,16 +7255,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
                 $status_emoji = "🟢";
                 $status_suffix = "";
                 if ($row['status'] == 'end_of_time' || $row['status'] == 'sendedwarn') {
-                    $status_emoji = "⏰";
+                    $status_emoji = "🔴";
                     $status_suffix = " (منقضی)";
                 } elseif ($row['status'] == 'end_of_volume') {
-                    $status_emoji = "⚠️";
+                    $status_emoji = "🔴";
                     $status_suffix = " (پایان حجم)";
                 } elseif ($row['status'] == 'send_on_hold') {
-                    $status_emoji = "⏸";
+                    $status_emoji = "🔴";
                     $status_suffix = " (غیرفعال)";
                 } elseif ($row['status'] == 'disabledn') {
-                    $status_emoji = "❌";
+                    $status_emoji = "🔴";
                     $status_suffix = " (حذف شده)";
                 }
 
@@ -7437,16 +7437,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         $status_emoji = "🟢";
         $status_suffix = "";
         if ($row['status'] == 'end_of_time' || $row['status'] == 'sendedwarn') {
-            $status_emoji = "⏰";
+            $status_emoji = "🔴";
             $status_suffix = " (منقضی)";
         } elseif ($row['status'] == 'end_of_volume') {
-            $status_emoji = "⚠️";
+            $status_emoji = "🔴";
             $status_suffix = " (پایان حجم)";
         } elseif ($row['status'] == 'send_on_hold') {
-            $status_emoji = "⏸";
+            $status_emoji = "🔴";
             $status_suffix = " (غیرفعال)";
         } elseif ($row['status'] == 'disabledn') {
-            $status_emoji = "❌";
+            $status_emoji = "🔴";
             $status_suffix = " (حذف شده)";
         }
 
@@ -7551,16 +7551,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         $status_emoji = "🟢";
         $status_suffix = "";
         if ($row['status'] == 'end_of_time' || $row['status'] == 'sendedwarn') {
-            $status_emoji = "⏰";
+            $status_emoji = "🔴";
             $status_suffix = " (منقضی)";
         } elseif ($row['status'] == 'end_of_volume') {
-            $status_emoji = "⚠️";
+            $status_emoji = "🔴";
             $status_suffix = " (پایان حجم)";
         } elseif ($row['status'] == 'send_on_hold') {
-            $status_emoji = "⏸";
+            $status_emoji = "🔴";
             $status_suffix = " (غیرفعال)";
         } elseif ($row['status'] == 'disabledn') {
-            $status_emoji = "❌";
+            $status_emoji = "🔴";
             $status_suffix = " (حذف شده)";
         }
 
@@ -7655,16 +7655,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         $status_emoji = "🟢";
         $status_suffix = "";
         if ($row['status'] == 'end_of_time' || $row['status'] == 'sendedwarn') {
-            $status_emoji = "⏰";
+            $status_emoji = "🔴";
             $status_suffix = " (منقضی)";
         } elseif ($row['status'] == 'end_of_volume') {
-            $status_emoji = "⚠️";
+            $status_emoji = "🔴";
             $status_suffix = " (پایان حجم)";
         } elseif ($row['status'] == 'send_on_hold') {
-            $status_emoji = "⏸";
+            $status_emoji = "🔴";
             $status_suffix = " (غیرفعال)";
         } elseif ($row['status'] == 'disabledn') {
-            $status_emoji = "❌";
+            $status_emoji = "🔴";
             $status_suffix = " (حذف شده)";
         }
 
@@ -7858,16 +7858,16 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             $status_emoji = "🟢";
             $status_suffix = "";
             if ($row['status'] == 'end_of_time' || $row['status'] == 'sendedwarn') {
-                $status_emoji = "⏰";
+                $status_emoji = "🔴";
                 $status_suffix = " (منقضی)";
             } elseif ($row['status'] == 'end_of_volume') {
-                $status_emoji = "⚠️";
+                $status_emoji = "🔴";
                 $status_suffix = " (پایان حجم)";
             } elseif ($row['status'] == 'send_on_hold') {
-                $status_emoji = "⏸";
+                $status_emoji = "🔴";
                 $status_suffix = " (غیرفعال)";
             } elseif ($row['status'] == 'disabledn') {
-                $status_emoji = "❌";
+                $status_emoji = "🔴";
                 $status_suffix = " (حذف شده)";
             }
 
