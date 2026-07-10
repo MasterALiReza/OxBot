@@ -516,7 +516,15 @@ function getUsedIPs($namepanel)
     foreach ($peers as $peer) {
         if (isset($peer['allowed_ips']) && is_array($peer['allowed_ips'])) {
             foreach ($peer['allowed_ips'] as $ip) {
-                $used_ips[] = $ip;
+                $used_ips[] = trim($ip);
+            }
+        } elseif (isset($peer['allowed_ip']) && is_string($peer['allowed_ip'])) {
+            // WGDashboard API returns "allowed_ip" as a comma-separated string
+            $ips = explode(',', $peer['allowed_ip']);
+            foreach ($ips as $ip) {
+                if (trim($ip) !== '' && trim($ip) !== 'N/A') {
+                    $used_ips[] = trim($ip);
+                }
             }
         }
     }
