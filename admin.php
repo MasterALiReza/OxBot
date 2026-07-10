@@ -3168,20 +3168,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         ]);
         return;
     }
-    $sql = "SELECT * FROM Payment_report WHERE id_user = '{$Payment_report['id_user']}' AND payment_Status != 'paid' AND payment_Status != 'Unpaid' AND payment_Status != 'expire' AND payment_Status != 'reject' AND  (id_invoice  LIKE CONCAT('%','getconfigafterpay', '%') OR id_invoice  LIKE CONCAT('%','getextenduser', '%') OR id_invoice  LIKE CONCAT('%','getextravolumeuser', '%') OR id_invoice  LIKE CONCAT('%','getextratimeuser', '%'))";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-    $countpay = $stmt->rowCount();
-    $typepay = explode('|', $Payment_report['id_invoice']);
-    if ($countpay > 0 and !in_array($typepay[0], ['getconfigafterpay', 'getextenduser', 'getextravolumeuser', 'getextratimeuser'])) {
-        telegram('answerCallbackQuery', array(
-            'callback_query_id' => $callback_query_id,
-            'text' => '⚠️ کاربر تراکنش در حال بررسی دیگری دارد.',
-            'show_alert' => true,
-        ));
-        sendmessage($from_id, $textbotlang['Admin']['adminphp']['msg_user_renew_buy'], null, 'HTML');
-        return;
-    }
+
 
     telegram('answerCallbackQuery', array(
         'callback_query_id' => $callback_query_id,
