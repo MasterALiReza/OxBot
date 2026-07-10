@@ -91,7 +91,7 @@ foreach ($servers as $server) {
     }
 
     foreach ($configs as $confData) {
-        $confName = $confData['name'] ?? null;
+        $confName = is_string($confData) ? $confData : ($confData['name'] ?? null);
         if (!$confName) continue;
 
         echo "  => Checking Interface: {$confName}\n";
