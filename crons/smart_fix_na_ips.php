@@ -90,6 +90,9 @@ foreach ($servers as $server) {
         continue;
     }
 
+    var_dump($configs);
+    exit("--- DEBUG DUMP ---");
+
     foreach ($configs as $key => $confData) {
         $confName = null;
         if (is_string($confData)) {
