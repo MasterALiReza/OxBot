@@ -1638,14 +1638,152 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         return;
     }
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
-    if ($DataUserOut['status'] == "Unsuccessful") {
-        sendmessage($from_id, $textbotlang['users']['status']['error'], null, 'html');
+    if (isset($DataUserOut['msg']) && $DataUserOut['msg'] == "User not found") {
+        update("invoice", "Status", "disabledn", "id_invoice", $nameloc['id_invoice']);
+        sendmessage($from_id, $textbotlang['users']['status']['userNotFound'], null, 'html');
         return;
+    }
+    $textinfo_prefix = "";
+    if ($DataUserOut['status'] == "Unsuccessful") {
+        $textinfo_prefix = "⚠️ <b>اطلاعات موقتاً به‌روز نیست</b> (ارتباط با سرور پنل برقرار نشد)\n\n";
+        
+        $DataUserOut['status'] = $nameloc['Status'] == 'active' ? 'active' : ($nameloc['Status'] ?? 'Unknown');
+        $DataUserOut['data_limit'] = floatval($nameloc['Volume']) * pow(1024, 3);
+        $DataUserOut['used_traffic'] = 0;
+        $DataUserOut['online_at'] = null;
+        $DataUserOut['sub_updated_at'] = null;
+        
+        if (intval($nameloc['time_sell']) > 0 && intval($nameloc['Service_time']) > 0) {
+            $DataUserOut['expire'] = intval($nameloc['time_sell']) + (intval($nameloc['Service_time']) * 86400);
+        } else {
+            $DataUserOut['expire'] = 0;
+        }
+        
+        $infoconfig = isset($nameloc['user_info']) ? json_decode($nameloc['user_info'], true) : [];
+        if (isset($infoconfig['subscription_url'])) {
+            $DataUserOut['subscription_url'] = $infoconfig['subscription_url'];
+            $DataUserOut['links'] = [$infoconfig['subscription_url']];
+        } else {
+            $DataUserOut['subscription_url'] = "";
+            $DataUserOut['links'] = [];
+        }
     }
     if ($DataUserOut['status'] == "on_hold") {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['notConnectedConnectFirst'], null, 'html');
         return;
     }
+    
+    // Status display calculations
+    if ($DataUserOut['online_at'] == "online") {
+        $lastonline = $textbotlang['extracted']['index_php']['statusOnline'];
+    } elseif ($DataUserOut['online_at'] == "offline") {
+        $lastonline = $textbotlang['extracted']['index_php']['statusOffline'];
+    } else {
+        if (isset($DataUserOut['online_at']) && $DataUserOut['online_at'] !== null) {
+            $dateTime = new DateTime($DataUserOut['online_at'], new DateTimeZone('UTC'));
+            $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+            $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
+        } else {
+            $lastonline = $textbotlang['extracted']['index_php']['statusNotConnected'];
+        }
+    }
+    
+    $status_current = $DataUserOut['status'];
+    $status_var = [
+        'active' => $textbotlang['users']['status']['active'],
+        'limited' => $textbotlang['users']['status']['limited'],
+        'disabled' => $textbotlang['users']['status']['disabled'],
+        'expired' => $textbotlang['users']['status']['expired'],
+        'on_hold' => $textbotlang['users']['status']['on_hold'],
+        'Unknown' => $textbotlang['users']['status']['unknown'],
+        'deactivev' => $textbotlang['users']['status']['disabled'],
+    ][$status_current] ?? $status_current;
+    
+    $expirationDate = $DataUserOut['expire'] ? jdate('Y/m/d', $DataUserOut['expire']) : $textbotlang['users']['status']['unlimited'];
+    $LastTraffic = $DataUserOut['data_limit'] ? formatBytes($DataUserOut['data_limit']) : $textbotlang['users']['status']['unlimited'];
+    $output = $DataUserOut['data_limit'] - $DataUserOut['used_traffic'];
+    $RemainingVolume = $DataUserOut['data_limit'] ? formatBytes($output) : $textbotlang['extracted']['index_php']['unlimited'];
+    $usedTrafficGb = $DataUserOut['used_traffic'] ? formatBytes($DataUserOut['used_traffic']) : $textbotlang['users']['status']['notConsumed'];
+    
+    $timeDiff = $DataUserOut['expire'] - time();
+    if ($timeDiff < 0) {
+        $day = 0;
+    } else {
+        $day = "";
+        $timemonth = floor($timeDiff / 2592000);
+        if ($timemonth > 0) {
+            $day .= $timemonth . $textbotlang['users']['status']['month'];
+            $timeDiffday = $timeDiff - (2592000 * $timemonth);
+        } else {
+            $timeDiffday = $timeDiff;
+        }
+        $timereminday = floor($timeDiffday / 86400);
+        if ($timereminday > 0) {
+            $day .= $timereminday . $textbotlang['users']['status']['day'];
+        }
+        $timehoures = intval(($timeDiffday - ($timereminday * 86400)) / 3600);
+        if ($timehoures > 0) {
+            $day .= $timehoures . $textbotlang['users']['status']['hour'];
+        }
+        $timehoursall = $timeDiffday - ($timereminday * 86400);
+        $timehoursall = $timehoursall - ($timehoures * 3600);
+        $timeminuts = intval($timehoursall / 60);
+        if ($timeminuts > 0) {
+            $day .= $timeminuts . $textbotlang['users']['status']['min'];
+        }
+        $day .= $textbotlang['extracted']['index_php']['remainingSuffix'];
+    }
+    
+    if ($DataUserOut['data_limit'] != null && $DataUserOut['used_traffic'] != null) {
+        $Percent = ($DataUserOut['data_limit'] - $DataUserOut['used_traffic']) * 100 / $DataUserOut['data_limit'];
+    } else {
+        $Percent = "100";
+    }
+    if ($Percent < 0) $Percent = -($Percent);
+    $Percent = round($Percent, 2);
+    
+    if ($marzban_list_get['type'] == "ibsng" || $marzban_list_get['type'] == "mikrotik") {
+        $userpassword = strtr($textbotlang['extracted']['index_php']['servicePassword'], ['{subscription_url}' => $DataUserOut['subscription_url']]);
+    } else {
+        $userpassword = "";
+    }
+    
+    $nameconfig = "";
+    if ($nameloc['note'] != null) {
+        $nameconfig = strtr($textbotlang['extracted']['index_php']['configNote'], ['{note}' => $nameloc['note']]);
+    }
+    
+    $stmt_history = $pdo->prepare("SELECT value FROM service_other WHERE username = :username AND type = 'extend_user' AND status = 'paid' ORDER BY time DESC");
+    $stmt_history->execute([':username' => $nameloc['username']]);
+    if ($stmt_history->rowCount() != 0) {
+        $service_other = $stmt_history->fetch(PDO::FETCH_ASSOC);
+        if (!($service_other == false || !(is_string($service_other['value']) && is_array(json_decode($service_other['value'], true))))) {
+            $service_other = json_decode($service_other['value'], true);
+            $codeproduct = select("product", "*", "code_product", $service_other['code_product'], "select");
+            if ($codeproduct != false) {
+                $nameloc['name_product'] = $codeproduct['name_product'];
+                $nameloc['Volume'] = $codeproduct['Volume_constraint'];
+                $nameloc['Service_time'] = $codeproduct['Service_time'];
+            }
+        }
+    }
+    
+    if ($DataUserOut['sub_updated_at'] !== null) {
+        $sub_updated = $DataUserOut['sub_updated_at'];
+        $dateTime = new DateTime($sub_updated, new DateTimeZone('UTC'));
+        $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+        $lastupdate = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
+        $textconnect = sprintf($textbotlang['hardcoded']['serviceConnectionInfo'], $lastonline, $lastupdate, $DataUserOut['sub_last_user_agent']);
+    } elseif ($marzban_list_get['type'] == "WGDashboard") {
+        $textconnect = "";
+    } else {
+        $textconnect = strtr($textbotlang['extracted']['index_php']['lastOnlineTime'], ['{lastonline}' => $lastonline]);
+    }
+    
+    $textinfo = sprintf($textbotlang['hardcoded']['serviceInfoFull'], $status_var, $DataUserOut['username'], $userpassword, $nameconfig, $nameloc['Service_location'], $nameloc['name_product'], $LastTraffic, $usedTrafficGb, $RemainingVolume, $Percent, $expirationDate, $day, $textconnect);
+    
+    $extend_instructions = $textinfo_prefix . $textinfo . "\n\n🛍 <b>" . $textbotlang['users']['extend']['selectservice'] . "</b>";
+
     $eextraprice = json_decode($marzban_list_get['pricecustomvolume'], true);
     $custompricevalue = $eextraprice[$user['agent']];
     $mainvolume = json_decode($marzban_list_get['mainvolume'], true);
@@ -1707,10 +1845,10 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         ];
 
         $json_list_product_lists = json_encode($productextend);
-        Editmessagetext($from_id, $message_id, $textbotlang['users']['extend']['selectservice'], $json_list_product_lists);
+        Editmessagetext($from_id, $message_id, $extend_instructions, $json_list_product_lists);
     } else {
         $monthkeyboard = keyboardTimeCategory($nameloc['Service_location'], $user['agent'], "productextendmonths_", "product_$id_invoice", false, true);
-        Editmessagetext($from_id, $message_id, $textbotlang['Admin']['month']['title'], $monthkeyboard);
+        Editmessagetext($from_id, $message_id, $textinfo_prefix . $textinfo . "\n\n📅 <b>" . $textbotlang['Admin']['month']['title'] . "</b>", $monthkeyboard);
     }
 } elseif ($user['step'] == "gettimecustomvolomforextend") {
     $userdate = json_decode($user['Processing_value'], true);

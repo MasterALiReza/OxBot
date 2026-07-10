@@ -13,7 +13,7 @@ $offset = ($page - 1) * $perPage;
 $where = [];
 $params = [];
 if ($search !== '') {
-  $where[] = "(id_user LIKE ? OR COALESCE(name_product,'') LIKE ? OR COALESCE(username,'') LIKE ?)";
+  $where[] = "(i.id_user LIKE ? OR COALESCE(i.name_product,'') LIKE ? OR COALESCE(u.username,'') LIKE ?)";
   $params = ["%$search%", "%$search%", "%$search%"];
 }
 if ($status !== '') {
