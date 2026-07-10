@@ -7000,6 +7000,37 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             return;
         }
         
+        // Sort locations: V2Ray first, then Turkey (تمامی گیمها ترکیه), then Call of Duty (کالاف موبایل)
+        usort($locations, function($a, $b) {
+            $name_a = empty($a['Service_location']) ? "سایر" : $a['Service_location'];
+            $name_b = empty($b['Service_location']) ? "سایر" : $b['Service_location'];
+            
+            $get_weight = function($name) {
+                if ($name === "سایر") {
+                    return 99;
+                }
+                if (stripos($name, 'v2ray') !== false || stripos($name, 'مولتی') !== false || stripos($name, 'لوکیشن') !== false) {
+                    return 1;
+                }
+                if (stripos($name, 'ترکیه') !== false || stripos($name, 'game') !== false || stripos($name, 'گیم') !== false) {
+                    return 2;
+                }
+                if (stripos($name, 'کالاف') !== false || stripos($name, 'cod') !== false || stripos($name, 'موبایل') !== false) {
+                    return 3;
+                }
+                return 10;
+            };
+            
+            $w_a = $get_weight($name_a);
+            $w_b = $get_weight($name_b);
+            
+            if ($w_a !== $w_b) {
+                return $w_a <=> $w_b;
+            }
+            
+            return strnatcasecmp($name_a, $name_b);
+        });
+        
         // Auto-skip if the user only has services in exactly one location/panel
         if (count($locations) == 1) {
             write_debug_log("Only 1 location found, auto-skipping panel selection");
@@ -7077,12 +7108,11 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         }
         
         $keyboardlists = ['inline_keyboard' => []];
-        $row = [];
         foreach ($locations as $loc) {
             $loc_name = empty($loc['Service_location']) ? "سایر" : $loc['Service_location'];
             $loc_hash = sprintf("%u", crc32($loc_name));
             
-            // Clean up the name for user display to fit within 2 columns without ugly truncation
+            // Clean up the name for user display to fit beautifully
             $clean_name = $loc_name;
             if ($loc_name !== "سایر") {
                 if (!function_exists('get_clean_display_name')) {
@@ -7110,14 +7140,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
                 }
             }
             
-            $row[] = ['text' => "🗄 " . $clean_name, 'callback_data' => "extpnl|" . $loc_hash];
-            if (count($row) == 2) {
-                $keyboardlists['inline_keyboard'][] = $row;
-                $row = [];
-            }
-        }
-        if (!empty($row)) {
-            $keyboardlists['inline_keyboard'][] = $row;
+            $keyboardlists['inline_keyboard'][] = [['text' => "🗄 " . $clean_name, 'callback_data' => "extpnl|" . $loc_hash]];
         }
         $keyboardlists['inline_keyboard'][] = [['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser']];
         $keyboard_json = json_encode($keyboardlists);

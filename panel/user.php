@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $amount = (int) ($_POST['amount'] ?? 0);
         if ($amount >= 1000) {
             db_query($pdo, "UPDATE user SET Balance = Balance + ? WHERE id = ?", [$amount, $id]);
+            db_query($pdo, "INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'deposit', ?, 'افزایش موجودی توسط مدیریت')", [$id, $amount]);
             
             $heibalanceuser = number_format($amount, 0);
             $textadd = sprintf($textbotlang['Admin']['adminphp']['msg_user_balance_amount_add_1'] ?? "✅ موجودی شما %s تومان افزایش یافت.", $heibalanceuser);
@@ -48,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $amount = (int) ($_POST['amount'] ?? 0);
         if ($amount > 0) {
             db_query($pdo, "UPDATE user SET Balance = GREATEST(0, Balance - ?) WHERE id = ?", [$amount, $id]);
+            db_query($pdo, "INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'withdrawal', ?, 'کسر موجودی توسط مدیریت')", [$id, $amount]);
             
             $lowbalanceuser = number_format($amount, 0);
             $textkam = sprintf($textbotlang['Admin']['adminphp']['err_user_balance_amount_2'] ?? "❌ مبلغ %s تومان از موجودی شما کسر شد.", $lowbalanceuser);
@@ -162,6 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([':amount1' => $amount, ':amount2' => $amount, ':amount3' => $amount, ':id' => $id]);
             if ($stmt->rowCount() > 0) {
                 db_query($pdo, "INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'transfer_to_main', ?, 'انتقال دستی توسط مدیریت')", [$id, $amount]);
+                db_query($pdo, "INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'deposit_from_affiliate', ?, 'شارژ دستی از طریق انتقال موجودی بازاریابی')", [$id, $amount]);
                 
                 $msg = "💼 مبلغ <b>" . number_format($amount) . "</b> تومان از کیف پول بازاریابی به کیف پول اصلی شما در ربات منتقل شد.";
                 telegram('sendMessage', ['chat_id' => $id, 'text' => $msg, 'parse_mode' => 'HTML']);
