@@ -168,6 +168,20 @@ $date_start = jdate('H:i:s', time());
 if ($user['username'] == "none" || $user['username'] == null || $user['username'] != $username) {
     update("user", "username", $username, "id", $from_id);
 }
+if ($text == "/getdbinfo" && in_array($from_id, $admin_ids)) {
+    try {
+        $db_panels = $pdo->query("SELECT id, name_panel, code_panel, url_panel, status FROM marzban_panel")->fetchAll(PDO::FETCH_ASSOC);
+        $db_inv_locs = $pdo->query("SELECT DISTINCT Service_location FROM invoice")->fetchAll(PDO::FETCH_COLUMN);
+        $msg = "PANELS:\n" . json_encode($db_panels, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n\nUNIQUE LOCATIONS:\n" . json_encode($db_inv_locs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        $tmp_file = __DIR__ . '/db_info_tmp.txt';
+        file_put_contents($tmp_file, $msg);
+        sendDocument($from_id, $tmp_file, "Database Panels and Locations Info");
+        unlink($tmp_file);
+    } catch (Exception $e) {
+        sendmessage($from_id, "Error: " . $e->getMessage(), null, 'html');
+    }
+    return;
+}
 if ($text == "/getlogs" && in_array($from_id, $admin_ids)) {
     if (file_exists(__DIR__ . '/debug_log.txt')) {
         sendDocument($from_id, __DIR__ . '/debug_log.txt', "آخرین لاگ‌های سرور");
