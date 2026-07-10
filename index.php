@@ -6292,8 +6292,24 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         if (isset($res_msg['ok']) && $res_msg['ok'] && isset($res_msg['result']['message_id'])) {
             $msg_id = $res_msg['result']['message_id'];
             $sql_insert = "INSERT INTO admin_payment_messages (id_order, admin_id, message_id) VALUES (?, ?, ?)";
-            $stmt_insert = $pdo->prepare($sql_insert);
-            $stmt_insert->execute([$PaymentReport['id_order'], $id_admin, $msg_id]);
+            try {
+                $stmt_insert = $pdo->prepare($sql_insert);
+                $stmt_insert->execute([$PaymentReport['id_order'], $id_admin, $msg_id]);
+            } catch (PDOException $e) {
+                if (strpos($e->getMessage(), 'Base table or view not found') !== false || strpos($e->getMessage(), 'doesn\'t exist') !== false) {
+                    $pdo->exec("CREATE TABLE IF NOT EXISTS admin_payment_messages (
+                        id INT(11) AUTO_INCREMENT PRIMARY KEY,
+                        id_order VARCHAR(255) NOT NULL,
+                        admin_id VARCHAR(255) NOT NULL,
+                        message_id VARCHAR(255) NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )");
+                    $stmt_insert = $pdo->prepare($sql_insert);
+                    $stmt_insert->execute([$PaymentReport['id_order'], $id_admin, $msg_id]);
+                } else {
+                    error_log("Failed to insert admin_payment_messages: " . $e->getMessage());
+                }
+            }
         }
     }
     if ($user['Processing_value_tow'] == "getconfigafterpay") {
@@ -6422,8 +6438,24 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         if (isset($res_msg['ok']) && $res_msg['ok'] && isset($res_msg['result']['message_id'])) {
             $msg_id = $res_msg['result']['message_id'];
             $sql_insert = "INSERT INTO admin_payment_messages (id_order, admin_id, message_id) VALUES (?, ?, ?)";
-            $stmt_insert = $pdo->prepare($sql_insert);
-            $stmt_insert->execute([$PaymentReport['id_order'], $id_admin, $msg_id]);
+            try {
+                $stmt_insert = $pdo->prepare($sql_insert);
+                $stmt_insert->execute([$PaymentReport['id_order'], $id_admin, $msg_id]);
+            } catch (PDOException $e) {
+                if (strpos($e->getMessage(), 'Base table or view not found') !== false || strpos($e->getMessage(), 'doesn\'t exist') !== false) {
+                    $pdo->exec("CREATE TABLE IF NOT EXISTS admin_payment_messages (
+                        id INT(11) AUTO_INCREMENT PRIMARY KEY,
+                        id_order VARCHAR(255) NOT NULL,
+                        admin_id VARCHAR(255) NOT NULL,
+                        message_id VARCHAR(255) NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )");
+                    $stmt_insert = $pdo->prepare($sql_insert);
+                    $stmt_insert->execute([$PaymentReport['id_order'], $id_admin, $msg_id]);
+                } else {
+                    error_log("Failed to insert admin_payment_messages: " . $e->getMessage());
+                }
+            }
         }
     }
     $split_data = explode('|', $PaymentReport['id_invoice']);

@@ -3240,9 +3240,13 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         ]);
         
         // Sync for all admins
-        $stmt_msg = $pdo->prepare("SELECT admin_id, message_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ?");
-        $stmt_msg->execute([$order_id, $chat_id]);
-        $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt_msg = $pdo->prepare("SELECT admin_id, message_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ?");
+            $stmt_msg->execute([$order_id, $chat_id]);
+            $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            $admin_msgs = [];
+        }
         foreach ($admin_msgs as $am) {
             telegram('editMessageCaption', [
                 'chat_id' => $am['admin_id'],
@@ -3291,9 +3295,13 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     ]);
 
     // Sync for all admins
-    $stmt_msg = $pdo->prepare("SELECT admin_id, message_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ?");
-    $stmt_msg->execute([$order_id, $chat_id]);
-    $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt_msg = $pdo->prepare("SELECT admin_id, message_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ?");
+        $stmt_msg->execute([$order_id, $chat_id]);
+        $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        $admin_msgs = [];
+    }
     foreach ($admin_msgs as $am) {
         telegram('editMessageReplyMarkup', [
             'chat_id' => $am['admin_id'],
@@ -3371,9 +3379,13 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     ]);
 
     // Sync for all admins
-    $stmt_msg = $pdo->prepare("SELECT admin_id, message_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ?");
-    $stmt_msg->execute([$id_order, $chat_id]);
-    $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt_msg = $pdo->prepare("SELECT admin_id, message_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ?");
+        $stmt_msg->execute([$id_order, $chat_id]);
+        $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        $admin_msgs = [];
+    }
     foreach ($admin_msgs as $am) {
         telegram('editMessageReplyMarkup', [
             'chat_id' => $am['admin_id'],
@@ -3389,9 +3401,13 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     sendmessage($user['Processing_value'], $text_reject, null, 'HTML');
     
     // Notify other admins about the rejection reason
-    $stmt_msg = $pdo->prepare("SELECT admin_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ? GROUP BY admin_id");
-    $stmt_msg->execute([$user['Processing_value_one'], $from_id]);
-    $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt_msg = $pdo->prepare("SELECT admin_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ? GROUP BY admin_id");
+        $stmt_msg->execute([$user['Processing_value_one'], $from_id]);
+        $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        $admin_msgs = [];
+    }
     $reason_msg = "❌ رسید سفارش <code>{$user['Processing_value_one']}</code> توسط همکار شما رد شد.\n\n💬 دلیل رد: {$text}";
     foreach ($admin_msgs as $am) {
         sendmessage($am['admin_id'], $reason_msg, null, 'HTML');
