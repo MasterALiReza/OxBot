@@ -1662,73 +1662,17 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     if (isset($DataUserOut['msg']) && $DataUserOut['msg'] == "User not found") {
         update("invoice", "Status", "disabledn", "id_invoice", $nameloc['id_invoice']);
 
-        // Reload the list for this panel so the user sees the updated red status immediately
+        // Send a separate alert message so the list message stays intact
         $selected_panel = $nameloc['Service_location'];
         $loc_hash = sprintf("%u", crc32($selected_panel));
-        $page = intval($user['pagenumber']) ?: 1;
-        $items_per_page = 20;
-        $start_index = ($page - 1) * $items_per_page;
-
-        $stmt_list = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
-        $stmt_list->bindParam(':id_user', $from_id);
-        $stmt_list->bindParam(':loc', $selected_panel);
-        $stmt_list->execute();
-
-        $keyboardlists = ['inline_keyboard' => []];
-        while ($row = $stmt_list->fetch(PDO::FETCH_ASSOC)) {
-            $status_emoji = "🟢";
-            $status_suffix = "";
-            if ($row['Status'] == 'end_of_time' || $row['Status'] == 'sendedwarn') {
-                $status_emoji = "🔴"; $status_suffix = " (منقضی)";
-            } elseif ($row['Status'] == 'end_of_volume') {
-                $status_emoji = "🔴"; $status_suffix = " (پایان حجم)";
-            } elseif ($row['Status'] == 'send_on_hold') {
-                $status_emoji = "🔴"; $status_suffix = " (غیرفعال)";
-            } elseif ($row['Status'] == 'disabledn') {
-                $status_emoji = "🔴"; $status_suffix = " (حذف شده)";
-            }
-            $keyboardlists['inline_keyboard'][] = [
-                ['text' => $status_emoji . " " . $row['username'] . $status_suffix, 'callback_data' => "extend_" . $row['id_invoice']]
-            ];
-        }
-
-        $stmt_count2 = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn')");
-        $stmt_count2->bindParam(':id_user', $from_id);
-        $stmt_count2->bindParam(':loc', $selected_panel);
-        $stmt_count2->execute();
-        $numpage2 = $stmt_count2->fetchColumn();
-        $total_pages2 = max(1, ceil($numpage2 / $items_per_page));
-
-        if ($numpage2 > $items_per_page) {
-            $next_p = ($page >= $total_pages2) ? 1 : $page + 1;
-            $prev_p = ($page <= 1) ? $total_pages2 : $page - 1;
-            $next_c = ($next_p < $total_pages2) ? $items_per_page : ($numpage2 - ($total_pages2 - 1) * $items_per_page);
-            $prev_c = ($prev_p < $total_pages2) ? $items_per_page : ($numpage2 - ($total_pages2 - 1) * $items_per_page);
-            $keyboardlists['inline_keyboard'][] = [
-                ['text' => "⬅️ قبلی ($prev_c)", 'callback_data' => 'previous_page_extends'],
-                ['text' => "بعدی ($next_c) ➡️", 'callback_data' => 'next_page_extends']
-            ];
-        }
-
-        $stmt_inactive2 = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn')");
-        $stmt_inactive2->bindParam(':id_user', $from_id);
-        $stmt_inactive2->bindParam(':loc', $selected_panel);
-        $stmt_inactive2->execute();
-        $inactive_cnt2 = $stmt_inactive2->fetchColumn();
-        if ($inactive_cnt2 > 0) {
-            $keyboardlists['inline_keyboard'][] = [
-                ['text' => "🗑 پاکسازی سرویس‌های غیرفعال ($inactive_cnt2)", 'callback_data' => "clear_inactive_" . $loc_hash]
-            ];
-        }
-        $keyboardlists['inline_keyboard'][] = [['text' => "بازگشت", 'callback_data' => 'extendbtn']];
-        $keyboard_json = json_encode($keyboardlists);
-
-        $msg_text = "⚠️ <b>سرویس " . htmlspecialchars($nameloc['username']) . " در سرور یافت نشد و حذف شده است.</b>\n\n";
-        $msg_text .= "📂 <b>لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . "</b>\n\n";
-        $msg_text .= "📊 تعداد کل سرویس‌ها: <b>" . $numpage2 . "</b> | صفحه <b>" . $page . "</b> از <b>" . $total_pages2 . "</b>";
-        Editmessagetext($from_id, $message_id, $msg_text, $keyboard_json);
+        $back_keyboard = json_encode(['inline_keyboard' => [
+            [['text' => "🔙 بازگشت به لیست سرویس‌ها", 'callback_data' => "extpnl|" . $loc_hash]],
+            [['text' => "🏠 بازگشت به منوی اصلی", 'callback_data' => 'backuser']]
+        ]]);
+        sendmessage($from_id, "❌ <b>سرویس " . htmlspecialchars($nameloc['username']) . " در سرور یافت نشد.</b>\n\nاین سرویس به عنوان <b>حذف شده</b> علامت‌گذاری شد و دیگر در لیست به صورت قرمز 🔴 نمایش داده می‌شود.", $back_keyboard, 'html');
         return;
     }
+
     $textinfo_prefix = "";
     if ($DataUserOut['status'] == "Unsuccessful") {
         $textinfo_prefix = "⚠️ <b>اطلاعات موقتاً به‌روز نیست</b> (ارتباط با سرور پنل برقرار نشد)\n\n";
@@ -7853,190 +7797,66 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     $stmt_del->execute();
     $deleted_count = $stmt_del->rowCount();
     
-    sendalert($callback_id, "✅ تعداد {$deleted_count} سرویس غیرفعال با موفقیت پاکسازی شد.");
+    // Show the updated list for the same panel after cleanup
+    update("user", "Processing_value_four", $selected_panel, "id", $from_id);
+    update("user", "pagenumber", 1, "id", $from_id);
+    $page = 1;
+    $items_per_page = 20;
+    $start_index = 0;
     
-    // Re-check distinct locations to reconstruct locations keyboard dynamically
-    $stmt_locs_check = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR status = 'disabledn')");
-    $stmt_locs_check->execute([':id_user' => $from_id]);
-    $locs_check = $stmt_locs_check->fetchAll(PDO::FETCH_COLUMN);
+    if ($selected_panel == "سایر") {
+        $stmt_after = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+        $stmt_after->bindParam(':id_user', $from_id);
+    } else {
+        $stmt_after = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+        $stmt_after->bindParam(':id_user', $from_id);
+        $stmt_after->bindParam(':loc', $selected_panel);
+    }
+    $stmt_after->execute();
     
-    $keyboardlists = ['inline_keyboard' => []];
-    $locations_list = [];
-    foreach ($locs_check as $l_check) {
-        $l_check_name = empty($l_check) ? "سایر" : $l_check;
-        if ($l_check_name == "سایر") {
-            $stmt_inv_any = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn')");
-        } else {
-            $stmt_inv_any = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn')");
-            $stmt_inv_any->bindParam(':loc', $l_check);
-        }
-        $stmt_inv_any->bindParam(':id_user', $from_id);
-        $stmt_inv_any->execute();
-        if ($stmt_inv_any->fetchColumn() > 0) {
-            $locations_list[] = ['Service_location' => $l_check_name];
-        }
+    $keyboardlists_after = ['inline_keyboard' => []];
+    while ($row = $stmt_after->fetch(PDO::FETCH_ASSOC)) {
+        $status_emoji = "🟢"; $status_suffix = "";
+        if ($row['Status'] == 'end_of_time' || $row['Status'] == 'sendedwarn') { $status_emoji = "🔴"; $status_suffix = " (منقضی)"; }
+        elseif ($row['Status'] == 'end_of_volume') { $status_emoji = "🔴"; $status_suffix = " (پایان حجم)"; }
+        elseif ($row['Status'] == 'send_on_hold') { $status_emoji = "🔴"; $status_suffix = " (غیرفعال)"; }
+        elseif ($row['Status'] == 'disabledn') { $status_emoji = "🔴"; $status_suffix = " (حذف شده)"; }
+        $keyboardlists_after['inline_keyboard'][] = [['text' => $status_emoji . " " . $row['username'] . $status_suffix, 'callback_data' => "extend_" . $row['id_invoice']]];
     }
     
-    if (empty($locations_list)) {
-        Editmessagetext($from_id, $message_id, $textbotlang['users']['extend']['emptyServiceforExtend'], null);
+    if ($selected_panel == "سایر") {
+        $stmt_cnt_after = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn')");
+        $stmt_cnt_after->bindParam(':id_user', $from_id);
+    } else {
+        $stmt_cnt_after = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn')");
+        $stmt_cnt_after->bindParam(':id_user', $from_id);
+        $stmt_cnt_after->bindParam(':loc', $selected_panel);
+    }
+    $stmt_cnt_after->execute();
+    $numpage_after = $stmt_cnt_after->fetchColumn();
+    $total_pages_after = max(1, ceil($numpage_after / $items_per_page));
+    
+    if ($numpage_after == 0) {
+        Editmessagetext($from_id, $message_id, "✅ <b>پاکسازی موفق!</b>\n\nتعداد <b>{$deleted_count}</b> سرویس غیرفعال حذف شد.\n\nهیچ سرویس دیگری در این لوکیشن یافت نشد.", json_encode(['inline_keyboard' => [[['text' => "🏠 بازگشت به منوی اصلی", 'callback_data' => 'backuser']]]]));
         return;
     }
     
-    // Sort locations: V2Ray first, then Turkey, then Call of Duty
-    usort($locations_list, function($a, $b) {
-        $name_a = $a['Service_location'];
-        $name_b = $b['Service_location'];
-        $get_weight = function($name) {
-            if ($name === "سایر") return 99;
-            if (stripos($name, 'v2ray') !== false || stripos($name, 'مولتی') !== false || stripos($name, 'لوکیشن') !== false) return 1;
-            if (stripos($name, 'ترکیه') !== false || stripos($name, 'game') !== false || stripos($name, 'گیم') !== false) return 2;
-            if (stripos($name, 'کالاف') !== false || stripos($name, 'cod') !== false || stripos($name, 'موبایل') !== false) return 3;
-            return 10;
-        };
-        $w_a = $get_weight($name_a);
-        $w_b = $get_weight($name_b);
-        if ($w_a !== $w_b) return $w_a <=> $w_b;
-        return strnatcasecmp($name_a, $name_b);
-    });
-    
-    // Auto-skip if the user only has services in exactly one location/panel left!
-    if (count($locations_list) == 1) {
-        $loc = $locations_list[0];
-        $selected_panel = $loc['Service_location'];
-        update("user", "Processing_value_four", $selected_panel, "id", $from_id);
-        
-        $pages = 1;
-        update("user", "pagenumber", $pages, "id", $from_id);
-        $page = 1;
-        $items_per_page = 20;
-        $start_index = ($page - 1) * $items_per_page;
-        
-        if ($selected_panel == "سایر") {
-            $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
-            $stmt->bindParam(':id_user', $from_id);
-        } else {
-            $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
-            $stmt->bindParam(':id_user', $from_id);
-            $stmt->bindParam(':loc', $selected_panel);
-        }
-        $stmt->execute();
-        
-        $keyboardlists = ['inline_keyboard' => []];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $status_emoji = "🟢";
-            $status_suffix = "";
-            if ($row['Status'] == 'end_of_time' || $row['Status'] == 'sendedwarn') {
-                $status_emoji = "🔴";
-                $status_suffix = " (منقضی)";
-            } elseif ($row['Status'] == 'end_of_volume') {
-                $status_emoji = "🔴";
-                $status_suffix = " (پایان حجم)";
-            } elseif ($row['Status'] == 'send_on_hold') {
-                $status_emoji = "🔴";
-                $status_suffix = " (غیرفعال)";
-            } elseif ($row['Status'] == 'disabledn') {
-                $status_emoji = "🔴";
-                $status_suffix = " (حذف شده)";
-            }
-
-            $data = "";
-            if ($statusnote && $row['note'] != null) {
-                $data = " | {$row['note']}";
-            }
-            $keyboardlists['inline_keyboard'][] = [
-                ['text' => $status_emoji . " " . $row['username'] . $status_suffix . $data, 'callback_data' => "extend_" . $row['id_invoice']]
-            ];
-        }
-        
-        if ($selected_panel == "سایر") {
-            $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn')");
-            $stmt_count->bindParam(':id_user', $from_id);
-        } else {
-            $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn')");
-            $stmt_count->bindParam(':id_user', $from_id);
-            $stmt_count->bindParam(':loc', $selected_panel);
-        }
-        $stmt_count->execute();
-        $numpage = $stmt_count->fetchColumn();
-        
-        $total_pages = ceil($numpage / $items_per_page);
-        if ($total_pages == 0) $total_pages = 1;
-        
-        $next_page_num = ($page >= $total_pages) ? 1 : $page + 1;
-        $next_count = ($next_page_num < $total_pages) ? $items_per_page : ($numpage - ($total_pages - 1) * $items_per_page);
-        
-        $prev_page_num = ($page <= 1) ? $total_pages : $page - 1;
-        $prev_count = ($prev_page_num < $total_pages) ? $items_per_page : ($numpage - ($total_pages - 1) * $items_per_page);
-        
-        if ($numpage > $items_per_page) {
-            $keyboardlists['inline_keyboard'][] = [
-                ['text' => "⬅️ قبلی (" . $prev_count . ")", 'callback_data' => 'previous_page_extends'],
-                ['text' => "بعدی (" . $next_count . ") ➡️", 'callback_data' => 'next_page_extends']
-            ];
-        }
-        
-        // Clean inactive services button
-        if ($selected_panel == "سایر") {
-            $stmt_inactive = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn')");
-            $stmt_inactive->bindParam(':id_user', $from_id);
-        } else {
-            $stmt_inactive = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabledn')");
-            $stmt_inactive->bindParam(':id_user', $from_id);
-            $stmt_inactive->bindParam(':loc', $selected_panel);
-        }
-        $stmt_inactive->execute();
-        $inactive_count = $stmt_inactive->fetchColumn();
-        
-        if ($inactive_count > 0) {
-            $loc_hash = sprintf("%u", crc32($selected_panel));
-            $keyboardlists['inline_keyboard'][] = [
-                ['text' => "🗑 پاکسازی سرویس‌های غیرفعال (" . $inactive_count . ")", 'callback_data' => "clear_inactive_" . $loc_hash]
-            ];
-        }
-        
-        $keyboardlists['inline_keyboard'][] = [['text' => "بازگشت", 'callback_data' => 'backuser']];
-        $keyboard_json = json_encode($keyboardlists);
-        
-        $msg_text = "📂 <b>لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . "</b>\n\n";
-        $msg_text .= "📊 تعداد کل سرویس‌ها: <b>" . $numpage . "</b> | صفحه <b>" . $page . "</b> از <b>" . $total_pages . "</b>";
-        
-        Editmessagetext($from_id, $message_id, $msg_text, $keyboard_json);
-        return;
+    if ($numpage_after > $items_per_page) {
+        $next_p_a = ($page >= $total_pages_after) ? 1 : $page + 1;
+        $prev_p_a = ($page <= 1) ? $total_pages_after : $page - 1;
+        $next_c_a = ($next_p_a < $total_pages_after) ? $items_per_page : ($numpage_after - ($total_pages_after - 1) * $items_per_page);
+        $prev_c_a = ($prev_p_a < $total_pages_after) ? $items_per_page : ($numpage_after - ($total_pages_after - 1) * $items_per_page);
+        $keyboardlists_after['inline_keyboard'][] = [['text' => "⬅️ قبلی ($prev_c_a)", 'callback_data' => 'previous_page_extends'], ['text' => "بعدی ($next_c_a) ➡️", 'callback_data' => 'next_page_extends']];
     }
     
-    // Multiple locations left - show panel select keyboard
-    foreach ($locations_list as $loc) {
-        $loc_name = $loc['Service_location'];
-        $loc_hash = sprintf("%u", crc32($loc_name));
-        
-        $clean_name = $loc_name;
-        if ($loc_name !== "سایر") {
-            if (!function_exists('get_clean_display_name')) {
-                function get_clean_display_name($name) {
-                    $suffix = '';
-                    if (preg_match('/\((.*?)\)/u', $name, $matches)) {
-                        $p_content = $matches[1];
-                        if (stripos($p_content, 'سوپر') !== false) $suffix = ' (سوپر)';
-                        elseif (stripos($p_content, 'نرمال') !== false) $suffix = ' (نرمال)';
-                        elseif (stripos($p_content, 'vip') !== false || stripos($p_content, 'وی آی پی') !== false) $suffix = ' (VIP)';
-                    }
-                    $name = preg_replace('/\s*\(.*?\)/u', '', $name);
-                    $name = preg_replace('/\s*\[.*?\]/u', '', $name);
-                    $name = preg_replace('/[\x{1F300}-\x{1F9FF}]|[\x{1F600}-\x{1F64F}]|[\x{1F680}-\x{1F6FF}]|[\x{2600}-\x{27BF}]|[\x{1F1E6}-\x{1F1FF}]{2}/u', '', $name);
-                    return trim(preg_replace('/\s+/', ' ', $name)) . $suffix;
-                }
-            }
-            $clean_name = get_clean_display_name($loc_name);
-            if (empty($clean_name)) {
-                $clean_name = $loc_name;
-            }
-        }
-        $keyboardlists['inline_keyboard'][] = [['text' => "🗄 " . $clean_name, 'callback_data' => "extpnl|" . $loc_hash]];
-    }
-    $keyboardlists['inline_keyboard'][] = [['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser']];
-    $keyboard_json = json_encode($keyboardlists);
+    $keyboardlists_after['inline_keyboard'][] = [['text' => "بازگشت", 'callback_data' => 'extendbtn']];
+    $keyboard_after_json = json_encode($keyboardlists_after);
     
-    Editmessagetext($from_id, $message_id, "دسته بندی (پنل) مورد نظر خود را برای تمدید انتخاب کنید:", $keyboard_json);
+    $msg_after = "✅ <b>پاکسازی موفق!</b> تعداد <b>{$deleted_count}</b> سرویس غیرفعال حذف شد.\n\n";
+    $msg_after .= "📂 <b>لیست اشتراک‌های شما جهت تمدید در " . $selected_panel . "</b>\n\n";
+    $msg_after .= "📊 تعداد کل سرویس‌ها: <b>" . $numpage_after . "</b> | صفحه <b>" . $page . "</b> از <b>" . $total_pages_after . "</b>";
+    Editmessagetext($from_id, $message_id, $msg_after, $keyboard_after_json);
+    return;
 
 } elseif ($datain == "linkappdownlod") {
     $countapp = select("app", "*", null, null, "count");
@@ -8057,6 +7877,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     ]);
     Editmessagetext($from_id, $message_id, $textbotlang['users']['note']['sendNote'], $backinfoss);
     step("getnotedit", $from_id);
+
 } elseif ($user['step'] == "getnotedit") {
     $invoice = select("invoice", "*", "id_invoice", $user['Processing_value'], "select");
     if (strlen($text) > 150) {
