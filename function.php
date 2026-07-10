@@ -2065,7 +2065,7 @@ function awardAffiliateCommission($user_id, $price) {
     global $pdo;
 
     // Fetch user details
-    $stmt = $pdo->prepare("SELECT affiliates FROM user WHERE id = :user_id");
+    $stmt = $pdo->prepare("SELECT affiliates, username, namecustom FROM user WHERE id = :user_id");
     $stmt->execute([':user_id' => $user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -2141,12 +2141,15 @@ function awardAffiliateCommission($user_id, $price) {
         $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = COALESCE(affiliate_balance, 0) + :reward WHERE id = :ref_id");
         $stmt->execute([':reward' => $rewardAmount, ':ref_id' => $referrer_id]);
         
-        // Log the commission in affiliate_log and wallet_log
+        // Log the commission in affiliate_log and wallet_log with detailed buyer info
+        $buyer_name = (!empty($user['username']) && $user['username'] !== 'NOT_USERNAME' && $user['username'] !== 'none') ? '@' . $user['username'] : (!empty($user['namecustom']) && $user['namecustom'] !== 'none' ? $user['namecustom'] : $user_id);
+        $log_desc = "پورسانت خرید زیرمجموعه $buyer_name (مبلغ خرید: " . number_format($price) . " تومان)";
+
         $stmt_log_aff = $pdo->prepare("INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'commission', ?, ?)");
-        $stmt_log_aff->execute([$referrer_id, $rewardAmount, "پورسانت خرید زیرمجموعه $user_id"]);
+        $stmt_log_aff->execute([$referrer_id, $rewardAmount, $log_desc]);
 
         $stmt_log_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'deposit', ?, ?)");
-        $stmt_log_wal->execute([$referrer_id, $rewardAmount, "پورسانت خرید زیرمجموعه $user_id"]);
+        $stmt_log_wal->execute([$referrer_id, $rewardAmount, $log_desc]);
         
         if (function_exists('telegram')) {
             global $textbotlang;

@@ -283,11 +283,14 @@ if (strpos($text, "/start ") !== false && $user['step'] != "gettextSystemMessage
                 $stmt->execute([':reward' => $invite_reward, ':id' => $affiliatesid]);
                 
                 // Log the invite reward in affiliate_log and wallet_log
+                $joined_user_name = (!empty($username) && $username !== 'NOT_USERNAME' && $username !== 'none') ? '@' . $username : $from_id;
+                $log_desc = "هدیه دعوت کاربر جدید $joined_user_name";
+
                 $stmt_log_aff = $pdo->prepare("INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'invite_reward', ?, ?)");
-                $stmt_log_aff->execute([$affiliatesid, $invite_reward, "هدیه دعوت کاربر جدید $from_id"]);
+                $stmt_log_aff->execute([$affiliatesid, $invite_reward, $log_desc]);
 
                 $stmt_log_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'deposit', ?, ?)");
-                $stmt_log_wal->execute([$affiliatesid, $invite_reward, "هدیه دعوت کاربر جدید $from_id"]);
+                $stmt_log_wal->execute([$affiliatesid, $invite_reward, $log_desc]);
                 
                 $reward_msg = "🎉 مبلغ <b>" . number_format($invite_reward) . "</b> تومان بابت عضویت زیرمجموعه جدید به کیف پول بازاریابی شما اضافه شد.";
                 sendmessage($affiliatesid, $reward_msg, null, 'html');
