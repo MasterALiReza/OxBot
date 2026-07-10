@@ -1,6 +1,9 @@
 <?php
 function write_debug_log($msg) {
-    file_put_contents(__DIR__ . '/debug_log.txt', date('[Y-m-d H:i:s] ') . $msg . "\n", FILE_APPEND);
+    $log_file = __DIR__ . '/debug_log.php';
+    if (file_exists($log_file) && filesize($log_file) > 5 * 1024 * 1024) unlink($log_file);
+    if (!file_exists($log_file)) file_put_contents($log_file, "<?php die('Forbidden'); ?>" . PHP_EOL);
+    file_put_contents($log_file, date('[Y-m-d H:i:s] ') . $msg . "\n", FILE_APPEND | LOCK_EX);
 }
 $version = file_get_contents('version');
 date_default_timezone_set('Asia/Tehran');
@@ -183,18 +186,44 @@ if ($text == "/getdbinfo" && in_array($from_id, $admin_ids)) {
     return;
 }
 if ($text == "/getlogs" && in_array($from_id, $admin_ids)) {
-    if (file_exists(__DIR__ . '/debug_log.txt')) {
-        sendDocument($from_id, __DIR__ . '/debug_log.txt', "آخرین لاگ‌های سرور");
+    $logFile = __DIR__ . '/debug_log.php';
+    if (!file_exists($logFile)) $logFile = __DIR__ . '/debug_log.txt';
+    if (file_exists($logFile)) {
+        $output = shell_exec("tail -n 50 " . escapeshellarg($logFile) . " | grep -v '<?php'");
+        $tmpFile = __DIR__ . '/debug_log_tmp.txt';
+        file_put_contents($tmpFile, $output);
+        sendDocument($from_id, $tmpFile, "آخرین لاگ‌های سرور");
+        unlink($tmpFile);
     } else {
         sendmessage($from_id, "No logs found.", null, 'html');
     }
     return;
 }
 if ($text == "/clearlogs" && in_array($from_id, $admin_ids)) {
-    if (file_exists(__DIR__ . '/debug_log.txt')) {
-        unlink(__DIR__ . '/debug_log.txt');
-        sendmessage($from_id, "Logs cleared.", null, 'html');
+    @unlink(__DIR__ . '/debug_log.php');
+    @unlink(__DIR__ . '/debug_log.txt');
+    sendmessage($from_id, "Logs cleared.", null, 'html');
+    return;
+}
+if (preg_match('/^\/apilogs\s*(\d*)/', $text, $matches) && in_array($from_id, $admin_ids)) {
+    $lines = !empty($matches[1]) ? intval($matches[1]) : 50;
+    $logFile = __DIR__ . '/api_debug.php';
+    if (!file_exists($logFile)) $logFile = __DIR__ . '/api_debug.log';
+    if (file_exists($logFile)) {
+        $output = shell_exec("tail -n $lines " . escapeshellarg($logFile) . " | grep -v '<?php'");
+        $tmpFile = __DIR__ . '/api_debug_tmp.txt';
+        file_put_contents($tmpFile, $output);
+        sendDocument($from_id, $tmpFile, "آخرین $lines لاگ API");
+        unlink($tmpFile);
+    } else {
+        sendmessage($from_id, "فایل لاگ API هنوز ساخته نشده است.", null, 'html');
     }
+    return;
+}
+if ($text == "/clearapilogs" && in_array($from_id, $admin_ids)) {
+    @unlink(__DIR__ . '/api_debug.php');
+    @unlink(__DIR__ . '/api_debug.log');
+    sendmessage($from_id, "API Logs cleared.", null, 'html');
     return;
 }
 if ($user['register'] == "none") {

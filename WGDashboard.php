@@ -255,7 +255,6 @@ function addpear($namepanel, $usernameac)
     $peerConfig = array(
         'name'                    => $usernameac,
         'allowed_ips'             => [$ipToAssign . '/32'],
-        'allowed_ips_validation'  => false,
         'private_key'             => $pubandprivate['private_key'],
         'public_key'              => $pubandprivate['public_key'],
         'preshared_key'           => $pubandprivate['preshared_key'],
@@ -297,33 +296,6 @@ function addpear($namepanel, $usernameac)
                 'msg' => 'WGDashboard did not respond in time: ' . $response['error']
             );
         }
-    }
-
-
-    // --- STEP 6: Force-set correct IP via updatePeerSettings with retries ---
-    // WGDashboard's addPeers API has a bug where passing allowed_ips as array sets IP to N/A.
-    // Passing as string causes format error. So we pass array, let it set N/A, then update.
-    $max_update_retries = 20;
-    $ipUpdateResult = null;
-    for ($i = 0; $i < $max_update_retries; $i++) {
-        $ipUpdateResult = updatepear($namepanel, [
-            'id'                     => $pubandprivate['public_key'],
-            'name'                   => $usernameac,
-            'allowed_ip'             => $ipToAssign . '/32',
-            'endpoint_allowed_ip'    => '0.0.0.0/0',
-            'DNS'                    => '1.1.1.1',
-            'mtu'                    => 1420,
-            'keepalive'              => 21,
-            'preshared_key'          => $pubandprivate['preshared_key'],
-            'private_key'            => $pubandprivate['private_key'],
-        ]);
-        if (!empty($ipUpdateResult['status']) && $ipUpdateResult['status'] == 200) {
-            break;
-        }
-        usleep(500000); // 0.5s delay
-    }
-    if (empty($ipUpdateResult['status']) || $ipUpdateResult['status'] != 200) {
-        error_log("[WGDashboard] updatePeer IP failed for {$usernameac} after retries.");
     }
 
     // Release advisory lock after peer is confirmed added and IP is successfully updated

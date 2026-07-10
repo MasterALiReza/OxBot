@@ -70,16 +70,52 @@ class CurlRequest {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         }
 
+        $startTime = microtime(true);
         $response = curl_exec($ch);
+        $durationMs = round((microtime(true) - $startTime) * 1000);
+        
+        $error = null;
+        $httpCode = null;
         if (curl_errno($ch)) {
             $error = curl_error($ch);
+        } else {
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        }
+        curl_close($ch);
+
+        // --- API Logging ---
+        $log_file = __DIR__ . '/api_debug.php';
+        
+        // Log rotation: reset if larger than 5MB
+        if (file_exists($log_file) && filesize($log_file) > 5 * 1024 * 1024) {
+            unlink($log_file);
+        }
+        
+        // Ensure file is not directly readable via web (Security)
+        if (!file_exists($log_file)) {
+            file_put_contents($log_file, "<?php die('Forbidden'); ?>" . PHP_EOL);
+        }
+
+        $log_entry = [
+            'time' => date('Y-m-d H:i:s'),
+            'method' => strtoupper($method),
+            'url' => $this->url,
+            'payload' => $data,
+            'status' => $httpCode,
+            'error' => $error,
+            'response' => $response,
+            'duration_ms' => $durationMs
+        ];
+        
+        file_put_contents($log_file, json_encode($log_entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND | LOCK_EX);
+
+        if ($error) {
             return [
                 'status' => null,
                 'body' => null,
                 'error' => $error,
             ];
         }
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         return [
             'status' => $httpCode,
