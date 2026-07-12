@@ -3244,9 +3244,6 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             ]);
         }
         
-        update("user", "Processing_value_one", "none", "id", $Balance_id['id']);
-        update("user", "Processing_value_tow", "none", "id", $Balance_id['id']);
-        update("user", "Processing_value_four", "none", "id", $Balance_id['id']);
         return;
     }
 
@@ -3271,9 +3268,6 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         ]);
     }
     update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
-    update("user", "Processing_value_one", "none", "id", $Balance_id['id']);
-    update("user", "Processing_value_tow", "none", "id", $Balance_id['id']);
-    update("user", "Processing_value_four", "none", "id", $Balance_id['id']);
 
     telegram('editMessageReplyMarkup', [
         'chat_id' => $chat_id,
@@ -3344,15 +3338,13 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         'cache_time' => 5,
     ));
 
-    update("Payment_report", "payment_Status", "reject", "id_order", $id_order);
-
     sendmessage($from_id, $textbotlang['Admin']['Payment']['reasonRejecting'], $backadmin, 'HTML');
     step('reject-dec', $from_id);
     
     $Confirm_pay_fail = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => '❌ ناموفق', 'callback_data' => "confirmpaid_failed"],
+                ['text' => '⏳ در حال نوشتن دلیل رد...', 'callback_data' => "confirmpaid_failed"],
             ],
             [
                 ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
@@ -3382,14 +3374,36 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     }
 } elseif ($user['step'] == "reject-dec") {
     $Payment_report = select("Payment_report", "*", "id_order", $user['Processing_value_one'], "select");
+    
+    // Check if it's already processed by another admin
+    if ($Payment_report == false || $Payment_report['payment_Status'] == 'paid' || $Payment_report['payment_Status'] == 'reject') {
+        sendmessage($from_id, "❌ این رسید قبلاً تعیین وضعیت شده است.", $keyboardadmin, 'HTML');
+        update("user", "Processing_value", "none", "id", $from_id);
+        update("user", "Processing_value_one", "none", "id", $from_id);
+        step('admin', $from_id);
+        return;
+    }
+
+    update("Payment_report", "payment_Status", "reject", "id_order", $user['Processing_value_one']);
     update("Payment_report", "dec_not_confirmed", $text, "id_order", $user['Processing_value_one']);
     $text_reject = sprintf($textbotlang['Admin']['adminphp']['err_user_payment'], $text, $user['Processing_value_one']);
     sendmessage($from_id, $textbotlang['Admin']['Payment']['rejected'], $keyboardadmin, 'HTML');
     sendmessage($user['Processing_value'], $text_reject, null, 'HTML');
     
-    // Notify other admins about the rejection reason
+    $Confirm_pay_fail = json_encode([
+        'inline_keyboard' => [
+            [
+                ['text' => '❌ ناموفق', 'callback_data' => "confirmpaid_failed"],
+            ],
+            [
+                ['text' => $textbotlang['keyboard']['userManagementBtn'], 'callback_data' => "manageuser_" . $Payment_report['id_user']],
+            ]
+        ]
+    ]);
+    
+    // Notify other admins about the rejection reason and update their keyboards
     try {
-        $stmt_msg = $pdo->prepare("SELECT admin_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ? GROUP BY admin_id");
+        $stmt_msg = $pdo->prepare("SELECT admin_id, message_id FROM admin_payment_messages WHERE id_order = ? AND admin_id != ?");
         $stmt_msg->execute([$user['Processing_value_one'], $from_id]);
         $admin_msgs = $stmt_msg->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -3398,9 +3412,16 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     $reason_msg = "❌ رسید سفارش <code>{$user['Processing_value_one']}</code> توسط همکار شما رد شد.\n\n💬 دلیل رد: {$text}";
     foreach ($admin_msgs as $am) {
         sendmessage($am['admin_id'], $reason_msg, null, 'HTML');
+        telegram('editMessageReplyMarkup', [
+            'chat_id' => $am['admin_id'],
+            'message_id' => $am['message_id'],
+            'reply_markup' => $Confirm_pay_fail
+        ]);
     }
-    
-    step('home', $from_id);
+
+    update("user", "Processing_value", "none", "id", $from_id);
+    update("user", "Processing_value_one", "none", "id", $from_id);
+    step('admin', $from_id);
     $text_report = sprintf($textbotlang['Admin']['adminphp']['err_user_admin_payment'], $Payment_report['Payment_Method'], $from_id, $username, $Payment_report['price'], $text, $Payment_report['id_user']);
     if (strlen($setting['Channel_Report']) > 0) {
         telegram('sendmessage', [

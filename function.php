@@ -803,10 +803,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
     $format_price_cart = number_format($Payment_report['price']);
     $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
     $steppay = explode("|", $Payment_report['id_invoice']);
-    update("user", "Processing_value", "0", "id", $Balance_id['id']);
-    update("user", "Processing_value_one", "0", "id", $Balance_id['id']);
-    update("user", "Processing_value_tow", "0", "id", $Balance_id['id']);
-    update("user", "Processing_value_four", "0", "id", $Balance_id['id']);
+
     if ($steppay[0] == "getconfigafterpay") {
         $get_invoice = select("invoice", "*", "username", $steppay[1], "select");
         $loc_cond = getProductLocCondition($get_invoice['Service_location']);
