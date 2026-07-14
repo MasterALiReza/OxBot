@@ -1804,6 +1804,16 @@ class ManagePanel
                 'status' => 'successful',
                 'msg' => null
             );
+        } elseif ($Get_Data_Panel['type'] == "WGDashboard") {
+            if ($DataUserOut['status'] == "active") {
+                restrictPeers($name_panel, $username);
+            } else {
+                allowAccessPeers($name_panel, $username);
+            }
+            $Output = array(
+                'status' => 'successful',
+                'msg' => null
+            );
         }
 
         return $Output;
