@@ -408,6 +408,14 @@ body.agent-panel-body {
     gap: 28px;
     align-items: center;
     transition: transform var(--au-transition), box-shadow var(--au-transition), border-color var(--au-transition);
+    position: relative;
+    z-index: 1;
+}
+
+.au-card:hover,
+.au-card:focus-within,
+.au-card:has(.au-dropdown.show) {
+    z-index: 50;
 }
 
 .au-card:hover {
