@@ -1207,7 +1207,7 @@ $optionmarzneshin = json_encode([
         [['text' => $textbotlang['keyboard']['editPanelUrl']], ['text' => $textbotlang['keyboard']['renewalMethod']]],
         [['text' => $textbotlang['keyboard']['usernameMethod']]],
         [['text' => $textbotlang['keyboard']['serviceSettings']], ['text' => $textbotlang['keyboard']['accountCreateLimit']]],
-        [['text' => $textbotlang['keyboard']['changeUserGroup']]],
+        [['text' => $textbotlang['keyboard']['changeUserGroup']], ['text' => $textbotlang['Admin']['adminphp']['btn_custom_sub_domain']]],
         [['text' => $textbotlang['keyboard']['testServiceTime']], ['text' => $textbotlang['keyboard']['testAccountVolume']]],
         [['text' => $textbotlang['keyboard']['changeLocationPrice']], ['text' => $textbotlang['keyboard']['extraVolumePrice']]],
         [['text' => $textbotlang['keyboard']['extraTimePrice']], ['text' => $textbotlang['keyboard']['customVolumePrice']]],

@@ -861,9 +861,18 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
         if ($cat) $cat_id = $cat['id'];
     }
     savedata("save", "category_id", $cat_id);
-    $skip_kb = json_encode(['keyboard' => [[['text' => 'بدون ساب‌دامنه اختصاصی']]], 'resize_keyboard' => true]);
-    sendmessage($from_id, "لطفاً ساب‌دامنه اختصاصی (بدون https) را وارد کنید و یا روی دکمه بدون ساب‌دامنه کلیک کنید:", $skip_kb, 'HTML');
-    step('get_custom_sub_domain', $from_id);
+    
+    $userdata = json_decode($user['Processing_value'], true);
+    $xray_panels = ['x-ui_single', 'MHSanaei-3.2', 'alireza', 'marzban', 's_ui', 'marzneshin'];
+    if (in_array($userdata['type'], $xray_panels)) {
+        $skip_kb = json_encode(['keyboard' => [[['text' => 'بدون ساب‌دامنه اختصاصی']]], 'resize_keyboard' => true]);
+        sendmessage($from_id, "لطفاً ساب‌دامنه اختصاصی (بدون https) را وارد کنید و یا روی دکمه بدون ساب‌دامنه کلیک کنید:", $skip_kb, 'HTML');
+        step('get_custom_sub_domain', $from_id);
+    } else {
+        savedata("save", "custom_sub_domain", null);
+        sendmessage($from_id, $textbotlang['Admin']['managepanel']['getLimitedPanel'], $backadmin, 'HTML');
+        step('getlimitedpanel', $from_id);
+    }
 } elseif ($user['step'] == "get_custom_sub_domain") {
     $sub_domain = ($text == 'بدون ساب‌دامنه اختصاصی') ? null : $text;
     savedata("save", "custom_sub_domain", $sub_domain);
