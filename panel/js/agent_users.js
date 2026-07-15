@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     // Mobile Sidebar Toggle
     const toggleBtn = document.getElementById('au-mobile-toggle');
     const sidebar = document.getElementById('au-sidebar');
@@ -150,16 +150,16 @@ async function openChargeWalletModal() {
             }
 
             if(!hasGateway) {
-                errorEl.innerText = 'Ù‡ÛŒÚ† Ø¯Ø±Ú¯Ø§Ù‡ Ù¾Ø±Ø¯Ø§Ø®ØªÛŒ ÙØ¹Ø§Ù„ Ù†ÛŒØ³Øª.';
+                errorEl.innerText = 'هیچ درگاه پرداختی فعال نیست.';
                 errorEl.style.display = 'block';
             }
         } else {
-            errorEl.innerText = json.message || 'Ø®Ø·Ø§ Ø¯Ø± Ø¯Ø±ÛŒØ§ÙØª Ø¯Ø±Ú¯Ø§Ù‡â€ŒÙ‡Ø§';
+            errorEl.innerText = json.message || 'خطا در دریافت درگاه‌ها';
             errorEl.style.display = 'block';
         }
     } catch(e) {
         console.error(e);
-        errorEl.innerText = 'Ø§Ø±ØªØ¨Ø§Ø· Ø¨Ø§ Ø³Ø±ÙˆØ± Ø¨Ø±Ù‚Ø±Ø§Ø± Ù†Ø´Ø¯.';
+        errorEl.innerText = 'ارتباط با سرور برقرار نشد.';
         errorEl.style.display = 'block';
     }
 }
@@ -182,13 +182,13 @@ async function submitChargeWallet() {
     const selectedGateway = document.querySelector('input[name="charge_gateway"]:checked');
     
     if(!amount || amount < 1000) {
-        errorEl.innerText = 'Ù…Ø¨Ù„Øº Ù…Ø¹ØªØ¨Ø± Ù†ÛŒØ³Øª (Ø­Ø¯Ø§Ù‚Ù„ 1000 ØªÙˆÙ…Ø§Ù†)';
+        errorEl.innerText = 'مبلغ معتبر نیست (حداقل 1000 تومان)';
         errorEl.style.display = 'block';
         return;
     }
 
     if(!selectedGateway) {
-        errorEl.innerText = 'Ù„Ø·ÙØ§Ù‹ ÛŒÚ© Ø±ÙˆØ´ Ù¾Ø±Ø¯Ø§Ø®Øª Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ù†ÛŒØ¯.';
+        errorEl.innerText = 'لطفاً یک روش پرداخت انتخاب کنید.';
         errorEl.style.display = 'block';
         return;
     }
@@ -199,7 +199,7 @@ async function submitChargeWallet() {
     if(gateway === 'cart_to_cart') {
         const fileInput = document.getElementById('charge-receipt');
         if(!fileInput.files || fileInput.files.length === 0) {
-            errorEl.innerText = 'Ù„Ø·ÙØ§Ù‹ ØªØµÙˆÛŒØ± Ø±Ø³ÛŒØ¯ Ø±Ø§ Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ù†ÛŒØ¯.';
+            errorEl.innerText = 'لطفاً تصویر رسید را انتخاب کنید.';
             errorEl.style.display = 'block';
             return;
         }
@@ -208,7 +208,7 @@ async function submitChargeWallet() {
 
     const btn = document.getElementById('btn-submit-charge');
     const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Ø¯Ø± Ø­Ø§Ù„ Ù¾Ø±Ø¯Ø§Ø²Ø´...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال پردازش...';
     btn.disabled = true;
 
     try {
@@ -231,12 +231,12 @@ async function submitChargeWallet() {
                 closeModal('charge-wallet-modal');
             }
         } else {
-            errorEl.innerText = json.message || 'Ø®Ø·Ø§ Ø¯Ø± Ø«Ø¨Øª Ø¯Ø±Ø®ÙˆØ§Ø³Øª';
+            errorEl.innerText = json.message || 'خطا در ثبت درخواست';
             errorEl.style.display = 'block';
         }
     } catch(e) {
         console.error(e);
-        errorEl.innerText = 'Ø§Ø±ØªØ¨Ø§Ø· Ø¨Ø§ Ø³Ø±ÙˆØ± Ø¨Ø±Ù‚Ø±Ø§Ø± Ù†Ø´Ø¯.';
+        errorEl.innerText = 'ارتباط با سرور برقرار نشد.';
         errorEl.style.display = 'block';
     } finally {
         btn.innerHTML = originalText;

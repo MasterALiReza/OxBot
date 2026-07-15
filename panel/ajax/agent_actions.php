@@ -869,11 +869,13 @@ if ($action === 'get_payment_gateways') {
     
     echo json_encode([
         'status' => 'success',
-        'zarinpal' => $zarinpal === 'onzarinpal',
-        'nowpayments' => $nowPayment === 'onnowpayment',
-        'carttocart' => $carttocart === 'oncarttocart',
-        'card_number' => $cardNumber,
-        'card_name' => $cardName
+        'data' => [
+            'zarinpal' => $zarinpal === 'onzarinpal',
+            'nowpayments' => $nowPayment === 'onnowpayment',
+            'carttocart' => $carttocart === 'oncarttocart',
+            'card_number' => $cardNumber,
+            'card_name' => $cardName
+        ]
     ]);
     exit;
 }
