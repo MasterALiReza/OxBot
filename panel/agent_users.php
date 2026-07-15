@@ -36,11 +36,11 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch dashboard counts for active and expired users
 $now = time();
-$stmtActive = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (id_user = :aid OR refral = :aid) AND Status = 'active' AND (Service_time = 0 OR (time_sell + (Service_time * 86400)) > :now)");
+$stmtActive = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (id_user = :aid OR refral = :aid) AND Status = 'active' AND (Service_time = '0' OR Service_time = '' OR (CAST(NULLIF(time_sell, '') AS UNSIGNED) + (CAST(NULLIF(Service_time, '') AS UNSIGNED) * 86400)) > :now)");
 $stmtActive->execute([':aid' => $agent_id, ':now' => $now]);
 $activeCount = (int)$stmtActive->fetchColumn();
 
-$stmtExpired = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (id_user = :aid OR refral = :aid) AND (Status != 'active' OR (Service_time > 0 AND (time_sell + (Service_time * 86400)) <= :now))");
+$stmtExpired = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (id_user = :aid OR refral = :aid) AND (Status != 'active' OR (Service_time != '0' AND Service_time != '' AND (CAST(NULLIF(time_sell, '') AS UNSIGNED) + (CAST(NULLIF(Service_time, '') AS UNSIGNED) * 86400)) <= :now))");
 $stmtExpired->execute([':aid' => $agent_id, ':now' => $now]);
 $expiredCount = (int)$stmtExpired->fetchColumn();
 

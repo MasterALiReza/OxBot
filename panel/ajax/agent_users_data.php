@@ -70,7 +70,7 @@ try {
         }
 
         $now = time();
-        $stmt = $pdo->prepare("SELECT username, user_info, Service_location FROM invoice WHERE (id_user = :aid1 OR refral = :aid2) AND Status = 'active' AND (Service_time = 0 OR (time_sell + (Service_time * 86400)) > :now)");
+        $stmt = $pdo->prepare("SELECT username, user_info, Service_location FROM invoice WHERE (id_user = :aid1 OR refral = :aid2) AND Status = 'active' AND (Service_time = '0' OR Service_time = '' OR (CAST(NULLIF(time_sell, '') AS UNSIGNED) + (CAST(NULLIF(Service_time, '') AS UNSIGNED) * 86400)) > :now)");
         $stmt->execute([':aid1' => $agent_id, ':aid2' => $agent_id, ':now' => $now]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -117,9 +117,9 @@ try {
         
         // Status Filter
         if ($status === 'active') {
-            $where .= ' AND i.Status = "active" AND (i.Service_time = 0 OR (i.time_sell + (i.Service_time * 86400)) > ' . time() . ')';
+            $where .= ' AND i.Status = "active" AND (i.Service_time = "0" OR i.Service_time = "" OR (CAST(NULLIF(i.time_sell, "") AS UNSIGNED) + (CAST(NULLIF(i.Service_time, "") AS UNSIGNED) * 86400)) > ' . time() . ')';
         } elseif ($status === 'expired') {
-            $where .= ' AND (i.Status != "active" OR (i.Service_time > 0 AND (i.time_sell + (i.Service_time * 86400)) <= ' . time() . '))';
+            $where .= ' AND (i.Status != "active" OR (i.Service_time != "0" AND i.Service_time != "" AND (CAST(NULLIF(i.time_sell, "") AS UNSIGNED) + (CAST(NULLIF(i.Service_time, "") AS UNSIGNED) * 86400)) <= ' . time() . '))';
         }
 
         // Location Filter (Only for advanced agents)
