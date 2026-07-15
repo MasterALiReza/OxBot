@@ -13,6 +13,12 @@ $agent_id = $_SESSION['agent_id'];
 $stmt = $pdo->prepare("SELECT namecustom, agent, Balance FROM user WHERE id = :id");
 $stmt->execute([':id' => $agent_id]);
 $agentUserRow = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$agentUserRow) {
+    header("Location: logout.php");
+    exit;
+}
+
 $agentUsername = !empty($agentUserRow['namecustom']) ? $agentUserRow['namecustom'] : 'نماینده ' . $agent_id;
 $agentType = $agentUserRow['agent'] ?? 'n'; // e.g., 'n', 'n2', 'all'
 
