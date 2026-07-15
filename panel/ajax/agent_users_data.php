@@ -54,6 +54,42 @@ function format_bytes_fa($bytes)
 }
 
 try {
+    // Fetch Agent type
+    $stmtAgent = $pdo->prepare("SELECT agent FROM user WHERE id = :id LIMIT 1");
+    $stmtAgent->execute([':id' => $agent_id]);
+    $agentRow = $stmtAgent->fetch(PDO::FETCH_ASSOC);
+    $agentType = $agentRow ? $agentRow['agent'] : 'n';
+
+    // ──────────────────────────────────────────────────────────────────────
+    // ACTION: get_bulk_configs
+    // ──────────────────────────────────────────────────────────────────────
+    if ($action === 'get_bulk_configs') {
+        if ($agentType !== 'n2' && $agentType !== 'all') {
+            echo json_encode(['status' => 'error', 'message' => 'عدم دسترسی به این ابزار']);
+            exit;
+        }
+
+        $now = time();
+        $stmt = $pdo->prepare("SELECT username, user_info, Service_location FROM invoice WHERE (id_user = :aid1 OR refral = :aid2) AND Status = 'active' AND (Service_time = 0 OR (time_sell + (Service_time * 86400)) > :now)");
+        $stmt->execute([':aid1' => $agent_id, ':aid2' => $agent_id, ':now' => $now]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $configs = [];
+        foreach ($rows as $row) {
+            $username = $row['username'];
+            $val = trim($row['user_info'] ?? '');
+            if (!empty($val)) {
+                $configs[] = [
+                    'username' => $username,
+                    'location' => $row['Service_location'],
+                    'config' => $val
+                ];
+            }
+        }
+
+        echo json_encode(['status' => 'success', 'configs' => $configs]);
+        exit;
+    }
 
     // ──────────────────────────────────────────────────────────────────────
     // ACTION: get_users
@@ -65,6 +101,7 @@ try {
         $offset = ($page - 1) * $limit;
         $search = trim($_GET['search'] ?? '');
         $status = $_GET['status'] ?? 'all';
+        $location_filter = trim($_GET['location'] ?? 'all');
         $sort   = $_GET['sort'] ?? 'desc';
 
         // Base WHERE clause — agent only sees their own invoices
@@ -83,6 +120,12 @@ try {
             $where .= ' AND i.Status = "active" AND (i.Service_time = 0 OR (i.time_sell + (i.Service_time * 86400)) > ' . time() . ')';
         } elseif ($status === 'expired') {
             $where .= ' AND (i.Status != "active" OR (i.Service_time > 0 AND (i.time_sell + (i.Service_time * 86400)) <= ' . time() . '))';
+        }
+
+        // Location Filter (Only for advanced agents)
+        if (($agentType === 'n2' || $agentType === 'all') && $location_filter !== 'all' && $location_filter !== '') {
+            $where .= ' AND i.Service_location = :loc_filter';
+            $params[':loc_filter'] = $location_filter;
         }
 
         // Total count

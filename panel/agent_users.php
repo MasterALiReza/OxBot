@@ -27,6 +27,18 @@ $allowedPanels = $stmtPanel->fetchAll(PDO::FETCH_ASSOC);
 $stmtProduct = $pdo->prepare("SELECT * FROM product WHERE (agent = :agent OR agent = 'all')");
 $stmtProduct->execute([':agent' => $agentType]);
 $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch dashboard counts for active and expired users
+$now = time();
+$stmtActive = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (id_user = :aid OR refral = :aid) AND Status = 'active' AND (Service_time = 0 OR (time_sell + (Service_time * 86400)) > :now)");
+$stmtActive->execute([':aid' => $agent_id, ':now' => $now]);
+$activeCount = (int)$stmtActive->fetchColumn();
+
+$stmtExpired = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (id_user = :aid OR refral = :aid) AND (Status != 'active' OR (Service_time > 0 AND (time_sell + (Service_time * 86400)) <= :now))");
+$stmtExpired->execute([':aid' => $agent_id, ':now' => $now]);
+$expiredCount = (int)$stmtExpired->fetchColumn();
+
+$totalCount = $activeCount + $expiredCount;
 ?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -75,6 +87,9 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
             <div class="au-wallet-value">
                 <?= number_format((float)($agentUserRow['Balance'] ?? 0)) ?> <span>تومان</span>
             </div>
+            <button onclick="requestWalletCharge(<?= $agent_id ?>)" class="au-btn au-btn-primary" style="margin-top: 8px; width: 100%; font-size: 0.8rem; padding: 8px 12px; height: auto; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                ⚡ درخواست شارژ حساب
+            </button>
         </div>
 
         <nav class="au-nav">
@@ -102,12 +117,48 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 <p>ساخت، نمایش و حذف کاربران با لوکیشن، حجم و مدت به‌صورت ساده</p>
             </div>
             <div class="au-header-actions">
-                <button class="au-btn au-btn-icon" title="بروزرسانی">
+                <button class="au-btn au-btn-icon" title="بروزرسانی" onclick="loadUsers(1)">
                     <?= icon('refresh-cw', 18) ?>
                 </button>
-                <button class="au-btn au-btn-primary">
+                <?php if ($agentType === 'n2' || $agentType === 'all'): ?>
+                    <button class="au-btn" style="background: rgba(255,255,255,0.05); border: 1px solid var(--au-border); display: flex; align-items: center; gap: 6px;" onclick="openBulkExportModal()">
+                        <?= icon('download', 16) ?> خروجی گروهی
+                    </button>
+                <?php endif; ?>
+                <button class="au-btn au-btn-primary" id="au-btn-create-user">
                     <?= icon('plus', 16) ?> ساخت کاربر
                 </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Metrics Grid -->
+        <div class="au-metrics-grid">
+            <div class="au-metric-card">
+                <div class="au-metric-icon" style="background: rgba(59, 130, 246, 0.1); color: var(--au-primary);">
+                    <?= icon('users', 20) ?>
+                </div>
+                <div class="au-metric-info">
+                    <span class="au-metric-label">کل کاربران</span>
+                    <span class="au-metric-value"><?= number_format($totalCount) ?></span>
+                </div>
+            </div>
+            <div class="au-metric-card">
+                <div class="au-metric-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--au-success);">
+                    <?= icon('activity', 20) ?>
+                </div>
+                <div class="au-metric-info">
+                    <span class="au-metric-label">کاربران فعال</span>
+                    <span class="au-metric-value" style="color: var(--au-success);"><?= number_format($activeCount) ?></span>
+                </div>
+            </div>
+            <div class="au-metric-card">
+                <div class="au-metric-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--au-danger);">
+                    <?= icon('clock', 20) ?>
+                </div>
+                <div class="au-metric-info">
+                    <span class="au-metric-label">کاربران منقضی شده</span>
+                    <span class="au-metric-value" style="color: var(--au-danger);"><?= number_format($expiredCount) ?></span>
+                </div>
             </div>
         </div>
 
@@ -126,6 +177,14 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 <option value="online">آنلاین</option>
                 <option value="offline">آفلاین</option>
             </select>
+            <?php if ($agentType === 'n2' || $agentType === 'all'): ?>
+                <select class="au-select" id="au-filter-location" onchange="currentSubLocation = this.value; loadUsers(1);">
+                    <option value="all">سرور (همه)</option>
+                    <?php foreach ($allowedPanels as $p): ?>
+                        <option value="<?= htmlspecialchars($p['code_panel']) ?>"><?= htmlspecialchars($p['name_panel']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            <?php endif; ?>
             <button class="au-btn au-btn-icon" id="au-sort-btn" title="تغییر ترتیب زمانی">
                 <?= icon('sliders', 18) ?>
             </button>
@@ -274,7 +333,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
             container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--au-text-muted);"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i><p style="margin-top: 15px;">در حال بارگذاری کاربران...</p></div>';
 
             try {
-                const res = await fetch(`ajax/agent_users_data.php?action=get_users&page=${page}&search=${encodeURIComponent(currentSearch)}&status=${currentStatus}&sort=${currentSort}`);
+                const res = await fetch(`ajax/agent_users_data.php?action=get_users&page=${page}&search=${encodeURIComponent(currentSearch)}&status=${currentStatus}&location=${currentSubLocation}&sort=${currentSort}`);
                 const json = await res.json();
                 
                 if (json.status !== 'success') {
@@ -531,7 +590,7 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 });
             }
             
-            const btnCreateOpen = document.querySelector('.au-btn-primary');
+            const btnCreateOpen = document.getElementById('au-btn-create-user');
             if(btnCreateOpen) {
                 btnCreateOpen.addEventListener('click', () => {
                     document.getElementById('create-error').style.display = 'none';
@@ -818,7 +877,84 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
             
             loadUsers(1);
         });
+
+        // New helper functions for location & bulk actions
+        let currentSubLocation = 'all';
+
+        function requestWalletCharge(agentId) {
+            const textToCopy = `شناسه نماینده: ${agentId}`;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert(`شناسه نماینده شما (${agentId}) در حافظه کپی شد.\nاکنون به پشتیبانی تلگرام متصل می‌شوید تا شناسه خود را ارسال و تقاضای شارژ کنید.`);
+                window.open('https://t.me/VIP_VIRTUALNET_BOT', '_blank');
+            }).catch(() => {
+                window.open('https://t.me/VIP_VIRTUALNET_BOT', '_blank');
+            });
+        }
+
+        async function openBulkExportModal() {
+            openModal('bulk-export-modal');
+            const textarea = document.getElementById('bulk-export-textarea');
+            textarea.value = 'در حال دریافت اطلاعات کانفیگ‌ها...';
+            
+            try {
+                const res = await fetch('ajax/agent_users_data.php?action=get_bulk_configs');
+                const json = await res.json();
+                
+                if (json.status !== 'success') {
+                    textarea.value = json.message || 'خطا در دریافت اطلاعات';
+                    return;
+                }
+                
+                if (!json.configs || json.configs.length === 0) {
+                    textarea.value = 'هیچ کانفیگ فعال یا اطلاعات اتصالی یافت نشد.';
+                    return;
+                }
+                
+                let text = '';
+                json.configs.forEach(c => {
+                    text += `# کاربر: ${c.username} [لوکیشن: ${c.location}]\n${c.config}\n\n`;
+                });
+                textarea.value = text.trim();
+            } catch (e) {
+                textarea.value = 'خطا در برقراری ارتباط با سرور.';
+            }
+        }
+        
+        function copyBulkConfigs() {
+            const textarea = document.getElementById('bulk-export-textarea');
+            if (textarea.value && !textarea.value.startsWith('در حال') && !textarea.value.startsWith('خطا')) {
+                navigator.clipboard.writeText(textarea.value).then(() => {
+                    alert('تمامی کانفیگ‌ها با موفقیت کپی شدند!');
+                });
+            } else {
+                alert('اطلاعات معتبری برای کپی وجود ندارد.');
+            }
+        }
     </script>
+
+    <?php if ($agentType === 'n2' || $agentType === 'all'): ?>
+    <!-- Bulk Export Modal -->
+    <div id="bulk-export-modal" class="au-modal">
+        <div class="au-modal-content" style="max-width: 600px;">
+            <div class="au-modal-header">
+                <h2>خروجی گروهی کانفیگ‌ها</h2>
+                <button class="au-btn-icon" onclick="closeModal('bulk-export-modal')"><?= icon('x', 20) ?></button>
+            </div>
+            <div class="au-modal-body">
+                <p style="margin-bottom: 12px; font-size: 0.9rem; color: var(--au-text-muted);">
+                    در لیست زیر، تمامی لینک‌های اشتراک و کانفیگ‌های فعال شما قرار گرفته است. می‌توانید آنها را به صورت یک‌جا کپی کنید.
+                </p>
+                <div class="au-form-group">
+                    <textarea id="bulk-export-textarea" class="au-input" style="width: 100%; height: 250px; font-family: monospace; font-size: 0.85rem; direction: ltr; text-align: left; resize: vertical;" readonly placeholder="در حال دریافت اطلاعات..."></textarea>
+                </div>
+            </div>
+            <div class="au-modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--au-border); display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="au-btn" onclick="closeModal('bulk-export-modal')">بستن</button>
+                <button class="au-btn au-btn-primary" onclick="copyBulkConfigs()">کپی کردن همه</button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
 
     <script src="js/agent_users.js"></script>
