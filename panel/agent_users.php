@@ -197,7 +197,7 @@ $totalCount = $activeCount + $expiredCount;
                 <select class="au-select" id="au-filter-location" onchange="currentSubLocation = this.value; loadUsers(1);">
                     <option value="all">سرور (همه)</option>
                     <?php foreach ($allowedPanels as $p): ?>
-                        <option value="<?= htmlspecialchars($p['code_panel']) ?>"><?= htmlspecialchars($p['name_panel']) ?></option>
+                        <option value="<?= htmlspecialchars($p['code_panel'] ?? '') ?>"><?= htmlspecialchars($p['name_panel'] ?? '') ?></option>
                     <?php endforeach; ?>
                 </select>
             <?php endif; ?>
@@ -232,7 +232,7 @@ $totalCount = $activeCount + $expiredCount;
                     <select id="create-location" class="au-select" style="width: 100%; margin-bottom: 15px;" onchange="updateProductsList('create-location', 'create-product')">
                         <option value="">-- انتخاب کنید --</option>
                         <?php foreach($allowedPanels as $p): ?>
-                            <option value="<?= htmlspecialchars($p['name_panel']) ?>"><?= htmlspecialchars($p['name_panel']) ?></option>
+                            <option value="<?= htmlspecialchars($p['name_panel'] ?? '') ?>"><?= htmlspecialchars($p['name_panel'] ?? '') ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -301,7 +301,7 @@ $totalCount = $activeCount + $expiredCount;
                     <select id="loc-new-location" class="au-select" style="width: 100%; margin-bottom: 15px;">
                         <option value="">-- انتخاب کنید --</option>
                         <?php foreach($allowedPanels as $p): ?>
-                            <option value="<?= htmlspecialchars($p['code_panel']) ?>"><?= htmlspecialchars($p['name_panel']) ?></option>
+                            <option value="<?= htmlspecialchars($p['code_panel'] ?? '') ?>"><?= htmlspecialchars($p['name_panel'] ?? '') ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>

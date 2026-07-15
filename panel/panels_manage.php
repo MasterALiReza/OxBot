@@ -384,7 +384,7 @@ include __DIR__ . '/inc/layout_head.php';
                                     <button class="btn btn-ghost btn-sm btn-icon" data-panel="<?= htmlspecialchars($panelData, ENT_QUOTES, 'UTF-8') ?>" onclick="openPanelModal('edit', this)" title="ویرایش">
                                         <?= icon('edit', 14) ?>
                                     </button>
-                                    <a href="?action=delete&id=<?= (int)$p['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-no btn-sm btn-icon" title="<?= $textbotlang['panel']['panelsActionDelete'] ?>" onclick="return confirm('<?= sprintf($textbotlang['panel']['panelsConfirmDelete'], htmlspecialchars($p['name_panel'])) ?>')">
+                                    <a href="?action=delete&id=<?= (int)$p['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-no btn-sm btn-icon" title="<?= $textbotlang['panel']['panelsActionDelete'] ?>" onclick="return confirm('<?= sprintf($textbotlang['panel']['panelsConfirmDelete'], htmlspecialchars($p['name_panel'] ?? '')) ?>')">
                                         <?= icon('block', 14) ?>
                                     </a>
                                 </div>
