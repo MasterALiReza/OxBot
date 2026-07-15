@@ -1406,48 +1406,51 @@ if ($agentType === 'n2' || $agentType === 'all') {
                 <h2>افزایش موجودی</h2>
                 <button class="au-btn-icon" onclick="closeModal('charge-wallet-modal')"><?= icon('x', 20) ?></button>
             </div>
-            <div class="au-modal-body" style="padding: 20px;">
-                <div id="charge-wallet-error" class="au-alert" style="display: none; background: rgba(255,59,48,0.1); color: #ff3b30; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem;"></div>
+            <div class="au-modal-body" style="padding: 24px;">
+                <div id="charge-wallet-error" class="au-alert" style="display: none; background: rgba(255,59,48,0.1); color: #ff3b30; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 0.85rem; border: 1px solid rgba(255,59,48,0.2);"></div>
                 
                 <div class="au-form-group">
-                    <label class="au-label">مبلغ (تومان) *</label>
-                    <input type="number" id="charge-amount" class="au-input" placeholder="مثال: 50000" min="1000">
+                    <label class="au-label" style="font-weight: 600; color: #fff; margin-bottom: 10px;">مبلغ (تومان) *</label>
+                    <div style="position: relative;">
+                        <input type="text" inputmode="numeric" pattern="[0-9]*" id="charge-amount" class="au-input" placeholder="مثال: 50,000" style="padding-left: 45px; text-align: left; font-family: monospace; font-size: 1.1rem; letter-spacing: 1px; border-radius: 12px;">
+                        <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--au-text-muted); font-size: 0.85rem; pointer-events: none;">T</span>
+                    </div>
                 </div>
 
-                <div class="au-form-group" id="charge-gateways-container" style="display: none; margin-top: 20px;">
-                    <label class="au-label">انتخاب روش پرداخت *</label>
-                    <div style="display: flex; gap: 10px; flex-direction: column;">
-                        <label id="lbl-gateway-zarinpal" class="au-radio-card" style="display: none; border: 1px solid var(--au-border); padding: 12px; border-radius: 8px; cursor: pointer; align-items: center; gap: 10px;">
-                            <input type="radio" name="charge_gateway" value="zarinpal" onchange="toggleCardToCardFields()">
-                            <span>درگاه زرین‌پال</span>
+                <div class="au-form-group" id="charge-gateways-container" style="display: none; margin-top: 24px;">
+                    <label class="au-label" style="font-weight: 600; color: #fff; margin-bottom: 10px;">انتخاب روش پرداخت *</label>
+                    <div style="display: flex; gap: 12px; flex-direction: column;">
+                        <label id="lbl-gateway-zarinpal" class="au-radio-card" style="display: none; border: 1px solid var(--au-border); padding: 16px; border-radius: 12px; cursor: pointer; align-items: center; gap: 12px; transition: all 0.2s; background: rgba(255,255,255,0.02);">
+                            <input type="radio" name="charge_gateway" value="zarinpal" onchange="toggleCardToCardFields()" style="width: 18px; height: 18px; accent-color: var(--au-primary);">
+                            <span style="font-weight: 500;">درگاه زرین‌پال</span>
                         </label>
-                        <label id="lbl-gateway-nowpayments" class="au-radio-card" style="display: none; border: 1px solid var(--au-border); padding: 12px; border-radius: 8px; cursor: pointer; align-items: center; gap: 10px;">
-                            <input type="radio" name="charge_gateway" value="nowpayments" onchange="toggleCardToCardFields()">
-                            <span>درگاه ارز دیجیتال (NowPayments)</span>
+                        <label id="lbl-gateway-nowpayments" class="au-radio-card" style="display: none; border: 1px solid var(--au-border); padding: 16px; border-radius: 12px; cursor: pointer; align-items: center; gap: 12px; transition: all 0.2s; background: rgba(255,255,255,0.02);">
+                            <input type="radio" name="charge_gateway" value="nowpayments" onchange="toggleCardToCardFields()" style="width: 18px; height: 18px; accent-color: var(--au-primary);">
+                            <span style="font-weight: 500;">درگاه ارز دیجیتال (NowPayments)</span>
                         </label>
-                        <label id="lbl-gateway-carttocart" class="au-radio-card" style="display: none; border: 1px solid var(--au-border); padding: 12px; border-radius: 8px; cursor: pointer; align-items: center; gap: 10px;">
-                            <input type="radio" name="charge_gateway" value="cart_to_cart" onchange="toggleCardToCardFields()">
-                            <span>کارت به کارت (ارسال رسید)</span>
+                        <label id="lbl-gateway-carttocart" class="au-radio-card" style="display: none; border: 1px solid var(--au-border); padding: 16px; border-radius: 12px; cursor: pointer; align-items: center; gap: 12px; transition: all 0.2s; background: rgba(255,255,255,0.02);">
+                            <input type="radio" name="charge_gateway" value="cart_to_cart" onchange="toggleCardToCardFields()" style="width: 18px; height: 18px; accent-color: var(--au-primary);">
+                            <span style="font-weight: 500;">کارت به کارت (ارسال رسید)</span>
                         </label>
                     </div>
                 </div>
 
-                <div id="card-to-card-fields" style="display: none; margin-top: 20px; background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; border: 1px dashed var(--au-border);">
-                    <div style="margin-bottom: 16px; text-align: center;">
-                        <div style="font-size: 0.85rem; color: var(--au-text-muted); margin-bottom: 4px;">شماره کارت جهت واریز</div>
-                        <div id="c2c-card-number" style="font-size: 1.2rem; font-family: monospace; letter-spacing: 2px; color: var(--au-primary); margin-bottom: 4px; direction: ltr;">-</div>
-                        <div id="c2c-card-name" style="font-size: 0.9rem; color: var(--au-text);">-</div>
+                <div id="card-to-card-fields" style="display: none; margin-top: 24px; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.15);">
+                    <div style="margin-bottom: 20px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: var(--au-text-muted); margin-bottom: 8px;">شماره کارت جهت واریز</div>
+                        <div id="c2c-card-number" style="font-size: 1.4rem; font-family: monospace; letter-spacing: 3px; color: var(--au-primary); margin-bottom: 6px; direction: ltr; user-select: all; cursor: copy;" title="برای کپی کلیک کنید" onclick="navigator.clipboard.writeText(this.innerText); alert('شماره کارت کپی شد.');">-</div>
+                        <div id="c2c-card-name" style="font-size: 0.95rem; color: var(--au-text); font-weight: 500;">-</div>
                     </div>
                     <div class="au-form-group" style="margin-bottom: 0;">
-                        <label class="au-label">تصویر رسید پرداختی *</label>
-                        <input type="file" id="charge-receipt" class="au-input" accept="image/*" style="padding: 8px;">
+                        <label class="au-label" style="font-weight: 500;">تصویر رسید پرداختی *</label>
+                        <input type="file" id="charge-receipt" class="au-input" accept="image/*" style="padding: 10px; border-radius: 10px; font-size: 0.9rem;">
                     </div>
                 </div>
 
             </div>
-            <div class="au-modal-footer">
-                <button class="au-btn" onclick="closeModal('charge-wallet-modal')">انصراف</button>
-                <button class="au-btn au-btn-primary" id="btn-submit-charge" onclick="submitChargeWallet()">ثبت و ادامه</button>
+            <div class="au-modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding: 20px 24px; border-top: 1px solid var(--au-border); background: rgba(0,0,0,0.15); border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                <button class="au-btn" style="background: rgba(255,255,255,0.05); color: #fff; border: none; padding: 10px 20px; border-radius: 10px;" onclick="closeModal('charge-wallet-modal')">انصراف</button>
+                <button class="au-btn au-btn-primary" style="padding: 10px 24px; border-radius: 10px; font-weight: 600;" id="btn-submit-charge" onclick="submitChargeWallet()">ثبت و ادامه</button>
             </div>
         </div>
     </div>
