@@ -336,6 +336,37 @@ try {
             ]
         ]);
     }
+    
+    if ($action === 'get_volume_price') {
+        $location = trim($_GET['location'] ?? '');
+        if (empty($location)) {
+            json_out(['status' => 'error', 'message' => 'لوکیشن نامعتبر است']);
+        }
+        
+        // Fetch Panel details
+        $stmtPnl = $pdo->prepare("SELECT pricecustomvolume FROM marzban_panel WHERE code_panel = :code OR name_panel = :code LIMIT 1");
+        $stmtPnl->execute([':code' => $location]);
+        $panelData = $stmtPnl->fetch(PDO::FETCH_ASSOC);
+
+        $price_per_gb = 4000.0; // Default fallback
+        if ($panelData && !empty($panelData['pricecustomvolume'])) {
+            $prices = json_decode($panelData['pricecustomvolume'], true);
+            if (isset($prices[$agentType])) {
+                $price_per_gb = (float)$prices[$agentType];
+            }
+        } else {
+            // Try shopSetting fallback
+            $optName = 'customvolme' . $agentType; // e.g., customvolmen2
+            $stmtOpt = $pdo->prepare("SELECT value FROM shopSetting WHERE Namevalue = :name LIMIT 1");
+            $stmtOpt->execute([':name' => $optName]);
+            $optRow = $stmtOpt->fetch(PDO::FETCH_ASSOC);
+            if ($optRow) {
+                $price_per_gb = (float)$optRow['value'];
+            }
+        }
+        
+        json_out(['status' => 'success', 'price_per_gb' => $price_per_gb]);
+    }
 
     // ──────────────────────────────────────────────────────────────────────
     // ACTION: get_stats

@@ -414,6 +414,7 @@ body.agent-panel-body {
 
 .au-card:hover,
 .au-card:focus-within,
+.au-card.dropdown-open,
 .au-card:has(.au-dropdown.show) {
     z-index: 50;
 }
@@ -1005,7 +1006,7 @@ body.agent-panel-body {
 /* Dashboard Metrics Grid */
 .au-metrics-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
 }

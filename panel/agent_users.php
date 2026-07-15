@@ -71,6 +71,13 @@ $stmtExpired->execute([':aid1' => $agent_id, ':aid2' => $agent_id, ':now' => $no
 $expiredCount = (int)$stmtExpired->fetchColumn();
 
 $totalCount = $activeCount + $expiredCount;
+
+$incomeCount = 0;
+if ($agentType === 'n2' || $agentType === 'all') {
+    $stmtIncome = $pdo->prepare("SELECT COALESCE(SUM(price_product), 0) FROM invoice WHERE refral = :aid");
+    $stmtIncome->execute([':aid' => $agent_id]);
+    $incomeCount = (float)$stmtIncome->fetchColumn();
+}
 ?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -119,7 +126,7 @@ $totalCount = $activeCount + $expiredCount;
             <div class="au-wallet-value">
                 <?= number_format((float)($agentUserRow['Balance'] ?? 0)) ?> <span>تومان</span>
             </div>
-            <button onclick="requestWalletCharge(<?= $agent_id ?>)" class="au-btn au-btn-primary" style="margin-top: 8px; width: 100%; font-size: 0.8rem; padding: 8px 12px; height: auto; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <button onclick="openChargeWalletModal()" class="au-btn au-btn-primary" style="margin-top: 8px; width: 100%; font-size: 0.8rem; padding: 8px 12px; height: auto; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
                 ⚡ درخواست شارژ حساب
             </button>
             <?php if ($agentType === 'n2' || $agentType === 'all'): ?>
@@ -166,6 +173,9 @@ $totalCount = $activeCount + $expiredCount;
                     <button class="au-btn" style="background: rgba(255,255,255,0.05); border: 1px solid var(--au-border); display: flex; align-items: center; gap: 6px;" onclick="openBulkExportModal()">
                         <?= icon('download', 16) ?> خروجی گروهی
                     </button>
+                    <button class="au-btn" style="background: rgba(255,255,255,0.05); border: 1px solid var(--au-border); display: flex; align-items: center; gap: 6px;" onclick="openBulkCreateModal()">
+                        <?= icon('users', 16) ?> ساخت گروهی
+                    </button>
                 <?php endif; ?>
                 <button class="au-btn au-btn-primary" id="au-btn-create-user">
                     <?= icon('plus', 16) ?> ساخت کاربر
@@ -202,6 +212,17 @@ $totalCount = $activeCount + $expiredCount;
                     <span class="au-metric-value" style="color: var(--au-danger);"><?= number_format($expiredCount) ?></span>
                 </div>
             </div>
+            <?php if ($agentType === 'n2' || $agentType === 'all'): ?>
+            <div class="au-metric-card">
+                <div class="au-metric-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+                <div class="au-metric-info">
+                    <span class="au-metric-label">کل درآمد از فروش</span>
+                    <span class="au-metric-value" style="color: #f59e0b;"><?= number_format($incomeCount) ?> <span style="font-size: 0.75rem; opacity:0.8;">تومان</span></span>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
 
         <div class="au-toolbar">
@@ -284,6 +305,51 @@ $totalCount = $activeCount + $expiredCount;
         </div>
     </div>
 
+    <!-- Bulk Create Modal -->
+    <div id="bulk-create-modal" class="au-modal">
+        <div class="au-modal-content">
+            <div class="au-modal-header">
+                <h2>ساخت کاربر گروهی</h2>
+                <button class="au-btn-icon" onclick="closeModal('bulk-create-modal')"><?= icon('x', 20) ?></button>
+            </div>
+            <div class="au-modal-body">
+                <div class="au-form-group">
+                    <label>سرور (پنل)</label>
+                    <select id="bulk-create-location" class="au-select" style="width: 100%; margin-bottom: 15px;" onchange="updateProductsList('bulk-create-location', 'bulk-create-product')">
+                        <option value="">-- انتخاب کنید --</option>
+                        <?php foreach($allowedPanels as $p): ?>
+                            <option value="<?= htmlspecialchars($p['name_panel'] ?? '') ?>"><?= htmlspecialchars($p['name_panel'] ?? '') ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="au-form-group">
+                    <label>سرویس (پلن)</label>
+                    <select id="bulk-create-product" class="au-select" style="width: 100%; margin-bottom: 15px;">
+                        <option value="">ابتدا سرور را انتخاب کنید</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="au-form-group" style="flex: 1;">
+                        <label>تعداد (حداکثر 50)</label>
+                        <input type="number" id="bulk-create-count" class="au-input" style="width: 100%; margin-bottom: 15px;" min="1" max="50" value="5">
+                    </div>
+                    <div class="au-form-group" style="flex: 2;">
+                        <label>پیشوند نام کاربری (اختیاری)</label>
+                        <input type="text" id="bulk-create-prefix" class="au-input" style="width: 100%; margin-bottom: 15px; text-align: right;" placeholder="مثال: user" dir="ltr">
+                    </div>
+                </div>
+                <div class="au-alert au-alert-info" style="margin-top: 5px; font-size: 0.85rem; text-align: right; direction: rtl;">
+                    <i class="fa-solid fa-circle-info"></i> به پیشوند وارد شده، اعداد تصادفی اضافه خواهد شد.
+                </div>
+                <div id="bulk-create-error" style="color: var(--au-danger); font-size: 0.9rem; margin-bottom: 10px; display: none;"></div>
+            </div>
+            <div class="au-modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--au-border); display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="au-btn" onclick="closeModal('bulk-create-modal')">انصراف</button>
+                <button class="au-btn au-btn-primary" id="btn-submit-bulk-create" onclick="submitBulkCreateUsers()">ساخت گروهی</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Renew User Modal -->
     <div id="renew-modal" class="au-modal">
         <div class="au-modal-content">
@@ -336,6 +402,33 @@ $totalCount = $activeCount + $expiredCount;
             <div class="au-modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--au-border); display: flex; justify-content: flex-end; gap: 10px;">
                 <button class="au-btn" onclick="closeModal('change-location-modal')">انصراف</button>
                 <button class="au-btn au-btn-primary" id="btn-submit-loc" onclick="submitChangeLocation()">تایید و جابجایی</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Volume Modal -->
+    <div id="add-volume-modal" class="au-modal">
+        <div class="au-modal-content">
+            <div class="au-modal-header">
+                <h2>افزایش حجم سرویس</h2>
+                <button class="au-btn-icon" onclick="closeModal('add-volume-modal')"><?= icon('x', 20) ?></button>
+            </div>
+            <div class="au-modal-body">
+                <p style="margin-bottom: 15px;">کاربر: <strong id="vol-username-lbl"></strong> (سرور: <span id="vol-location-lbl"></span>)</p>
+                <input type="hidden" id="vol-invoice-id">
+                <input type="hidden" id="vol-location-val">
+                <div class="au-form-group">
+                    <label>میزان حجم مورد نیاز جهت اضافه شدن (گیگابایت)</label>
+                    <input type="number" id="vol-amount-input" class="au-input" style="width: 100%; margin-bottom: 10px;" value="5" min="1" oninput="updateVolumeCost()">
+                </div>
+                <div style="font-size: 0.85rem; color: var(--au-text-muted); margin-bottom: 15px;">
+                    هزینه کل: <strong id="vol-cost-lbl" style="color: var(--au-success);">۰</strong> تومان
+                </div>
+                <div id="vol-error" style="color: var(--au-danger); font-size: 0.9rem; margin-bottom: 10px; display: none;"></div>
+            </div>
+            <div class="au-modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--au-border); display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="au-btn" onclick="closeModal('add-volume-modal')">انصراف</button>
+                <button class="au-btn au-btn-primary" id="btn-submit-vol" onclick="submitAddVolume()">افزایش حجم و کسر از حساب</button>
             </div>
         </div>
     </div>
@@ -645,8 +738,18 @@ $totalCount = $activeCount + $expiredCount;
                     document.querySelectorAll('.au-dropdown.show').forEach(d => {
                         if (d.id !== targetId) d.classList.remove('show');
                     });
+                    
+                    document.querySelectorAll('.au-card.dropdown-open').forEach(card => {
+                        card.classList.remove('dropdown-open');
+                    });
 
-                    if (dropdown) dropdown.classList.toggle('show');
+                    if (dropdown) {
+                        dropdown.classList.toggle('show');
+                        if (dropdown.classList.contains('show')) {
+                            const card = dropdown.closest('.au-card');
+                            if (card) card.classList.add('dropdown-open');
+                        }
+                    }
                 };
             });
         }
@@ -735,6 +838,65 @@ $totalCount = $activeCount + $expiredCount;
             }
             btn.disabled = false;
             btn.textContent = 'ساخت و کسر از حساب';
+        }
+
+        function openBulkCreateModal() {
+            document.getElementById('bulk-create-error').style.display = 'none';
+            document.getElementById('bulk-create-location').value = '';
+            document.getElementById('bulk-create-product').innerHTML = '<option value="">ابتدا سرور را انتخاب کنید</option>';
+            document.getElementById('bulk-create-count').value = 5;
+            document.getElementById('bulk-create-prefix').value = '';
+            openModal('bulk-create-modal');
+        }
+
+        async function submitBulkCreateUsers() {
+            const loc = document.getElementById('bulk-create-location').value;
+            const prodId = document.getElementById('bulk-create-product').value;
+            const count = document.getElementById('bulk-create-count').value;
+            const prefix = document.getElementById('bulk-create-prefix').value;
+            const errDiv = document.getElementById('bulk-create-error');
+            const btn = document.getElementById('btn-submit-bulk-create');
+
+            if(!loc || !prodId) {
+                errDiv.textContent = 'انتخاب سرور و پلن الزامی است';
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            if(count <= 0 || count > 50) {
+                errDiv.textContent = 'تعداد باید بین ۱ تا ۵۰ باشد';
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            errDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال ساخت...';
+
+            const formData = new FormData();
+            formData.append('action', 'bulk_create_users');
+            formData.append('location', loc);
+            formData.append('product_id', prodId);
+            formData.append('count', count);
+            formData.append('prefix', prefix);
+
+            try {
+                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    closeModal('bulk-create-modal');
+                    loadUsers(1);
+                    alert(json.message || 'کاربرها با موفقیت ساخته شدند!');
+                } else {
+                    errDiv.textContent = json.message || 'خطا در ساخت کاربران گروهی';
+                    errDiv.style.display = 'block';
+                }
+            } catch(e) {
+                errDiv.textContent = 'خطای ارتباط با سرور';
+                errDiv.style.display = 'block';
+            }
+            btn.disabled = false;
+            btn.textContent = 'ساخت گروهی';
         }
 
         function openRenewModal(invoiceId, username, location) {
@@ -1028,6 +1190,113 @@ $totalCount = $activeCount + $expiredCount;
                 window.URL.revokeObjectURL(url);
             }, 0);
         }
+        async function resetTraffic(invoiceId, resetPrice) {
+            const priceText = resetPrice > 0 ? ` (هزینه: ${Number(resetPrice).toLocaleString()} تومان)` : ' (رایگان)';
+            if(!confirm(`آیا مطمئن هستید می‌خواهید ترافیک این کاربر را ریست کنید؟${priceText}`)) return;
+            
+            const formData = new FormData();
+            formData.append('action', 'reset_traffic');
+            formData.append('invoice_id', invoiceId);
+
+            try {
+                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    if (activeManageModalId === invoiceId) {
+                        openManageModal(invoiceId); // refresh modal stats
+                    }
+                    loadUsers(currentPage);
+                    alert('ترافیک کاربر با موفقیت ریست شد!');
+                } else {
+                    alert(json.message || 'خطا در ریست ترافیک');
+                }
+            } catch(e) {
+                alert('خطای ارتباط با سرور');
+            }
+        }
+
+        function openAddVolumeModal(invoiceId, username, location) {
+            document.getElementById('vol-invoice-id').value = invoiceId;
+            document.getElementById('vol-username-lbl').textContent = username;
+            document.getElementById('vol-location-lbl').textContent = location;
+            document.getElementById('vol-location-val').value = location;
+            document.getElementById('vol-amount-input').value = 5;
+            document.getElementById('vol-error').style.display = 'none';
+            document.getElementById('vol-cost-lbl').textContent = '...';
+            openModal('add-volume-modal');
+            updateVolumeCost();
+        }
+
+        let currentVolumePrice = 0;
+        
+        async function updateVolumeCost() {
+            const loc = document.getElementById('vol-location-val').value;
+            const amount = parseInt(document.getElementById('vol-amount-input').value) || 0;
+            const lbl = document.getElementById('vol-cost-lbl');
+            
+            if (amount <= 0) {
+                lbl.textContent = '۰';
+                return;
+            }
+
+            try {
+                const res = await fetch(`ajax/agent_users_data.php?action=get_volume_price&location=${encodeURIComponent(loc)}`);
+                const json = await res.json();
+                if(json.status === 'success') {
+                    currentVolumePrice = json.price;
+                    const total = amount * currentVolumePrice;
+                    lbl.textContent = Number(total).toLocaleString();
+                } else {
+                    lbl.textContent = 'خطا در دریافت قیمت';
+                }
+            } catch(e) {
+                lbl.textContent = 'خطا';
+            }
+        }
+
+        async function submitAddVolume() {
+            const invoiceId = document.getElementById('vol-invoice-id').value;
+            const amount = document.getElementById('vol-amount-input').value;
+            const errDiv = document.getElementById('vol-error');
+            const btn = document.getElementById('btn-submit-vol');
+
+            if(!amount || amount <= 0) {
+                errDiv.textContent = 'مقدار حجم نامعتبر است';
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            errDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال پردازش...';
+
+            const formData = new FormData();
+            formData.append('action', 'add_volume');
+            formData.append('invoice_id', invoiceId);
+            formData.append('volume', amount);
+
+            try {
+                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    closeModal('add-volume-modal');
+                    loadUsers(currentPage);
+                    if (activeManageModalId === invoiceId) {
+                        openManageModal(invoiceId); // refresh if it was open
+                    }
+                    alert('حجم کاربر با موفقیت افزایش یافت!');
+                } else {
+                    errDiv.textContent = json.message || 'خطا در افزایش حجم';
+                    errDiv.style.display = 'block';
+                }
+            } catch(e) {
+                errDiv.textContent = 'خطای ارتباط با سرور';
+                errDiv.style.display = 'block';
+            }
+            btn.disabled = false;
+            btn.textContent = 'افزایش حجم و کسر از حساب';
+        }
+
         // --- Filters & Sorting Event Listeners ---
         document.getElementById('au-filter-status').addEventListener('change', function() {
             currentStatus = this.value;
@@ -1131,6 +1400,57 @@ $totalCount = $activeCount + $expiredCount;
     </div>
     <?php endif; ?>
 
+    <div id="charge-wallet-modal" class="au-modal">
+        <div class="au-modal-content" style="max-width: 450px;">
+            <div class="au-modal-header">
+                <h2>افزایش موجودی</h2>
+                <button class="au-btn-icon" onclick="closeModal('charge-wallet-modal')"><?= icon('x', 20) ?></button>
+            </div>
+            <div class="au-modal-body" style="padding: 20px;">
+                <div id="charge-wallet-error" class="au-alert" style="display: none; background: rgba(255,59,48,0.1); color: #ff3b30; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem;"></div>
+                
+                <div class="au-form-group">
+                    <label class="au-label">مبلغ (تومان) *</label>
+                    <input type="number" id="charge-amount" class="au-input" placeholder="مثال: 50000" min="1000">
+                </div>
+
+                <div class="au-form-group" id="charge-gateways-container" style="display: none; margin-top: 20px;">
+                    <label class="au-label">انتخاب روش پرداخت *</label>
+                    <div style="display: flex; gap: 10px; flex-direction: column;">
+                        <label id="lbl-gateway-zarinpal" class="au-radio-card" style="display: none; border: 1px solid var(--au-border); padding: 12px; border-radius: 8px; cursor: pointer; align-items: center; gap: 10px;">
+                            <input type="radio" name="charge_gateway" value="zarinpal" onchange="toggleCardToCardFields()">
+                            <span>درگاه زرین‌پال</span>
+                        </label>
+                        <label id="lbl-gateway-nowpayments" class="au-radio-card" style="display: none; border: 1px solid var(--au-border); padding: 12px; border-radius: 8px; cursor: pointer; align-items: center; gap: 10px;">
+                            <input type="radio" name="charge_gateway" value="nowpayments" onchange="toggleCardToCardFields()">
+                            <span>درگاه ارز دیجیتال (NowPayments)</span>
+                        </label>
+                        <label id="lbl-gateway-carttocart" class="au-radio-card" style="display: none; border: 1px solid var(--au-border); padding: 12px; border-radius: 8px; cursor: pointer; align-items: center; gap: 10px;">
+                            <input type="radio" name="charge_gateway" value="cart_to_cart" onchange="toggleCardToCardFields()">
+                            <span>کارت به کارت (ارسال رسید)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="card-to-card-fields" style="display: none; margin-top: 20px; background: rgba(255,255,255,0.02); padding: 16px; border-radius: 8px; border: 1px dashed var(--au-border);">
+                    <div style="margin-bottom: 16px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: var(--au-text-muted); margin-bottom: 4px;">شماره کارت جهت واریز</div>
+                        <div id="c2c-card-number" style="font-size: 1.2rem; font-family: monospace; letter-spacing: 2px; color: var(--au-primary); margin-bottom: 4px; direction: ltr;">-</div>
+                        <div id="c2c-card-name" style="font-size: 0.9rem; color: var(--au-text);">-</div>
+                    </div>
+                    <div class="au-form-group" style="margin-bottom: 0;">
+                        <label class="au-label">تصویر رسید پرداختی *</label>
+                        <input type="file" id="charge-receipt" class="au-input" accept="image/*" style="padding: 8px;">
+                    </div>
+                </div>
+
+            </div>
+            <div class="au-modal-footer">
+                <button class="au-btn" onclick="closeModal('charge-wallet-modal')">انصراف</button>
+                <button class="au-btn au-btn-primary" id="btn-submit-charge" onclick="submitChargeWallet()">ثبت و ادامه</button>
+            </div>
+        </div>
+    </div>
 
     <?php if ($agentType === 'n2' || $agentType === 'all'): ?>
     <div id="transfer-modal" class="au-modal">

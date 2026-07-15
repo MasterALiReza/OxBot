@@ -70,10 +70,20 @@ $schema = [
             'نمایندگی' => [
                 ['name' => 'set_statusagentrequest', 'label' => 'درخواست نمایندگی', 'type' => 'select', 'options' => ['onrequestagent' => 'باز', 'offrequestagent' => 'بسته'], 'val' => $row['statusagentrequest'] ?? ''],
                 ['name' => 'set_agentreqprice', 'label' => 'حداقل شارژ برای درخواست (تومان)', 'type' => 'number', 'val' => $row['agentreqprice'] ?? ''],
+            ],
+            'دسترسی‌های پیشرفته' => [
+                ['name' => 'shop_agent_test_limit', 'label' => 'سقف ساخت اکانت تست روزانه', 'type' => 'number', 'val' => $shop_settings['agent_test_limit'] ?? '5'],
+                ['name' => 'shop_agent_n2_negative_credit', 'label' => 'سقف اعتبار منفی (تومان) نماینده ویژه', 'type' => 'number', 'val' => $shop_settings['agent_n2_negative_credit'] ?? '0'],
             ]
         ]
     ]
 ];
+
+// Ensure default settings exist
+try {
+    $pdo->query("INSERT IGNORE INTO shopSetting (Namevalue, value) VALUES ('agent_test_limit', '5')");
+    $pdo->query("INSERT IGNORE INTO shopSetting (Namevalue, value) VALUES ('agent_n2_negative_credit', '0')");
+} catch (Exception $e) {}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check_post();

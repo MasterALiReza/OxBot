@@ -12,6 +12,25 @@ if (!isset($_SESSION['agent_id'])) {
 }
 $agent_id = (int) $_SESSION['agent_id'];
 
+// Fetch Agent type and reset traffic price
+$agentType = 'n';
+$reset_price = 5000.0;
+try {
+    $stmtAgent = $pdo->prepare("SELECT agent FROM user WHERE id = :id LIMIT 1");
+    $stmtAgent->execute([':id' => $agent_id]);
+    $agentRow = $stmtAgent->fetch(PDO::FETCH_ASSOC);
+    if ($agentRow) {
+        $agentType = $agentRow['agent'];
+    }
+
+    $stmtPrice = $pdo->prepare("SELECT value FROM shopSetting WHERE Namevalue = 'price_reset_agent' LIMIT 1");
+    $stmtPrice->execute();
+    $priceRow = $stmtPrice->fetch(PDO::FETCH_ASSOC);
+    if ($priceRow) {
+        $reset_price = (float)$priceRow['value'];
+    }
+} catch (Exception $e) {}
+
 $old_cwd = getcwd();
 chdir(__DIR__ . '/../../');
 require_once 'function.php';
@@ -723,6 +742,18 @@ try {
         <button type="button" class="btn-sm-action" style="background: var(--sf3); color: var(--text); border: 1px solid var(--bds);" onclick="openManageModal('<?= $id_invoice ?>')">
             <?= icon('refresh-cw', 13) ?> بروزرسانی اطلاعات
         </button>
+
+        <!-- Reset Traffic -->
+        <button type="button" class="btn-sm-action" style="background:#ea580c; color:#fff;" onclick="resetTraffic('<?= $id_invoice ?>', <?= $reset_price ?>)">
+            ⚡ ریست ترافیک (<?= number_format($reset_price) ?> ت)
+        </button>
+
+        <?php if ($agentType === 'n2' || $agentType === 'all'): ?>
+        <!-- Add Volume -->
+        <button type="button" class="btn-sm-action" style="background:#10b981; color:#fff;" onclick="closeModal('manage-modal'); openAddVolumeModal('<?= $id_invoice ?>', '<?= htmlspecialchars($invoice['username']) ?>', '<?= htmlspecialchars($invoice['Service_location']) ?>')">
+            📦 افزایش حجم (گیگ)
+        </button>
+        <?php endif; ?>
 
         <!-- Extend Service -->
         <button type="button" class="btn-sm-action" style="background:#3b82f6; color:#fff;" onclick="closeModal('manage-modal'); openRenewModal('<?= $id_invoice ?>', '<?= htmlspecialchars($invoice['username']) ?>', '<?= htmlspecialchars($invoice['Service_location']) ?>')">

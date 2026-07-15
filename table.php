@@ -1019,6 +1019,7 @@ try {
         $connect->query("INSERT INTO shopSetting (Namevalue,value) VALUES ('backserviecstatus','on')");
         $connect->query("INSERT INTO shopSetting (Namevalue,value) VALUES ('chashbackextend','0')");
         $connect->query("INSERT INTO shopSetting (Namevalue,value) VALUES ('chashbackextend_agent','$agent_cashback')");
+        $connect->query("INSERT INTO shopSetting (Namevalue,value) VALUES ('price_reset_agent','5000')");
     } else {
         $connect->query("INSERT IGNORE INTO shopSetting (Namevalue,value) VALUES ('customvolmef','4000')");
         $connect->query("INSERT IGNORE INTO shopSetting (Namevalue,value) VALUES ('customvolmen','4000')");

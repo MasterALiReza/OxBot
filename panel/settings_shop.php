@@ -102,10 +102,16 @@ $schema = [
                 ['name' => 'shop_customtimepricen2', 'label' => 'قیمت زمان اضافه (پلن n2)', 'type' => 'number', 'val' => $shop_settings['customtimepricen2'] ?? ''],
                 ['name' => 'shop_chashbackextend_agent_n', 'label' => 'کش‌بک تمدید نماینده (n)', 'type' => 'number', 'val' => $shop_settings['chashbackextend_agent_n'] ?? '0'],
                 ['name' => 'shop_chashbackextend_agent_n2', 'label' => 'کش‌بک تمدید نماینده (n2)', 'type' => 'number', 'val' => $shop_settings['chashbackextend_agent_n2'] ?? '0'],
+                ['name' => 'shop_price_reset_agent', 'label' => 'هزینه ریست ترافیک نماینده (تومان)', 'type' => 'number', 'val' => $shop_settings['price_reset_agent'] ?? '5000'],
             ]
         ]
     ]
 ];
+
+// Ensure price_reset_agent exists in shopSetting table
+try {
+    $pdo->query("INSERT IGNORE INTO shopSetting (Namevalue, value) VALUES ('price_reset_agent', '5000')");
+} catch (Exception $e) {}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check_post();
