@@ -1190,30 +1190,6 @@ if ($agentType === 'n2' || $agentType === 'all') {
                 window.URL.revokeObjectURL(url);
             }, 0);
         }
-        async function resetTraffic(invoiceId, resetPrice) {
-            const priceText = resetPrice > 0 ? ` (هزینه: ${Number(resetPrice).toLocaleString()} تومان)` : ' (رایگان)';
-            if(!confirm(`آیا مطمئن هستید می‌خواهید ترافیک این کاربر را ریست کنید؟${priceText}`)) return;
-            
-            const formData = new FormData();
-            formData.append('action', 'reset_traffic');
-            formData.append('invoice_id', invoiceId);
-
-            try {
-                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
-                const json = await res.json();
-                if(json.status === 'success') {
-                    if (activeManageModalId === invoiceId) {
-                        openManageModal(invoiceId); // refresh modal stats
-                    }
-                    loadUsers(currentPage);
-                    alert('ترافیک کاربر با موفقیت ریست شد!');
-                } else {
-                    alert(json.message || 'خطا در ریست ترافیک');
-                }
-            } catch(e) {
-                alert('خطای ارتباط با سرور');
-            }
-        }
 
         function openAddVolumeModal(invoiceId, username, location) {
             document.getElementById('vol-invoice-id').value = invoiceId;

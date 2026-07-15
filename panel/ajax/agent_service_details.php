@@ -743,10 +743,6 @@ try {
             <?= icon('refresh-cw', 13) ?> بروزرسانی اطلاعات
         </button>
 
-        <!-- Reset Traffic -->
-        <button type="button" class="btn-sm-action" style="background:#ea580c; color:#fff;" onclick="resetTraffic('<?= $id_invoice ?>', <?= $reset_price ?>)">
-            ⚡ ریست ترافیک (<?= number_format($reset_price) ?> ت)
-        </button>
 
         <?php if ($agentType === 'n2' || $agentType === 'all'): ?>
         <!-- Add Volume -->
