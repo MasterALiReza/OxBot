@@ -231,7 +231,12 @@ $withdrawals = [];
 $aff_logs = [];
 try {
     $withdrawals = db_fetchAll($pdo, "SELECT * FROM withdrawal_requests WHERE user_id = ? ORDER BY time DESC", [$id]);
-    $aff_logs = db_fetchAll($pdo, "SELECT * FROM affiliate_log WHERE user_id = ? ORDER BY created_at DESC", [$id]);
+    $aff_logs = db_fetchAll($pdo, "
+        SELECT id, action_type, amount, description, created_at, 'affiliate' as log_source FROM affiliate_log WHERE user_id = ?
+        UNION ALL
+        SELECT id, action_type, amount, description, created_at, 'wallet' as log_source FROM wallet_log WHERE user_id = ?
+        ORDER BY created_at DESC
+    ", [$id, $id]);
 } catch (Exception $e) {
 }
 
@@ -933,6 +938,9 @@ include __DIR__ . '/inc/layout_head.php';
                                                         'transfertouser' => 'انتقال به کاربر',
                                                         'extra_not_user' => 'دریافت حجم اضافی',
                                                         'extends_not_user' => 'تمدید (جایزه)',
+                                                        'extend_user_by_admin' => 'تمدید سرویس (توسط مدیر)',
+                                                        'extra_user_by_admin' => 'افزایش حجم (توسط مدیر)',
+                                                        'extra_time_user_by_admin' => 'افزایش زمان (توسط مدیر)'
                                                     ];
                                                     foreach ($inv_logs as $lg): 
                                                         $lg_type = $actionMap[$lg['type']] ?? $lg['type'];
@@ -1252,15 +1260,22 @@ include __DIR__ . '/inc/layout_head.php';
                                             'deduct' => ['کاهش موجودی دستی', 'var(--rose)'],
                                             'zero' => ['صفر کردن موجودی', 'var(--rose)'],
                                             'transfer_to_main' => ['انتقال به کیف پول اصلی', 'var(--ac)'],
+                                            'deposit_from_affiliate' => ['شارژ از پورسانت', 'var(--emerald)'],
                                             'commission' => ['پورسانت خرید زیرمجموعه', 'var(--emerald)'],
                                             'invite_reward' => ['هدیه دعوت کاربر', 'var(--emerald)'],
                                             'withdrawal_request' => ['درخواست تسویه', 'var(--rose)'],
                                             'withdrawal_refund' => ['برگشت تسویه رد شده', 'var(--emerald)']
                                         ];
                                         $typeInfo = $actionMap[$l['action_type']] ?? [$l['action_type'], 'var(--text)'];
+                                        $sourceTag = ($l['log_source'] ?? 'affiliate') === 'wallet' ? '<span class="tag tag-ok" style="font-size:0.65rem; padding:2px 6px;">کیف پول اصلی</span>' : '<span class="tag tag-info" style="font-size:0.65rem; padding:2px 6px;">موجودی بازاریابی</span>';
                                         ?>
                                         <tr>
-                                            <td data-label="نوع" style="font-weight:600; color: <?= $typeInfo[1] ?>;"><?= $typeInfo[0] ?></td>
+                                            <td data-label="نوع" style="font-weight:600; color: <?= $typeInfo[1] ?>;">
+                                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                                    <span><?= $typeInfo[0] ?></span>
+                                                    <div><?= $sourceTag ?></div>
+                                                </div>
+                                            </td>
                                             <td data-label="مبلغ" class="cn"><?= number_format($l['amount']) ?> <span class="cf" style="font-size:0.75rem">تومان</span></td>
                                             <td data-label="توضیحات"><?= htmlspecialchars($l['description'] ?? '—') ?></td>
                                             <td data-label="تاریخ" style="color:var(--mute);"><?= htmlspecialchars($l['created_at']) ?></td>

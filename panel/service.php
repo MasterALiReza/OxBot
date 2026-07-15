@@ -46,12 +46,15 @@ try {
 }
 
 $typeMap = [
-  'change_location' => $textbotlang['panel']['serviceChangeLocationLabel'],
-  'extra_user' => $textbotlang['panel']['serviceExtraVolumeLabel'],
-  'extra_time_user' => $textbotlang['panel']['serviceExtraTimeLabel'],
-  'extends_not_user' => $textbotlang['panel']['serviceRenewLabel'],
-  'extend_user' => $textbotlang['panel']['serviceRenewLabel2'],
-  'transfertouser' => $textbotlang['panel']['serviceTransferOrderLabel']
+  'change_location' => $textbotlang['panel']['serviceChangeLocationLabel'] ?? 'تغییر لوکیشن',
+  'extra_user' => $textbotlang['panel']['serviceExtraVolumeLabel'] ?? 'افزایش حجم',
+  'extra_time_user' => $textbotlang['panel']['serviceExtraTimeLabel'] ?? 'افزایش زمان',
+  'extends_not_user' => $textbotlang['panel']['serviceRenewLabel'] ?? 'تمدید سرویس',
+  'extend_user' => $textbotlang['panel']['serviceRenewLabel2'] ?? 'تمدید سرویس',
+  'transfertouser' => $textbotlang['panel']['serviceTransferOrderLabel'] ?? 'انتقال سرویس',
+  'extend_user_by_admin' => 'تمدید سرویس (توسط مدیر)',
+  'extra_user_by_admin' => 'افزایش حجم (توسط مدیر)',
+  'extra_time_user_by_admin' => 'افزایش زمان (توسط مدیر)'
 ];
 
 $pageTitle = $textbotlang['panel']['servicesHeading'];
@@ -195,7 +198,8 @@ include __DIR__ . '/inc/layout_head.php';
               'unpaid' => ['tag-plain', 'پرداخت نشده'],
               'paid' => ['tag-ok', 'پرداخت شده'],
               'active' => ['tag-ok', 'فعال'],
-              'disabled' => ['tag-no', 'غیرفعال']
+              'disabled' => ['tag-no', 'غیرفعال'],
+              '' => ['tag-ok', 'ثبت شده (سیستمی)']
             ];
             $rawStatus = trim($s['status'] ?? '');
             [$cls, $lbl] = $stMap[$rawStatus] ?? ['tag-plain', $rawStatus ?: '—'];
@@ -203,18 +207,47 @@ include __DIR__ . '/inc/layout_head.php';
             
             $rawVal = $s['value'] ?? '';
             $valStr = $rawVal;
+            
+            if ($s['type'] === 'transfertouser' && !str_starts_with(trim($rawVal), '{') && is_numeric($rawVal)) {
+                $valStr = 'کاربر مقصد: ' . $rawVal;
+            }
+
             if (str_starts_with(trim($rawVal), '{')) {
                 $decoded = json_decode($rawVal, true);
                 if (is_array($decoded)) {
                     $parts = [];
-                    if (isset($decoded['volumebuy'])) $parts[] = $decoded['volumebuy'] . ' گیگ';
+                    
+                    // Basic mappings
+                    if (isset($decoded['volumebuy'])) $parts[] = $decoded['volumebuy'] . ' گیگابایت';
                     if (isset($decoded['time'])) $parts[] = $decoded['time'] . ' روز';
+                    if (isset($decoded['day'])) $parts[] = $decoded['day'] . ' روز';
                     if (isset($decoded['server_id'])) $parts[] = 'سرور ' . $decoded['server_id'];
                     if (isset($decoded['plan_id'])) $parts[] = 'پلن ' . $decoded['plan_id'];
                     if (isset($decoded['server_name'])) $parts[] = $decoded['server_name'];
+                    
+                    // Detailed mappings for extra volume/time
+                    if (isset($decoded['old_volume']) && isset($decoded['new_volume'])) {
+                        $parts[] = 'حجم از ' . $decoded['old_volume'] . ' به ' . $decoded['new_volume'] . ' گیگابایت';
+                    }
+                    if (isset($decoded['old_time']) && isset($decoded['new_time'])) {
+                        $parts[] = 'زمان از ' . $decoded['old_time'] . ' به ' . $decoded['new_time'] . ' روز';
+                    }
+                    
+                    // Other mappings
+                    if (isset($decoded['target_user'])) $parts[] = 'کاربر مقصد: ' . $decoded['target_user'];
+                    
                     if (empty($parts)) {
+                        $keyMap = [
+                            'price_per_day' => 'قیمت روزانه',
+                            'price_per_gb' => 'قیمت هر گیگ',
+                            'location_id' => 'لوکیشن',
+                            'server_id' => 'سرور'
+                        ];
                         foreach ($decoded as $k => $v) {
-                            if (is_scalar($v)) $parts[] = "$k: $v";
+                            if (is_scalar($v)) {
+                                $kLabel = $keyMap[$k] ?? $k;
+                                $parts[] = "$kLabel: $v";
+                            }
                         }
                     }
                     $valStr = implode(' - ', $parts);
@@ -241,8 +274,8 @@ include __DIR__ . '/inc/layout_head.php';
                       <div style="display:flex; align-items:center; gap:6px; color:var(--text); font-size: 0.85rem; font-weight:600;">
                           <?= icon('package', 14) ?> <?= htmlspecialchars($typeLabel) ?>
                       </div>
-                      <span class="cn" style="font-size:0.8rem; color:var(--mute); display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($valStr) ?>" dir="ltr">
-                          <?= htmlspecialchars(trunc($valStr, 40)) ?>
+                      <span class="cn" style="font-size:0.8rem; color:var(--mute); display:inline-block; max-width:350px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($valStr) ?>" dir="ltr">
+                          <?= htmlspecialchars($valStr) ?>
                       </span>
                   </div>
               </td>
