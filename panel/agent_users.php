@@ -9,8 +9,8 @@ if (!isset($_SESSION['agent_id'])) {
 
 $agent_id = $_SESSION['agent_id'];
 
-// Get agent name and type
-$stmt = $pdo->prepare("SELECT namecustom, agent FROM user WHERE id = :id");
+// Get agent name, type and balance
+$stmt = $pdo->prepare("SELECT namecustom, agent, Balance FROM user WHERE id = :id");
 $stmt->execute([':id' => $agent_id]);
 $agentUserRow = $stmt->fetch(PDO::FETCH_ASSOC);
 $agentUsername = !empty($agentUserRow['namecustom']) ? $agentUserRow['namecustom'] : 'نماینده ' . $agent_id;
@@ -65,30 +65,24 @@ $allowedProducts = $stmtProduct->fetchAll(PDO::FETCH_ASSOC);
                 <span><?= $agentUsername ?></span>
             </div>
         </div>
+
+        <!-- Wallet Widget -->
+        <div class="au-sidebar-wallet">
+            <div class="au-wallet-title">
+                <?= icon('wallet', 14) ?>
+                <span>موجودی حساب شما</span>
+            </div>
+            <div class="au-wallet-value">
+                <?= number_format((float)($agentUserRow['Balance'] ?? 0)) ?> <span>تومان</span>
+            </div>
+        </div>
+
         <nav class="au-nav">
-            <a href="agent_users.php" class="au-nav-item">
-                <?= icon('dashboard', 18) ?> داشبورد
-            </a>
             <a href="agent_users.php" class="au-nav-item active">
                 <?= icon('users', 18) ?> مدیریت کاربران
             </a>
-            <a href="javascript:void(0)" onclick="alert('این بخش به زودی فعال می‌شود');" class="au-nav-item">
-                <?= icon('activity', 18) ?> لاگ عملیات
-            </a>
-            <a href="javascript:void(0)" onclick="alert('این بخش به زودی فعال می‌شود');" class="au-nav-item">
-                <?= icon('database', 18) ?> مستندات API
-            </a>
-            <a href="javascript:void(0)" onclick="alert('این بخش به زودی فعال می‌شود');" class="au-nav-item">
-                <?= icon('settings', 18) ?> تنظیمات
-            </a>
         </nav>
         <div class="au-sidebar-footer">
-            <a href="#" class="au-nav-item">
-                <?= icon('user', 16) ?> حساب نماینده
-            </a>
-            <a href="#" class="au-nav-item">
-                <?= icon('shield', 16) ?> نشست فعال
-            </a>
             <a href="ajax/agent_auth.php?action=logout" class="au-nav-item" style="color: var(--au-danger);">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> 
                 خروج از حساب
