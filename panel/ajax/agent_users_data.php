@@ -198,6 +198,7 @@ try {
                 'expires_at'       => $exp_date,
                 'rem_days'         => $rem_days,
                 'total_gb'         => $formatted_vol,
+                'note'             => $inv['note'] ?? '',
                 'service_time_str' => $formatted_time,
                 'price'            => number_format((float) ($inv['price_product'] ?? 0)) . ' تومان',
             ];

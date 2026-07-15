@@ -96,11 +96,21 @@ $totalCount = $activeCount + $expiredCount;
             <button onclick="requestWalletCharge(<?= $agent_id ?>)" class="au-btn au-btn-primary" style="margin-top: 8px; width: 100%; font-size: 0.8rem; padding: 8px 12px; height: auto; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
                 ⚡ درخواست شارژ حساب
             </button>
+            <?php if ($agentType === 'n2' || $agentType === 'all'): ?>
+            <button onclick="openTransferModal()" class="au-btn" style="margin-top: 8px; width: 100%; font-size: 0.8rem; padding: 8px 12px; height: auto; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--au-border); color: var(--au-text);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                انتقال شارژ به همکار
+            </button>
+            <?php endif; ?>
         </div>
 
         <nav class="au-nav">
             <a href="agent_users.php" class="au-nav-item active">
                 <?= icon('users', 18) ?> مدیریت کاربران
+            </a>
+            <a href="agent_logs.php" class="au-nav-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                لاگ مالی و تراکنش‌ها
             </a>
         </nav>
         <div class="au-sidebar-footer">
@@ -273,6 +283,37 @@ $totalCount = $activeCount + $expiredCount;
         </div>
     </div>
 
+    <!-- Change Location Modal -->
+    <div id="change-location-modal" class="au-modal">
+        <div class="au-modal-content">
+            <div class="au-modal-header">
+                <h2>جابجایی لوکیشن سرویس</h2>
+                <button class="au-btn-icon" onclick="closeModal('change-location-modal')"><?= icon('x', 20) ?></button>
+            </div>
+            <div class="au-modal-body">
+                <p style="margin-bottom: 15px;">کاربر: <strong id="loc-username-lbl"></strong> (لوکیشن فعلی: <span id="loc-current-lbl" style="color: var(--au-danger);"></span>)</p>
+                <input type="hidden" id="loc-invoice-id">
+                <div class="au-alert au-alert-warning" style="margin-bottom: 15px; font-size: 0.85rem; text-align: right; direction: rtl;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> توجه: این عملیات به صورت رایگان انجام می‌شود و کاربر در لوکیشن قبلی حذف و در لوکیشن جدید دقیقاً با همان حجم و زمان باقیمانده ساخته خواهد شد. این کار باعث تغییر لینک اشتراک نمی‌شود، اما لینک کانفیگ‌ها ممکن است عوض شود.
+                </div>
+                <div class="au-form-group">
+                    <label>سرور (لوکیشن) جدید</label>
+                    <select id="loc-new-location" class="au-select" style="width: 100%; margin-bottom: 15px;">
+                        <option value="">-- انتخاب کنید --</option>
+                        <?php foreach($allowedPanels as $p): ?>
+                            <option value="<?= htmlspecialchars($p['code_panel']) ?>"><?= htmlspecialchars($p['name_panel']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div id="loc-error" style="color: var(--au-danger); font-size: 0.9rem; margin-bottom: 10px; display: none;"></div>
+            </div>
+            <div class="au-modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--au-border); display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="au-btn" onclick="closeModal('change-location-modal')">انصراف</button>
+                <button class="au-btn au-btn-primary" id="btn-submit-loc" onclick="submitChangeLocation()">تایید و جابجایی</button>
+            </div>
+        </div>
+    </div>
+
     <!-- User Management Advanced Modal -->
     <div id="manage-modal" class="au-modal">
         <div class="au-modal-content" style="max-width: 600px; background: var(--au-surface); border-radius: 12px; overflow: hidden; padding: 0;">
@@ -427,6 +468,9 @@ $totalCount = $activeCount + $expiredCount;
                                 <div class="au-dropdown" id="dropdown-${user.id}">
                                     <a href="#" class="au-dropdown-item" onclick="openManageModal('${user.id}'); return false;"><i class="fa-solid fa-link"></i> تنظیمات و لینک</a>
                                     <a href="#" class="au-dropdown-item" onclick="openRenewModal('${user.id}', '${user.username}', '${user.location}'); return false;"><i class="fa-solid fa-rotate-right"></i> تمدید سرویس</a>
+                                    <a href="#" class="au-dropdown-item" onclick="openChangeLocationModal('${user.id}', '${user.username}', '${user.location}'); return false;"><i class="fa-solid fa-server"></i> جابجایی لوکیشن</a>
+                                    <a href="#" class="au-dropdown-item" onclick="editRemark('${user.id}', '${encodeURIComponent(user.note || '')}'); return false;"><i class="fa-solid fa-pen-to-square"></i> تغییر توضیحات</a>
+                                    <a href="#" class="au-dropdown-item" onclick="changeStatus('${user.id}'); return false;"><i class="fa-solid fa-power-off"></i> تغییر وضعیت</a>
                                     <a href="#" class="au-dropdown-item danger" onclick="deleteUser('${user.id}'); return false;"><i class="fa-solid fa-trash"></i> حذف کاربر</a>
                                 </div>
                             </div>
@@ -732,6 +776,61 @@ $totalCount = $activeCount + $expiredCount;
             btn.textContent = 'تمدید سرویس';
         }
 
+        function openChangeLocationModal(invoiceId, username, location) {
+            document.getElementById('loc-invoice-id').value = invoiceId;
+            document.getElementById('loc-username-lbl').textContent = username;
+            document.getElementById('loc-current-lbl').textContent = location;
+            document.getElementById('loc-error').style.display = 'none';
+            document.getElementById('loc-new-location').value = '';
+            openModal('change-location-modal');
+        }
+
+        async function submitChangeLocation() {
+            const invoiceId = document.getElementById('loc-invoice-id').value;
+            const newLoc = document.getElementById('loc-new-location').value;
+            const currentLoc = document.getElementById('loc-current-lbl').textContent;
+            const errDiv = document.getElementById('loc-error');
+            const btn = document.getElementById('btn-submit-loc');
+
+            if(!newLoc) {
+                errDiv.textContent = 'انتخاب لوکیشن جدید الزامی است';
+                errDiv.style.display = 'block';
+                return;
+            }
+            if(newLoc === currentLoc) {
+                errDiv.textContent = 'لوکیشن جدید نمیتواند با لوکیشن فعلی یکی باشد!';
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            errDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال پردازش...';
+
+            const formData = new FormData();
+            formData.append('action', 'change_location');
+            formData.append('invoice_id', invoiceId);
+            formData.append('new_location', newLoc);
+
+            try {
+                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    closeModal('change-location-modal');
+                    loadUsers(currentPage);
+                    alert('سرویس با موفقیت به لوکیشن جدید منتقل شد!');
+                } else {
+                    errDiv.textContent = json.message || 'خطا در جابجایی لوکیشن';
+                    errDiv.style.display = 'block';
+                }
+            } catch(e) {
+                errDiv.textContent = 'خطای ارتباط با سرور';
+                errDiv.style.display = 'block';
+            }
+            btn.disabled = false;
+            btn.textContent = 'تایید و جابجایی';
+        }
+
         async function deleteUser(invoiceId) {
             if(!confirm('آیا از حذف این کاربر اطمینان دارید؟ این عملیات قابل بازگشت نیست!')) return;
             
@@ -746,6 +845,50 @@ $totalCount = $activeCount + $expiredCount;
                     loadUsers(currentPage);
                 } else {
                     alert(json.message || 'خطا در حذف کاربر');
+                }
+            } catch(e) {
+                alert('خطای ارتباط با سرور');
+            }
+        }
+
+        async function changeStatus(invoiceId) {
+            if(!confirm('آیا مطمئن هستید می‌خواهید وضعیت این کاربر را تغییر دهید؟ (فعال/مسدود)')) return;
+            
+            const formData = new FormData();
+            formData.append('action', 'change_status');
+            formData.append('invoice_id', invoiceId);
+
+            try {
+                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    loadUsers(currentPage);
+                    alert('وضعیت با موفقیت تغییر کرد.');
+                } else {
+                    alert(json.message || 'خطا در تغییر وضعیت کاربر');
+                }
+            } catch(e) {
+                alert('خطای ارتباط با سرور');
+            }
+        }
+
+        async function editRemark(invoiceId, currentNoteEncoded) {
+            const currentNote = decodeURIComponent(currentNoteEncoded);
+            const newRemark = prompt('توضیحات جدید را وارد کنید:', currentNote);
+            if (newRemark === null) return; // cancelled
+
+            const formData = new FormData();
+            formData.append('action', 'edit_remark');
+            formData.append('invoice_id', invoiceId);
+            formData.append('remark', newRemark);
+
+            try {
+                const res = await fetch('ajax/agent_actions.php', { method: 'POST', body: formData });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    loadUsers(currentPage);
+                } else {
+                    alert(json.message || 'خطا در تغییر توضیحات');
                 }
             } catch(e) {
                 alert('خطای ارتباط با سرور');
@@ -962,6 +1105,35 @@ $totalCount = $activeCount + $expiredCount;
     </div>
     <?php endif; ?>
 
+
+    <?php if ($agentType === 'n2' || $agentType === 'all'): ?>
+    <div id="transfer-modal" class="au-modal">
+        <div class="au-modal-content" style="max-width: 400px;">
+            <div class="au-modal-header">
+                <h2>انتقال شارژ به همکار</h2>
+                <button class="au-btn-icon" onclick="closeModal('transfer-modal')"><?= icon('x', 20) ?></button>
+            </div>
+            <div class="au-modal-body">
+                <p style="margin-bottom: 15px; font-size: 0.9rem; color: var(--au-text-muted);">
+                    موجودی فعلی شما: <strong style="color: var(--au-text);"><?= number_format((float)($agentUserRow['Balance'] ?? 0)) ?> تومان</strong><br>
+                    مبلغ مورد نظر برای انتقال را وارد کنید:
+                </p>
+                <div class="au-form-group">
+                    <label>آیدی عددی تلگرام (ID مقصد)</label>
+                    <input type="number" id="transfer-target-id" class="au-input" placeholder="مثلاً 123456789">
+                </div>
+                <div class="au-form-group">
+                    <label>مبلغ انتقال (تومان)</label>
+                    <input type="number" id="transfer-amount" class="au-input" placeholder="مثلاً 50000">
+                </div>
+            </div>
+            <div class="au-modal-footer" style="padding: 15px 20px; border-top: 1px solid var(--au-border); display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="au-btn" onclick="closeModal('transfer-modal')">انصراف</button>
+                <button class="au-btn au-btn-primary" id="btn-submit-transfer" onclick="submitTransfer()">انتقال شارژ</button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <script src="js/agent_users.js"></script>
     <style>

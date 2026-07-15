@@ -220,6 +220,35 @@ try {
         border-radius: 0 4px 4px 0;
         opacity: 0.85;
     }
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        font-weight: 600;
+        border: 1px solid transparent;
+    }
+    .tag-ok {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+    .tag-warn {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+    .tag-no {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+    .tag-plain {
+        background: rgba(255, 255, 255, 0.1);
+        color: #e2e8f0;
+        border-color: rgba(255, 255, 255, 0.2);
+    }
     /* Section specific borders/colors */
     .bento-card.card-status::before {
         background: var(--ac);
@@ -512,6 +541,7 @@ try {
             <div class="card-desc">زمان باقی‌مانده: <?= $daysRemaining ?> (تاریخ خرید: <?= $purchaseDate ?>)</div>
         </div>
 
+        <?php if ($panelType !== 'WGDashboard'): ?>
         <!-- Connection Details Card -->
         <div class="bento-card bento-full card-connection">
             <div class="card-title">
@@ -521,21 +551,22 @@ try {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85em; margin-top: 4px;">
                 <div>
                     <span style="color: var(--mute);">آخرین اتصال:</span>
-                    <div style="font-weight: 500; margin-top: 2px; color: <?= $panelType === 'WGDashboard' ? 'var(--dim)' : 'inherit' ?>;"><?= $panelType === 'WGDashboard' ? 'نامشخص (بدون پشتیبانی)' : $lastonline ?></div>
+                    <div style="font-weight: 500; margin-top: 2px; color: inherit;"><?= $lastonline ?></div>
                 </div>
                 <div>
                     <span style="color: var(--mute);">بروزرسانی لینک:</span>
-                    <div style="font-weight: 500; margin-top: 2px; color: <?= ($lastupdate == 'بروزرسانی نشده' || $panelType === 'WGDashboard') ? 'var(--dim)' : 'inherit' ?>;"><?= $panelType === 'WGDashboard' ? 'ندارد' : $lastupdate ?></div>
+                    <div style="font-weight: 500; margin-top: 2px; color: <?= ($lastupdate == 'بروزرسانی نشده') ? 'var(--dim)' : 'inherit' ?>;"><?= $lastupdate ?></div>
                 </div>
                 <div style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 8px;">
                     <span style="color: var(--mute);">سیستم‌عامل/کلاینت:</span>
                     <?php $ua = $DataUserOut['sub_last_user_agent'] ?? ''; ?>
-                    <div style="font-weight: 500; margin-top: 2px; word-break: break-word; color: <?= (empty($ua) || $panelType === 'WGDashboard') ? 'var(--dim)' : 'inherit' ?>;" title="<?= htmlspecialchars($ua) ?>">
-                        <?= htmlspecialchars($panelType === 'WGDashboard' ? 'نامشخص' : (empty($ua) ? 'نامشخص (در این پنل ثبت نشده)' : trunc($ua, 60))) ?>
+                    <div style="font-weight: 500; margin-top: 2px; word-break: break-word; color: <?= empty($ua) ? 'var(--dim)' : 'inherit' ?>;" title="<?= htmlspecialchars($ua) ?>">
+                        <?= htmlspecialchars(empty($ua) ? 'نامشخص (در این پنل ثبت نشده)' : trunc($ua, 60)) ?>
                     </div>
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Subscription & Configs Card -->
         <div class="bento-card bento-full card-subscription">
