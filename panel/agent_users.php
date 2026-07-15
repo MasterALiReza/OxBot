@@ -1,4 +1,30 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== NULL && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        echo "<div style='background:#fff5f5;color:#c53030;padding:20px;border:2px solid #feb2b2;border-radius:8px;font-family:monospace;margin:20px;direction:ltr;text-align:left;'>";
+        echo "<h3 style='margin-top:0;'>Fatal Error Caught</h3>";
+        echo "<strong>Message:</strong> " . htmlspecialchars($error['message']) . "<br><br>";
+        echo "<strong>File:</strong> " . htmlspecialchars($error['file']) . "<br><br>";
+        echo "<strong>Line:</strong> " . $error['line'];
+        echo "</div>";
+    }
+});
+
+set_exception_handler(function($e) {
+    echo "<div style='background:#fff5f5;color:#c53030;padding:20px;border:2px solid #feb2b2;border-radius:8px;font-family:monospace;margin:20px;direction:ltr;text-align:left;'>";
+    echo "<h3 style='margin-top:0;'>Uncaught Exception Caught</h3>";
+    echo "<strong>Message:</strong> " . htmlspecialchars($e->getMessage()) . "<br><br>";
+    echo "<strong>File:</strong> " . htmlspecialchars($e->getFile()) . "<br><br>";
+    echo "<strong>Line:</strong> " . $e->getLine() . "<br><br>";
+    echo "<strong>Stack Trace:</strong><pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+    echo "</div>";
+});
+
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/icons.php';
 
