@@ -1,7 +1,25 @@
 <?php
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/icons.php';
+require_once __DIR__ . '/../../botapi.php';
 require_auth();
+
+function isBotAdminInChat($chat_id) {
+    global $APIKEY;
+    if (empty($APIKEY)) return false;
+    
+    $botId = explode(':', $APIKEY)[0];
+    $response = telegram('getChatMember', [
+        'chat_id' => $chat_id,
+        'user_id' => $botId
+    ]);
+    
+    if (isset($response['ok']) && $response['ok'] === true) {
+        $status = $response['result']['status'] ?? '';
+        return in_array($status, ['administrator', 'creator']);
+    }
+    return false;
+}
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $error = '';
@@ -19,6 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'تمامی فیلدها الزامی هستند.';
         } elseif (!filter_var($linkjoin, FILTER_VALIDATE_URL)) {
             $error = 'لینک جوین وارد شده نامعتبر است.';
+        } elseif (!isBotAdminInChat($link)) {
+            $error = 'ربات در این کانال ادمین نیست! لطفاً ابتدا ربات را در کانال ادمین کنید.';
         } else {
             try {
                 db_query($pdo, "INSERT INTO channels (link, remark, linkjoin) VALUES (?, ?, ?)", [$link, $remark, $linkjoin]);
@@ -47,6 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'تمامی فیلدها الزامی هستند.';
         } elseif (!filter_var($linkjoin, FILTER_VALIDATE_URL)) {
             $error = 'لینک جوین وارد شده نامعتبر است.';
+        } elseif (!isBotAdminInChat($link)) {
+            $error = 'ربات در این کانال ادمین نیست! لطفاً ابتدا ربات را در کانال ادمین کنید.';
         } else {
             try {
                 db_query($pdo, "UPDATE channels SET link = ?, remark = ?, linkjoin = ? WHERE link = ?", [$link, $remark, $linkjoin, $old_link]);
