@@ -235,6 +235,17 @@ try {
 } catch (Exception $e) {
 }
 
+$service_logs = [];
+$service_logs_by_username = [];
+try {
+    $service_logs = db_fetchAll($pdo, "SELECT * FROM service_other WHERE id_user = ? ORDER BY time DESC", [$id]);
+    foreach ($service_logs as $log) {
+        if (!empty($log['username'])) {
+            $service_logs_by_username[$log['username']][] = $log;
+        }
+    }
+} catch (Exception $e) {}
+
 try {
     $all_panels = db_fetchAll($pdo, "SELECT name_panel, type FROM marzban_panel");
 } catch (Exception $e) { $all_panels = []; }
@@ -834,7 +845,25 @@ include __DIR__ . '/inc/layout_head.php';
                                     'pending' => ['tag-plain', 'در انتظار'],
                                 ];
                                 foreach ($invoices as $inv):
+                                    $inv_logs = [];
+                                    if (!empty($inv['username'])) {
+                                        $inv_logs = $service_logs_by_username[$inv['username']] ?? [];
+                                    }
+                                    
+                                    $has_renewal = false;
+                                    foreach ($inv_logs as $lg) {
+                                        if ($lg['type'] === 'extend_user') {
+                                            $has_renewal = true;
+                                            break;
+                                        }
+                                    }
+
                                     [$tagClass, $label] = $statusMap[$inv['Status'] ?? ''] ?? ['tag-plain', $inv['Status'] ?? '—'];
+                                    if ($has_renewal && $inv['Status'] === 'active') {
+                                        $label = 'فعال (تمدید شده)';
+                                    }
+                                    
+                                    $tr_id = 'logs_tr_' . $inv['id_invoice'];
                                     ?>
                                     <tr style="border-bottom: 1px solid var(--bd);">
                                         <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?>" class="cs" style="text-align:right;">
@@ -871,11 +900,55 @@ include __DIR__ . '/inc/layout_head.php';
                                             <span class="tag <?= $tagClass ?>"><?= $label ?></span>
                                         </td>
                                         <td data-label="عملیات" style="text-align:center;">
+                                            <?php if (!empty($inv_logs)): ?>
+                                            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('<?= $tr_id ?>').style.display = document.getElementById('<?= $tr_id ?>').style.display === 'none' ? 'table-row' : 'none'" title="تاریخچه تراکنش‌ها">
+                                                <?= icon('clock', 16) ?>
+                                            </button>
+                                            <?php endif; ?>
                                             <button class="btn btn-ghost btn-sm" onclick="manageService('<?= $inv['id_invoice'] ?>')" title="مدیریت سرویس">
                                                 <?= icon('settings', 16) ?>
                                             </button>
                                         </td>
                                     </tr>
+                                    <?php if (!empty($inv_logs)): ?>
+                                    <tr id="<?= $tr_id ?>" style="display:none; background: rgba(0,0,0,0.02);">
+                                        <td colspan="5" style="padding: 10px 20px;">
+                                            <div style="font-size: 0.85rem; border: 1px solid var(--bd); border-radius: 8px; padding: 10px; margin-top: 5px; margin-bottom: 5px;">
+                                                <strong style="display:block; margin-bottom:8px; color:var(--text);">تاریخچه تغییرات این سرویس</strong>
+                                                <table style="width:100%; text-align:right; border-collapse: collapse;">
+                                                    <thead>
+                                                        <tr style="border-bottom: 1px solid var(--bd); opacity: 0.7;">
+                                                            <th style="padding: 4px 8px; text-align:right;">عملیات</th>
+                                                            <th style="padding: 4px 8px; text-align:right;">مبلغ</th>
+                                                            <th style="padding: 4px 8px; text-align:right;">تاریخ</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <?php 
+                                                    $actionMap = [
+                                                        'extend_user' => 'تمدید سرویس',
+                                                        'extra_user' => 'افزایش حجم',
+                                                        'extra_time_user' => 'افزایش زمان',
+                                                        'change_location' => 'تغییر سرور/لوکیشن',
+                                                        'transfertouser' => 'انتقال به کاربر',
+                                                        'extra_not_user' => 'دریافت حجم اضافی',
+                                                        'extends_not_user' => 'تمدید (جایزه)',
+                                                    ];
+                                                    foreach ($inv_logs as $lg): 
+                                                        $lg_type = $actionMap[$lg['type']] ?? $lg['type'];
+                                                    ?>
+                                                        <tr style="border-bottom: 1px solid var(--bd-light);">
+                                                            <td style="padding: 4px 8px; color:var(--text);"><?= htmlspecialchars($lg_type) ?></td>
+                                                            <td style="padding: 4px 8px; color:var(--ac);"><?= number_format((int)($lg['price'] ?? 0)) ?> <small>تومان</small></td>
+                                                            <td style="padding: 4px 8px; color:var(--mute);"><?= htmlspecialchars($lg['time']) ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endif; ?>
                                 <?php endforeach; endif; ?>
                         </tbody>
                     </table>
