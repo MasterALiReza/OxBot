@@ -1025,8 +1025,6 @@ function DirectPayment($order_id, $image = 'images.jpg')
         }
         $dateacc = date('Y/m/d H:i:s');
         $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
-        $Balance_Low_user = 0;
-        update("user", "Balance", $Balance_Low_user, "id", $Balance_id['id']);
         $extend = $ManagePanel->extend($marzban_list_get['Methodextend'], $prodcut['Volume_constraint'], $prodcut['Service_time'], $nameloc['username'], $prodcut['code_product'], $marzban_list_get['code_panel']);
         if ($extend['status'] == false) {
             $balance = $Balance_id['Balance'] + $Payment_report['price'];
@@ -1084,8 +1082,9 @@ function DirectPayment($order_id, $image = 'images.jpg')
         }
         if (intval($valurcashbackextend) != 0) {
             $result = ($prodcut['price_product'] * $valurcashbackextend) / 100;
-            $pricelastextend = $result;
-            update("user", "Balance", $pricelastextend, "id", $Balance_id['id']);
+            $current_balance = select("user", "Balance", "id", $Balance_id['id'], "select")['Balance'];
+            $new_balance = $current_balance + $result;
+            update("user", "Balance", $new_balance, "id", $Balance_id['id']);
             sendmessage($Balance_id['id'], sprintf($textbotlang['hardcoded']['renewGiftChargedFn'], $result), null, 'HTML');
         }
         $priceproductformat = number_format($prodcut['price_product']);
@@ -1122,12 +1121,10 @@ function DirectPayment($order_id, $image = 'images.jpg')
         $volume = $steppay[1];
         $nameloc = select("invoice", "*", "username", $steppay[0], "select");
         $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
-        $Balance_Low_user = 0;
         $inboundid = $marzban_list_get['inboundid'];
         if ($nameloc['inboundid'] != null) {
             $inboundid = $nameloc['inboundid'];
         }
-        update("user", "Balance", $Balance_Low_user, "id", $Balance_id['id']);
         $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $steppay[0]);
         $data_for_database = json_encode(array(
             'volume_value' => $volume,
@@ -1151,7 +1148,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
             }
             return false;
         }
-        $stmt = $pdo->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price,output) VALUES (:id_user,:username,:value,:type,:time,:price,:output)");
+        $stmt = $pdo->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price,output,status) VALUES (:id_user,:username,:value,:type,:time,:price,:output,'paid')");
         $stmt->bindParam(':id_user', $Balance_id['id']);
         $stmt->bindParam(':username', $steppay[0]);
         $stmt->bindParam(':value', $data_for_database);
@@ -1198,12 +1195,10 @@ function DirectPayment($order_id, $image = 'images.jpg')
         $tmieextra = $steppay[1];
         $nameloc = select("invoice", "*", "username", $steppay[0], "select");
         $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
-        $Balance_Low_user = 0;
         $inboundid = $marzban_list_get['inboundid'];
         if ($nameloc['inboundid'] != false) {
             $inboundid = $nameloc['inboundid'];
         }
-        update("user", "Balance", $Balance_Low_user, "id", $nameloc['id_user']);
         $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $steppay[0]);
         $data_for_database = json_encode(array(
             'day' => $tmieextra,
@@ -1229,7 +1224,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
             }
             return false;
         }
-        $stmt = $pdo->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price,output) VALUES (:id_user,:username,:value,:type,:time,:price,:output)");
+        $stmt = $pdo->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price,output,status) VALUES (:id_user,:username,:value,:type,:time,:price,:output,'paid')");
         $stmt->bindParam(':id_user', $Balance_id['id']);
         $stmt->bindParam(':username', $steppay[0]);
         $stmt->bindParam(':value', $data_for_database);
