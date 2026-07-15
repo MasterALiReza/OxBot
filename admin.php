@@ -10467,6 +10467,13 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             $valuenew = "onsublink";
         }
         update("marzban_panel", "sublink", $valuenew, "code_panel", $code_panel);
+    } elseif ($type == "qrwgd") {
+        if ($value == "onqrwgd") {
+            $valuenew = "offqrwgd";
+        } else {
+            $valuenew = "onqrwgd";
+        }
+        update("marzban_panel", "qr_wgd", $valuenew, "code_panel", $code_panel);
     } elseif ($type == "statusbuy") {
         if ($value == "active") {
             $valuenew = "disable";

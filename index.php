@@ -1517,14 +1517,18 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
             foreach ($keyboarddate as $key => $val) {
                 $new_keyboarddate[$key] = $val;
                 if ($key === 'updateinfo') {
-                    $new_keyboarddate['getconfigwg'] = array(
-                        'text' => "دریافت کانفیگ 📄",
-                        'callback_data' => "getconfigwg_"
-                    );
-                    $new_keyboarddate['getqrwg'] = array(
-                        'text' => "دریافت QR کد 📷",
-                        'callback_data' => "getqrwg_"
-                    );
+                    if ($statusshowconfig != 'offconfig') {
+                        $new_keyboarddate['getconfigwg'] = array(
+                            'text' => "دریافت کانفیگ 📄",
+                            'callback_data' => "getconfigwg_"
+                        );
+                    }
+                    if (!isset($marzban['qr_wgd']) || $marzban['qr_wgd'] != 'offqrwgd') {
+                        $new_keyboarddate['getqrwg'] = array(
+                            'text' => "دریافت QR کد 📷",
+                            'callback_data' => "getqrwg_"
+                        );
+                    }
                 }
             }
             $keyboarddate = $new_keyboarddate;
@@ -1630,6 +1634,10 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         }
     }
     $subscriptionurl = $DataUserOut['subscription_url'];
+    if ($marzban_list_get['type'] == "WGDashboard" && (strpos($subscriptionurl, 'Error') === 0 || empty(trim($subscriptionurl)))) {
+        sendmessage($from_id, "❌ خطا در دریافت کانفیگ از پنل: \n\n" . $subscriptionurl, null, 'html');
+        return;
+    }
     if ($marzban_list_get['type'] == "WGDashboard" && strpos($datain, "getqrwg_") === false) {
         $textsub = $textbotlang['extracted']['index_php']['subscriptionFile'];
         $bakinfos = json_encode([
