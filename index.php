@@ -699,7 +699,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     step('none', $from_id);
 } elseif ($text == $textbotlang['textbot']['purchasedServices'] || $datain == "backorder" || $text == "/services") {
     try {
-        $stmt_locs = $pdo->prepare("SELECT Service_location, COUNT(id) as count FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') GROUP BY Service_location");
+        $stmt_locs = $pdo->prepare("SELECT Service_location, COUNT(id_invoice) as count FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') GROUP BY Service_location");
         $stmt_locs->bindParam(':id_user', $from_id);
         $stmt_locs->execute();
         $locations = $stmt_locs->fetchAll(PDO::FETCH_ASSOC);
@@ -7404,7 +7404,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             }
         }
 
-        $stmt = $pdo->prepare("SELECT Service_location, COUNT(id) as count FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') GROUP BY Service_location");
+        $stmt = $pdo->prepare("SELECT Service_location, COUNT(id_invoice) as count FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') GROUP BY Service_location");
         $stmt->bindParam(':id_user', $from_id);
         $stmt->execute();
         $locations = $stmt->fetchAll(PDO::FETCH_ASSOC);
