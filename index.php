@@ -1069,7 +1069,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $usedTrafficGb = $DataUserOut['used_traffic'] ? formatBytes($DataUserOut['used_traffic']) : $textbotlang['users']['status']['notConsumed'];
     #--------------[ day ]---------------#
     $timeDiff = $DataUserOut['expire'] - time();
-    $day = $DataUserOut['expire'] ? floor($timeDiff / 86400) . $textbotlang['users']['status']['day'] : $textbotlang['users']['status']['unlimited'];
+    $day = $DataUserOut['expire'] ? ($timeDiff > 0 ? floor($timeDiff / 86400) : 0) . $textbotlang['users']['status']['day'] : $textbotlang['users']['status']['unlimited'];
     #-----------------------------#
 
 
@@ -2944,7 +2944,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     );
     $expirationDate = $DataUserOut['expire'] ? jdate('Y/m/d', $DataUserOut['expire']) : $textbotlang['users']['status']['unlimited'];
     $timeDiff = $DataUserOut['expire'] - time();
-    $day = $DataUserOut['expire'] ? floor($timeDiff / 86400) . $textbotlang['users']['status']['day'] : $textbotlang['users']['status']['unlimited'];
+    $day = $DataUserOut['expire'] ? ($timeDiff > 0 ? floor($timeDiff / 86400) : 0) . $textbotlang['users']['status']['day'] : $textbotlang['users']['status']['unlimited'];
     $output = $DataUserOut['data_limit'] - $DataUserOut['used_traffic'];
     $RemainingVolume = $DataUserOut['data_limit'] ? formatBytes($output) : $textbotlang['extracted']['index_php']['unlimited'];
     if ($marzban_list_get['url_panel'] == $marzban_list_get_new['url_panel']) {
@@ -3082,7 +3082,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $usedTrafficGb = $DataUserOut['used_traffic'] ? formatBytes($DataUserOut['used_traffic']) : $textbotlang['users']['status']['notConsumed'];
     #--------------[ day ]---------------#
     $timeDiff = $DataUserOut['expire'] - time();
-    $day = $DataUserOut['expire'] ? floor($timeDiff / 86400) . $textbotlang['users']['status']['day'] : $textbotlang['users']['status']['unlimited'];
+    $day = $DataUserOut['expire'] ? ($timeDiff > 0 ? floor($timeDiff / 86400) : 0) . $textbotlang['users']['status']['day'] : $textbotlang['users']['status']['unlimited'];
     #--------------[ subsupdate ]---------------#
     if ($DataUserOut['sub_updated_at'] !== null) {
         $sub_updated = $DataUserOut['sub_updated_at'];
@@ -3403,7 +3403,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $usedTrafficGb = $DataUserOut['used_traffic'] ? formatBytes($DataUserOut['used_traffic']) : $textbotlang['users']['status']['notConsumed'];
     #--------------[ day ]---------------#
     $timeDiff = $DataUserOut['expire'] - time();
-    $day = $DataUserOut['expire'] ? floor($timeDiff / 86400) . $textbotlang['users']['status']['day'] : $textbotlang['users']['status']['unlimited'];
+    $day = $DataUserOut['expire'] ? ($timeDiff > 0 ? floor($timeDiff / 86400) : 0) . $textbotlang['users']['status']['day'] : $textbotlang['users']['status']['unlimited'];
     #-----------------------------#
     $textinfoadmin = sprintf($textbotlang['hardcoded']['deleteServiceRequestAdmin'], $from_id, $username, $nameloc['username'], $status_var, $nameloc['Service_location'], $nameloc['id_invoice'], $lastonline, $usedTrafficGb, $LastTraffic, $RemainingVolume, $expirationDate, $day, $userdata['descritionsremove']);
     $confirmremoveadmin = json_encode([

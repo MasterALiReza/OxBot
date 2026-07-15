@@ -874,8 +874,20 @@ class ManagePanel
                 if ($expire != 0 and $expire - time() < 0) {
                     $status = "expired";
                 }
-                $upload_bytes = isset($UsernameData['total_receive']) ? floatval($UsernameData['total_receive']) : 0;
-                $download_bytes = isset($UsernameData['total_send']) ? floatval($UsernameData['total_send']) : 0;
+                $parse_wg_size = function($size_str) {
+                    if (!$size_str) return 0;
+                    if (is_numeric($size_str)) return floatval($size_str);
+                    $size_str = strtoupper(trim(strval($size_str)));
+                    $value = floatval($size_str);
+                    if (strpos($size_str, 'TB') !== false || strpos($size_str, 'TIB') !== false) return $value * pow(1024, 4);
+                    if (strpos($size_str, 'GB') !== false || strpos($size_str, 'GIB') !== false) return $value * pow(1024, 3);
+                    if (strpos($size_str, 'MB') !== false || strpos($size_str, 'MIB') !== false) return $value * pow(1024, 2);
+                    if (strpos($size_str, 'KB') !== false || strpos($size_str, 'KIB') !== false) return $value * 1024;
+                    return $value;
+                };
+
+                $upload_bytes = isset($UsernameData['total_receive']) ? $parse_wg_size($UsernameData['total_receive']) : 0;
+                $download_bytes = isset($UsernameData['total_send']) ? $parse_wg_size($UsernameData['total_send']) : 0;
                 $data_useage = $upload_bytes + $download_bytes;
                 if ($data_useage == 0) {
                     $data_useage = ((isset($UsernameData['total_data']) ? floatval($UsernameData['total_data']) : 0) * pow(1024, 3)) + ((isset($UsernameData['cumu_data']) ? floatval($UsernameData['cumu_data']) : 0) * pow(1024, 3));

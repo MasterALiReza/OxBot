@@ -6114,7 +6114,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     $usedTrafficGb = $DataUserOut['used_traffic'] ? formatBytes($DataUserOut['used_traffic']) : $textbotlang['users']['status']['notConsumed'];
     #--------------[ day ]---------------#
     $timeDiff = $DataUserOut['expire'] - time();
-    $day = $DataUserOut['expire'] ? floor($timeDiff / 86400) . $textbotlang['users']['status']['day'] : $textbotlang['users']['status']['unlimited'];
+    $day = $DataUserOut['expire'] ? ($timeDiff > 0 ? floor($timeDiff / 86400) : 0) . $textbotlang['users']['status']['day'] : $textbotlang['users']['status']['unlimited'];
     #--------------[ subsupdate ]---------------#
     $lastupdate = "";
     if ($DataUserOut['sub_updated_at'] !== null) {
