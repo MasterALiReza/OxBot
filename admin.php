@@ -6080,18 +6080,38 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         step('home', $from_id);
         return;
     }
+    $is_online = false;
     if ($DataUserOut['online_at'] == "online") {
         $lastonline = $textbotlang['Admin']['adminphp']['btn_10'];
+        $is_online = true;
     } elseif ($DataUserOut['online_at'] == "offline") {
         $lastonline = $textbotlang['Admin']['adminphp']['btn_11'];
     } else {
         if (isset($DataUserOut['online_at']) && $DataUserOut['online_at'] !== null) {
-            $dateString = $DataUserOut['online_at'];
-            $lastonline = jdate('Y/m/d H:i:s', strtotime($dateString));
+            $timestamp = 0;
+            if (is_numeric($DataUserOut['online_at']) || (strpos($DataUserOut['online_at'], '@') === 0)) {
+                $timestamp = (int) ltrim($DataUserOut['online_at'], '@');
+            } else {
+                try {
+                    $dateTime = new DateTime($DataUserOut['online_at'], new DateTimeZone('UTC'));
+                    $timestamp = $dateTime->getTimestamp();
+                } catch (Exception $e) {}
+            }
+            if ($timestamp > 0) {
+                if (time() - $timestamp <= 180) {
+                    $is_online = true;
+                }
+                $dateTime = new DateTime('@' . $timestamp);
+                $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+                $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
+            } else {
+                $lastonline = $textbotlang['Admin']['adminphp']['btn_12'];
+            }
         } else {
             $lastonline = $textbotlang['Admin']['adminphp']['btn_12'];
         }
     }
+    $lastonline = ($is_online ? "🟢 متصل | " : "🔴 قطع | ") . $lastonline;
     #-------------status----------------#
     $status = $DataUserOut['status'];
     $status_var = [

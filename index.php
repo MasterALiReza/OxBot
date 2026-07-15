@@ -1249,19 +1249,38 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
             $DataUserOut['links'] = [];
         }
     }
+    $is_online = false;
     if ($DataUserOut['online_at'] == "online") {
         $lastonline = $textbotlang['extracted']['index_php']['statusOnline'];
+        $is_online = true;
     } elseif ($DataUserOut['online_at'] == "offline") {
         $lastonline = $textbotlang['extracted']['index_php']['statusOffline'];
     } else {
         if (isset($DataUserOut['online_at']) && $DataUserOut['online_at'] !== null) {
-            $dateTime = new DateTime($DataUserOut['online_at'], new DateTimeZone('UTC'));
-            $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
-            $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
+            $timestamp = 0;
+            if (is_numeric($DataUserOut['online_at']) || (strpos($DataUserOut['online_at'], '@') === 0)) {
+                $timestamp = (int) ltrim($DataUserOut['online_at'], '@');
+            } else {
+                try {
+                    $dateTime = new DateTime($DataUserOut['online_at'], new DateTimeZone('UTC'));
+                    $timestamp = $dateTime->getTimestamp();
+                } catch (Exception $e) {}
+            }
+            if ($timestamp > 0) {
+                if (time() - $timestamp <= 180) {
+                    $is_online = true;
+                }
+                $dateTime = new DateTime('@' . $timestamp);
+                $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+                $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
+            } else {
+                $lastonline = $textbotlang['extracted']['index_php']['statusNotConnected'];
+            }
         } else {
             $lastonline = $textbotlang['extracted']['index_php']['statusNotConnected'];
         }
     }
+    $lastonline = ($is_online ? "🟢 متصل | " : "🔴 قطع | ") . $lastonline;
     #-------------status----------------#
     $status = $DataUserOut['status'];
     $status_var = [
@@ -1895,19 +1914,38 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     }
     
     // Status display calculations
+    $is_online = false;
     if ($DataUserOut['online_at'] == "online") {
         $lastonline = $textbotlang['extracted']['index_php']['statusOnline'];
+        $is_online = true;
     } elseif ($DataUserOut['online_at'] == "offline") {
         $lastonline = $textbotlang['extracted']['index_php']['statusOffline'];
     } else {
         if (isset($DataUserOut['online_at']) && $DataUserOut['online_at'] !== null) {
-            $dateTime = new DateTime($DataUserOut['online_at'], new DateTimeZone('UTC'));
-            $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
-            $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
+            $timestamp = 0;
+            if (is_numeric($DataUserOut['online_at']) || (strpos($DataUserOut['online_at'], '@') === 0)) {
+                $timestamp = (int) ltrim($DataUserOut['online_at'], '@');
+            } else {
+                try {
+                    $dateTime = new DateTime($DataUserOut['online_at'], new DateTimeZone('UTC'));
+                    $timestamp = $dateTime->getTimestamp();
+                } catch (Exception $e) {}
+            }
+            if ($timestamp > 0) {
+                if (time() - $timestamp <= 180) {
+                    $is_online = true;
+                }
+                $dateTime = new DateTime('@' . $timestamp);
+                $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+                $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
+            } else {
+                $lastonline = $textbotlang['extracted']['index_php']['statusNotConnected'];
+            }
         } else {
             $lastonline = $textbotlang['extracted']['index_php']['statusNotConnected'];
         }
     }
+    $lastonline = ($is_online ? "🟢 متصل | " : "🔴 قطع | ") . $lastonline;
     
     $status_current = $DataUserOut['status'];
     $status_var = [
@@ -3048,18 +3086,38 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     ]);
     $textdisorder = sprintf($textbotlang['hardcoded']['disruptionReportAdmin'], $username, $from_id, $nameloc['username'], $nameloc['name_product'], $nameloc['Service_location'], $user['Processing_value']);
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
+    $is_online = false;
     if ($DataUserOut['online_at'] == "online") {
         $lastonline = $textbotlang['extracted']['index_php']['statusOnline'];
+        $is_online = true;
     } elseif ($DataUserOut['online_at'] == "offline") {
         $lastonline = $textbotlang['extracted']['index_php']['statusOffline'];
     } else {
         if (isset($DataUserOut['online_at']) && $DataUserOut['online_at'] !== null) {
-            $dateString = $DataUserOut['online_at'];
-            $lastonline = jdate('Y/m/d H:i:s', strtotime($dateString));
+            $timestamp = 0;
+            if (is_numeric($DataUserOut['online_at']) || (strpos($DataUserOut['online_at'], '@') === 0)) {
+                $timestamp = (int) ltrim($DataUserOut['online_at'], '@');
+            } else {
+                try {
+                    $dateTime = new DateTime($DataUserOut['online_at'], new DateTimeZone('UTC'));
+                    $timestamp = $dateTime->getTimestamp();
+                } catch (Exception $e) {}
+            }
+            if ($timestamp > 0) {
+                if (time() - $timestamp <= 180) {
+                    $is_online = true;
+                }
+                $dateTime = new DateTime('@' . $timestamp);
+                $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+                $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
+            } else {
+                $lastonline = $textbotlang['extracted']['index_php']['statusNotConnected'];
+            }
         } else {
             $lastonline = $textbotlang['extracted']['index_php']['statusNotConnected'];
         }
     }
+    $lastonline = ($is_online ? "🟢 متصل | " : "🔴 قطع | ") . $lastonline;
     #-------------status----------------#
     $status = $DataUserOut['status'];
     $status_var = [
@@ -3369,18 +3427,38 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         return;
     }
     #-------------status----------------#
+    $is_online = false;
     if ($DataUserOut['online_at'] == "online") {
         $lastonline = $textbotlang['extracted']['index_php']['statusOnline'];
+        $is_online = true;
     } elseif ($DataUserOut['online_at'] == "offline") {
         $lastonline = $textbotlang['extracted']['index_php']['statusOffline'];
     } else {
         if (isset($DataUserOut['online_at']) && $DataUserOut['online_at'] !== null) {
-            $dateString = $DataUserOut['online_at'];
-            $lastonline = jdate('Y/m/d H:i:s', strtotime($dateString));
+            $timestamp = 0;
+            if (is_numeric($DataUserOut['online_at']) || (strpos($DataUserOut['online_at'], '@') === 0)) {
+                $timestamp = (int) ltrim($DataUserOut['online_at'], '@');
+            } else {
+                try {
+                    $dateTime = new DateTime($DataUserOut['online_at'], new DateTimeZone('UTC'));
+                    $timestamp = $dateTime->getTimestamp();
+                } catch (Exception $e) {}
+            }
+            if ($timestamp > 0) {
+                if (time() - $timestamp <= 180) {
+                    $is_online = true;
+                }
+                $dateTime = new DateTime('@' . $timestamp);
+                $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+                $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
+            } else {
+                $lastonline = $textbotlang['extracted']['index_php']['statusNotConnected'];
+            }
         } else {
             $lastonline = $textbotlang['extracted']['index_php']['statusNotConnected'];
         }
     }
+    $lastonline = ($is_online ? "🟢 متصل | " : "🔴 قطع | ") . $lastonline;
     $status = $DataUserOut['status'];
     $status_var = [
         'active' => $textbotlang['users']['status']['active'],
