@@ -876,7 +876,7 @@ class ManagePanel
                 }
                 $parse_wg_size = function($size_str) {
                     if (!$size_str) return 0;
-                    if (is_numeric($size_str)) return floatval($size_str);
+                    if (is_numeric($size_str)) return floatval($size_str) * pow(1024, 3);
                     $size_str = strtoupper(trim(strval($size_str)));
                     $value = floatval($size_str);
                     if (strpos($size_str, 'TB') !== false || strpos($size_str, 'TIB') !== false) return $value * pow(1024, 4);
@@ -886,11 +886,20 @@ class ManagePanel
                     return $value;
                 };
 
+                $data_useage = ((isset($UsernameData['total_data']) ? floatval($UsernameData['total_data']) : 0) * pow(1024, 3)) + ((isset($UsernameData['cumu_data']) ? floatval($UsernameData['cumu_data']) : 0) * pow(1024, 3));
+                
                 $upload_bytes = isset($UsernameData['total_receive']) ? $parse_wg_size($UsernameData['total_receive']) : 0;
-                $download_bytes = isset($UsernameData['total_send']) ? $parse_wg_size($UsernameData['total_send']) : 0;
-                $data_useage = $upload_bytes + $download_bytes;
+                $download_bytes = 0;
+                if (isset($UsernameData['total_sent'])) {
+                    $download_bytes = $parse_wg_size($UsernameData['total_sent']);
+                } elseif (isset($UsernameData['total_send'])) {
+                    $download_bytes = $parse_wg_size($UsernameData['total_send']);
+                } else {
+                    $download_bytes = max(0, $data_useage - $upload_bytes);
+                }
+
                 if ($data_useage == 0) {
-                    $data_useage = ((isset($UsernameData['total_data']) ? floatval($UsernameData['total_data']) : 0) * pow(1024, 3)) + ((isset($UsernameData['cumu_data']) ? floatval($UsernameData['cumu_data']) : 0) * pow(1024, 3));
+                    $data_useage = $upload_bytes + $download_bytes;
                 }
                 if (isset($jobvolume['Value'])) {
                     if (($jobvolume['Value'] * pow(1024, 3)) <= $data_useage) {
