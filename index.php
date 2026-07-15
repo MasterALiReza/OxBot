@@ -1368,6 +1368,15 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
             unset($keyboarddate['changestatus']);
             unset($keyboarddate['change-location']);
             unset($keyboarddate['changelink']);
+            unset($keyboarddate['linksub']);
+            $keyboarddate['getconfigwg'] = array(
+                'text' => "دریافت کانفیگ 📄",
+                'callback_data' => "getconfigwg_"
+            );
+            $keyboarddate['getqrwg'] = array(
+                'text' => "دریافت QR کد 📷",
+                'callback_data' => "getqrwg_"
+            );
         }
         if ($marzban['status_extend'] == "off_extend") {
             unset($keyboarddate['Extra_time']);
@@ -1420,12 +1429,19 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         if ($DataUserOut['sub_updated_at'] !== null) {
             $textconnect = sprintf($textbotlang['hardcoded']['serviceConnectionInfo'], $lastonline, $lastupdate, $DataUserOut['sub_last_user_agent']);
         } elseif ($marzban['type'] == "WGDashboard") {
-            $textconnect = "";
+            $textconnect = strtr($textbotlang['extracted']['index_php']['lastOnlineTime'], ['{lastonline}' => $lastonline]);
         } else {
             $textconnect = strtr($textbotlang['extracted']['index_php']['lastOnlineTime'], ['{lastonline}' => $lastonline]);
         }
         $textinfo = $textinfo_prefix . sprintf($textbotlang['hardcoded']['serviceInfoFull'], $status_var, $DataUserOut['username'], $userpassword, $nameconfig, $nameloc['Service_location'], $nameloc['name_product'], $LastTraffic, $usedTrafficGb, $RemainingVolume, $Percent, $expirationDate, $day, $textconnect);
     }
+    
+    if ($marzban['type'] == "WGDashboard") {
+        $uploadStr = isset($DataUserOut['upload']) ? formatBytes($DataUserOut['upload']) : "0 B";
+        $downloadStr = isset($DataUserOut['download']) ? formatBytes($DataUserOut['download']) : "0 B";
+        $textinfo .= "\n\n🔺 آپلود: {$uploadStr}\n🔻 دانلود: {$downloadStr}";
+    }
+    
     if ($user['step'] == "getuseragnetservice") {
         sendmessage($from_id, $textinfo, $keyboardsetting, 'html');
     } elseif ($datain == "productcheckdata") {
@@ -1434,9 +1450,10 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     } else {
         Editmessagetext($from_id, $message_id, $textinfo, $keyboardsetting);
     }
+
     step('home', $from_id);
     return;
-} elseif (preg_match('/subscriptionurl_(\w+)/', $datain, $dataget) || strpos($text, "/sub ") !== false) {
+} elseif (preg_match('/subscriptionurl_(\w+)/', $datain, $dataget) || preg_match('/getconfigwg_(\w+)/', $datain, $dataget) || preg_match('/getqrwg_(\w+)/', $datain, $dataget) || strpos($text, "/sub ") !== false) {
     if (!empty($text) && $text[0] == "/") {
         $id_invoice = explode(' ', $text)[1];
         $nameloc = select("invoice", "*", "username", $id_invoice, "select");
@@ -1462,7 +1479,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         }
     }
     $subscriptionurl = $DataUserOut['subscription_url'];
-    if ($marzban_list_get['type'] == "WGDashboard") {
+    if ($marzban_list_get['type'] == "WGDashboard" && strpos($datain, "getqrwg_") === false) {
         $textsub = $textbotlang['extracted']['index_php']['subscriptionFile'];
         $bakinfos = json_encode([
             'inline_keyboard' => [
@@ -1484,10 +1501,14 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         ]);
         unlink($urlimage);
     } else {
-        $textsub = "
+        if ($marzban_list_get['type'] == "WGDashboard") {
+            $textsub = "بارکد کانفیگ وایرگارد شما:";
+        } else {
+            $textsub = "
 {$textbotlang['users']['status']['linksub']}
            
 <code>$subscriptionurl</code>";
+        }
         $bakinfos = json_encode([
             'inline_keyboard' => [
                 [

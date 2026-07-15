@@ -874,8 +874,12 @@ class ManagePanel
                 if ($expire != 0 and $expire - time() < 0) {
                     $status = "expired";
                 }
-                $data_useage = ((isset($UsernameData['total_data']) ? floatval($UsernameData['total_data']) : 0) * pow(1024, 3)) + ((isset($UsernameData['cumu_data']) ? floatval($UsernameData['cumu_data']) : 0) * pow(1024, 3));
-                
+                $upload_bytes = isset($UsernameData['total_receive']) ? floatval($UsernameData['total_receive']) : 0;
+                $download_bytes = isset($UsernameData['total_send']) ? floatval($UsernameData['total_send']) : 0;
+                $data_useage = $upload_bytes + $download_bytes;
+                if ($data_useage == 0) {
+                    $data_useage = ((isset($UsernameData['total_data']) ? floatval($UsernameData['total_data']) : 0) * pow(1024, 3)) + ((isset($UsernameData['cumu_data']) ? floatval($UsernameData['cumu_data']) : 0) * pow(1024, 3));
+                }
                 if (isset($jobvolume['Value'])) {
                     if (($jobvolume['Value'] * pow(1024, 3)) <= $data_useage) {
                         $status = "limited";
@@ -911,13 +915,25 @@ class ManagePanel
                     $data_limit_value = floatval($invoiceinfo['Volume']) * pow(1024, 3);
                 }
                 
+                $online_at_val = null;
+                if (isset($UsernameData['latest_handshake']) && $UsernameData['latest_handshake'] !== 'None' && $UsernameData['latest_handshake'] !== '0001-01-01 00:00:00+00:00') {
+                    $lh = $UsernameData['latest_handshake'];
+                    if (is_numeric($lh)) {
+                        $online_at_val = "@" . $lh;
+                    } else {
+                        $online_at_val = $lh;
+                    }
+                }
+
                 $Output = array(
                     'status' => $status,
                     'username' => $UsernameData['name'],
                     'data_limit' => $data_limit_value,
                     'expire' => $expire,
-                    'online_at' => null,
+                    'online_at' => $online_at_val,
                     'used_traffic' => $data_useage,
+                    'upload' => $upload_bytes,
+                    'download' => $download_bytes,
                     'links' => [],
                     'subscription_url' => $subscription_url_val,
                     'sub_updated_at' => null,
