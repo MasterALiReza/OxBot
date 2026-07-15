@@ -1369,14 +1369,22 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
             unset($keyboarddate['change-location']);
             unset($keyboarddate['changelink']);
             unset($keyboarddate['linksub']);
-            $keyboarddate['getconfigwg'] = array(
-                'text' => "دریافت کانفیگ 📄",
-                'callback_data' => "getconfigwg_"
-            );
-            $keyboarddate['getqrwg'] = array(
-                'text' => "دریافت QR کد 📷",
-                'callback_data' => "getqrwg_"
-            );
+            
+            $new_keyboarddate = [];
+            foreach ($keyboarddate as $key => $val) {
+                $new_keyboarddate[$key] = $val;
+                if ($key === 'updateinfo') {
+                    $new_keyboarddate['getconfigwg'] = array(
+                        'text' => "دریافت کانفیگ 📄",
+                        'callback_data' => "getconfigwg_"
+                    );
+                    $new_keyboarddate['getqrwg'] = array(
+                        'text' => "دریافت QR کد 📷",
+                        'callback_data' => "getqrwg_"
+                    );
+                }
+            }
+            $keyboarddate = $new_keyboarddate;
         }
         if ($marzban['status_extend'] == "off_extend") {
             unset($keyboarddate['Extra_time']);
