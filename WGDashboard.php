@@ -120,11 +120,11 @@ function downloadconfig($namepanel, $publickey)
  * getCachedSubnet: get subnet from DB cache or fetch from API (once per panel).
  * Saves ~3-5s by skipping getWireguardConfigurationInfo on every peer creation.
  */
-function getCachedSubnet($namepanel, $marzban_list_get)
+function getCachedSubnet($namepanel, $marzban_list_get, $force_refresh = false)
 {
     global $pdo;
     // Try DB cache first
-    if ($pdo) {
+    if ($pdo && !$force_refresh) {
         try {
             $stmt = $pdo->prepare("SELECT subnet_cache FROM marzban_panel WHERE name_panel = :name LIMIT 1");
             $stmt->execute([':name' => $namepanel]);
@@ -269,20 +269,42 @@ function addpear($namepanel, $usernameac)
     }
     $clean_used_ips = array_keys($clean_used_ips);
 
-    if (isSubnetFull($subnet, $clean_used_ips)) {
-        if ($lockAcquired && $pdo) {
-            try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
-        }
-        return array('status' => false, 'msg' => 'Server capacity is full or no IPs available.');
-    }
+    $is_full = isSubnetFull($subnet, $clean_used_ips);
     $ipToAssign = getNextAvailableIP($subnet, $clean_used_ips);
-    if (empty($ipToAssign) || !filter_var($ipToAssign, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-        if ($lockAcquired && $pdo) {
-            try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
+    
+    if ($is_full || empty($ipToAssign) || !filter_var($ipToAssign, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        // Maybe the admin upgraded the subnet size in WGDashboard but DB cache is stale?
+        // Let's force a refresh from the API and try exactly ONE more time.
+        $new_subnet = getCachedSubnet($namepanel, $marzban_list_get, true);
+        if (!empty($new_subnet) && $new_subnet !== $subnet) {
+            $subnet = $new_subnet; // Subnet was indeed upgraded!
+            $is_full = isSubnetFull($subnet, $clean_used_ips);
+            $ipToAssign = getNextAvailableIP($subnet, $clean_used_ips);
         }
-        return array('status' => false, 'msg' => 'Server capacity is full or no IPs available.');
     }
 
+    if ($is_full || empty($ipToAssign) || !filter_var($ipToAssign, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        if ($lockAcquired && $pdo) {
+            try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
+        }
+        
+        // Compute debug metrics so the admin knows WHY it failed
+        $capacity = 0; $used_count = count($clean_used_ips);
+        if (strpos($subnet, '/') !== false) {
+            list($dummy, $c) = explode('/', $subnet);
+            $c = intval($c);
+            if ($c >= 0 && $c <= 32) {
+                $total_ips = 1 << (32 - $c);
+                $skipped = (max(1, $total_ips >> 8) * 2) + 1;
+                $capacity = max(0, $total_ips - $skipped);
+            }
+        }
+        
+        return array(
+            'status' => false, 
+            'msg' => "Server capacity is full or no IPs available.\n(Debug -> Subnet: $subnet, Capacity: $capacity, Total Reserved IPs: $used_count)"
+        );
+    }
     // --- STEP 5: POST to WGDashboard addPeers ---
     $peerConfig = array(
         'name'                    => $usernameac,
