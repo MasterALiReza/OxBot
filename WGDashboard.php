@@ -545,7 +545,8 @@ function getUsedIPsFromDb($namepanel)
             "SELECT JSON_UNQUOTE(JSON_EXTRACT(user_info, '$.allowed_ips[0]')) AS ip0,
                     JSON_UNQUOTE(JSON_EXTRACT(user_info, '$.allowed_ips[1]')) AS ip1
              FROM invoice
-             WHERE Service_location = :location AND user_info IS NOT NULL AND user_info != ''"
+             WHERE Service_location = :location AND user_info IS NOT NULL AND user_info != ''
+               AND LOWER(Status) IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disablebyadmin', 'disabledn', 'disabled', 'test', 'testing')"
         );
         $stmt->execute([':location' => $namepanel]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -557,7 +558,11 @@ function getUsedIPsFromDb($namepanel)
         // Fallback: PHP-side JSON parse (older MySQL without JSON_EXTRACT)
         error_log("JSON_EXTRACT not supported, falling back: " . $e->getMessage());
         try {
-            $stmt = $pdo->prepare("SELECT user_info FROM invoice WHERE Service_location = :location AND user_info IS NOT NULL");
+            $stmt = $pdo->prepare(
+                "SELECT user_info FROM invoice
+                 WHERE Service_location = :location AND user_info IS NOT NULL AND user_info != ''
+                   AND LOWER(Status) IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disablebyadmin', 'disabledn', 'disabled', 'test', 'testing')"
+            );
             $stmt->execute([':location' => $namepanel]);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
             foreach ($rows as $row) {
@@ -613,7 +618,7 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
     foreach ($used_ips as $ip) {
         $clean_ip = explode('/', $ip)[0];
         $long_ip = ip2long($clean_ip);
-        if ($long_ip !== false) {
+        if ($long_ip !== false && ($long_ip & $mask) === $network_long) {
             $used_longs[$long_ip] = true;
         }
     }
