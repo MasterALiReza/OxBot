@@ -88,6 +88,14 @@ check_bot_status() {
     if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
         echo -e "\033[32m✅ Bot is installed\033[0m"
         check_ssl_status
+        # Check CLI Backup status
+        local cli_cron=$(crontab -l 2>/dev/null | grep -E "mirza_backup\.sh|backup_mirza_marzban\.sh|_auto_backup\.sh|mirza.*backup" | grep -v "^#")
+        if [ -n "$cli_cron" ]; then
+            local sched=$(translate_cron "$cli_cron")
+            echo -e "\033[32m✅ CLI Backup Status: Active -> ${sched}\033[0m"
+        else
+            echo -e "\033[33m⚠️ CLI Backup Status: Disabled\033[0m"
+        fi
     else
         echo -e "\033[31m❌ Bot is not installed\033[0m"
     fi
@@ -2030,9 +2038,9 @@ EOF
     CURRENT_CRON=$(crontab -l 2>/dev/null | grep -E "mirza_backup\.sh|backup_mirza_marzban\.sh|_auto_backup\.sh|mirza.*backup" | grep -v "^#")
     if [ -n "$CURRENT_CRON" ]; then
         SCHEDULE=$(translate_cron "$CURRENT_CRON")
-        echo -e "\033[33mCurrent Backup Schedule:\033[0m $SCHEDULE"
+        echo -e "\033[32m✅ CLI Backup Status: ACTIVE -> $SCHEDULE\033[0m"
     else
-        echo -e "\033[33mNo active backup schedule found.\033[0m"
+        echo -e "\033[33m⚠️ CLI Backup Status: DISABLED (OFF)\033[0m"
     fi
     # Show backup frequency options
     echo -e "\033[36m1) Every Minute\033[0m"
@@ -2057,46 +2065,53 @@ EOF
         
         if [ -n "$cron_line" ]; then
             (crontab -l 2>/dev/null; echo "$cron_line") | crontab - && {
-                echo -e "\033[92mBackup scheduled: $(translate_cron "$cron_line")\033[0m"
+                echo -e "\033[92m✅ Backup scheduled successfully: $(translate_cron "$cron_line")\033[0m"
                 rm -f "$BOT_DIR/cron_backup_disabled" "/var/www/html/cron_backup_disabled" 2>/dev/null
                 bash "$BACKUP_SCRIPT" &>/dev/null &
             } || {
-                echo -e "\033[31mFailed to schedule backup.\033[0m"
+                echo -e "\033[31m❌ Failed to schedule backup.\033[0m"
             }
         fi
         rm -f "$TEMP_CRON"
     }
     # Process user choice
     case $backup_option in
-        1) update_cron "* * * * * bash $BACKUP_SCRIPT" ;;
-        2) update_cron "0 * * * * bash $BACKUP_SCRIPT" ;;
-        3) update_cron "0 0 * * * bash $BACKUP_SCRIPT" ;;
-        4) update_cron "0 0 * * 0 bash $BACKUP_SCRIPT" ;;
+        1) update_cron "* * * * * bash $BACKUP_SCRIPT" ; echo "" ; read -p "Press Enter to continue..." dummy ; auto_backup ; return ;;
+        2) update_cron "0 * * * * bash $BACKUP_SCRIPT" ; echo "" ; read -p "Press Enter to continue..." dummy ; auto_backup ; return ;;
+        3) update_cron "0 0 * * * bash $BACKUP_SCRIPT" ; echo "" ; read -p "Press Enter to continue..." dummy ; auto_backup ; return ;;
+        4) update_cron "0 0 * * 0 bash $BACKUP_SCRIPT" ; echo "" ; read -p "Press Enter to continue..." dummy ; auto_backup ; return ;;
         5)
             local TEMP_CRON=$(mktemp)
             crontab -l 2>/dev/null | grep -vE "mirza_backup\.sh|backup_mirza_marzban\.sh|_auto_backup\.sh|mirza.*backup" > "$TEMP_CRON"
             if [ -s "$TEMP_CRON" ]; then
                 crontab "$TEMP_CRON" 2>/dev/null && {
-                    echo -e "\033[92mAutomated backup disabled.\033[0m"
+                    echo -e "\033[92m✅ Automated backup disabled successfully.\033[0m"
                 } || {
-                    echo -e "\033[31mFailed to disable backup.\033[0m"
+                    echo -e "\033[31m❌ Failed to disable backup.\033[0m"
                 }
             else
                 crontab -r 2>/dev/null && {
-                    echo -e "\033[92mAutomated backup disabled.\033[0m"
+                    echo -e "\033[92m✅ Automated backup disabled successfully.\033[0m"
                 } || {
-                    echo -e "\033[31mFailed to disable backup.\033[0m"
+                    echo -e "\033[31m❌ Failed to disable backup.\033[0m"
                 }
             fi
             rm -f "$TEMP_CRON"
             # Kill any running or stuck CLI backup scripts immediately so it turns off right away
             pkill -f "mirza_backup.sh|backup_mirza_marzban.sh|_auto_backup.sh" 2>/dev/null || true
             rm -f "/root/mirza_backup.sh" "/root/backup_mirza_marzban.sh" /root/*_auto_backup.sh 2>/dev/null || true
+            echo -e "\033[92m🛑 All active/running backup tasks have been terminated.\033[0m"
+            echo ""
+            read -p "Press Enter to continue..." dummy
+            auto_backup
+            return
             ;;
-        6) show_menu ;;
+        6) return 0 ;;
         *)
             echo -e "\033[31mInvalid option. Please try again.\033[0m"
+            sleep 1
             auto_backup
+            return
             ;;
     esac
 }
