@@ -218,20 +218,28 @@ function addpear($namepanel, $usernameac)
     // --- STEP 3 & 4: Atomic IP assignment with advisory lock (prevents race condition) ---
     // If two users buy simultaneously, MySQL lock ensures only one gets each IP.
     global $pdo, $connect;
-    $lockName = 'wg_ip_assign_' . preg_replace('/[^a-zA-Z0-9_]/', '_', $namepanel);
+    $lockName = 'wg_ip_lock_' . preg_replace('/[^a-zA-Z0-9_]/', '_', $namepanel);
     $lockAcquired = false;
+    $lockDebugInfo = 'unknown';
     if ($pdo) {
         try {
-            $lockStmt = $pdo->query("SELECT GET_LOCK('" . $lockName . "', 120)");
-            $lockAcquired = ($lockStmt && $lockStmt->fetchColumn() == 1);
+            // Set lock timeout to 15 seconds. If it takes longer, WGDashboard is extremely backed up.
+            // Previously was 120s, which could cause webhook timeouts on Telegram's side.
+            $lockStmt = $pdo->query("SELECT GET_LOCK('" . $lockName . "', 15)");
+            $lockVal = $lockStmt ? $lockStmt->fetchColumn() : 'stmt_false';
+            $lockAcquired = ($lockVal == 1);
+            $lockDebugInfo = 'val_' . $lockVal;
         } catch (\Exception $e) {
+            $lockDebugInfo = 'exception_' . substr($e->getMessage(), 0, 50);
             error_log("Advisory lock failed: " . $e->getMessage());
         }
+    } else {
+        $lockDebugInfo = 'no_pdo';
     }
 
     // SAFETY: Abort if we couldn't get the lock (prevents concurrent IP corruption)
     if (!$lockAcquired) {
-        return array('status' => false, 'msg' => 'Server is currently busy configuring other users. Please try again in a few moments.');
+        return array('status' => false, 'msg' => 'Server is currently busy configuring other users. Please try again in a few moments. (Code: ' . $lockDebugInfo . ')');
     }
 
     // Merge IPs from BOTH our DB and WGDashboard API to prevent duplicate assignment.
