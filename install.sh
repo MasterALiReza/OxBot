@@ -1392,7 +1392,7 @@ EOF
     chmod +x /root/install.sh
     ln -vs /root/install.sh /usr/local/bin/ox
 }
-Update Function for Mirza Pro
+# Update Function for Mirza Pro
 function update_bot() {
     echo "Updating OxBot..."
     # Update server packages
@@ -1558,6 +1558,7 @@ EOF
                 echo -e "\e[91mSetup script execution failed! Check logs.\033[0m"
             }
         fi
+    fi
     # Clean up any legacy or zombie CLI backup cron jobs and scripts from previous installations
     echo -e "\e[33mChecking and cleaning up legacy backup tasks...\033[0m"
     local TEMP_CRON=$(mktemp)
@@ -1583,7 +1584,7 @@ EOF
         echo -e "\e[91mError: /root/install.sh not found after update attempt.\033[0m"
     fi
 }
-Delete Function for Mirza Pro
+# Delete Function for Mirza Pro
 function remove_bot() {
     echo -e "\e[33mStarting OxBot removal process...\033[0m"
     LOG_FILE="/var/log/remove_bot.log"
@@ -1817,7 +1818,7 @@ function translate_cron() {
     esac
     echo "$schedule"
 }
-Export Database Function
+# Export Database Function
 function export_database() {
     echo -e "\033[33mChecking database configuration...\033[0m"
     if ! extract_db_credentials; then
@@ -1879,7 +1880,7 @@ function export_database() {
         echo -e "\033[31m[ERROR]\033[0m Failed to create ZIP archive."
     fi
 }
-Import Database Function
+# Import Database Function
 function import_database() {
     echo -e "\033[33mChecking database configuration...\033[0m"
     if ! extract_db_credentials; then
@@ -1958,7 +1959,7 @@ function import_database() {
         echo -e "\033[32mDatabase successfully imported from $BACKUP_FILE.\033[0m"
     fi
 }
-Function for automated backup
+# Function for automated backup
 function auto_backup() {
     echo -e "\033[36mConfigure Automated Backup\033[0m"
     # Check if Mirza Bot is installed
@@ -2127,9 +2128,9 @@ EOF
             ;;
     esac
 }
-Function to renew SSL certificates
+# Function to renew SSL certificates
 
-Function to Manage Additional Bots
+# Function to Manage Additional Bots
 
 function change_domain() {
     local new_domain
@@ -2177,7 +2178,7 @@ function change_domain() {
         return 1
     fi
 }
-Added Function for Installing Additional Bot
+# Added Function for Installing Additional Bot
 # function install_additional_bot() {
 #     clear
 #     echo -e "\033[33mStarting Additional Bot Installation...\033[0m"
