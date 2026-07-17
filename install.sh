@@ -1967,49 +1967,57 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
+TARGET_DIR=$(dirname "$CONFIG_FILE")
+
 # Extract variables dynamically
 DB_NAME=$(grep -oP "\$dbname\s*=\s*'\K[^']+" "$CONFIG_FILE")
 DB_USER=$(grep -oP "\$usernamedb\s*=\s*'\K[^']+" "$CONFIG_FILE")
 DB_PASS=$(grep -oP "\$passworddb\s*=\s*'\K[^']+" "$CONFIG_FILE")
 BOT_TOKEN=$(grep -oP "\$APIKEY\s*=\s*'\K[^']+" "$CONFIG_FILE")
 CHAT_ID=$(grep -oP "\$adminnumber\s*=\s*'\K[^']+" "$CONFIG_FILE")
-TARGET_DIR=$(dirname "$CONFIG_FILE")
 
 # Generate paths
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+STAGING_DIR=$(mktemp -d "/tmp/mirzabackup_staging_XXXXXX")
 BACKUP_ZIP="/tmp/mirzabackup_${DB_NAME}_${TIMESTAMP}.zip"
-SQL_FILE="/tmp/database.sql"
+SQL_FILE="${STAGING_DIR}/database.sql"
 
-# 1. Dump Database
-if docker ps | grep -q "marzban-mysql\|mysql"; then
-    MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc | head -n 1)
+# 1. Dump Database with multi-tier fallback (Local first, then Docker)
+mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$SQL_FILE" 2>/dev/null
+
+if [ ! -f "$SQL_FILE" ] || [ ! -s "$SQL_FILE" ]; then
+    # Fallback to docker exec if local mysqldump failed or produced empty file
+    MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc 2>/dev/null | head -n 1)
     if [ -n "$MYSQL_CONTAINER" ]; then
         docker exec $MYSQL_CONTAINER mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$SQL_FILE" 2>/dev/null
-    else
-        mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$SQL_FILE" 2>/dev/null
     fi
-else
-    mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$SQL_FILE" 2>/dev/null
 fi
 
 if [ ! -f "$SQL_FILE" ] || [ ! -s "$SQL_FILE" ]; then
     echo "Error: Database dump failed."
-    rm -f "$SQL_FILE"
+    rm -rf "$STAGING_DIR"
     exit 1
 fi
 
-# 2. Archive Files
-cd "$TARGET_DIR" || exit 1
-mv "$SQL_FILE" database.sql
-FILES_TO_ZIP="database.sql config.php text.json"
-if [ -d "vpnbot" ]; then FILES_TO_ZIP="$FILES_TO_ZIP vpnbot/"; fi
-if [ -f "MHSanaei-3.2.php" ]; then FILES_TO_ZIP="$FILES_TO_ZIP MHSanaei-3.2.php"; fi
-zip -r "$BACKUP_ZIP" $FILES_TO_ZIP -q 2>/dev/null
-rm -f database.sql
+# 2. Archive Files safely in temporary staging directory
+cd "$TARGET_DIR" || { rm -rf "$STAGING_DIR"; exit 1; }
+for file in config.php text.json MHSanaei-3.2.php; do
+    if [ -f "$file" ]; then cp "$file" "$STAGING_DIR/"; fi
+done
+if [ -d "vpnbot" ]; then cp -r "vpnbot" "$STAGING_DIR/"; fi
+
+cd "$STAGING_DIR" || { rm -rf "$STAGING_DIR"; exit 1; }
+if command -v nice >/dev/null 2>&1 && command -v ionice >/dev/null 2>&1; then
+    nice -n 19 ionice -c 3 zip -r "$BACKUP_ZIP" . -q 2>/dev/null
+else
+    zip -r "$BACKUP_ZIP" . -q 2>/dev/null
+fi
+cd /tmp || true
+rm -rf "$STAGING_DIR"
 
 # 3. Send to Telegram
 if [ -f "$BACKUP_ZIP" ]; then
-    CAPTION="📦 Full MirzaBot Backup (Auto)%0A📅 $(date +"%Y-%m-%d %H:%M:%S")%0A✅ Super Safe Backup"
+    CAPTION="📦 Full MirzaBot Backup (Auto)%0A📅 $(date +"%Y-%m-%d %H:%M:%S")%0A✅ Super Safe & Throttled Backup"
     curl -s -F document=@"$BACKUP_ZIP" -F caption="$CAPTION" "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" -F chat_id="$CHAT_ID" >/dev/null
     rm -f "$BACKUP_ZIP"
 else
@@ -2019,7 +2027,7 @@ EOF
     # Make the script executable
     chmod +x "$BACKUP_SCRIPT"
     # Check current cron and translate it
-    CURRENT_CRON=$(crontab -l 2>/dev/null | grep -E "mirza_backup.sh|backup_mirza_marzban.sh" | grep -v "^#")
+    CURRENT_CRON=$(crontab -l 2>/dev/null | grep -E "mirza_backup\.sh|backup_mirza_marzban\.sh|_auto_backup\.sh|mirza.*backup" | grep -v "^#")
     if [ -n "$CURRENT_CRON" ]; then
         SCHEDULE=$(translate_cron "$CURRENT_CRON")
         echo -e "\033[33mCurrent Backup Schedule:\033[0m $SCHEDULE"
@@ -2039,8 +2047,8 @@ EOF
     update_cron() {
         local cron_line="$1"
         local TEMP_CRON=$(mktemp)
-        # Safely remove both standard and old marzban backup scripts from crontab to avoid duplicates
-        crontab -l 2>/dev/null | grep -v "mirza_backup.sh" | grep -v "backup_mirza_marzban.sh" > "$TEMP_CRON"
+        # Safely remove all standard, old marzban, and legacy auto_backup scripts without touching forum topic cron (backupbot.php)
+        crontab -l 2>/dev/null | grep -vE "mirza_backup\.sh|backup_mirza_marzban\.sh|_auto_backup\.sh|mirza.*backup" > "$TEMP_CRON"
         if [ -s "$TEMP_CRON" ]; then
             crontab "$TEMP_CRON" 2>/dev/null
         else
@@ -2050,6 +2058,7 @@ EOF
         if [ -n "$cron_line" ]; then
             (crontab -l 2>/dev/null; echo "$cron_line") | crontab - && {
                 echo -e "\033[92mBackup scheduled: $(translate_cron "$cron_line")\033[0m"
+                rm -f "$BOT_DIR/cron_backup_disabled" "/var/www/html/cron_backup_disabled" 2>/dev/null
                 bash "$BACKUP_SCRIPT" &>/dev/null &
             } || {
                 echo -e "\033[31mFailed to schedule backup.\033[0m"
@@ -2064,26 +2073,25 @@ EOF
         3) update_cron "0 0 * * * bash $BACKUP_SCRIPT" ;;
         4) update_cron "0 0 * * 0 bash $BACKUP_SCRIPT" ;;
         5)
-            if [ -n "$CURRENT_CRON" ]; then
-                local TEMP_CRON=$(mktemp)
-                crontab -l 2>/dev/null | grep -v "mirza_backup.sh" | grep -v "backup_mirza_marzban.sh" > "$TEMP_CRON"
-                if [ -s "$TEMP_CRON" ]; then
-                    crontab "$TEMP_CRON" 2>/dev/null && {
-                        echo -e "\033[92mAutomated backup disabled.\033[0m"
-                    } || {
-                        echo -e "\033[31mFailed to disable backup.\033[0m"
-                    }
-                else
-                    crontab -r 2>/dev/null && {
-                        echo -e "\033[92mAutomated backup disabled.\033[0m"
-                    } || {
-                        echo -e "\033[31mFailed to disable backup.\033[0m"
-                    }
-                fi
-                rm -f "$TEMP_CRON"
+            local TEMP_CRON=$(mktemp)
+            crontab -l 2>/dev/null | grep -vE "mirza_backup\.sh|backup_mirza_marzban\.sh|_auto_backup\.sh|mirza.*backup" > "$TEMP_CRON"
+            if [ -s "$TEMP_CRON" ]; then
+                crontab "$TEMP_CRON" 2>/dev/null && {
+                    echo -e "\033[92mAutomated backup disabled.\033[0m"
+                } || {
+                    echo -e "\033[31mFailed to disable backup.\033[0m"
+                }
             else
-                echo -e "\033[93mNo backup schedule to disable.\033[0m"
+                crontab -r 2>/dev/null && {
+                    echo -e "\033[92mAutomated backup disabled.\033[0m"
+                } || {
+                    echo -e "\033[31mFailed to disable backup.\033[0m"
+                }
             fi
+            rm -f "$TEMP_CRON"
+            # Kill any running or stuck CLI backup scripts immediately so it turns off right away
+            pkill -f "mirza_backup.sh|backup_mirza_marzban.sh|_auto_backup.sh" 2>/dev/null || true
+            rm -f "/root/mirza_backup.sh" "/root/backup_mirza_marzban.sh" /root/*_auto_backup.sh 2>/dev/null || true
             ;;
         6) show_menu ;;
         *)

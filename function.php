@@ -1539,9 +1539,59 @@ function addCronIfNotExists($cronCommand)
     return true;
 }
 
+function syncBackupCronState($expectedBackupCommand = '')
+{
+    if (!isShellExecAvailable()) {
+        return;
+    }
+    $crontabBinary = getCrontabBinary();
+    if ($crontabBinary === null) {
+        return;
+    }
+    $existingCronJobs = runShellCommand(sprintf('%s -l 2>/dev/null', escapeshellarg($crontabBinary)));
+    $existingCronJobs = trim((string) $existingCronJobs);
+    if ($existingCronJobs === '') {
+        return;
+    }
+    $cronLines = preg_split('/\r?\n/', $existingCronJobs);
+    $newLines = [];
+    $changed = false;
+    foreach ($cronLines as $line) {
+        $trimmed = trim($line);
+        if ($trimmed === '' || strpos($trimmed, '#') === 0) {
+            continue;
+        }
+        // Only remove backupbot.php if it differs from our exact current expected command (e.g. outdated token or schedule)
+        if (preg_match('/backupbot\.php/i', $trimmed)) {
+            if ($trimmed !== $expectedBackupCommand) {
+                $changed = true;
+                continue;
+            }
+        }
+        $newLines[] = $trimmed;
+    }
+
+    if ($changed) {
+        $cronContent = empty($newLines) ? "" : implode(PHP_EOL, array_unique($newLines)) . PHP_EOL;
+        $temporaryFile = tempnam(sys_get_temp_dir(), 'cron');
+        if ($temporaryFile !== false) {
+            if (file_put_contents($temporaryFile, $cronContent) !== false) {
+                runShellCommand(sprintf('%s %s', escapeshellarg($crontabBinary), escapeshellarg($temporaryFile)));
+            }
+            if (file_exists($temporaryFile)) {
+                unlink($temporaryFile);
+            }
+        }
+    }
+}
+
 function activecron()
 {
-    global $domainhosts;
+    global $domainhosts, $backup_secure_token;
+
+    // Clean up any orphan/legacy backup disable flag files on server
+    @unlink(__DIR__ . '/cron_backup_disabled');
+    @unlink('/var/www/html/cron_backup_disabled');
 
     $cronCommands = [
         "*/15 * * * * curl https://$domainhosts/cronbot/statusday.php",
@@ -1553,7 +1603,6 @@ function activecron()
         "*/1 * * * * curl https://$domainhosts/cronbot/activeconfig.php",
         "*/1 * * * * curl https://$domainhosts/cronbot/disableconfig.php",
         "*/1 * * * * curl https://$domainhosts/cronbot/iranpay1.php",
-        "0 */5 * * * curl https://$domainhosts/cronbot/backupbot.php",
         "*/2 * * * * curl https://$domainhosts/cronbot/gift.php",
         "*/30 * * * * curl https://$domainhosts/cronbot/expireagent.php",
         "*/15 * * * * curl https://$domainhosts/cronbot/on_hold.php",
@@ -1561,6 +1610,14 @@ function activecron()
         "*/15 * * * * curl https://$domainhosts/cronbot/uptime_node.php",
         "*/15 * * * * curl https://$domainhosts/cronbot/uptime_panel.php",
     ];
+
+    $tokenParam = !empty($backup_secure_token) ? "?token=" . urlencode($backup_secure_token) : "";
+    $expectedBackupCommand = "0 */5 * * * curl https://$domainhosts/cronbot/backupbot.php" . $tokenParam;
+
+    syncBackupCronState($expectedBackupCommand);
+
+    // Always keep forum topic report backup running every 5 hours independently
+    $cronCommands[] = $expectedBackupCommand;
 
     addCronIfNotExists($cronCommands);
 }
