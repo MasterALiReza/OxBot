@@ -294,11 +294,11 @@ foreach ($servers as $server) {
             $updateUrl = $apiBase . '/api/updatePeerSettings/' . urlencode($confName);
             $success   = false;
 
-            for ($attempt = 1; $attempt <= 5; $attempt++) {
+            for ($attempt = 1; $attempt <= 2; $attempt++) {
                 $ch3 = curl_init($updateUrl);
                 curl_setopt_array($ch3, [
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT        => 20,
+                    CURLOPT_TIMEOUT        => 90,
                     CURLOPT_POST           => true,
                     CURLOPT_POSTFIELDS     => $updatePayload,
                     CURLOPT_HTTPHEADER     => [
@@ -314,10 +314,12 @@ foreach ($servers as $server) {
 
                 if ($updateStatus == 200) {
                     $success = true;
+                    // Give panel WG service time to fully stabilize after restart
+                    sleep(5);
                     break;
                 }
                 echo "          Attempt {$attempt} failed (HTTP {$updateStatus}), retrying...\n";
-                usleep(500000);
+                sleep(5);
             }
 
             if (!$success) {

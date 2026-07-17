@@ -30,6 +30,10 @@ if ($panel_type === 'WGDashboard') {
     ));
     $response = curl_exec($curl);
     $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $curl_err = '';
+    if ($http_code === 0) {
+        $curl_err = curl_error($curl);
+    }
     curl_close($curl);
     
     $resData = json_decode($response, true);
@@ -52,6 +56,9 @@ if ($panel_type === 'WGDashboard') {
         exit;
     } else {
         $msg = $resData['message'] ?? ($resData['msg'] ?? 'توکن API اشتباه است یا پنل در دسترس نیست.');
+        if ($http_code === 0 && !empty($curl_err)) {
+            $msg = 'خطای ارتباطی cURL: ' . $curl_err;
+        }
         echo json_encode(['success' => false, 'msg' => 'اتصال ناموفق: ' . $msg . ' (کد: ' . $http_code . ')']);
         exit;
     }
@@ -70,6 +77,8 @@ $origin = $origin_parts['scheme'] . '://' . $origin_parts['host'] . (isset($orig
 
 $login_success = false;
 $inboundsResponse = '';
+$http_code = 0;
+$curl_err = '';
 
 // Only try cookie login if username is provided
 if (!empty($username)) {
@@ -100,6 +109,9 @@ if (!empty($username)) {
     ));
     $response = curl_exec($curl);
     $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    if ($http_code === 0) {
+        $curl_err = curl_error($curl);
+    }
     curl_close($curl);
 
     if ($http_code === 200) {
@@ -129,6 +141,10 @@ if ($login_success) {
         CURLOPT_TIMEOUT => 10
     ));
     $inboundsResponse = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    if ($http_code === 0) {
+        $curl_err = curl_error($curl);
+    }
     curl_close($curl);
     @unlink($cookie_file);
 } else {
@@ -152,6 +168,10 @@ if ($login_success) {
         CURLOPT_TIMEOUT => 10
     ));
     $inboundsResponse = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    if ($http_code === 0) {
+        $curl_err = curl_error($curl);
+    }
     curl_close($curl);
 }
 
@@ -171,10 +191,12 @@ if (isset($inboundsData['success']) && $inboundsData['success'] && is_array($inb
 }
 
 $error_msg = 'مشکلی در دریافت اینباندها به وجود آمد.';
-if (isset($inboundsData['msg'])) {
+if ($http_code === 0 && !empty($curl_err)) {
+    $error_msg = 'خطای ارتباطی cURL: ' . $curl_err;
+} elseif (isset($inboundsData['msg'])) {
     $error_msg = $inboundsData['msg'];
 } elseif (!$login_success && !empty($username)) {
     $error_msg = 'ورود ناموفق بود. نام کاربری/رمز عبور اشتباه است یا توکن API نامعتبر است (کد خطا: 403).';
 }
 
-echo json_encode(['success' => false, 'msg' => $error_msg]);
+echo json_encode(['success' => false, 'msg' => $error_msg . ' (کد: ' . $http_code . ')']);

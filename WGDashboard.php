@@ -94,6 +94,7 @@ function downloadconfig($namepanel, $publickey)
     for ($i = 0; $i < $max_retries; $i++) {
         $req = new CurlRequest($url);
         $req->setHeaders($headers);
+        $req->setTimeout(5000); // 5s timeout to avoid hanging if panel is down
         $response = $req->get();
 
         $body = json_decode($response['body'], true);
@@ -228,10 +229,24 @@ function addpear($namepanel, $usernameac)
         }
     }
 
+    // SAFETY: Abort if we couldn't get the lock (prevents concurrent IP corruption)
+    if (!$lockAcquired) {
+        return array('status' => false, 'msg' => 'Server is currently busy configuring other users. Please try again in a few moments.');
+    }
+
     // Merge IPs from BOTH our DB and WGDashboard API to prevent duplicate assignment.
     // Our DB covers peers created by the bot; WGDashboard API covers peers created manually.
     $db_used_ips = getUsedIPsFromDb($namepanel);
     $api_used_ips = getUsedIPs($namepanel);
+    
+    // SAFETY: Abort if panel is down or restarting so we don't spam it with addPeers requests
+    if ($api_used_ips === false) {
+        if ($lockAcquired && $pdo) {
+            try { $pdo->query("SELECT RELEASE_LOCK('" . $lockName . "')"); } catch (\Exception $e) {}
+        }
+        return array('status' => false, 'msg' => 'Could not connect to WGDashboard to verify available IPs. Panel might be restarting or offline. Please try again.');
+    }
+
     $all_used_ips = array_merge($db_used_ips, $api_used_ips);
     $clean_used_ips = [];
     foreach ($all_used_ips as $ip) {
@@ -370,6 +385,7 @@ function updatepear($namepanel, array $config)
     );
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
+    $req->setTimeout(15000); // Prevent hanging
     $response = $req->post($configpanel);
     return $response;
 }
@@ -386,6 +402,7 @@ function deletejob($namepanel, array $config)
     );
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
+    $req->setTimeout(15000); // Prevent hanging
     $response = $req->post($configpanel);
     return $response;
 }
@@ -406,6 +423,7 @@ function ResetUserDataUsagewg($publickey, $namepanel)
     );
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
+    $req->setTimeout(15000); // Prevent hanging
     $response = $req->post($configpanel);
     return $response;
 }
@@ -427,6 +445,7 @@ function remove_userwg($location, $username)
     );
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
+    $req->setTimeout(15000); // Prevent hanging
     $response = $req->post(json_encode(array(
         "peers" => array(
             $data_user
@@ -452,6 +471,7 @@ function allowAccessPeers($location, $username)
     );
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
+    $req->setTimeout(15000); // Prevent hanging
     $response = $req->post(json_encode(array(
         "peers" => array(
             $data_user
@@ -496,15 +516,16 @@ function getUsedIPs($namepanel)
     
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
+    $req->setTimeout(10000); // 10s max wait to fail fast if panel is crashing
     $api_res = $req->get();
     
     if (empty($api_res['status']) || $api_res['status'] != 200 || empty($api_res['body'])) {
-        return [];
+        return false;
     }
     
     $response = json_decode($api_res['body'], true);
     if (!is_array($response) || empty($response['status'])) {
-        return [];
+        return false;
     }
     
     $peers = array_merge(
@@ -623,8 +644,8 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
         }
     }
     
-    // Check hosts from .2 to the end of subnet (O(N) where N is subnet size)
-    // Extremely fast in PHP. 1024 iterations for a /22 takes less than 1ms.
+    // Collect all available IPs
+    $available_ips = [];
     for ($i = 2; $i < $num_ips - 1; $i++) {
         $candidate_long = $network_long + $i;
         
@@ -637,9 +658,14 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
         if (!isset($used_longs[$candidate_long])) {
             $candidate_ip = long2ip($candidate_long);
             if ($candidate_ip !== false && filter_var($candidate_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                return $candidate_ip;
+                $available_ips[] = $candidate_ip;
             }
         }
+    }
+    
+    // Pick a random available IP to drastically reduce collision probability
+    if (!empty($available_ips)) {
+        return $available_ips[array_rand($available_ips)];
     }
     
     return null;
