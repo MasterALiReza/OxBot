@@ -14,6 +14,7 @@ function get_userwg($username, $namepanel)
     
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
+    $req->setTimeout(15000); // 15s timeout to prevent hanging
     $api_res = $req->get();
     
     if (!empty($api_res['error'])) {
@@ -74,6 +75,7 @@ function ipslast($namepanel)
     );
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
+    $req->setTimeout(15000); // Prevent hanging
     $response = $req->get();
     return $response;
 }
@@ -364,6 +366,7 @@ function setjob($namepanel, $type, $value, $publickey)
     );
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
+    $req->setTimeout(15000); // Prevent hanging
     $response = $req->post($data);
     return $response;
 
