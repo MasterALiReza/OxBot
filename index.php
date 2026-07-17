@@ -697,7 +697,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         sendmessage($from_id, "❌ خطای امنیتی یا عدم موجودی کافی برای انتقال.", $keyboard, 'HTML');
     }
     step('none', $from_id);
-} elseif ($text == $textbotlang['textbot']['purchasedServices'] || $datain == "backorder" || $text == "/services") {
+} elseif ($text == $textbotlang['textbot']['purchasedServices'] || $datain == "backorder" || $text == "/services" || $text == "🛍 سرویس های من" || $text == "🛡 سرویس های من" || $text == "🛒 سرویس های من" || $text == "📦 سرویس های من" || $text == "📂 سرویس های من" || $text == "🎛 سرویس های من") {
     try {
         $stmt_locs = $pdo->prepare("SELECT Service_location, COUNT(id_invoice) as count FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') GROUP BY Service_location");
         $stmt_locs->bindParam(':id_user', $from_id);
@@ -709,8 +709,10 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
             return;
         }
 
+        $total_services = 0;
         $keyboardlists = ['inline_keyboard' => []];
         foreach ($locations as $loc) {
+            $total_services += (int)$loc['count'];
             $loc_name = empty($loc['Service_location']) ? "سایر" : $loc['Service_location'];
             $loc_hash = sprintf("%u", crc32($loc_name));
             
@@ -741,7 +743,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
                 }
             }
             
-            $keyboardlists['inline_keyboard'][] = [['text' => "🌐 " . $clean_name . " (" . $loc['count'] . ")", 'callback_data' => "srvpnl|" . $loc_hash]];
+            $keyboardlists['inline_keyboard'][] = [['text' => "🌐 " . $clean_name . " (" . $loc['count'] . " سرویس)", 'callback_data' => "srvpnl|" . $loc_hash]];
         }
         $keyboardlists['inline_keyboard'][] = [['text' => $textbotlang['users']['search']['title'], 'callback_data' => 'searchservice']];
         if ($setting['NotUser'] == "onnotuser") {
@@ -750,10 +752,26 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         $keyboardlists['inline_keyboard'][] = [['text' => $textbotlang['keyboard']['backToMainMenu'], 'callback_data' => 'backuser']];
         $keyboard_json = json_encode($keyboardlists);
         
+        $msg_text = "🛡 <b>بخش سرویس‌های من</b>\n\n";
+        $msg_text .= "📊 <b>تعداد کل سرویس‌های فعال شما:</b> <code>{$total_services}</code> عدد\n\n";
+        $msg_text .= "📌 <b>تفکیک سرویس‌ها بر اساس پنل / لوکیشن:</b>\n";
+        foreach ($locations as $loc) {
+            $loc_name = empty($loc['Service_location']) ? "سایر" : $loc['Service_location'];
+            $clean_display = $loc_name;
+            if ($loc_name !== "سایر" && function_exists('get_clean_display_name')) {
+                $clean_display = get_clean_display_name($loc_name);
+                if (empty($clean_display)) {
+                    $clean_display = $loc_name;
+                }
+            }
+            $msg_text .= " ▫️ <b>{$clean_display}:</b> <code>{$loc['count']}</code> سرویس\n";
+        }
+        $msg_text .= "\n👇 جهت مشاهده جزئیات و مدیریت سرویس‌های خود، روی لوکیشن موردنظر کلیک کنید:";
+
         if ($datain == "backorder") {
-            Editmessagetext($from_id, $message_id, "دسته بندی (پنل) مورد نظر خود را برای مشاهده سرویس ها انتخاب کنید:", $keyboard_json);
+            Editmessagetext($from_id, $message_id, $msg_text, $keyboard_json);
         } else {
-            sendmessage($from_id, "دسته بندی (پنل) مورد نظر خود را برای مشاهده سرویس ها انتخاب کنید:", $keyboard_json, 'html');
+            sendmessage($from_id, $msg_text, $keyboard_json, 'html');
         }
     } catch (Throwable $e) {
         sendmessage($from_id, "خطا در پردازش لیست سرویس ها: " . $e->getMessage(), null, 'html');
@@ -842,8 +860,9 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     
     $keyboard_json = json_encode($keyboardlists);
     
-    $msg_text = "📂 <b>لیست اشتراک‌های شما در " . $selected_panel . "</b>\n\n";
-    $msg_text .= "لیست تمامی اشتراک‌های شما:";
+    $msg_text = "🛡 <b>لیست اشتراک‌های شما در " . $selected_panel . "</b>\n\n";
+    $msg_text .= "📊 <b>تعداد سرویس‌ها در این بخش:</b> <code>{$numpage}</code> عدد\n\n";
+    $msg_text .= "👇 جهت مشاهده جزئیات و مدیریت سرویس موردنظر، روی نام آن کلیک کنید:";
     
     Editmessagetext($from_id, $message_id, $msg_text, $keyboard_json);
 } elseif ($datain == 'next_page') {
@@ -910,8 +929,9 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $keyboard_json = json_encode($keyboardlists);
     update("user", "pagenumber", $next_page, "id", $from_id);
     
-    $msg_text = "📂 <b>لیست اشتراک‌های شما در " . $selected_panel . "</b>\n\n";
-    $msg_text .= "لیست تمامی اشتراک‌های شما:";
+    $msg_text = "🛡 <b>لیست اشتراک‌های شما در " . $selected_panel . "</b>\n\n";
+    $msg_text .= "📊 <b>تعداد سرویس‌ها در این بخش:</b> <code>{$numpage}</code> عدد\n\n";
+    $msg_text .= "👇 جهت مشاهده جزئیات و مدیریت سرویس موردنظر، روی نام آن کلیک کنید:";
     Editmessagetext($from_id, $message_id, $msg_text, $keyboard_json);
 } elseif ($datain == 'previous_page') {
     $selected_panel = $user['Processing_value_four'];
@@ -978,8 +998,9 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $keyboard_json = json_encode($keyboardlists);
     update("user", "pagenumber", $previous_page, "id", $from_id);
     
-    $msg_text = "📂 <b>لیست اشتراک‌های شما در " . $selected_panel . "</b>\n\n";
-    $msg_text .= "لیست تمامی اشتراک‌های شما:";
+    $msg_text = "🛡 <b>لیست اشتراک‌های شما در " . $selected_panel . "</b>\n\n";
+    $msg_text .= "📊 <b>تعداد سرویس‌ها در این بخش:</b> <code>{$numpage}</code> عدد\n\n";
+    $msg_text .= "👇 جهت مشاهده جزئیات و مدیریت سرویس موردنظر، روی نام آن کلیک کنید:";
     Editmessagetext($from_id, $message_id, $msg_text, $keyboard_json);
 
 } elseif ($datain == "notusernameme") {
@@ -1267,7 +1288,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
                 } catch (Exception $e) {}
             }
             if ($timestamp > 0) {
-                if (time() - $timestamp <= 180) {
+                if (time() - $timestamp <= 600 && time() - $timestamp >= -300) {
                     $is_online = true;
                 }
                 $dateTime = new DateTime('@' . $timestamp);
@@ -1940,7 +1961,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
                 } catch (Exception $e) {}
             }
             if ($timestamp > 0) {
-                if (time() - $timestamp <= 180) {
+                if (time() - $timestamp <= 600 && time() - $timestamp >= -300) {
                     $is_online = true;
                 }
                 $dateTime = new DateTime('@' . $timestamp);
@@ -3112,7 +3133,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
                 } catch (Exception $e) {}
             }
             if ($timestamp > 0) {
-                if (time() - $timestamp <= 180) {
+                if (time() - $timestamp <= 600 && time() - $timestamp >= -300) {
                     $is_online = true;
                 }
                 $dateTime = new DateTime('@' . $timestamp);
@@ -3453,7 +3474,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
                 } catch (Exception $e) {}
             }
             if ($timestamp > 0) {
-                if (time() - $timestamp <= 180) {
+                if (time() - $timestamp <= 600 && time() - $timestamp >= -300) {
                     $is_online = true;
                 }
                 $dateTime = new DateTime('@' . $timestamp);

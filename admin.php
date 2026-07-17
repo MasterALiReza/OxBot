@@ -6098,7 +6098,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
                 } catch (Exception $e) {}
             }
             if ($timestamp > 0) {
-                if (time() - $timestamp <= 180) {
+                if (time() - $timestamp <= 600 && time() - $timestamp >= -300) {
                     $is_online = true;
                 }
                 $dateTime = new DateTime('@' . $timestamp);
