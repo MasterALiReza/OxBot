@@ -218,7 +218,9 @@ function addpear($namepanel, $usernameac)
     // --- STEP 3 & 4: Atomic IP assignment with advisory lock (prevents race condition) ---
     // If two users buy simultaneously, MySQL lock ensures only one gets each IP.
     global $pdo, $connect;
-    $lockName = 'wg_ip_lock_' . preg_replace('/[^a-zA-Z0-9_]/', '_', $namepanel);
+    // Use md5 to ensure the lock name never exceeds MySQL's 64 character limit
+    // even if the panel name contains long Farsi descriptions.
+    $lockName = 'wg_ip_lock_' . md5($namepanel);
     $lockAcquired = false;
     $lockDebugInfo = 'unknown';
     if ($pdo) {
@@ -230,7 +232,7 @@ function addpear($namepanel, $usernameac)
             $lockAcquired = ($lockVal == 1);
             $lockDebugInfo = 'val_' . $lockVal;
         } catch (\Exception $e) {
-            $lockDebugInfo = 'exception_' . substr($e->getMessage(), 0, 50);
+            $lockDebugInfo = 'exception_' . substr($e->getMessage(), 0, 150);
             error_log("Advisory lock failed: " . $e->getMessage());
         }
     } else {
