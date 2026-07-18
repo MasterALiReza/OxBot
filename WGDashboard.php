@@ -42,17 +42,46 @@ function get_userwg($username, $namepanel)
     $configurationRestrictedPeers = $response['data']['configurationRestrictedPeers'] ?? [];
     $output = [];
     foreach ($configurationPeers as $userinfo) {
-        if ($userinfo['name'] == $username) {
+        if (($userinfo['name'] ?? '') == $username || ($userinfo['id'] ?? '') == $username || ($userinfo['publicKey'] ?? '') == $username || ($userinfo['remark'] ?? '') == $username || ($userinfo['peer_name'] ?? '') == $username) {
             $output = $userinfo;
             break;
         }
     }
+    $normalize_handshake = function(&$peer) {
+        $handshake_candidates = [
+            'latest_handshake', 'latestHandshake', 'last_handshake', 'lastHandshake',
+            'handshake', 'latest_handshake_time', 'last_handshake_time', 'online_at'
+        ];
+        foreach ($handshake_candidates as $hk) {
+            if (isset($peer[$hk]) && $peer[$hk] !== 'None' && $peer[$hk] !== 'Never' && $peer[$hk] !== '0001-01-01 00:00:00+00:00' && $peer[$hk] !== '1-01-01 00:00:00' && $peer[$hk] !== '0' && $peer[$hk] !== 0 && $peer[$hk] !== '') {
+                $peer['latest_handshake'] = $peer[$hk];
+                return;
+            }
+        }
+        if (!isset($peer['latest_handshake']) && isset($peer['status']) && is_array($peer['status'])) {
+            foreach ($handshake_candidates as $hk) {
+                if (isset($peer['status'][$hk]) && $peer['status'][$hk] !== 'None' && $peer['status'][$hk] !== 'Never' && $peer['status'][$hk] !== '0' && $peer['status'][$hk] !== 0 && $peer['status'][$hk] !== '') {
+                    $peer['latest_handshake'] = $peer['status'][$hk];
+                    return;
+                }
+            }
+        }
+        if (!isset($peer['latest_handshake']) && isset($peer['peer']) && is_array($peer['peer'])) {
+            foreach ($handshake_candidates as $hk) {
+                if (isset($peer['peer'][$hk]) && $peer['peer'][$hk] !== 'None' && $peer['peer'][$hk] !== 'Never' && $peer['peer'][$hk] !== '0' && $peer['peer'][$hk] !== 0 && $peer['peer'][$hk] !== '') {
+                    $peer['latest_handshake'] = $peer['peer'][$hk];
+                    return;
+                }
+            }
+        }
+    };
     if (count($output) != 0) {
         $output['id'] = $output['id'] ?? $output['publicKey'] ?? $output['name'] ?? null;
+        $normalize_handshake($output);
         return $output;
     }
     foreach ($configurationRestrictedPeers as $userinfo) {
-        if ($userinfo['name'] == $username) {
+        if (($userinfo['name'] ?? '') == $username || ($userinfo['id'] ?? '') == $username || ($userinfo['publicKey'] ?? '') == $username || ($userinfo['remark'] ?? '') == $username || ($userinfo['peer_name'] ?? '') == $username) {
             $output = $userinfo;
             $output['configuration']['Status'] = false;
             break;
@@ -60,9 +89,11 @@ function get_userwg($username, $namepanel)
     }
     if (count($output) != 0) {
         $output['id'] = $output['id'] ?? $output['publicKey'] ?? $output['name'] ?? null;
+        $normalize_handshake($output);
     }
     return $output;
 }
+
 
 function ipslast($namepanel)
 {

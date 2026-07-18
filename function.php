@@ -2424,14 +2424,14 @@ function logWalletPurchaseToPaymentReport($pdo, $user_id, $amount, $description)
  *   int ($timestamp > 0) if valid timestamp or date string
  */
 function parse_online_timestamp($online_at) {
-    if (empty($online_at) || $online_at === null || $online_at === 'None' || $online_at === '0' || $online_at === 0 || $online_at === '1-01-01 00:00:00' || $online_at === '0001-01-01 00:00:00+00:00' || $online_at === '0001-01-01 00:00:00' || $online_at === '0001-01-01T00:00:00') {
+    if (empty($online_at) || $online_at === null || $online_at === 'None' || $online_at === 'Never' || $online_at === '0' || $online_at === 0 || $online_at === '1-01-01 00:00:00' || $online_at === '0001-01-01 00:00:00+00:00' || $online_at === '0001-01-01 00:00:00' || $online_at === '0001-01-01T00:00:00') {
         return 0;
     }
     $str = trim((string)$online_at);
-    if (strtolower($str) === 'online') {
-        return -1;
+    if (strtolower($str) === 'online' || strtolower($str) === 'now' || strtolower($str) === 'just now') {
+        return time();
     }
-    if (strtolower($str) === 'offline' || strtolower($str) === 'none' || strtolower($str) === 'null') {
+    if (strtolower($str) === 'offline' || strtolower($str) === 'none' || strtolower($str) === 'null' || strtolower($str) === 'never') {
         return 0;
     }
     if (is_numeric($str) || strpos($str, '@') === 0) {
@@ -2440,6 +2440,14 @@ function parse_online_timestamp($online_at) {
             $ts = (int)($ts / 1000);
         }
         return ($ts > 0 && $ts < 32503680000) ? $ts : 0;
+    }
+    if (stripos($str, 'ago') !== false) {
+        $clean_str = str_replace([',', 'and', 'an ', 'a '], [' ', ' ', '1 ', '1 '], $str);
+        $clean_str = preg_replace('/\s+/', ' ', trim($clean_str));
+        $rel_ts = strtotime($clean_str);
+        if ($rel_ts !== false && $rel_ts > 0 && $rel_ts < 32503680000) {
+            return $rel_ts;
+        }
     }
     try {
         $now = time();

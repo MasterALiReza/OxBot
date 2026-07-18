@@ -937,8 +937,18 @@ class ManagePanel
                 }
                 
                 $online_at_val = null;
-                if (isset($UsernameData['latest_handshake']) && $UsernameData['latest_handshake'] !== 'None' && $UsernameData['latest_handshake'] !== '0001-01-01 00:00:00+00:00') {
-                    $lh = $UsernameData['latest_handshake'];
+                $handshake_candidates = [
+                    'latest_handshake', 'latestHandshake', 'last_handshake', 'lastHandshake',
+                    'handshake', 'latest_handshake_time', 'last_handshake_time', 'online_at'
+                ];
+                $lh = null;
+                foreach ($handshake_candidates as $hk) {
+                    if (isset($UsernameData[$hk]) && $UsernameData[$hk] !== 'None' && $UsernameData[$hk] !== 'Never' && $UsernameData[$hk] !== '0001-01-01 00:00:00+00:00' && $UsernameData[$hk] !== '1-01-01 00:00:00' && $UsernameData[$hk] !== '0' && $UsernameData[$hk] !== 0 && $UsernameData[$hk] !== '') {
+                        $lh = $UsernameData[$hk];
+                        break;
+                    }
+                }
+                if ($lh !== null) {
                     if (is_numeric($lh)) {
                         $online_at_val = "@" . $lh;
                     } else {
