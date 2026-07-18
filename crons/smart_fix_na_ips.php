@@ -19,6 +19,13 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 set_time_limit(0);
 
+// Prevent overlapping cron executions using non-blocking flock
+$lockFileHandle = fopen(sys_get_temp_dir() . '/smart_fix_na_ips.lock', 'c');
+if (!$lockFileHandle || !flock($lockFileHandle, LOCK_EX | LOCK_NB)) {
+    echo "[ABORT] Another instance of smart_fix_na_ips.php is currently running. Exiting safely to prevent server overload.\n";
+    exit(0);
+}
+
 $isDryRun = in_array('--dry-run', $argv ?? []);
 echo "=========================================\n";
 echo "  WG Smart Peer N/A IP Fixer\n";
@@ -298,7 +305,8 @@ foreach ($servers as $server) {
                 $ch3 = curl_init($updateUrl);
                 curl_setopt_array($ch3, [
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT        => 90,
+                    CURLOPT_TIMEOUT        => 25,
+                    CURLOPT_CONNECTTIMEOUT => 5,
                     CURLOPT_POST           => true,
                     CURLOPT_POSTFIELDS     => $updatePayload,
                     CURLOPT_HTTPHEADER     => [
@@ -314,16 +322,16 @@ foreach ($servers as $server) {
 
                 if ($updateStatus == 200) {
                     $success = true;
-                    // Give panel WG service time to fully stabilize after restart
-                    sleep(5);
+                    // Give panel WG service brief time to stabilize
+                    sleep(2);
                     break;
                 }
                 echo "          Attempt {$attempt} failed (HTTP {$updateStatus}), retrying...\n";
-                sleep(5);
+                sleep(3);
             }
 
             if (!$success) {
-                echo "       [FAIL] {$name} - updatePeerSettings failed after 5 attempts.\n";
+                echo "       [FAIL] {$name} - updatePeerSettings failed after 2 attempts.\n";
                 $totalFailed++;
                 continue;
             }

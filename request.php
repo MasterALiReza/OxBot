@@ -54,6 +54,9 @@ class CurlRequest {
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, strtoupper($method));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT_MS, $this->timeout);
+        // Fail fast on connection attempts (max 5s) to prevent thread exhaustion if panel or network is unreachable
+        $connectTimeout = min(5000, $this->timeout);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, $connectTimeout);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 

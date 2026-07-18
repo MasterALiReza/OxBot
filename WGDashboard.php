@@ -120,18 +120,18 @@ function downloadconfig($namepanel, $publickey)
         'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
     );
 
-    $max_retries = 20;
-    $retry_delay = 500000; // microseconds (0.5s)
+    $max_retries = 4;
+    $retry_delay = 500000; // microseconds (starts at 0.5s)
     $response = null;
 
     for ($i = 0; $i < $max_retries; $i++) {
         $req = new CurlRequest($url);
         $req->setHeaders($headers);
-        $req->setTimeout(5000); // 5s timeout to avoid hanging if panel is down
+        $req->setTimeout(10000); // 10s timeout per attempt to allow WGDashboard config compilation
         $response = $req->get();
 
-        $body = json_decode($response['body'], true);
-        if (isset($body['status']) && $body['status'] === true) {
+        $body = !empty($response['body']) ? json_decode($response['body'], true) : null;
+        if (is_array($body) && isset($body['status']) && $body['status'] === true) {
             return $response;
         }
 
@@ -141,12 +141,13 @@ function downloadconfig($namepanel, $publickey)
         }
 
         // Abort early if the peer definitely does not exist (to avoid a wait block for deleted peers)
-        if (isset($body['status']) && $body['status'] === false && isset($body['message']) && stripos($body['message'], 'does not exist') !== false) {
+        if (is_array($body) && isset($body['status']) && $body['status'] === false && isset($body['message']) && stripos($body['message'], 'does not exist') !== false) {
             return $response;
         }
 
-        // If not successful (e.g. peer not found due to WGDashboard sync delay), wait and retry
+        // If not successful (e.g. peer not found due to WGDashboard sync delay), wait with exponential backoff and retry
         usleep($retry_delay);
+        $retry_delay *= 2;
     }
 
     return $response;
