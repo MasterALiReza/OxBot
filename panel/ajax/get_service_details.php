@@ -130,7 +130,8 @@ try {
         } elseif ($DataUserOut['online_at'] == "offline") {
             $lastonline = 'آفلاین 🔴';
         } elseif ($DataUserOut['online_at'] !== null) {
-            $lastonline = jdate('Y/m/d H:i', strtotime($DataUserOut['online_at']));
+            $ts_online = strtotime($DataUserOut['online_at']);
+            $lastonline = ($ts_online !== false) ? jdate('Y/m/d H:i', $ts_online) : htmlspecialchars((string)$DataUserOut['online_at']);
         }
     }
 
