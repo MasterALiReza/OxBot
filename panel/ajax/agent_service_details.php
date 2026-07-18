@@ -134,14 +134,20 @@ try {
     $daysRemaining = $timeDiff > 0 ? floor($timeDiff / 86400) . ' روز' : 'منقضی / نامحدود';
 
     // Last Online
-    $lastonline = 'نامشخص';
+    $lastonline = 'متصل نشده 🔴';
     if (isset($DataUserOut['online_at'])) {
         if ($DataUserOut['online_at'] == "online") {
             $lastonline = 'متصل 🟢';
         } elseif ($DataUserOut['online_at'] == "offline") {
             $lastonline = 'آفلاین 🔴';
-        } elseif ($DataUserOut['online_at'] !== null) {
-            $lastonline = jdate('Y/m/d H:i', strtotime($DataUserOut['online_at']));
+        } else {
+            $ts_online = parse_online_timestamp($DataUserOut['online_at'] ?? null);
+            if ($ts_online > 0) {
+                $is_online = check_user_is_online($DataUserOut['online_at']);
+                $dateTime = new DateTime('@' . $ts_online);
+                $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+                $lastonline = jdate('Y/m/d H:i', $dateTime->getTimestamp()) . ($is_online ? ' (متصل 🟢)' : ' (قطع 🔴)');
+            }
         }
     }
 

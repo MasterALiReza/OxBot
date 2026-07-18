@@ -174,13 +174,20 @@ class ServiceMonitor
             return;
         if (in_array($userData['status'], ['Unknown', 'active', 'on_hold', 'disabled', 'expired']))
             return;
-        if (empty($userData['online_at']) or $userData['online_at'] == null) {
+        if (empty($userData['online_at'] ?? null)) {
             $timelastconect = 0;
+            $lastonline_formatted = "متصل نشده";
         } else {
-            $time = strtotime($userData['online_at']);
+            $time = parse_online_timestamp($userData['online_at'] ?? null);
+            if ($time === -1 || $time === 0) {
+                return;
+            }
             $timelastconect = (time() - $time) / 86400;
+            $dateTime = new DateTime('@' . $time);
+            $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+            $lastonline_formatted = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
         }
-        if ($timelastconect == 0)
+        if ($timelastconect <= 0)
             return;
         $timeService = $userData['expire'] - time();
         $daysRemaining = intval($timeService / 86400);
@@ -199,7 +206,7 @@ class ServiceMonitor
             update("invoice", "status", "removevolume", "username", $username);
             $this->Panel->RemoveUser($invoice['Service_location'], $username);
             $message = sprintf($this->textBotLang['hardcoded']['notifServiceDeleted2'], $username);
-            $reportMessage = sprintf($this->textBotLang['hardcoded']['notifVolumeDeleteCronInfo'], $username, $statusText, $daysRemaining, $remainingVolume, $userData['online_at']);
+            $reportMessage = sprintf($this->textBotLang['hardcoded']['notifVolumeDeleteCronInfo'], $username, $statusText, $daysRemaining, $remainingVolume, $lastonline_formatted);
             $this->send_notifactions($invoice, $user, $message, false, $invoice['bottype']);
             $this->sendReportNotification($reportMessage);
         }

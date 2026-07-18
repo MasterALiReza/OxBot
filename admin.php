@@ -6081,32 +6081,18 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         return;
     }
     $is_online = false;
-    if ($DataUserOut['online_at'] == "online") {
+    if (($DataUserOut['online_at'] ?? null) == "online") {
         $lastonline = $textbotlang['Admin']['adminphp']['btn_10'];
         $is_online = true;
-    } elseif ($DataUserOut['online_at'] == "offline") {
+    } elseif (($DataUserOut['online_at'] ?? null) == "offline") {
         $lastonline = $textbotlang['Admin']['adminphp']['btn_11'];
     } else {
-        if (isset($DataUserOut['online_at']) && $DataUserOut['online_at'] !== null) {
-            $timestamp = 0;
-            if (is_numeric($DataUserOut['online_at']) || (strpos($DataUserOut['online_at'], '@') === 0)) {
-                $timestamp = (int) ltrim($DataUserOut['online_at'], '@');
-            } else {
-                try {
-                    $dateTime = new DateTime($DataUserOut['online_at'], new DateTimeZone('UTC'));
-                    $timestamp = $dateTime->getTimestamp();
-                } catch (Exception $e) {}
-            }
-            if ($timestamp > 0) {
-                if (time() - $timestamp <= 600 && time() - $timestamp >= -300) {
-                    $is_online = true;
-                }
-                $dateTime = new DateTime('@' . $timestamp);
-                $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
-                $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
-            } else {
-                $lastonline = $textbotlang['Admin']['adminphp']['btn_12'];
-            }
+        $timestamp = parse_online_timestamp($DataUserOut['online_at'] ?? null);
+        if ($timestamp > 0) {
+            $is_online = check_user_is_online($DataUserOut['online_at'] ?? null);
+            $dateTime = new DateTime('@' . $timestamp);
+            $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+            $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
         } else {
             $lastonline = $textbotlang['Admin']['adminphp']['btn_12'];
         }

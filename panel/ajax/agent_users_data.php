@@ -282,18 +282,7 @@ try {
         $exp_date = $expire_ts > 0 ? jdate('Y/m/d', $expire_ts) : 'نامحدود';
 
         // Online Status
-        if ($online_at === 'online') {
-            $is_online = 'online';
-        } elseif ($online_at === 'offline') {
-            $is_online = 'offline';
-        } elseif (!empty($online_at)) {
-            if (is_numeric($online_at)) {
-                $is_online = (time() - $online_at < 300) ? 'online' : 'offline';
-            } else {
-                $ts = strtotime($online_at);
-                $is_online = ($ts && (time() - $ts < 300)) ? 'online' : 'offline';
-            }
-        }
+        $is_online = check_user_is_online($online_at) ? 'online' : 'offline';
 
         // Status Label
         if ($raw_status === 'active') {

@@ -243,20 +243,24 @@ switch ($data['actions']) {
             } else {
                 $lastupdate = null;
             }
+            $is_online = false;
             if (($DataUserOut['online_at'] ?? null) == "online") {
                 $lastonline = $textbotlang['hardcoded']['onlineLabel'];
+                $is_online = true;
             } elseif (($DataUserOut['online_at'] ?? null) == "offline") {
                 $lastonline = $textbotlang['hardcoded']['offlineLabel'];
             } else {
-                if (isset($DataUserOut['online_at']) && $DataUserOut['online_at'] !== null) {
-                    $dateString = $DataUserOut['online_at'];
-                    $date = new DateTime($dateString, new DateTimeZone('UTC'));
-                    $date->setTimezone(new DateTimeZone('Asia/Tehran'));
-                    $lastonline = jdate('Y/m/d H:i:s', $date->getTimestamp());
+                $timestamp = parse_online_timestamp($DataUserOut['online_at'] ?? null);
+                if ($timestamp > 0) {
+                    $is_online = check_user_is_online($DataUserOut['online_at']);
+                    $dateTime = new DateTime('@' . $timestamp);
+                    $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
+                    $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
                 } else {
                     $lastonline = $textbotlang['hardcoded']['notConnectedLabel'];
                 }
             }
+            $lastonline = ($is_online ? "🟢 متصل | " : "🔴 قطع | ") . $lastonline;
             $expireTimestamp = isset($DataUserOut['expire']) && is_numeric($DataUserOut['expire']) ? (int) $DataUserOut['expire'] : 0;
             $expirationDate = $expireTimestamp ? jdate('Y/m/d', $expireTimestamp) : $textbotlang['hardcoded']['unlimitedLabel'];
             $usernameOutput = $DataUserOut['username'] ?? $invoice['username'];

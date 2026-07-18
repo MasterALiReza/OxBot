@@ -1371,19 +1371,24 @@ $textonebuy
         step('home', $from_id);
         return;
     }
-    if ($DataUserOut['online_at'] == "online") {
+    $is_online = false;
+    if (($DataUserOut['online_at'] ?? null) == "online") {
         $lastonline = 'آنلاین';
-    } elseif ($DataUserOut['online_at'] == "offline") {
+        $is_online = true;
+    } elseif (($DataUserOut['online_at'] ?? null) == "offline") {
         $lastonline = 'آفلاین';
     } else {
-        if (isset($DataUserOut['online_at']) && $DataUserOut['online_at'] !== null) {
-            $dateTime = new DateTime($DataUserOut['online_at'], new DateTimeZone('UTC'));
+        $timestamp = parse_online_timestamp($DataUserOut['online_at'] ?? null);
+        if ($timestamp > 0) {
+            $is_online = check_user_is_online($DataUserOut['online_at'] ?? null);
+            $dateTime = new DateTime('@' . $timestamp);
             $dateTime->setTimezone(new DateTimeZone('Asia/Tehran'));
             $lastonline = jdate('Y/m/d H:i:s', $dateTime->getTimestamp());
         } else {
             $lastonline = "متصل نشده";
         }
     }
+    $lastonline = ($is_online ? "🟢 متصل | " : "🔴 قطع | ") . $lastonline;
     #-------------status----------------#
     $status = $DataUserOut['status'];
     $status_var = [

@@ -2416,3 +2416,76 @@ function logWalletPurchaseToPaymentReport($pdo, $user_id, $amount, $description)
     $stmt->execute([$user_id, $random_order_id, $time, $amount, $random_order_id]);
 }
 
+/**
+ * Parses raw online_at from any panel into a Unix timestamp or status code.
+ * Returns:
+ *   -1 if status is explicitly "online"
+ *    0 if status is explicitly "offline", null, empty, or never connected
+ *   int ($timestamp > 0) if valid timestamp or date string
+ */
+function parse_online_timestamp($online_at) {
+    if (empty($online_at) || $online_at === null || $online_at === 'None' || $online_at === '0' || $online_at === 0 || $online_at === '1-01-01 00:00:00' || $online_at === '0001-01-01 00:00:00+00:00' || $online_at === '0001-01-01 00:00:00' || $online_at === '0001-01-01T00:00:00') {
+        return 0;
+    }
+    $str = trim((string)$online_at);
+    if (strtolower($str) === 'online') {
+        return -1;
+    }
+    if (strtolower($str) === 'offline' || strtolower($str) === 'none' || strtolower($str) === 'null') {
+        return 0;
+    }
+    if (is_numeric($str) || strpos($str, '@') === 0) {
+        $ts = (int) ltrim($str, '@');
+        if ($ts > 32503680000) {
+            $ts = (int)($ts / 1000);
+        }
+        return ($ts > 0 && $ts < 32503680000) ? $ts : 0;
+    }
+    try {
+        $now = time();
+        $has_tz = preg_match('/(Z|[+-]\d{2}:?\d{2})$/i', $str);
+        if ($has_tz) {
+            $dateTime = new DateTime($str);
+            $ts = $dateTime->getTimestamp();
+            return ($ts > 0 && $ts < 32503680000) ? $ts : 0;
+        }
+        $dt_utc = new DateTime($str, new DateTimeZone('UTC'));
+        $ts_utc = $dt_utc->getTimestamp();
+        if ($ts_utc > $now + 300) {
+            $dt_tehran = new DateTime($str, new DateTimeZone('Asia/Tehran'));
+            $ts_tehran = $dt_tehran->getTimestamp();
+            if ($ts_tehran <= $now + 300 && $ts_tehran > 0) {
+                return $ts_tehran;
+            }
+            $dt_local = new DateTime($str);
+            $ts_local = $dt_local->getTimestamp();
+            if ($ts_local <= $now + 300 && $ts_local > 0) {
+                return $ts_local;
+            }
+            $candidates = array_filter([$ts_utc, $ts_tehran, $ts_local], function($t) { return $t > 0 && $t < 32503680000; });
+            return !empty($candidates) ? min($candidates) : $ts_utc;
+        }
+        return ($ts_utc > 0 && $ts_utc < 32503680000) ? $ts_utc : 0;
+    } catch (Exception $e) {
+        $ts = strtotime($str);
+        return ($ts !== false && $ts > 0 && $ts < 32503680000) ? $ts : 0;
+    }
+}
+
+/**
+ * Determines whether a user is currently considered online/active based on online_at.
+ * Allows a 30-minute window for last activity and up to 12-hour negative clock drift.
+ */
+function check_user_is_online($online_at, $window_seconds = 1800) {
+    $ts = parse_online_timestamp($online_at);
+    if ($ts === -1) {
+        return true;
+    }
+    if ($ts <= 0) {
+        return false;
+    }
+    $diff = time() - $ts;
+    return ($diff <= $window_seconds && $diff >= -43200);
+}
+
+
