@@ -104,7 +104,12 @@ function downloadconfig($namepanel, $publickey)
             return $response;
         }
 
-        // Abort early if the peer definitely does not exist (to avoid a 10s wait block for deleted peers)
+        // If it's a valid wireguard config string (starts with [Interface]), return it immediately!
+        if (!empty($response['body']) && (stripos(trim($response['body']), '[Interface]') === 0 || stripos(trim($response['body']), 'PrivateKey') !== false)) {
+            return $response;
+        }
+
+        // Abort early if the peer definitely does not exist (to avoid a wait block for deleted peers)
         if (isset($body['status']) && $body['status'] === false && isset($body['message']) && stripos($body['message'], 'does not exist') !== false) {
             return $response;
         }
