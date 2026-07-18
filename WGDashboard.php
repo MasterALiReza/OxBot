@@ -294,15 +294,29 @@ function addpear($namepanel, $usernameac)
         }
         
         // Compute debug metrics so the admin knows WHY it failed
-        $capacity = 0; $used_count = count($clean_used_ips);
+        $capacity = 0; $used_count = 0;
         if (strpos($subnet, '/') !== false) {
-            list($dummy, $c) = explode('/', $subnet);
+            list($subnet_ip_only, $c) = explode('/', $subnet);
             $c = intval($c);
             if ($c >= 0 && $c <= 32) {
                 $total_ips = 1 << (32 - $c);
                 $skipped = (max(1, $total_ips >> 8) * 2) + 1;
                 $capacity = max(0, $total_ips - $skipped);
+                
+                $mask = ~((1 << (32 - $c)) - 1);
+                $network = ip2long($subnet_ip_only) & $mask;
+                foreach ($clean_used_ips as $ip) {
+                    $ip_long = ip2long($ip);
+                    if ($ip_long !== false && ($ip_long & $mask) === $network) {
+                        $last_octet = $ip_long & 0xFF;
+                        if ($last_octet !== 0 && $last_octet !== 255 && $ip !== $subnet_ip_only) {
+                            $used_count++;
+                        }
+                    }
+                }
             }
+        } else {
+            $used_count = count($clean_used_ips);
         }
         
         return array(
@@ -607,7 +621,7 @@ function getUsedIPsFromDb($namepanel)
                     JSON_UNQUOTE(JSON_EXTRACT(user_info, '$.allowed_ips[1]')) AS ip1
              FROM invoice
              WHERE Service_location = :location AND user_info IS NOT NULL AND user_info != ''
-               AND LOWER(Status) IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disablebyadmin', 'disabledn', 'disabled', 'test', 'testing')"
+               AND LOWER(Status) IN ('active', 'sendedwarn', 'send_on_hold', 'test', 'testing')"
         );
         $stmt->execute([':location' => $namepanel]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -622,7 +636,7 @@ function getUsedIPsFromDb($namepanel)
             $stmt = $pdo->prepare(
                 "SELECT user_info FROM invoice
                  WHERE Service_location = :location AND user_info IS NOT NULL AND user_info != ''
-                   AND LOWER(Status) IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disablebyadmin', 'disabledn', 'disabled', 'test', 'testing')"
+                   AND LOWER(Status) IN ('active', 'sendedwarn', 'send_on_hold', 'test', 'testing')"
             );
             $stmt->execute([':location' => $namepanel]);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -686,7 +700,7 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
     
     // Collect all available IPs
     $available_ips = [];
-    for ($i = 2; $i < $num_ips - 1; $i++) {
+    for ($i = 1; $i < $num_ips - 1; $i++) {
         $candidate_long = $network_long + $i;
         
         // Skip .0 and .255 boundaries completely.
@@ -695,9 +709,14 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
             continue;
         }
         
+        $candidate_ip = long2ip($candidate_long);
+        // Skip the subnet/server IP itself (e.g. 12.0.0.1 or 12.0.0.254) anywhere in the range
+        if ($candidate_ip === false || $candidate_ip === $subnet_ip) {
+            continue;
+        }
+        
         if (!isset($used_longs[$candidate_long])) {
-            $candidate_ip = long2ip($candidate_long);
-            if ($candidate_ip !== false && filter_var($candidate_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            if (filter_var($candidate_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
                 $available_ips[] = $candidate_ip;
             }
         }
@@ -756,7 +775,10 @@ function isSubnetFull($subnet_cidr, $used_ips_array)
         $ip_long = ip2long($clean_ip);
         // ONLY count IPs that actually belong to this specific subnet
         if ($ip_long !== false && ($ip_long & $mask) === $network) {
-            $unique_ips[$clean_ip] = true;
+            $last_octet = $ip_long & 0xFF;
+            if ($last_octet !== 0 && $last_octet !== 255 && $clean_ip !== $subnet_ip) {
+                $unique_ips[$clean_ip] = true;
+            }
         }
     }
     
