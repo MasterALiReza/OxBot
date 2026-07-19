@@ -699,7 +699,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     step('none', $from_id);
 } elseif ($text == $textbotlang['textbot']['purchasedServices'] || $datain == "backorder" || $text == "/services" || $text == "🛍 سرویس های من" || $text == "🛡 سرویس های من" || $text == "🛒 سرویس های من" || $text == "📦 سرویس های من" || $text == "📂 سرویس های من" || $text == "🎛 سرویس های من") {
     try {
-        $stmt_locs = $pdo->prepare("SELECT Service_location, COUNT(id_invoice) as count FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') GROUP BY Service_location");
+        $stmt_locs = $pdo->prepare("SELECT Service_location, COUNT(id_invoice) as count FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') GROUP BY Service_location");
         $stmt_locs->bindParam(':id_user', $from_id);
         $stmt_locs->execute();
         $locations = $stmt_locs->fetchAll(PDO::FETCH_ASSOC);
@@ -781,7 +781,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $target_hash = $match[1];
     
     // Resolve hash to actual location name
-    $stmt_locs = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+    $stmt_locs = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')");
     $stmt_locs->bindParam(':id_user', $from_id);
     $stmt_locs->execute();
     $locations = $stmt_locs->fetchAll(PDO::FETCH_ASSOC);
@@ -807,17 +807,17 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $items_per_page = 20;
     $start_index = ($page - 1) * $items_per_page;
     if ($selected_panel == "سایر") {
-        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')");
         $stmt_count->bindParam(':id_user', $from_id);
         
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR Status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
         $stmt->bindParam(':id_user', $from_id);
     } else {
-        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')");
         $stmt_count->bindParam(':id_user', $from_id);
         $stmt_count->bindParam(':loc', $selected_panel);
         
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR Status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
         $stmt->bindParam(':id_user', $from_id);
         $stmt->bindParam(':loc', $selected_panel);
     }
@@ -868,10 +868,10 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
 } elseif ($datain == 'next_page') {
     $selected_panel = $user['Processing_value_four'];
     if ($selected_panel == "سایر") {
-        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')");
         $stmt_count->bindParam(':id_user', $from_id);
     } else {
-        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')");
         $stmt_count->bindParam(':id_user', $from_id);
         $stmt_count->bindParam(':loc', $selected_panel);
     }
@@ -890,10 +890,10 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $keyboardlists = ['inline_keyboard' => []];
     
     if ($selected_panel == "سایر") {
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
         $stmt->bindParam(':id_user', $from_id);
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
         $stmt->bindParam(':id_user', $from_id);
         $stmt->bindParam(':loc', $selected_panel);
     }
@@ -936,10 +936,10 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
 } elseif ($datain == 'previous_page') {
     $selected_panel = $user['Processing_value_four'];
     if ($selected_panel == "سایر") {
-        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')");
         $stmt_count->bindParam(':id_user', $from_id);
     } else {
-        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+        $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')");
         $stmt_count->bindParam(':id_user', $from_id);
         $stmt_count->bindParam(':loc', $selected_panel);
     }
@@ -959,10 +959,10 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $keyboardlists = ['inline_keyboard' => []];
     
     if ($selected_panel == "سایر") {
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (Service_location IS NULL OR Service_location = '') AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
         $stmt->bindParam(':id_user', $from_id);
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND Service_location = :loc AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
         $stmt->bindParam(':id_user', $from_id);
         $stmt->bindParam(':loc', $selected_panel);
     }
@@ -1143,7 +1143,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
 } elseif (preg_match('/^product_(\w+)/', $datain, $dataget) || preg_match('/updateproduct_(\w+)/', $datain, $dataget) || $user['step'] == "getuseragnetservice" || $datain == "productcheckdata") {
     if ($user['step'] == "getuseragnetservice") {
         $username = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-        $sql = "SELECT * FROM invoice WHERE (username LIKE CONCAT('%', :username, '%') OR note  LIKE CONCAT('%', :notes, '%') OR Volume LIKE CONCAT('%',:Volume, '%') OR Service_time LIKE CONCAT('%',:Service_time, '%')) AND id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')";
+        $sql = "SELECT * FROM invoice WHERE (username LIKE CONCAT('%', :username, '%') OR note  LIKE CONCAT('%', :notes, '%') OR Volume LIKE CONCAT('%',:Volume, '%') OR Service_time LIKE CONCAT('%',:Service_time, '%')) AND id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':username', $username, PDO::PARAM_STR);
         $stmt->bindParam(':Service_time', $username, PDO::PARAM_STR);
@@ -1228,7 +1228,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     }
     $nameloc = $stmt->fetch(PDO::FETCH_ASSOC);
     $username = $nameloc['id_invoice'];
-    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold'])) {
+    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disabledn'])) {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['accountInfoUnavailable'], $keyboard, 'html');
         step('home', $from_id);
         return;
@@ -1244,6 +1244,10 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         sendmessage($from_id, $textbotlang['users']['status']['userNotFound'], $keyboard, 'html');
         step('home', $from_id);
         return;
+    } elseif ($nameloc['Status'] == 'disabledn' && ($DataUserOut['status'] ?? "Unsuccessful") !== "Unsuccessful" && !empty($DataUserOut['status'])) {
+        $healed_status = ($DataUserOut['status'] == 'on') ? 'active' : $DataUserOut['status'];
+        update("invoice", "Status", $healed_status, "id_invoice", $nameloc['id_invoice']);
+        $nameloc['Status'] = $healed_status;
     }
     $textinfo_prefix = "";
     if ($DataUserOut['status'] == "Unsuccessful") {
@@ -1298,7 +1302,8 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         'on_hold' => $textbotlang['users']['status']['on_hold'],
         'Unknown' => $textbotlang['users']['status']['unknown'],
         'deactivev' => $textbotlang['users']['status']['disabled'],
-    ][$status];
+        'disabledn' => $textbotlang['users']['status']['disabled'] ?? 'غیرفعال (یافت نشد در پنل)',
+    ][$status] ?? ($textbotlang['users']['status']['unknown'] ?? 'نامشخص');
     #--------------[ expire ]---------------#
     $expirationDate = $DataUserOut['expire'] ? jdate('Y/m/d', $DataUserOut['expire']) : $textbotlang['users']['status']['unlimited'];
     #-------------[ data_limit ]----------------#
@@ -1405,7 +1410,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $statuschangeservice = select("shopSetting", "*", "Namevalue", "statuschangeservice", "select")['value'];
     $statusshowconfig = select("shopSetting", "*", "Namevalue", "configshow", "select")['value'];
     $statusremoveserveice = select("shopSetting", "*", "Namevalue", "backserviecstatus", "select")['value'];
-    if (!in_array($status, ["active", "on_hold", "disabled", "Unknown"])) {
+    if (!in_array($status, ["active", "on_hold", "disabled", "Unknown", "disabledn"])) {
         $textinfo = $textinfo_prefix . sprintf($textbotlang['hardcoded']['serviceInfoDetailed'], $status_var, $DataUserOut['username'], $nameloc['Service_location'], $nameloc['name_product'], $lastonline, $LastTraffic, $usedTrafficGb, $RemainingVolume, $Percent, $expirationDate, $day, $nameconfig);
 
         $keyboardsetting = [
@@ -2396,7 +2401,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         $prodcut = $stmt->fetch(PDO::FETCH_ASSOC);
     }
     $pricelastextend = $prodcut['price_product'];
-    if ($prodcut == false || !in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold'])) {
+    if ($prodcut == false || !in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disabledn'])) {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['renewError'], null, 'HTML');
         return;
     }
@@ -2412,6 +2417,11 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         sendmessage($from_id, sprintf($textbotlang['users']['Discount']['discountapplied'], $user['pricediscount']), null, 'HTML');
     }
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
+    if ($nameloc['Status'] == 'disabledn' && ($DataUserOut['status'] ?? "Unsuccessful") !== "Unsuccessful" && !empty($DataUserOut['status']) && !isset($DataUserOut['msg'])) {
+        $healed_status = ($DataUserOut['status'] == 'on') ? 'active' : $DataUserOut['status'];
+        update("invoice", "Status", $healed_status, "id_invoice", $nameloc['id_invoice']);
+        $nameloc['Status'] = $healed_status;
+    }
     if ($user['Balance'] < $pricelastextend && $user['agent'] != "n2" && intval($pricelastextend) != 0) {
         $marzbandirectpay = select('shopSetting', "*", "Namevalue", "statusdirectpabuy", "select")['value'];
         if ($marzbandirectpay == "offdirectbuy") {
@@ -2696,7 +2706,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
 } elseif (preg_match('/confirmaextra-(\w+)/', $datain, $dataget)) {
     $volume = $dataget[1];
     $nameloc = select("invoice", "*", "id_invoice", $user['Processing_value'], "select");
-    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold'])) {
+    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disabledn'])) {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['purchaseError'], null, 'HTML');
         return;
     }
@@ -3217,7 +3227,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $tmieextra = $dataget[1];
     $pricelasttime = $tmieextra;
     $nameloc = select("invoice", "*", "id_invoice", $user['Processing_value'], "select");
-    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold'])) {
+    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disabledn'])) {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['purchaseError'], null, 'HTML');
         return;
     }
@@ -4002,7 +4012,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     } else {
         $numberphone = $numberphone;
     }
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')");
     $stmt->execute([
         ':id_user' => $from_id
     ]);
@@ -4087,7 +4097,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
                 return;
             }
         }
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE status = 'active' AND (status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') AND Service_location = '{$location}'");
         $stmt->execute();
         $countinovoice = $stmt->rowCount();
         if ($locationproduct['limit_panel'] != "unlimited" && $locationproduct['limit_panel'] != "unlimted" && $locationproduct['limit_panel'] !== "") {
@@ -4215,7 +4225,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     }
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
     $locationproductcount = select("marzban_panel", "*", "name_panel", $location, "count");
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND  Service_location = '{$marzban_list_get['name_panel']}'");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') AND  Service_location = '{$marzban_list_get['name_panel']}'");
     $stmt->execute();
     $countinovoice = $stmt->rowCount();
     if ($marzban_list_get['limit_panel'] != "unlimited" && $marzban_list_get['limit_panel'] != "unlimted" && $marzban_list_get['limit_panel'] !== "") {
@@ -5044,7 +5054,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         return;
     }
     if ($SellDiscountlimit['usefirst'] == "1") {
-        $countinvoice = mysqli_query($connect, sprintf("SELECT * FROM invoice WHERE id_user = '%s' AND name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}' AND  (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')", $from_id));
+        $countinvoice = mysqli_query($connect, sprintf("SELECT * FROM invoice WHERE id_user = '%s' AND name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}' AND  (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')", $from_id));
         if (mysqli_num_rows($countinvoice) != 0) {
             sendmessage($from_id, $textbotlang['users']['Discount']['firstdiscount'], null, 'HTML');
             return;
@@ -6770,7 +6780,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     $affiliatescommission = select("affiliates", "*", null, null, "select");
     $sqlPanel = sprintf("SELECT COUNT(*) AS orders, SUM(price_product) AS total_price
                  FROM invoice 
-                 WHERE Status IN ('active', 'end_of_time', 'sendedwarn', 'send_on_hold') 
+                 WHERE Status IN ('active', 'end_of_time', 'sendedwarn', 'send_on_hold', 'disabledn') 
                  AND refral = '%s'
                  AND name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'", $from_id);
     $stmt = $pdo->prepare($sqlPanel);
@@ -7378,7 +7388,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         
         // Auto-heal old/renamed panel names in invoices
         try {
-            $stmt_locs_check = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+            $stmt_locs_check = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn')");
             $stmt_locs_check->bindParam(':id_user', $from_id);
             $stmt_locs_check->execute();
             $locs_check = $stmt_locs_check->fetchAll(PDO::FETCH_COLUMN);

@@ -104,6 +104,12 @@ try {
     ];
 
     $panelStatus = $DataUserOut['status'] ?? 'Unknown';
+    if (($invoice['Status'] === 'disabledn' || $invoice['Status'] === 'User not found') && !empty($panelStatus) && $panelStatus !== 'Unknown' && $panelStatus !== 'Unsuccessful') {
+        update("invoice", "Status", $panelStatus, "id_invoice", $invoice['id_invoice']);
+        $invoice['Status'] = $panelStatus;
+        $invStatus = strtolower($panelStatus);
+    }
+
     $statusText = $statusMap[$panelStatus][1] ?? $statusMap['Unknown'][1];
     
     // Remove checkmark emoji from status text for cleaner UI in the web panel

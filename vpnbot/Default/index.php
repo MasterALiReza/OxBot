@@ -177,7 +177,7 @@ if ($text == "/start") {
     }
     return;
 } elseif ($text == $text_bot_var['btn_keyboard']['my_service'] or $datain == "backorder") {
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND bottype = :apibot");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') AND bottype = :apibot");
     $stmt->bindParam(':id_user', $from_id);
     $stmt->bindParam(':apibot', $ApiToken);
     $stmt->execute();
@@ -194,7 +194,7 @@ if ($text == "/start") {
     $keyboardlists = [
         'inline_keyboard' => [],
     ];
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') AND bottype = '$ApiToken' ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR Status = 'disabledn') AND bottype = '$ApiToken' ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
     $stmt->execute();
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $data = "";
@@ -228,7 +228,7 @@ if ($text == "/start") {
         sendmessage($from_id, "🛍 برای مشاهده اطلاعات سرویس خود از لیست زیر سرویس خود را انتخاب نمایید", $keyboard_json, 'html');
     }
 } elseif ($datain == 'next_page') {
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND bottype = :apibot");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') AND bottype = :apibot");
     $stmt->bindParam(':id_user', $from_id);
     $stmt->bindParam(':apibot', $ApiToken);
     $stmt->execute();
@@ -245,7 +245,7 @@ if ($text == "/start") {
     $keyboardlists = [
         'inline_keyboard' => [],
     ];
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') AND bottype = '$ApiToken' ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR Status = 'disabledn') AND bottype = '$ApiToken' ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
     $stmt->execute();
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $keyboardlists['inline_keyboard'][] = [
@@ -277,7 +277,7 @@ if ($text == "/start") {
     update("user", "pagenumber", $next_page, "id", $from_id);
     Editmessagetext($from_id, $message_id, "🛍 برای مشاهده اطلاعات سرویس خود از لیست زیر سرویس خود را انتخاب نمایید", $keyboard_json);
 } elseif ($datain == 'previous_page') {
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND bottype = :apibot");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') AND bottype = :apibot");
     $stmt->bindParam(':id_user', $from_id);
     $stmt->bindParam(':apibot', $ApiToken);
     $stmt->execute();
@@ -294,7 +294,7 @@ if ($text == "/start") {
     $keyboardlists = [
         'inline_keyboard' => [],
     ];
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') AND bottype = '$ApiToken' ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR Status = 'disabledn') AND bottype = '$ApiToken' ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
     $stmt->execute();
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $keyboardlists['inline_keyboard'][] = [
@@ -609,7 +609,7 @@ if ($text == $text_bot_var['btn_keyboard']['buy'] && $setting['active_step_note'
                 return;
             }
         }
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold'");
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn'");
         $stmt->execute();
         $countinovoice = $stmt->rowCount();
         if ($locationproduct['limit_panel'] != "unlimited") {
@@ -692,7 +692,7 @@ if ($text == $text_bot_var['btn_keyboard']['buy'] && $setting['active_step_note'
     } else {
         savedata("clear", "name_panel", $locationproduct['name_panel']);
     }
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND  Service_location = '{$locationproduct['name_panel']}'");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold' OR Status = 'disabledn') AND  Service_location = '{$locationproduct['name_panel']}'");
     $stmt->execute();
     $countinovoice = $stmt->rowCount();
     if ($locationproduct['limit_panel'] != "unlimited") {
@@ -1349,7 +1349,7 @@ $textonebuy
     $stmt->execute();
     $nameloc = $stmt->fetch(PDO::FETCH_ASSOC);
     $username = $nameloc['id_invoice'];
-    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold'])) {
+    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disabledn'])) {
         sendmessage($from_id, "❌ امکان مشاهده اطلاعات اکانت درحال حاضر وجود ندارد", $keyboard, 'html');
         step('home', $from_id);
         return;
@@ -1365,6 +1365,10 @@ $textonebuy
         sendmessage($from_id, $textbotlang['users']['stateus']['UserNotFound'], $keyboard, 'html');
         step('home', $from_id);
         return;
+    } elseif ($nameloc['Status'] == 'disabledn' && ($DataUserOut['status'] ?? "Unsuccessful") !== "Unsuccessful" && !empty($DataUserOut['status'])) {
+        $healed_status = ($DataUserOut['status'] == 'on') ? 'active' : $DataUserOut['status'];
+        update("invoice", "Status", $healed_status, "id_invoice", $nameloc['id_invoice']);
+        $nameloc['Status'] = $healed_status;
     }
     if ($DataUserOut['status'] == "Unsuccessful") {
         sendmessage($from_id, $textbotlang['users']['stateus']['panelNotConnected'], $keyboard, 'html');
@@ -1399,7 +1403,8 @@ $textonebuy
         'on_hold' => $textbotlang['users']['stateus']['on_hold'],
         'Unknown' => $textbotlang['users']['stateus']['Unknown'],
         'deactivev' => $textbotlang['users']['stateus']['disabled'],
-    ][$status];
+        'disabledn' => $textbotlang['users']['stateus']['disabled'] ?? 'غیرفعال (یافت نشد در پنل)',
+    ][$status] ?? ($textbotlang['users']['stateus']['Unknown'] ?? 'نامشخص');
     #--------------[ expire ]---------------#
     $expirationDate = $DataUserOut['expire'] ? jdate('Y/m/d', $DataUserOut['expire']) : $textbotlang['users']['stateus']['Unlimited'];
     #-------------[ data_limit ]----------------#
@@ -1981,7 +1986,7 @@ $output
 } elseif (preg_match('/confirmaextra-(\w+)/', $datain, $dataget)) {
     $volume = $dataget[1];
     $nameloc = select("invoice", "*", "id_invoice", $user['Processing_value'], "select");
-    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold'])) {
+    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disabledn'])) {
         sendmessage($from_id, "❌ امکان این عملیات در این زمان مقدور نمی باشد", null, 'HTML');
         return;
     }
@@ -2148,7 +2153,7 @@ $output
 } elseif (preg_match('/confirmtime-(\w+)/', $datain, $dataget)) {
     $time = $dataget[1];
     $nameloc = select("invoice", "*", "id_invoice", $user['Processing_value'], "select");
-    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold'])) {
+    if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disabledn'])) {
         sendmessage($from_id, "❌ امکان این عملیات در این زمان مقدور نمی باشد", null, 'HTML');
         return;
     }
