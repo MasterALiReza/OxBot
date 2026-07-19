@@ -1638,8 +1638,10 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     if ($DataUserOut['status'] == "Unsuccessful") {
         $infoconfig = isset($nameloc['user_info']) ? json_decode($nameloc['user_info'], true) : [];
-        if (isset($infoconfig['subscription_url'])) {
+        if (is_array($infoconfig) && isset($infoconfig['subscription_url'])) {
             $DataUserOut['subscription_url'] = $infoconfig['subscription_url'];
+        } elseif (isset($nameloc['user_info']) && !empty($nameloc['user_info']) && !is_array(json_decode($nameloc['user_info'], true))) {
+            $DataUserOut['subscription_url'] = $nameloc['user_info'];
         } else {
             sendmessage($from_id, $textbotlang['users']['status']['error'], null, 'html');
             return;

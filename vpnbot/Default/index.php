@@ -1359,7 +1359,9 @@ $textonebuy
         update("user", "Processing_value_four", $marzban['name_panel'], "id", $from_id);
     }
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
-    update("invoice", "user_info", json_encode($DataUserOut), "id_invoice", $nameloc['id_invoice']);
+    if (isset($DataUserOut['status']) && $DataUserOut['status'] != "Unsuccessful") {
+        update("invoice", "user_info", json_encode($DataUserOut), "id_invoice", $nameloc['id_invoice']);
+    }
     if (isset($DataUserOut['msg']) && $DataUserOut['msg'] == "User not found") {
         update("invoice", "Status", "disabledn", "id_invoice", $nameloc['id_invoice']);
         sendmessage($from_id, $textbotlang['users']['stateus']['UserNotFound'], $keyboard, 'html');
