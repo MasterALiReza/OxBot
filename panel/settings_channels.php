@@ -210,18 +210,47 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
 <?php endif; ?>
 
-<div class="profile-grid fade-up" style="margin-top: 20px;">
-    <!-- Add Channel Card & Strictness Settings Card -->
-    <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="card">
-            <div class="card-head">
-                <div class="card-title"><?= icon('plus', 16) ?> افزودن کانال جدید</div>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="settings_channels.php" style="display: flex; flex-direction: column; gap: 15px;">
-                    <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                    <input type="hidden" name="action" value="add">
-                    
+<!-- Quick Stats Bar -->
+<div class="stats fade-up" style="margin-top: 20px;">
+    <div class="stat ok">
+        <div class="stat-label">کانال‌های ثبت شده</div>
+        <div class="stat-num"><?= count($channels) ?> <small>کانال</small></div>
+        <div class="stat-meta">بررسی خودکار عضویت</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">فرکانس اعتبارسنجی</div>
+        <div class="stat-num" style="font-size: 1.3rem; font-weight: 700;">
+            <?php
+            if ($current_ttl === 0) echo '🔥 بررسی زنده (۰s)';
+            elseif ($current_ttl === 60) echo '⚡ ۱ دقیقه';
+            elseif ($current_ttl === 300) echo '✅ ۵ دقیقه';
+            elseif ($current_ttl === 1800) echo '⏱ ۳۰ دقیقه';
+            elseif ($current_ttl === 3600) echo '⏳ ۱ ساعت';
+            else echo '📅 ۲۴ ساعت';
+            ?>
+        </div>
+        <div class="stat-meta">سطح سخت‌گیری سیستم</div>
+    </div>
+    <div class="stat ok">
+        <div class="stat-label">وضعیت سیستم</div>
+        <div class="stat-num" style="font-size: 1.3rem; font-weight: 700; color: var(--ok);">فعال و ایمن</div>
+        <div class="stat-meta"><span class="up">●</span> سیستم ضد دور زدن فعال</div>
+    </div>
+</div>
+
+<!-- Config Cards Row (2-Column) -->
+<div class="two-col fade-up" style="margin-bottom: 24px;">
+    <!-- Add Channel Card -->
+    <div class="card">
+        <div class="card-head">
+            <div class="card-title"><?= icon('plus', 16) ?> افزودن کانال جدید</div>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="settings_channels.php" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                <input type="hidden" name="action" value="add">
+                
+                <div class="form-grid">
                     <div class="field">
                         <label>نام کانال (برای نمایش)</label>
                         <input type="text" name="remark" class="input" placeholder="مثلاً: کانال اصلی" required>
@@ -231,121 +260,119 @@ include __DIR__ . '/inc/layout_head.php';
                         <label>آیدی کانال (جهت بررسی)</label>
                         <input type="text" name="link" class="input" placeholder="مثلاً: @MyChannel یا -100XXXX" required dir="ltr">
                     </div>
-                    
-                    <div class="field">
-                        <label>لینک جوین (برای دکمه)</label>
-                        <input type="url" name="linkjoin" class="input" placeholder="https://t.me/joinchat/..." required dir="ltr">
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%;">
-                        <?= icon('plus', 16) ?> افزودن کانال
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Strictness Setting Card -->
-        <div class="card">
-            <div class="card-head">
-                <div class="card-title"><?= icon('shield', 16) ?> تنظیم سخت‌گیری اعتبارسنجی عضویت</div>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="settings_channels.php" style="display: flex; flex-direction: column; gap: 15px;">
-                    <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                    <input type="hidden" name="action" value="save_settings">
-                    
-                    <div class="field">
-                        <label>فرکانس بررسی مجدد عضویت کاربران</label>
-                        <select name="channel_cache_ttl" class="select">
-                            <option value="0" <?= $current_ttl === 0 ? 'selected' : '' ?>>🔥 بررسی زنده در هر کلیک (سختگیرانه‌ترین)</option>
-                            <option value="60" <?= $current_ttl === 60 ? 'selected' : '' ?>>⚡ هر ۱ دقیقه یکبار</option>
-                            <option value="300" <?= $current_ttl === 300 ? 'selected' : '' ?>>✅ هر ۵ دقیقه یکبار (پیش‌فرض پیشنهادی)</option>
-                            <option value="1800" <?= $current_ttl === 1800 ? 'selected' : '' ?>>⏱ هر ۳۰ دقیقه یکبار</option>
-                            <option value="3600" <?= $current_ttl === 3600 ? 'selected' : '' ?>>⏳ هر ۱ ساعت یکبار</option>
-                            <option value="86400" <?= $current_ttl === 86400 ? 'selected' : '' ?>>📅 هر ۲۴ ساعت یکبار</option>
-                        </select>
-                        <div class="field-hint">در حالت بررسی زنده (۰ ثانیه)، اگر کاربر از کانالی لفت بدهد، در کلیک بعدی فوراً شناسایی و مسدود می‌شود.</div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-ghost" style="justify-content: center; width: 100%;">
-                        <?= icon('check', 14) ?> ذخیره تنظیمات سخت‌گیری
-                    </button>
-                </form>
-            </div>
+                </div>
+                
+                <div class="field">
+                    <label>لینک جوین (برای دکمه)</label>
+                    <input type="url" name="linkjoin" class="input" placeholder="https://t.me/joinchat/..." required dir="ltr">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%;">
+                    <?= icon('plus', 16) ?> افزودن کانال به لیست
+                </button>
+            </form>
         </div>
     </div>
 
-    <!-- Channels List Card -->
-    <div>
-        <div class="card">
-            <div class="card-head">
-                <div>
-                    <div class="card-title"><?= icon('layers', 16) ?> لیست کانال‌های ثبت شده</div>
-                    <div class="card-subtitle">مدیریت کانال‌های فعال و کنترل عضویت اجباری کاربران.</div>
-                </div>
-                <div class="tag tag-info"><?= count($channels) ?> کانال فعال</div>
-            </div>
-            
-            <div class="tbl-wrap dash-channels">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">#</th>
-                            <th>نام کانال</th>
-                            <th>آیدی کانال</th>
-                            <th>لینک جوین</th>
-                            <th>وضعیت ربات</th>
-                            <th style="width: 150px; text-align: left;">عملیات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($channels)): ?>
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 48px; color: var(--mute);">
-                                    <div class="empty" style="padding: 0;">
-                                        <span style="opacity: 0.3; display: inline-block; margin-bottom: 1rem;"><?= icon('inbox', 48) ?></span><br>
-                                        هیچ کانال اجباری ثبت نشده است.
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php else: ?>
-                            <?php foreach ($channels as $index => $ch): ?>
-                                <tr>
-                                    <td data-label="#" class="no-label"><?= $index + 1 ?></td>
-                                    <td data-label="نام کانال" style="font-weight: 600; color: var(--text);"><?= htmlspecialchars($ch['remark']) ?></td>
-                                    <td data-label="آیدی کانال">
-                                        <span class="tag tag-plain" style="font-family: monospace; font-size: 0.85rem;" dir="ltr"><?= htmlspecialchars($ch['link']) ?></span>
-                                    </td>
-                                    <td data-label="لینک جوین">
-                                        <a href="<?= htmlspecialchars($ch['linkjoin']) ?>" target="_blank" class="btn-link" style="display: inline-flex; align-items: center; gap: 4px;" dir="ltr">
-                                            <?= icon('link', 14) ?> <?= htmlspecialchars(strlen($ch['linkjoin']) > 30 ? substr($ch['linkjoin'], 0, 30) . '...' : $ch['linkjoin']) ?>
-                                        </a>
-                                    </td>
-                                    <td data-label="وضعیت ربات">
-                                        <span class="tag tag-warning channel-status-cell" data-chatid="<?= htmlspecialchars($ch['link']) ?>" style="font-size: 0.82rem;">
-                                            در حال بررسی...
-                                        </span>
-                                    </td>
-                                    <td data-label="عملیات" style="text-align: left;">
-                                        <div style="display: inline-flex; gap: 8px;">
-                                            <button type="button" class="btn btn-sm btn-ghost btn-icon" title="ویرایش" 
-                                                    onclick='window.openEditModal(<?= json_encode($ch, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>)'>
-                                                <?= icon('edit', 14) ?>
-                                            </button>
-                                            <a href="settings_channels.php?action=delete&channel_link=<?= urlencode($ch['link']) ?>&_csrf=<?= csrf_token() ?>" 
-                                               class="btn btn-sm btn-no btn-icon" title="حذف" 
-                                               onclick="return confirm('آیا از حذف این کانال اطمینان دارید؟');">
-                                                <?= icon('trash', 14) ?>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+    <!-- Strictness Setting Card -->
+    <div class="card">
+        <div class="card-head">
+            <div class="card-title"><?= icon('shield', 16) ?> تنظیم سخت‌گیری اعتبارسنجی عضویت</div>
         </div>
+        <div class="card-body" style="display: flex; flex-direction: column; justify-content: space-between; height: calc(100% - 57px);">
+            <form method="POST" action="settings_channels.php" style="display: flex; flex-direction: column; gap: 15px; height: 100%;">
+                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                <input type="hidden" name="action" value="save_settings">
+                
+                <div class="field">
+                    <label>فرکانس بررسی مجدد عضویت کاربران</label>
+                    <select name="channel_cache_ttl" class="select">
+                        <option value="0" <?= $current_ttl === 0 ? 'selected' : '' ?>>🔥 بررسی زنده در هر کلیک (سختگیرانه‌ترین)</option>
+                        <option value="60" <?= $current_ttl === 60 ? 'selected' : '' ?>>⚡ هر ۱ دقیقه یکبار</option>
+                        <option value="300" <?= $current_ttl === 300 ? 'selected' : '' ?>>✅ هر ۵ دقیقه یکبار (پیش‌فرض پیشنهادی)</option>
+                        <option value="1800" <?= $current_ttl === 1800 ? 'selected' : '' ?>>⏱ هر ۳۰ دقیقه یکبار</option>
+                        <option value="3600" <?= $current_ttl === 3600 ? 'selected' : '' ?>>⏳ هر ۱ ساعت یکبار</option>
+                        <option value="86400" <?= $current_ttl === 86400 ? 'selected' : '' ?>>📅 هر ۲۴ ساعت یکبار</option>
+                    </select>
+                    <div class="field-hint" style="margin-top: 6px; line-height: 1.5;">در حالت بررسی زنده (۰ ثانیه)، اگر کاربر از کانالی لفت بدهد، در کلیک بعدی فوراً شناسایی و مسدود می‌شود.</div>
+                </div>
+                
+                <button type="submit" class="btn btn-ghost" style="justify-content: center; width: 100%; margin-top: auto;">
+                    <?= icon('check', 14) ?> ذخیره تنظیمات سخت‌گیری
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Full-Width Channels List Card -->
+<div class="card fade-up">
+    <div class="card-head">
+        <div>
+            <div class="card-title"><?= icon('layers', 16) ?> لیست کانال‌های ثبت شده</div>
+            <div class="card-subtitle">مدیریت کانال‌های فعال و کنترل عضویت اجباری کاربران.</div>
+        </div>
+        <div class="tag tag-info"><?= count($channels) ?> کانال فعال</div>
+    </div>
+    
+    <div class="tbl-wrap dash-channels">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">#</th>
+                    <th>نام کانال</th>
+                    <th>آیدی کانال</th>
+                    <th>لینک جوین</th>
+                    <th>وضعیت ربات</th>
+                    <th style="width: 150px; text-align: left;">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($channels)): ?>
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 48px; color: var(--mute);">
+                            <div class="empty" style="padding: 0;">
+                                <span style="opacity: 0.3; display: inline-block; margin-bottom: 1rem;"><?= icon('inbox', 48) ?></span><br>
+                                هیچ کانال اجباری ثبت نشده است.
+                            </div>
+                        </td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($channels as $index => $ch): ?>
+                        <tr>
+                            <td data-label="#" class="no-label"><?= $index + 1 ?></td>
+                            <td data-label="نام کانال" style="font-weight: 600; color: var(--text);"><?= htmlspecialchars($ch['remark']) ?></td>
+                            <td data-label="آیدی کانال">
+                                <span class="tag tag-plain" style="font-family: monospace; font-size: 0.85rem;" dir="ltr"><?= htmlspecialchars($ch['link']) ?></span>
+                            </td>
+                            <td data-label="لینک جوین">
+                                <a href="<?= htmlspecialchars($ch['linkjoin']) ?>" target="_blank" class="btn-link" style="display: inline-flex; align-items: center; gap: 4px;" dir="ltr">
+                                    <?= icon('link', 14) ?> <?= htmlspecialchars(strlen($ch['linkjoin']) > 30 ? substr($ch['linkjoin'], 0, 30) . '...' : $ch['linkjoin']) ?>
+                                </a>
+                            </td>
+                            <td data-label="وضعیت ربات">
+                                <span class="tag tag-warning channel-status-cell" data-chatid="<?= htmlspecialchars($ch['link']) ?>" style="font-size: 0.82rem;">
+                                    در حال بررسی...
+                                </span>
+                            </td>
+                            <td data-label="عملیات" style="text-align: left;">
+                                <div style="display: inline-flex; gap: 8px;">
+                                    <button type="button" class="btn btn-sm btn-ghost btn-icon" title="ویرایش" 
+                                            onclick='window.openEditModal(<?= json_encode($ch, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>)'>
+                                        <?= icon('edit', 14) ?>
+                                    </button>
+                                    <a href="settings_channels.php?action=delete&channel_link=<?= urlencode($ch['link']) ?>&_csrf=<?= csrf_token() ?>" 
+                                       class="btn btn-sm btn-no btn-icon" title="حذف" 
+                                       onclick="return confirm('آیا از حذف این کانال اطمینان دارید؟');">
+                                        <?= icon('trash', 14) ?>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 
