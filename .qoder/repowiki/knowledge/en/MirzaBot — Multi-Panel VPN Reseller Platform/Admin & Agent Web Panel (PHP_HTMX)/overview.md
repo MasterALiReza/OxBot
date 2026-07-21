@@ -1,0 +1,1 @@
+PHP-based admin and agent web panel providing dashboard, user/product/service management, financial views, settings, and agent OTP login backed by HTMX-driven AJAX endpoints.

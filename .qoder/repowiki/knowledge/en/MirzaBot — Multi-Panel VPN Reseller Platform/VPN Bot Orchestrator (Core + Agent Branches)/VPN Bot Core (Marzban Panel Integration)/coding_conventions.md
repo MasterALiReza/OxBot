@@ -1,0 +1,6 @@
+- Per-bot configuration lives in `<bot>/config.php` which only defines `$ApiToken`, allowing multiple bots to share the same codebase.
+- Incoming updates are parsed once in `botapi.php` into flat globals (`$from_id`, `$text`, `$datain`, `$first_name`, `$username`, `$message_id`, …) and consumed everywhere else without re-parsing.
+- User flow state is implemented as a string `step` field in the `user` table combined with `Processing_value`/`Processing_value_one`/`Processing_value_tow`/`Processing_value_four` scratch columns, and transitions are performed via `step('<state>', $from_id)`.
+- Inline keyboard callbacks use a prefixed `callback_data` convention (e.g. `location_`, `selectproductbuy_`, `Confirm_pay_`, `reject_pay_`, `next_page`) matched with `preg_match('/^prefix_(.*)/', $datain, $dataget)` to extract parameters.
+- Texts are externalized into `text.json` and accessed through `$textbotlang[...]` rather than hard-coded strings, supporting multi-language fallback.
+- Admin-only branches short-circuit early by checking membership in `$admin_ids` (per-bot) or `$admin_idsmain` (global) and returning immediately if unauthorized.

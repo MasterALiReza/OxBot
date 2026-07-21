@@ -1,0 +1,4 @@
+- Every PHP file begins by `require_once __DIR__ . '/config.php'` to obtain the shared `$pdo` connection and global constants.
+- Database access goes through the thin wrappers `select()`, `update()`, `insert()` rather than raw PDO calls, keeping queries consistent across bot, panel, API and cron code.
+- Panel-specific logic is isolated per backend in its own file (e.g. `Marzban.php`, `WGDashboard.php`) and invoked via a `type`-based switch inside `ManagePanel` instead of polymorphic classes.
+- HTTP responses follow a uniform shape `{status: 'successful'|'Unsuccessful', msg: ..., <fields>}` so callers in the bot, web panel and REST API can handle errors identically.

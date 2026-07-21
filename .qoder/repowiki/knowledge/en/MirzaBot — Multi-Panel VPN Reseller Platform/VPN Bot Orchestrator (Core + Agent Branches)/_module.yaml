@@ -1,0 +1,20 @@
+schema_version: 1
+module_path: telegram_bot
+title: VPN Bot Orchestrator (Core + Agent Branches)
+scope:
+    - index.php
+    - botapi.php
+    - vpnbot/
+    - admin.php
+    - Marzban.php
+    - WGDashboard.php
+    - hiddify.php
+    - marzneshin.php
+    - mikrotik.php
+    - s_ui.php
+    - x-ui_single.php
+    - alireza_single.php
+    - ibsng.php
+source_files: []
+depends_on: []
+related_to: []

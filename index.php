@@ -378,7 +378,18 @@ if ($setting['Bot_Status'] == "botstatusoff" && !in_array($from_id, $admin_ids))
     return;
 }
 #-----------/start------------#
-if ($user['joinchannel'] != "active") {
+$needs_channel_check = true;
+if ($user['joinchannel'] === 'active') {
+    $needs_channel_check = false;
+} else {
+    $last_check = intval($user['joinchannel'] ?? 0);
+    $latest_channel_update = isset($setting['last_channel_update']) ? intval($setting['last_channel_update']) : 0;
+    if ($last_check > $latest_channel_update && (time() - $last_check) < 86400) {
+        $needs_channel_check = false;
+    }
+}
+
+if ($needs_channel_check) {
     if (count($channels_id) != 0) {
         $channels = channel($channels_id);
         if ($datain == "confirmchannel") {
@@ -391,6 +402,7 @@ if ($user['joinchannel'] != "active") {
                     'show_alert' => false,
                     'cache_time' => 5,
                 ]);
+                update("user", "joinchannel", time(), "id", $from_id);
                 return;
             }
             $keyboardchannel = [
@@ -418,36 +430,6 @@ if ($user['joinchannel'] != "active") {
                 'show_alert' => true,
                 'cache_time' => 5,
             ]);
-            /*
-            $partsaffiliates = explode("_", $user['Processing_value_four']);
-            if ($partsaffiliates[0] == "affiliates") {
-                $affiliatesid = $partsaffiliates[1];
-                if (!in_array($affiliatesid, $users_ids)) {
-                    sendmessage($from_id, $textbotlang['users']['affiliates']['affiliatesidyou'], null, 'html');
-                    return;
-                }
-                if ($affiliatesid == $from_id) {
-                    sendmessage($from_id, $textbotlang['users']['affiliates']['invalidaffiliates'], null, 'html');
-                    return;
-                }
-                $marzbanDiscountaffiliates = select("affiliates", "*", null, null, "select");
-                $useraffiliates = select("user", "*", 'id', $affiliatesid, "select");
-                if ($marzbanDiscountaffiliates['Discount'] == "onDiscountaffiliates") {
-                    $marzbanDiscountaffiliates = select("affiliates", "*", null, null, "select");
-                    $Balance_add_user = $useraffiliates['Balance'] + $marzbanDiscountaffiliates['price_Discount'];
-                    update("user", "Balance", $Balance_add_user, "id", $affiliatesid);
-                    $stmt_wal = $pdo->prepare("INSERT INTO wallet_log (user_id, action_type, amount, description) VALUES (?, 'deposit', ?, 'هدیه زیرمجموعه گیری')");
-                    $stmt_wal->execute([$affiliatesid, $marzbanDiscountaffiliates['price_Discount']]);
-                    $addbalancediscount = number_format($marzbanDiscountaffiliates['price_Discount'], 0);
-                    sendmessage($affiliatesid, strtr($textbotlang['extracted']['index_php']['affiliateBalanceGift'], ['{addbalancediscount}' => $addbalancediscount, '{from_id}' => $from_id]), null, 'html');
-                }
-                sendmessage($from_id, $textbotlang['users']['text_start'], $keyboard, 'html');
-                $addcountaffiliates = intval($useraffiliates['affiliatescount']) + 1;
-                update("user", "affiliates", $affiliatesid, "id", $from_id);
-                update("user", "Processing_value_four", "none", "id", $from_id);
-                update("user", "affiliatescount", $addcountaffiliates, "id", $affiliatesid);
-            }
-            */
             return;
         }
         if (count($channels) != 0 && !in_array($from_id, $admin_ids)) {
@@ -471,6 +453,9 @@ if ($user['joinchannel'] != "active") {
             $keyboardchannel = json_encode($keyboardchannel);
             sendmessage($from_id, $textbotlang['textbot']['channel'], $keyboardchannel, 'html');
             return;
+        } else {
+            // User is in all channels, save the timestamp of this check
+            update("user", "joinchannel", time(), "id", $from_id);
         }
     }
 }

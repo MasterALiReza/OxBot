@@ -1,0 +1,6 @@
+- Every page starts with `require_once __DIR__ . '/inc/config.php'` followed by `require_auth()` before any output, ensuring a single shared session/auth/bootstrap.
+- AJAX mutation endpoints in `ajax/` always call both `require_auth()` and `csrf_check_post()` and validate inputs with explicit casts/in_array checks before touching the database.
+- Database access goes exclusively through the thin wrappers `db_query/db_fetch/db_fetchAll/db_count` — raw `$pdo->prepare()` calls are not used in page code.
+- User-facing strings are pulled from `$textbotlang['panel'][...]` loaded from `text.json`; hard-coded Persian text appears only in static CSS/HTML fragments, never in logic paths.
+- Flash messages are set via `flash('success'|'error'|'warning', $msg)` and consumed once through `get_flash()` inside `layout_head.php` notice blocks.
+- Each page sets `$pageTitle` and `$activeNav` before including `layout_head.php`, so the sidebar highlights the current section consistently.

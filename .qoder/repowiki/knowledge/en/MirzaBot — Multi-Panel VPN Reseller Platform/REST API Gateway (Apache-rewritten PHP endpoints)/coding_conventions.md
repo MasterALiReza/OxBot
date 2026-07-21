@@ -1,0 +1,6 @@
+- Each endpoint file repeats the same bootstrap: require `config.php` + `function.php` (+ optional `botapi.php`/`panels.php`), set `Content-Type: application/json; charset=UTF-8`, configure timezone `Asia/Tehran`, and register local `sendJsonResponse`/`validateToken`/`sanitizeRecursive`/`validateMethod`/`logApiRequest` helpers.
+- Authentication is header-based: callers must send a `Token` header whose value equals either the global `$APIKEY` or the contents of `hash.txt`; missing/invalid tokens return HTTP 403.
+- Action routing uses a `switch ($data['actions'] ?? '')` inside each resource file, with per-case `validateMethod('GET'|'POST', $method)` guards before any business logic.
+- All user-supplied strings are passed through `sanitizeRecursive`, which recursively applies `htmlspecialchars(trim(...), ENT_QUOTES, 'UTF-8')` to every string leaf.
+- Database queries use prepared statements with `bindValue(':param', $value, PDO::PARAM_*)` and catch `Exception` blocks that log via `error_log` and respond with a generic `"Database error occurred"` message.
+- Every response is emitted via `sendJsonResponse(status, msg, obj, httpCode)` which sets `http_response_code`, echoes `{status,msg,obj}` with `JSON_UNESCAPED_UNICODE`, and calls `exit`.

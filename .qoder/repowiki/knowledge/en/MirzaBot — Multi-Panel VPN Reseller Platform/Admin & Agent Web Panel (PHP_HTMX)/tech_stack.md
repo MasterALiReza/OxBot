@@ -1,0 +1,1 @@
+Plain PHP pages with PDO prepared statements, HTMX for partial-page updates, Chart.js for sales charts, SortableJS for drag-and-drop, Vazirmatn Persian font, and Bootstrap 5 only on the standalone agent-login screen.

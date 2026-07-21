@@ -1,0 +1,22 @@
+schema_version: 1
+module_path: ""
+title: MirzaBot — Multi-Panel VPN Reseller Platform
+scope:
+    - README.md
+    - README_FA.md
+    - .gitignore
+    - .htaccess
+    - config.php
+    - function.php
+    - jdf.php
+    - panels.php
+    - botapi.php
+    - keyboard.php
+    - request.php
+    - table.php
+    - install.sh
+    - cookies.txt
+    - output.html
+source_files: []
+depends_on: []
+related_to: []

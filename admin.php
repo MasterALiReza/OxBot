@@ -236,6 +236,15 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
         $stmt->bindValue(':link', $link, PDO::PARAM_STR);
         $stmt->bindValue(':linkjoin', $text, PDO::PARAM_STR);
         $stmt->execute();
+
+        try {
+            $pdo->exec("UPDATE setting SET last_channel_update = " . time());
+        } catch (Exception $e) {
+            try {
+                $pdo->exec("ALTER TABLE setting ADD COLUMN last_channel_update VARCHAR(100) DEFAULT '0'");
+                $pdo->exec("UPDATE setting SET last_channel_update = " . time());
+            } catch (Exception $e2) {}
+        }
     };
 
     try {
@@ -269,6 +278,15 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
     $stmt = $pdo->prepare("DELETE FROM channels WHERE link = :link");
     $stmt->bindParam(':link', $text, PDO::PARAM_STR);
     $stmt->execute();
+
+    try {
+        $pdo->exec("UPDATE setting SET last_channel_update = " . time());
+    } catch (Exception $e) {
+        try {
+            $pdo->exec("ALTER TABLE setting ADD COLUMN last_channel_update VARCHAR(100) DEFAULT '0'");
+            $pdo->exec("UPDATE setting SET last_channel_update = " . time());
+        } catch (Exception $e2) {}
+    }
 } elseif ($datain == "addnewadmin" && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['Admin']['manageadmin']['getId'], $backadmin, 'HTML');
     step('addadmin', $from_id);

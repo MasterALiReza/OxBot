@@ -1,0 +1,138 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: en-US
+branch: main
+nodes_managed: true
+exported_at: "2026-07-18T23:01:27Z"
+modules:
+    "":
+        dir_name: MirzaBot — Multi-Panel VPN Reseller Platform
+        title: MirzaBot — Multi-Panel VPN Reseller Platform
+        scope:
+            - README.md
+            - README_FA.md
+            - .gitignore
+            - .htaccess
+            - config.php
+            - function.php
+            - jdf.php
+            - panels.php
+            - botapi.php
+            - keyboard.php
+            - request.php
+            - table.php
+            - install.sh
+            - cookies.txt
+            - output.html
+        source_files: []
+        children:
+            - cron_jobs
+            - maintenance_scripts
+            - payment_gateways
+            - rest_api
+            - telegram_bot
+            - web_panel
+        depends_on: []
+        related_to: []
+    cron_jobs:
+        dir_name: Scheduled Cron Jobs & Background Workers
+        title: Scheduled Cron Jobs & Background Workers
+        scope:
+            - cronbot/
+            - crons/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    maintenance_scripts:
+        dir_name: One-off Maintenance & Diagnostic Scripts
+        title: One-off Maintenance & Diagnostic Scripts
+        scope:
+            - scratch/check_ips.php
+            - scratch/check_panels_wg.php
+            - scratch/compare_function.py
+            - scratch/compare_index.py
+            - scratch/fix_wg_peers.py
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    payment_gateways:
+        dir_name: Payment Gateway Webhooks & Callbacks
+        title: Payment Gateway Webhooks & Callbacks
+        scope:
+            - payment/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    rest_api:
+        dir_name: REST API Gateway (Apache-rewritten PHP endpoints)
+        title: REST API Gateway (Apache-rewritten PHP endpoints)
+        scope:
+            - api/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    telegram_bot:
+        dir_name: VPN Bot Orchestrator (Core + Agent Branches)
+        title: VPN Bot Orchestrator (Core + Agent Branches)
+        scope:
+            - index.php
+            - botapi.php
+            - vpnbot/
+            - admin.php
+            - Marzban.php
+            - WGDashboard.php
+            - hiddify.php
+            - marzneshin.php
+            - mikrotik.php
+            - s_ui.php
+            - x-ui_single.php
+            - alireza_single.php
+            - ibsng.php
+        source_files: []
+        children:
+            - telegram_bot/core_bot
+            - telegram_bot/vpn_panel_integrations
+        depends_on: []
+        related_to: []
+    telegram_bot/core_bot:
+        dir_name: VPN Bot Core (Marzban Panel Integration)
+        title: VPN Bot Core (Marzban Panel Integration)
+        scope:
+            - index.php
+            - botapi.php
+            - admin.php
+            - vpnbot/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    telegram_bot/vpn_panel_integrations:
+        dir_name: VPN Panel Integrations (Marzban, WGDashboard, Hiddify, Marzneshin, MikroTik, S-U
+        title: VPN Panel Integrations (Marzban, WGDashboard, Hiddify, Marzneshin, MikroTik, S-UI, X-UI, Alireza, IBSng)
+        scope:
+            - Marzban.php
+            - WGDashboard.php
+            - hiddify.php
+            - marzneshin.php
+            - mikrotik.php
+            - s_ui.php
+            - x-ui_single.php
+            - alireza_single.php
+            - ibsng.php
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    web_panel:
+        dir_name: Admin & Agent Web Panel (PHP_HTMX)
+        title: Admin & Agent Web Panel (PHP/HTMX)
+        scope:
+            - panel/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

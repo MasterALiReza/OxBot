@@ -21,6 +21,19 @@ function isBotAdminInChat($chat_id) {
     return false;
 }
 
+function updateChannelChangeTime($pdo) {
+    try {
+        db_query($pdo, "UPDATE setting SET last_channel_update = ?", [time()]);
+    } catch (Exception $e) {
+        try {
+            db_query($pdo, "ALTER TABLE setting ADD COLUMN last_channel_update VARCHAR(100) DEFAULT '0'");
+            db_query($pdo, "UPDATE setting SET last_channel_update = ?", [time()]);
+        } catch (Exception $e2) {
+            // Ignore
+        }
+    }
+}
+
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $error = '';
 $success = '';
@@ -42,12 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             try {
                 db_query($pdo, "INSERT INTO channels (link, remark, linkjoin) VALUES (?, ?, ?)", [$link, $remark, $linkjoin]);
+                updateChannelChangeTime($pdo);
                 $success = 'کانال با موفقیت اضافه شد.';
             } catch (Exception $e) {
                 if (strpos($e->getMessage(), 'Incorrect string value') !== false) {
                     try {
                         ensureTableUtf8mb4('channels');
                         db_query($pdo, "INSERT INTO channels (link, remark, linkjoin) VALUES (?, ?, ?)", [$link, $remark, $linkjoin]);
+                        updateChannelChangeTime($pdo);
                         $success = 'کانال با موفقیت اضافه شد.';
                     } catch (Exception $e2) {
                         $error = 'خطا در افزودن کانال: ' . $e2->getMessage();
@@ -72,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             try {
                 db_query($pdo, "UPDATE channels SET link = ?, remark = ?, linkjoin = ? WHERE link = ?", [$link, $remark, $linkjoin, $old_link]);
+                updateChannelChangeTime($pdo);
                 $success = 'کانال با موفقیت ویرایش شد.';
             } catch (Exception $e) {
                 $error = 'خطا در ویرایش کانال: ' . $e->getMessage();
@@ -85,6 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($channel_link)) {
             try {
                 db_query($pdo, "DELETE FROM channels WHERE link = ?", [$channel_link]);
+                updateChannelChangeTime($pdo);
                 $success = 'کانال با موفقیت حذف شد.';
             } catch (Exception $e) {
                 $error = 'خطا در حذف کانال: ' . $e->getMessage();

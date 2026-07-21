@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: telegram_bot/core_bot
+title: VPN Bot Core (Marzban Panel Integration)
+scope:
+    - index.php
+    - botapi.php
+    - admin.php
+    - vpnbot/
+source_files: []
+depends_on: []
+related_to: []

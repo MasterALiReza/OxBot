@@ -1,0 +1,1 @@
+Apache-backed REST gateway exposing JSON endpoints for admin operations on users, products, invoices, payments, settings and Telegram mini-app verification.

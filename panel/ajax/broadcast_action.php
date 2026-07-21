@@ -76,7 +76,7 @@ try {
 
     $allowed_types = ['sendmessage', 'forwardlink', 'unpinmessage'];
     $allowed_buttons = ['none', 'custom_url', 'custom_product', 'buy', 'start', 'usertestbtn', 'helpbtn', 'affiliatesbtn', 'addbalance'];
-    $allowed_targets = ['all', 'customer', 'nonecustomer'];
+    $allowed_targets = ['all', 'customer', 'nonecustomer', 'not_joined_channels'];
     $allowed_agents = ['all', 'f', 'n', 'n2'];
 
     if (!in_array($type, $allowed_types, true)) {
@@ -210,6 +210,13 @@ try {
         $where[] = "id IN (SELECT id_user FROM invoice)";
     } elseif ($target_users === 'nonecustomer') {
         $where[] = "id NOT IN (SELECT id_user FROM invoice)";
+    } elseif ($target_users === 'not_joined_channels') {
+        $latest_channel_update = 0;
+        try {
+            $setting_row = db_fetch($pdo, "SELECT last_channel_update FROM setting LIMIT 1");
+            $latest_channel_update = isset($setting_row['last_channel_update']) ? intval($setting_row['last_channel_update']) : 0;
+        } catch (Exception $e) {}
+        $where[] = "joinchannel != 'active' AND (joinchannel = '0' OR joinchannel IS NULL OR CAST(joinchannel AS UNSIGNED) < $latest_channel_update OR (" . time() . " - CAST(joinchannel AS UNSIGNED)) >= 86400)";
     }
 
     $sql = "SELECT id FROM user";

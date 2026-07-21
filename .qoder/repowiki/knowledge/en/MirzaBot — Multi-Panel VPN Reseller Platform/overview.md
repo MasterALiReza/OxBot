@@ -1,0 +1,1 @@
+PHP application that unifies a Telegram bot, admin/agent web panel, REST API, payment gateways, cron workers and maintenance scripts around a shared MySQL database and pluggable VPN-panel adapters.

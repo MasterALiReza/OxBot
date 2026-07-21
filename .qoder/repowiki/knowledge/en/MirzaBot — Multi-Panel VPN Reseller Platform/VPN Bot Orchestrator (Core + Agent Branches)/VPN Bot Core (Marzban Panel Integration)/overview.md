@@ -1,0 +1,1 @@
+PHP Telegram bot that sells and manages Marzban VPN accounts, handling user purchase flows, test-account creation, admin panel, and payment confirmation.

@@ -1,0 +1,1 @@
+PHP 7.x+ with PDO/MySQL (utf8mb4), Apache `.htaccess` URL rewriting for the REST API, HTMX for the web panel UI, and system crontab for scheduled jobs.

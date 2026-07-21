@@ -601,6 +601,7 @@ $categories = array_values(array_unique(array_filter(array_column($products, 'ca
                         <option value="all">همه کاربران ربات</option>
                         <option value="customer">فقط مشتریان (دارای سرویس فعال)</option>
                         <option value="nonecustomer">فقط کاربران عادی (بدون سرویس)</option>
+                        <option value="not_joined_channels">کاربران غیر عضو در کانال‌های اجباری</option>
                     </select>
                 </div>
 

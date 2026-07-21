@@ -1,0 +1,1 @@
+Plain PHP with PDO and MySQLi dual-DB access; Telegram Bot API called via raw cURL through `botapi.php`; QR code generation via `Endroid\QrCode`; spreadsheet export via `PhpOffice\PhpSpreadsheet`; Persian date formatting via `jdf.php`; Composer autoload for third-party classes.

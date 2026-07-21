@@ -1,0 +1,1 @@
+Plain PHP 7+ running behind Apache mod_rewrite; PDO for MySQL; HMAC-SHA256 for Telegram WebApp init-data signature verification; no framework or router library.
