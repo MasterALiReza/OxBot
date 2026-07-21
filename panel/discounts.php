@@ -232,6 +232,57 @@ function getTimeBadge($timeStr) {
     border: 1px dashed var(--border);
     display: inline-block;
 }
+
+/* Responsive Premium Tabs */
+.tab-container {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--sf2);
+    padding: 0.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    border: 1px solid var(--bd);
+}
+.tab-link {
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--mute);
+}
+.tab-link:hover {
+    color: var(--text);
+    background: var(--sf3);
+}
+.tab-link.active {
+    background: var(--ac);
+    color: var(--btn-ac-text, #fff) !important;
+    box-shadow: var(--sh);
+}
+.tab-link.log-tab {
+    margin-right: auto;
+}
+@media (max-width: 768px) {
+    .tab-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+    }
+    .tab-link {
+        justify-content: center;
+        width: 100%;
+    }
+    .tab-link.log-tab {
+        margin-right: 0;
+    }
+}
 </style>
 
 <div class="card fade-up">
@@ -266,44 +317,46 @@ function getTimeBadge($timeStr) {
     </div>
 
     <!-- TABS -->
-    <div style="display: flex; gap: 0.5rem; background: var(--sf2); border: 1px solid var(--bd); padding: 0.4rem; border-radius: 10px; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap;">
-        <a href="?tab=gifts" style="padding: 8px 16px; border-radius: 8px; text-decoration: none; transition: all 0.2s; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; <?= $currentTab === 'gifts' ? 'background: var(--ac); color: var(--btn-ac-text, #fff); box-shadow: 0 2px 8px var(--acg);' : 'color: var(--mute);' ?>">
+    <div class="tab-container">
+        <a href="?tab=gifts" class="tab-link <?= $currentTab === 'gifts' ? 'active' : '' ?>">
             <?= icon('gift', 14) ?> کدهای هدیه (کیف پول)
         </a>
-        <a href="?tab=discounts" style="padding: 8px 16px; border-radius: 8px; text-decoration: none; transition: all 0.2s; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; <?= $currentTab === 'discounts' ? 'background: var(--ac); color: var(--btn-ac-text, #fff); box-shadow: 0 2px 8px var(--acg);' : 'color: var(--mute);' ?>">
+        <a href="?tab=discounts" class="tab-link <?= $currentTab === 'discounts' ? 'active' : '' ?>">
             <?= icon('percent', 14) ?> کدهای تخفیف (سرویس)
         </a>
-        <a href="?tab=logs" style="padding: 8px 16px; border-radius: 8px; text-decoration: none; transition: all 0.2s; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; margin-right: auto; <?= $currentTab === 'logs' ? 'background: var(--ac); color: var(--btn-ac-text, #fff); box-shadow: 0 2px 8px var(--acg);' : 'color: var(--mute);' ?>">
-            <?= icon('activity', 14) ?> تاریخچه مصرف
+        <a href="?tab=logs" class="tab-link log-tab <?= $currentTab === 'logs' ? 'active' : '' ?>">
+            <?= icon('activity', 14) ?> لاگ استفاده
         </a>
     </div>
 
     <?php if ($currentTab === 'gifts'): ?>
         <!-- GIFTS TABLE -->
         <div class="tbl-wrap">
-            <table class="table responsive-table">
+            <table class="table">
                 <thead>
                     <tr>
                         <th>کد هدیه</th>
                         <th>مبلغ شارژ (تومان)</th>
                         <th style="width: 250px;">وضعیت ظرفیت</th>
-                        <th style="width: 220px; text-align:left;">عملیات</th>
+                        <th style="width: 120px; text-align:left;">عملیات</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (count($gifts) > 0): ?>
                         <?php foreach ($gifts as $item): ?>
                             <tr>
-                                <td><span class="code-badge"><?= htmlspecialchars($item['code']) ?></span></td>
-                                <td><strong style="color:var(--text);"><?= number_format((float)$item['price']) ?></strong> تومان</td>
-                                <td><?= getCapacityBadge($item['limitused'], $item['limituse']) ?></td>
-                                <td style="text-align:left;">
-                                    <a href="?tab=logs&code=<?= urlencode($item['code']) ?>" class="btn btn-sm btn-ghost" style="border-color: var(--bd); color: var(--mute); margin-left:5px; transition: all 0.2s;" onmouseover="this.style.color='var(--ac)'; this.style.borderColor='var(--ac)';" onmouseout="this.style.color='var(--mute)'; this.style.borderColor='var(--bd)';">
-                                        <?= icon('activity', 14) ?> تاریخچه مصرف
-                                    </a>
-                                    <a href="?action=delete&type=gift&id=<?= (int)$item['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-sm btn-no" data-confirm="حذف کد هدیه «<?= htmlspecialchars($item['code']) ?>»؟">
-                                        <?= icon('trash', 14) ?> حذف
-                                    </a>
+                                <td data-label="کد هدیه"><span class="code-badge"><?= htmlspecialchars($item['code']) ?></span></td>
+                                <td data-label="مبلغ شارژ"><strong style="color:var(--text);"><?= number_format((float)$item['price']) ?></strong> تومان</td>
+                                <td data-label="وضعیت ظرفیت"><?= getCapacityBadge($item['limitused'], $item['limituse']) ?></td>
+                                <td data-label="عملیات" style="text-align:left;">
+                                    <div style="display:flex; gap:6px; justify-content:flex-end; width:100%; flex-wrap:nowrap;">
+                                        <a href="?tab=logs&code=<?= urlencode($item['code']) ?>" class="btn btn-sm btn-ghost" title="مشاهده تاریخچه استفاده و مصرف این کد">
+                                            <?= icon('list', 14) ?> تاریخچه مصرف (<?= $item['limitused'] ?>)
+                                        </a>
+                                        <a href="?action=delete&type=gift&id=<?= (int)$item['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-sm btn-no" data-confirm="حذف کد هدیه «<?= htmlspecialchars($item['code']) ?>»؟">
+                                            <?= icon('trash', 14) ?> حذف
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -314,72 +367,42 @@ function getTimeBadge($timeStr) {
             </table>
         </div>
 
-        <!-- GIFTS MOBILE CARD LIST -->
-        <div class="mobile-card-list">
-            <?php if (count($gifts) > 0): ?>
-                <?php foreach ($gifts as $item): ?>
-                    <div class="mobile-card-item">
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">کد هدیه</span>
-                            <span class="mobile-card-value"><span class="code-badge"><?= htmlspecialchars($item['code']) ?></span></span>
-                        </div>
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">مبلغ شارژ</span>
-                            <span class="mobile-card-value"><strong style="color:var(--text);"><?= number_format((float)$item['price']) ?></strong> تومان</span>
-                        </div>
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">ظرفیت استفاده</span>
-                            <span class="mobile-card-value"><?= getCapacityBadge($item['limitused'], $item['limituse']) ?></span>
-                        </div>
-                        <div class="mobile-card-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--bd); justify-content: flex-end; gap: 8px;">
-                            <a href="?tab=logs&code=<?= urlencode($item['code']) ?>" class="btn btn-sm btn-ghost" style="border-color: var(--bd); color: var(--mute); display: inline-flex; align-items: center; gap: 4px;">
-                                <?= icon('activity', 12) ?> تاریخچه مصرف
-                            </a>
-                            <a href="?action=delete&type=gift&id=<?= (int)$item['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-sm btn-no" data-confirm="حذف کد هدیه «<?= htmlspecialchars($item['code']) ?>»؟">
-                                <?= icon('trash', 12) ?> حذف
-                            </a>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="empty">کد هدیه‌ای یافت نشد.</div>
-            <?php endif; ?>
-        </div>
-
     <?php elseif ($currentTab === 'discounts'): ?>
         <!-- DISCOUNTS TABLE -->
         <div class="tbl-wrap">
-            <table class="table responsive-table">
+            <table class="table">
                 <thead>
                     <tr>
                         <th>کد تخفیف</th>
                         <th>مقدار تخفیف</th>
                         <th>اعتبار زمانی</th>
                         <th style="width: 200px;">وضعیت ظرفیت</th>
-                        <th style="width: 220px; text-align:left;">عملیات</th>
+                        <th style="width: 120px; text-align:left;">عملیات</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (count($discounts) > 0): ?>
                         <?php foreach ($discounts as $item): ?>
                             <tr>
-                                <td>
+                                <td data-label="کد تخفیف">
                                     <span class="code-badge"><?= htmlspecialchars($item['codeDiscount']) ?></span>
                                     <div style="font-size: 0.8em; color: var(--text-muted); margin-top: 5px;">
                                         <?= $item['type'] === 'all' ? 'خرید/تمدید' : ($item['type'] === 'buy' ? 'فقط خرید' : 'فقط تمدید') ?> | 
                                         پنل: <?= $item['code_panel'] === '/all' ? 'همه' : htmlspecialchars($item['code_panel']) ?>
                                     </div>
                                 </td>
-                                <td><strong style="color:var(--text);"><?= htmlspecialchars($item['price']) ?></strong></td>
-                                <td><?= getTimeBadge($item['time']) ?></td>
-                                <td><?= getCapacityBadge($item['usedDiscount'], $item['limitDiscount']) ?></td>
-                                <td style="text-align:left;">
-                                    <a href="?tab=logs&code=<?= urlencode($item['codeDiscount']) ?>" class="btn btn-sm btn-ghost" style="border-color: var(--bd); color: var(--mute); margin-left:5px; transition: all 0.2s;" onmouseover="this.style.color='var(--ac)'; this.style.borderColor='var(--ac)';" onmouseout="this.style.color='var(--mute)'; this.style.borderColor='var(--bd)';">
-                                        <?= icon('activity', 14) ?> تاریخچه مصرف
-                                    </a>
-                                    <a href="?action=delete&type=discount&id=<?= (int)$item['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-sm btn-no" data-confirm="حذف کد تخفیف «<?= htmlspecialchars($item['codeDiscount']) ?>»؟">
-                                        <?= icon('trash', 14) ?> حذف
-                                    </a>
+                                <td data-label="مقدار تخفیف"><strong style="color:var(--text);"><?= htmlspecialchars($item['price']) ?></strong></td>
+                                <td data-label="اعتبار زمانی"><?= getTimeBadge($item['time']) ?></td>
+                                <td data-label="وضعیت ظرفیت"><?= getCapacityBadge($item['usedDiscount'], $item['limitDiscount']) ?></td>
+                                <td data-label="عملیات" style="text-align:left;">
+                                    <div style="display:flex; gap:6px; justify-content:flex-end; width:100%; flex-wrap:nowrap;">
+                                        <a href="?tab=logs&code=<?= urlencode($item['codeDiscount']) ?>" class="btn btn-sm btn-ghost" title="مشاهده تاریخچه استفاده و مصرف این کد">
+                                            <?= icon('list', 14) ?> تاریخچه مصرف (<?= $item['usedDiscount'] ?>)
+                                        </a>
+                                        <a href="?action=delete&type=discount&id=<?= (int)$item['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-sm btn-no" data-confirm="حذف کد تخفیف «<?= htmlspecialchars($item['codeDiscount']) ?>»؟">
+                                            <?= icon('trash', 14) ?> حذف
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -389,53 +412,11 @@ function getTimeBadge($timeStr) {
                 </tbody>
             </table>
         </div>
-
-        <!-- DISCOUNTS MOBILE CARD LIST -->
-        <div class="mobile-card-list">
-            <?php if (count($discounts) > 0): ?>
-                <?php foreach ($discounts as $item): ?>
-                    <div class="mobile-card-item">
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">کد تخفیف</span>
-                            <span class="mobile-card-value">
-                                <span class="code-badge"><?= htmlspecialchars($item['codeDiscount']) ?></span>
-                                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; text-align: left;">
-                                    <?= $item['type'] === 'all' ? 'خرید/تمدید' : ($item['type'] === 'buy' ? 'فقط خرید' : 'فقط تمدید') ?> | 
-                                    پنل: <?= $item['code_panel'] === '/all' ? 'همه' : htmlspecialchars($item['code_panel']) ?>
-                                </div>
-                            </span>
-                        </div>
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">مقدار تخفیف</span>
-                            <span class="mobile-card-value"><strong style="color:var(--text);"><?= htmlspecialchars($item['price']) ?></strong></span>
-                        </div>
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">اعتبار زمانی</span>
-                            <span class="mobile-card-value"><?= getTimeBadge($item['time']) ?></span>
-                        </div>
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">وضعیت ظرفیت</span>
-                            <span class="mobile-card-value"><?= getCapacityBadge($item['usedDiscount'], $item['limitDiscount']) ?></span>
-                        </div>
-                        <div class="mobile-card-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--bd); justify-content: flex-end; gap: 8px;">
-                            <a href="?tab=logs&code=<?= urlencode($item['codeDiscount']) ?>" class="btn btn-sm btn-ghost" style="border-color: var(--bd); color: var(--mute); display: inline-flex; align-items: center; gap: 4px;">
-                                <?= icon('activity', 12) ?> تاریخچه مصرف
-                            </a>
-                            <a href="?action=delete&type=discount&id=<?= (int)$item['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-sm btn-no" data-confirm="حذف کد تخفیف «<?= htmlspecialchars($item['codeDiscount']) ?>»؟">
-                                <?= icon('trash', 12) ?> حذف
-                            </a>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="empty">کد تخفیفی یافت نشد.</div>
-            <?php endif; ?>
-        </div>
         
     <?php elseif ($currentTab === 'logs'): ?>
         <!-- LOGS TABLE -->
         <div class="tbl-wrap">
-            <table class="table responsive-table">
+            <table class="table">
                 <thead>
                     <tr>
                         <th style="width:60px;">#</th>
@@ -447,10 +428,10 @@ function getTimeBadge($timeStr) {
                     <?php if (count($logs) > 0): ?>
                         <?php foreach ($logs as $log): ?>
                             <tr>
-                                <td class="cell-mono"><?= htmlspecialchars($log['id']) ?></td>
-                                <td>
+                                <td data-label="#" class="cell-mono"><?= htmlspecialchars($log['id']) ?></td>
+                                <td data-label="کاربر">
                                     <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(0, 173, 181, 0.1); color: var(--ac); display: flex; align-items: center; justify-content: center;">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(13, 110, 253, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center;">
                                             <?= icon('user', 20) ?>
                                         </div>
                                         <div>
@@ -465,9 +446,9 @@ function getTimeBadge($timeStr) {
                                         </div>
                                     </div>
                                 </td>
-                                <td>
-                                    <a href="?tab=logs&code=<?= urlencode($log['code']) ?>" class="code-badge" style="background: rgba(0, 173, 181, 0.1); border-color: transparent; color: var(--ac); text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,173,181,0.2)'" onmouseout="this.style.background='rgba(0,173,181,0.1)'">
-                                        <?= icon('tag', 14) ?> <?= htmlspecialchars($log['code']) ?>
+                                <td data-label="کد استفاده شده">
+                                    <a href="?tab=logs&code=<?= urlencode($log['code']) ?>" class="code-badge" style="background: var(--acs); border-color: var(--ac); color: var(--ac); text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;" title="برای فیلتر کردن لاگ‌های این کد کلیک کنید">
+                                        <?= icon('filter', 12) ?> <?= htmlspecialchars($log['code']) ?>
                                     </a>
                                 </td>
                             </tr>
@@ -478,40 +459,6 @@ function getTimeBadge($timeStr) {
                 </tbody>
             </table>
         </div>
-
-        <!-- LOGS MOBILE CARD LIST -->
-        <div class="mobile-card-list">
-            <?php if (count($logs) > 0): ?>
-                <?php foreach ($logs as $log): ?>
-                    <div class="mobile-card-item">
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">شناسه</span>
-                            <span class="mobile-card-value cell-mono">#<?= htmlspecialchars($log['id']) ?></span>
-                        </div>
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">کاربر</span>
-                            <span class="mobile-card-value" style="text-align: left;">
-                                <div style="font-weight:bold; color:var(--text);"><?= htmlspecialchars($log['namecustom'] ?: ($log['name'] ?? 'کاربر ناشناس')) ?></div>
-                                <div style="font-size:0.75rem; color:var(--text-muted); margin-top: 2px;">
-                                    <span dir="ltr">@<?= htmlspecialchars($log['username'] ?? 'بدون_یوزرنیم') ?></span> | ID: <?= htmlspecialchars($log['id_user']) ?>
-                                </div>
-                            </span>
-                        </div>
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">کد استفاده شده</span>
-                            <span class="mobile-card-value">
-                                <a href="?tab=logs&code=<?= urlencode($log['code']) ?>" class="code-badge" style="background: rgba(0, 173, 181, 0.1); color: var(--ac); border: none;">
-                                    <?= icon('tag', 12) ?> <?= htmlspecialchars($log['code']) ?>
-                                </a>
-                            </span>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="empty">هیچ استفاده‌ای ثبت نشده است.</div>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
     <?php endif; ?>
 </div>
 
