@@ -113,12 +113,18 @@ try {
     $discounts = db_fetchAll($pdo, "SELECT * FROM DiscountSell ORDER BY id DESC");
     
     // 3. Fetch Logs
-    $logs = db_fetchAll($pdo, "
+    $filterCode = $_GET['code'] ?? null;
+    $logQuery = "
         SELECT g.*, u.username, u.namecustom 
         FROM Giftcodeconsumed g
         LEFT JOIN user u ON u.id COLLATE utf8mb4_unicode_ci = g.id_user COLLATE utf8mb4_unicode_ci
-        ORDER BY g.id DESC LIMIT 500
-    ");
+    ";
+    
+    if ($filterCode) {
+        $logs = db_fetchAll($pdo, $logQuery . " WHERE g.code = ? ORDER BY g.id DESC LIMIT 500", [$filterCode]);
+    } else {
+        $logs = db_fetchAll($pdo, $logQuery . " ORDER BY g.id DESC LIMIT 500");
+    }
 
 } catch (Exception $e) {
     $db_error = $e->getMessage();
@@ -237,7 +243,14 @@ function getTimeBadge($timeStr) {
 
     <div class="toolbar">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <div class="toolbar-title">لیست کدها و لاگ‌ها</div>
+            <div class="toolbar-title">
+                لیست کدها و لاگ‌ها
+                <?php if ($currentTab === 'logs' && $filterCode): ?>
+                    <a href="?tab=logs" class="tag tag-info" style="font-size:0.8em; margin-right:10px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; background:var(--primary); color:white; padding:4px 10px; border-radius:12px;">
+                        فیلتر: <?= htmlspecialchars($filterCode) ?> <?= icon('x', 14) ?>
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
         <div class="toolbar-end">
             <?php if ($currentTab === 'gifts'): ?>
@@ -285,6 +298,9 @@ function getTimeBadge($timeStr) {
                                 <td><strong style="color:var(--text);"><?= number_format((float)$item['price']) ?></strong> تومان</td>
                                 <td><?= getCapacityBadge($item['limitused'], $item['limituse']) ?></td>
                                 <td style="text-align:left;">
+                                    <a href="?tab=logs&code=<?= urlencode($item['code']) ?>" class="btn btn-sm" style="background:var(--bg-lighter); color:var(--text); margin-left:5px;">
+                                        <?= icon('activity', 14) ?> لاگ
+                                    </a>
                                     <a href="?action=delete&type=gift&id=<?= (int)$item['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-sm btn-no" data-confirm="حذف کد هدیه «<?= htmlspecialchars($item['code']) ?>»؟">
                                         <?= icon('trash', 14) ?> حذف
                                     </a>
@@ -326,6 +342,9 @@ function getTimeBadge($timeStr) {
                                 <td><?= getTimeBadge($item['time']) ?></td>
                                 <td><?= getCapacityBadge($item['usedDiscount'], $item['limitDiscount']) ?></td>
                                 <td style="text-align:left;">
+                                    <a href="?tab=logs&code=<?= urlencode($item['codeDiscount']) ?>" class="btn btn-sm" style="background:var(--bg-lighter); color:var(--text); margin-left:5px;">
+                                        <?= icon('activity', 14) ?> لاگ
+                                    </a>
                                     <a href="?action=delete&type=discount&id=<?= (int)$item['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-sm btn-no" data-confirm="حذف کد تخفیف «<?= htmlspecialchars($item['codeDiscount']) ?>»؟">
                                         <?= icon('trash', 14) ?> حذف
                                     </a>
@@ -356,14 +375,27 @@ function getTimeBadge($timeStr) {
                             <tr>
                                 <td class="cell-mono"><?= htmlspecialchars($log['id']) ?></td>
                                 <td>
-                                    <div style="font-weight:bold; color:var(--text);">
-                                        <?= htmlspecialchars($log['name'] ?? 'ناشناس') ?>
-                                    </div>
-                                    <div style="font-size:0.85em; color:var(--text-muted);">
-                                        @<?= htmlspecialchars($log['username'] ?? '-') ?> (ID: <?= htmlspecialchars($log['id_user']) ?>)
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(13, 110, 253, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                                            <?= icon('user', 20) ?>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight:bold; color:var(--text); display:flex; align-items:center; gap:5px; font-size:1.05em;">
+                                                <?= htmlspecialchars($log['namecustom'] ?: ($log['name'] ?? 'کاربر ناشناس')) ?>
+                                            </div>
+                                            <div style="font-size:0.85em; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-top:4px;">
+                                                <span dir="ltr" style="background:var(--bg-lighter); padding:2px 6px; border-radius:4px;">@<?= htmlspecialchars($log['username'] ?? 'بدون_یوزرنیم') ?></span>
+                                                <span style="opacity:0.5;">•</span>
+                                                <span style="font-family:monospace; background:var(--bg-lighter); padding:2px 6px; border-radius:4px;">ID: <?= htmlspecialchars($log['id_user']) ?></span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
-                                <td><span class="code-badge" style="background: rgba(0, 212, 170, 0.1); border-color: var(--primary); color: var(--primary);"><?= htmlspecialchars($log['code']) ?></span></td>
+                                <td>
+                                    <a href="?tab=logs&code=<?= urlencode($log['code']) ?>" class="code-badge" style="background: rgba(13, 110, 253, 0.1); border-color: transparent; color: var(--primary); text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='rgba(13,110,253,0.2)'" onmouseout="this.style.background='rgba(13,110,253,0.1)'">
+                                        <?= icon('tag', 14) ?> <?= htmlspecialchars($log['code']) ?>
+                                    </a>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -547,8 +579,8 @@ function openWizard(mode) {
     document.getElementById('wizardForm').reset();
     
     if (mode === 'gift') {
-        document.getElementById('wizardTitle').innerHTML = '<?= icon("gift", 16) ?> ساخت کد هدیه (کیف پول)';
-        document.getElementById('lbl_wizard_price').innerHTML = 'مبلغ شارژ کیف پول (تومان) <span class="text-danger">*</span>';
+        document.getElementById('wizardTitle').innerHTML = `<?= icon("gift", 16) ?> ساخت کد هدیه (کیف پول)`;
+        document.getElementById('lbl_wizard_price').innerHTML = `مبلغ شارژ کیف پول (تومان) <span class="text-danger">*</span>`;
         document.getElementById('wizardAction').value = 'add_gift';
         
         // Disable and hide code names explicitly
@@ -559,8 +591,8 @@ function openWizard(mode) {
         // Hide Step 2 in indicator
         document.getElementById('stepIndicator2').style.display = 'none';
     } else {
-        document.getElementById('wizardTitle').innerHTML = '<?= icon("percent", 16) ?> ساخت کد تخفیف (سرویس)';
-        document.getElementById('lbl_wizard_price').innerHTML = 'مقدار تخفیف (مبلغ یا درصد) <span class="text-danger">*</span>';
+        document.getElementById('wizardTitle').innerHTML = `<?= icon("percent", 16) ?> ساخت کد تخفیف (سرویس)`;
+        document.getElementById('lbl_wizard_price').innerHTML = `مقدار تخفیف (مبلغ یا درصد) <span class="text-danger">*</span>`;
         document.getElementById('wizardAction').value = 'add_discount';
         
         document.getElementById('wizard_code').name = 'codeDiscount';
