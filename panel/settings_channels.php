@@ -4,6 +4,12 @@ require_once __DIR__ . '/inc/icons.php';
 require_once __DIR__ . '/../botapi.php';
 require_auth();
 
+if (!function_exists('jdate')) {
+    if (file_exists(__DIR__ . '/../jdf.php')) {
+        require_once __DIR__ . '/../jdf.php';
+    }
+}
+
 function normalizeChannelId($link) {
     $link = trim($link);
     if (empty($link)) return '';
@@ -239,7 +245,14 @@ include __DIR__ . '/inc/layout_head.php';
     <div class="stat">
         <div class="stat-label">آخرین به‌روزرسانی</div>
         <div class="stat-num" style="font-size: 1.1rem; font-weight: 700; color: var(--text2);" dir="ltr">
-            <?= (!empty($setting['last_channel_update']) && intval($setting['last_channel_update']) > 0) ? jdate('H:i - Y/m/d', intval($setting['last_channel_update'])) : 'به‌روز' ?>
+            <?php
+            $lastUp = intval($setting['last_channel_update'] ?? 0);
+            if ($lastUp > 0) {
+                echo function_exists('jdate') ? jdate('H:i - Y/m/d', $lastUp) : date('H:i - Y/m/d', $lastUp);
+            } else {
+                echo 'به‌روز';
+            }
+            ?>
         </div>
         <div class="stat-meta">تایم‌استامپ باطل‌سازی کش</div>
     </div>
