@@ -227,6 +227,20 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
     $remark = isset($userdata['remark']) ? (string) $userdata['remark'] : '';
     $link = isset($userdata['link']) ? (string) $userdata['link'] : '';
 
+    global $APIKEY;
+    $bot_id = explode(':', $APIKEY)[0];
+    
+    $bot_member = telegram('getChatMember', [
+        'chat_id' => $link,
+        'user_id' => $bot_id
+    ]);
+
+    if (!$bot_member['ok'] || !in_array($bot_member['result']['status'], ['administrator', 'creator'])) {
+        $error_msg = "⚠️ خطا: ربات در کانال " . htmlspecialchars($link) . " ادمین نیست یا آیدی کانال اشتباه است!\nبرای افزودن کانال به لیست عضویت اجباری، ابتدا ربات را در آن کانال ادمین کنید و دوباره تلاش کنید.";
+        sendmessage($from_id, $error_msg, $backadmin, 'HTML');
+        return;
+    }
+
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_success_channel'], $channelkeyboard, 'HTML');
     step('home', $from_id);
 

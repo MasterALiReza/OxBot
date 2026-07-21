@@ -654,7 +654,7 @@ function StatusPayment($paymentid)
 }
 function channel(array $id_channel)
 {
-    global $from_id;
+    global $from_id, $pdo, $admin_ids;
     $channel_link = array();
     foreach ($id_channel as $channel) {
         $response = telegram('getChatMember', [
@@ -664,6 +664,26 @@ function channel(array $id_channel)
         if ($response['ok']) {
             if (!in_array($response['result']['status'], ['member', 'creator', 'administrator'])) {
                 $channel_link[] = $channel;
+            }
+        } else {
+            if (isset($response['error_code']) && ($response['error_code'] == 400 || $response['error_code'] == 403)) {
+                if (isset($pdo) && $pdo) {
+                    $stmt = $pdo->prepare("DELETE FROM channels WHERE link = :link");
+                    $stmt->execute(['link' => $channel]);
+                    try {
+                        $pdo->exec("UPDATE setting SET last_channel_update = " . time());
+                    } catch (Exception $e) {}
+                }
+                
+                if (isset($admin_ids) && is_array($admin_ids)) {
+                    foreach ($admin_ids as $admin) {
+                        telegram('sendMessage', [
+                            'chat_id' => $admin,
+                            'text' => "⚠️ اخطار مهم: ربات دیگر در کانال " . htmlspecialchars($channel) . " ادمین نیست (یا کانال وجود ندارد).\nاین کانال به صورت خودکار از سیستم عضویت اجباری حذف شد تا کاربران مسدود نشوند.",
+                            'parse_mode' => 'HTML'
+                        ]);
+                    }
+                }
             }
         }
     }
