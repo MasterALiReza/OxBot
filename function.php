@@ -667,21 +667,25 @@ function channel(array $id_channel)
             }
         } else {
             if (isset($response['error_code']) && ($response['error_code'] == 400 || $response['error_code'] == 403)) {
-                if (isset($pdo) && $pdo) {
-                    $stmt = $pdo->prepare("DELETE FROM channels WHERE link = :link");
-                    $stmt->execute(['link' => $channel]);
-                    try {
-                        $pdo->exec("UPDATE setting SET last_channel_update = " . time());
-                    } catch (Exception $e) {}
-                }
-                
-                if (isset($admin_ids) && is_array($admin_ids)) {
-                    foreach ($admin_ids as $admin) {
-                        telegram('sendMessage', [
-                            'chat_id' => $admin,
-                            'text' => "⚠️ اخطار مهم: ربات دیگر در کانال " . htmlspecialchars($channel) . " ادمین نیست (یا کانال وجود ندارد).\nاین کانال به صورت خودکار از سیستم عضویت اجباری حذف شد تا کاربران مسدود نشوند.",
-                            'parse_mode' => 'HTML'
-                        ]);
+                $desc = strtolower($response['description'] ?? '');
+                // Check if the error is related to chat/bot permissions (not user error)
+                if (empty($desc) || strpos($desc, 'chat not found') !== false || strpos($desc, 'kicked') !== false || strpos($desc, 'member') !== false || strpos($desc, 'admin') !== false || strpos($desc, 'invalid chat') !== false) {
+                    if (isset($pdo) && $pdo) {
+                        $stmt = $pdo->prepare("DELETE FROM channels WHERE link = :link");
+                        $stmt->execute(['link' => $channel]);
+                        try {
+                            $pdo->exec("UPDATE setting SET last_channel_update = " . time());
+                        } catch (Exception $e) {}
+                    }
+                    
+                    if (isset($admin_ids) && is_array($admin_ids)) {
+                        foreach ($admin_ids as $admin) {
+                            telegram('sendMessage', [
+                                'chat_id' => $admin,
+                                'text' => "⚠️ اخطار مهم: ربات دیگر در کانال " . htmlspecialchars($channel) . " ادمین نیست (یا کانال وجود ندارد).\nاین کانال به صورت خودکار از سیستم عضویت اجباری حذف شد تا کاربران مسدود نشوند.",
+                                'parse_mode' => 'HTML'
+                            ]);
+                        }
                     }
                 }
             }

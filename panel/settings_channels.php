@@ -4,6 +4,20 @@ require_once __DIR__ . '/inc/icons.php';
 require_once __DIR__ . '/../botapi.php';
 require_auth();
 
+function normalizeChannelId($link) {
+    $link = trim($link);
+    if (empty($link)) return '';
+    if (preg_match('#(?:t\.me|telegram\.me)/+@?([a-zA-Z0-9_]+)#i', $link, $matches)) {
+        return '@' . $matches[1];
+    }
+    if (!str_starts_with($link, '@') && !str_starts_with($link, '-') && !str_starts_with($link, 'http')) {
+        if (preg_match('/^[a-zA-Z0-9_]+$/', $link)) {
+            return '@' . $link;
+        }
+    }
+    return $link;
+}
+
 function isBotAdminInChat($chat_id) {
     global $APIKEY;
     if (empty($APIKEY)) return false;
@@ -20,8 +34,6 @@ function isBotAdminInChat($chat_id) {
     }
     return false;
 }
-
-
 
 function updateChannelChangeTime($pdo) {
     try {
@@ -40,12 +52,27 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $error = '';
 $success = '';
 
+if ($action === 'check_status') {
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+    $channel_link = normalizeChannelId($_GET['channel_link'] ?? '');
+    header('Content-Type: application/json; charset=utf-8');
+    if (empty($channel_link)) {
+        echo json_encode(['ok' => false, 'error' => 'آیدی کانال خالی است']);
+        exit;
+    }
+    $isAdmin = isBotAdminInChat($channel_link);
+    echo json_encode(['ok' => true, 'is_admin' => $isAdmin]);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check_post();
     
     if ($action === 'add') {
         $remark = trim($_POST['remark'] ?? '');
-        $link = trim($_POST['link'] ?? '');
+        $link = normalizeChannelId($_POST['link'] ?? '');
         $linkjoin = trim($_POST['linkjoin'] ?? '');
         
         if (empty($remark) || empty($link) || empty($linkjoin)) {
@@ -75,9 +102,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif ($action === 'edit') {
-        $old_link = trim($_POST['old_link'] ?? '');
+        $old_link = normalizeChannelId($_POST['old_link'] ?? '');
         $remark = trim($_POST['remark'] ?? '');
-        $link = trim($_POST['link'] ?? '');
+        $link = normalizeChannelId($_POST['link'] ?? '');
         $linkjoin = trim($_POST['linkjoin'] ?? '');
         
         if (empty($old_link) || empty($remark) || empty($link) || empty($linkjoin)) {
@@ -99,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($action === 'delete') {
         csrf_check_get();
-        $channel_link = trim($_GET['channel_link'] ?? '');
+        $channel_link = normalizeChannelId($_GET['channel_link'] ?? '');
         if (!empty($channel_link)) {
             try {
                 db_query($pdo, "DELETE FROM channels WHERE link = ?", [$channel_link]);
@@ -198,13 +225,14 @@ include __DIR__ . '/inc/layout_head.php';
                             <th>نام کانال</th>
                             <th>آیدی کانال</th>
                             <th>لینک جوین</th>
+                            <th>وضعیت ربات</th>
                             <th style="width: 150px; text-align: left;">عملیات</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($channels)): ?>
                             <tr>
-                                <td colspan="5" style="text-align: center; padding: 48px; color: var(--mute);">
+                                <td colspan="6" style="text-align: center; padding: 48px; color: var(--mute);">
                                     <div class="empty" style="padding: 0;">
                                         <span style="opacity: 0.3; display: inline-block; margin-bottom: 1rem;"><?= icon('inbox', 48) ?></span><br>
                                         هیچ کانال اجباری ثبت نشده است.
@@ -224,15 +252,20 @@ include __DIR__ . '/inc/layout_head.php';
                                             <?= icon('link', 14) ?> <?= htmlspecialchars(strlen($ch['linkjoin']) > 30 ? substr($ch['linkjoin'], 0, 30) . '...' : $ch['linkjoin']) ?>
                                         </a>
                                     </td>
+                                    <td data-label="وضعیت ربات">
+                                        <span class="tag tag-warning channel-status-cell" data-chatid="<?= htmlspecialchars($ch['link']) ?>" style="font-size: 0.82rem;">
+                                            در حال بررسی...
+                                        </span>
+                                    </td>
                                     <td data-label="عملیات" style="text-align: left;">
                                         <div style="display: inline-flex; gap: 8px;">
                                             <button type="button" class="btn btn-sm btn-ghost btn-icon" title="ویرایش" 
-                                                    onclick='openEditModal(<?= json_encode($ch, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>)'>
+                                                    onclick='window.openEditModal(<?= json_encode($ch, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>)'>
                                                 <?= icon('edit', 14) ?>
                                             </button>
                                             <a href="settings_channels.php?action=delete&channel_link=<?= urlencode($ch['link']) ?>&_csrf=<?= csrf_token() ?>" 
                                                class="btn btn-sm btn-no btn-icon" title="حذف" 
-                                               onclick="return confirm('آیا از حذف کانال «<?= htmlspecialchars($ch['remark'], ENT_QUOTES) ?>» اطمینان دارید؟');">
+                                               onclick="return confirm('آیا از حذف این کانال اطمینان دارید؟');">
                                                 <?= icon('trash', 14) ?>
                                             </a>
                                         </div>
@@ -252,7 +285,7 @@ include __DIR__ . '/inc/layout_head.php';
     <div class="modal" style="max-width: 500px;">
         <div class="modal-head">
             <h3><?= icon('edit', 16) ?> ویرایش کانال</h3>
-            <button type="button" class="modal-x" onclick="closeEditModal()"><?= icon('x', 14) ?></button>
+            <button type="button" class="modal-x" onclick="window.closeEditModal()"><?= icon('x', 14) ?></button>
         </div>
         <form method="POST" action="settings_channels.php">
             <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
@@ -278,23 +311,52 @@ include __DIR__ . '/inc/layout_head.php';
             
             <div class="modal-foot">
                 <button type="submit" class="btn btn-primary"><?= icon('check', 14) ?> ذخیره تغییرات</button>
-                <button type="button" class="btn btn-ghost" onclick="closeEditModal()">انصراف</button>
+                <button type="button" class="btn btn-ghost" onclick="window.closeEditModal()">انصراف</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-function openEditModal(ch) {
+window.openEditModal = function(ch) {
     document.getElementById('editOldLink').value = ch.link;
     document.getElementById('editRemark').value = ch.remark;
     document.getElementById('editLink').value = ch.link;
     document.getElementById('editLinkjoin').value = ch.linkjoin;
     document.getElementById('editChannelModal').classList.add('open');
-}
-function closeEditModal() {
+};
+
+window.closeEditModal = function() {
     document.getElementById('editChannelModal').classList.remove('open');
-}
+};
+
+(function() {
+    const statusCells = document.querySelectorAll('.channel-status-cell');
+    statusCells.forEach(cell => {
+        const chatId = cell.getAttribute('data-chatid');
+        if (!chatId) return;
+        fetch(`settings_channels.php?action=check_status&channel_link=${encodeURIComponent(chatId)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.ok) {
+                    if (data.is_admin) {
+                        cell.className = 'tag tag-success';
+                        cell.textContent = 'ربات ادمین است';
+                    } else {
+                        cell.className = 'tag tag-danger';
+                        cell.textContent = 'ربات ادمین نیست';
+                    }
+                } else {
+                    cell.className = 'tag tag-warning';
+                    cell.textContent = 'خطا در بررسی';
+                }
+            })
+            .catch(err => {
+                cell.className = 'tag tag-warning';
+                cell.textContent = 'خطای شبکه';
+            });
+    });
+})();
 </script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
