@@ -256,8 +256,8 @@ $adminInitials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           </div>
 
           <!-- مالی و سفارشات -->
-          <div class="nav-group <?= in_array($activeNav, ['invoice', 'payment', 'settings_financial']) ? 'open' : '' ?>">
-            <button class="nav-group-btn <?= in_array($activeNav, ['invoice', 'payment', 'settings_financial']) ? 'active' : '' ?>">
+          <div class="nav-group <?= in_array($activeNav, ['invoice', 'payment', 'discounts', 'settings_financial']) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= in_array($activeNav, ['invoice', 'payment', 'discounts', 'settings_financial']) ? 'active' : '' ?>">
               <div class="nav-group-title">
                 <span class="nav-icon"><?= icon('card') ?></span>
                 <span class="nav-label">مالی و سفارشات</span>
@@ -270,6 +270,9 @@ $adminInitials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               </a>
               <a href="payment.php" class="nav-sub-item <?= $activeNav === 'payment' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitlePayment'] ?? 'پرداختی‌ها' ?>">
                 <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutSearchBoxPlaceholder'] ?? 'پرداختی‌ها' ?>
+              </a>
+              <a href="discounts.php" class="nav-sub-item <?= $activeNav === 'discounts' ? 'active' : '' ?>" title="کدهای تخفیف و هدیه">
+                <div class="nav-sub-dot"></div>کدهای تخفیف
               </a>
               <a href="settings_financial.php" class="nav-sub-item <?= $activeNav === 'settings_financial' ? 'active' : '' ?>" title="تنظیمات مالی">
                 <div class="nav-sub-dot"></div>تنظیمات مالی
