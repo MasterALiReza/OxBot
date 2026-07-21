@@ -18,9 +18,9 @@ function normalizeChannelId($link) {
     return $link;
 }
 
-function isBotAdminInChat($chat_id) {
+function getBotChatMemberStatus($chat_id) {
     global $APIKEY;
-    if (empty($APIKEY)) return false;
+    if (empty($APIKEY)) return ['ok' => false, 'error' => 'توکن ربات تنظیم نشده است'];
     
     $botId = explode(':', $APIKEY)[0];
     $response = telegram('getChatMember', [
@@ -30,9 +30,25 @@ function isBotAdminInChat($chat_id) {
     
     if (isset($response['ok']) && $response['ok'] === true) {
         $status = $response['result']['status'] ?? '';
-        return in_array($status, ['administrator', 'creator']);
+        $isAdmin = in_array($status, ['administrator', 'creator']);
+        return [
+            'ok' => true,
+            'is_admin' => $isAdmin,
+            'status' => $status
+        ];
     }
-    return false;
+    
+    $error = $response['description'] ?? 'خطا در ارتباط با تلگرام';
+    return [
+        'ok' => false,
+        'is_admin' => false,
+        'error' => $error
+    ];
+}
+
+function isBotAdminInChat($chat_id) {
+    $res = getBotChatMemberStatus($chat_id);
+    return $res['is_admin'] === true;
 }
 
 function updateChannelChangeTime($pdo) {
@@ -62,8 +78,8 @@ if ($action === 'check_status') {
         echo json_encode(['ok' => false, 'error' => 'آیدی کانال خالی است']);
         exit;
     }
-    $isAdmin = isBotAdminInChat($channel_link);
-    echo json_encode(['ok' => true, 'is_admin' => $isAdmin]);
+    $res = getBotChatMemberStatus($channel_link);
+    echo json_encode($res);
     exit;
 }
 
@@ -347,8 +363,8 @@ window.closeEditModal = function() {
                         cell.textContent = 'ربات ادمین نیست';
                     }
                 } else {
-                    cell.className = 'tag tag-warning';
-                    cell.textContent = 'خطا در بررسی';
+                    cell.className = 'tag tag-danger';
+                    cell.textContent = (data && data.error) ? (`خطا: ${data.error}`) : 'ربات ادمین نیست';
                 }
             })
             .catch(err => {
