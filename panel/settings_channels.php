@@ -356,14 +356,14 @@ window.closeEditModal = function() {
             .then(data => {
                 if (data && data.ok) {
                     if (data.is_admin) {
-                        cell.className = 'tag tag-success';
+                        cell.className = 'tag tag-ok';
                         cell.textContent = 'ربات ادمین است';
                     } else {
-                        cell.className = 'tag tag-danger';
+                        cell.className = 'tag tag-no';
                         cell.textContent = 'ربات ادمین نیست';
                     }
                 } else {
-                    cell.className = 'tag tag-danger';
+                    cell.className = 'tag tag-no';
                     cell.textContent = (data && data.error) ? (`خطا: ${data.error}`) : 'ربات ادمین نیست';
                 }
             })

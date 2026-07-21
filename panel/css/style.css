@@ -331,6 +331,8 @@ body::after, body::before {
     padding: 6px 12px;
     font-weight: 700;
 }
+.tag-success { background: var(--oks); color: var(--ok); }
+.tag-danger { background: var(--nos); color: var(--no); }
 
 /* Custom Color Palette Overrides for Soft Structuralism */
 [data-theme=light], :root {
