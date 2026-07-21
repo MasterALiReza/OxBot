@@ -1,5 +1,4 @@
 <?php
-ini_set('display_errors', 1); error_reporting(E_ALL);
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/icons.php';
 require_once __DIR__ . '/../botapi.php';
@@ -22,12 +21,7 @@ function isBotAdminInChat($chat_id) {
     return false;
 }
 
-function ensureTableUtf8mb4($table) {
-    global $pdo;
-    try {
-        db_query($pdo, "ALTER TABLE `$table` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    } catch (Exception $e) {}
-}
+
 
 function updateChannelChangeTime($pdo) {
     try {
