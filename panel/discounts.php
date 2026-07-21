@@ -114,7 +114,7 @@ try {
     
     // 3. Fetch Logs
     $logs = db_fetchAll($pdo, "
-        SELECT g.*, u.username, u.name 
+        SELECT g.*, u.username, u.namecustom 
         FROM Giftcodeconsumed g
         LEFT JOIN user u ON u.id = g.id_user
         ORDER BY g.id DESC LIMIT 500
