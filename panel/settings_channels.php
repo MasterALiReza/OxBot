@@ -259,37 +259,45 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Config Cards Row (2-Column) -->
-<div class="two-col fade-up" style="margin-top: 24px; margin-bottom: 28px; gap: 24px;">
+<div class="two-col fade-up" style="margin-top: 28px; margin-bottom: 32px; gap: 24px;">
     <!-- Add Channel Card -->
-    <div class="card">
-        <div class="card-head" style="padding: 16px 22px;">
-            <div class="card-title"><?= icon('plus', 16) ?> افزودن کانال جدید</div>
+    <div class="card" style="border: 1px solid var(--bd); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <div class="card-head" style="padding: 20px 24px; border-bottom: 1px solid var(--hl); background: transparent;">
+            <div class="card-title" style="font-size: 1rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px;">
+                <?= icon('plus', 18) ?> افزودن کانال جدید
+            </div>
         </div>
-        <div class="card-body" style="padding: 24px;">
-            <form method="POST" action="settings_channels.php" style="display: flex; flex-direction: column; gap: 18px;">
+        <div class="card-body" style="padding: 28px 24px 24px;">
+            <form method="POST" action="settings_channels.php" style="display: flex; flex-direction: column; gap: 20px;">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="add">
                 
-                <div class="form-grid" style="gap: 16px;">
-                    <div class="field">
-                        <label><?= icon('edit-2', 13) ?> نام کانال (برای نمایش)</label>
-                        <input type="text" name="remark" class="input" placeholder="مثلاً: کانال اصلی یا اطلاع‌رسانی" required>
+                <div class="form-grid" style="gap: 18px;">
+                    <div class="field" style="gap: 8px;">
+                        <label style="font-size: 0.83rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                            <?= icon('edit-2', 14) ?> نام کانال <small style="color: var(--mute); font-weight: 400;">(برای نمایش)</small>
+                        </label>
+                        <input type="text" name="remark" class="input" placeholder="مثلاً: کانال اصلی یا اطلاع‌رسانی" required style="padding: 11px 14px; font-size: 0.88rem;">
                     </div>
                     
-                    <div class="field">
-                        <label><?= icon('at-sign', 13) ?> آیدی کانال (جهت بررسی دسترسی)</label>
-                        <input type="text" name="link" class="input" placeholder="@MyChannel یا -100XXXXXXXX" required dir="ltr">
-                        <div class="field-hint" style="margin-top: 4px;">کانال عمومی: @MyChannel | گروه/چنل خصوصی: -100XXXX</div>
+                    <div class="field" style="gap: 8px;">
+                        <label style="font-size: 0.83rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                            <?= icon('at-sign', 14) ?> آیدی کانال <small style="color: var(--mute); font-weight: 400;">(جهت بررسی دسترسی)</small>
+                        </label>
+                        <input type="text" name="link" class="input" placeholder="@MyChannel یا -100XXXXXXXX" required dir="ltr" style="padding: 11px 14px; font-size: 0.88rem;">
+                        <div class="field-hint" style="margin-top: 2px; font-size: 0.74rem;">کانال عمومی: @MyChannel | گروه/چنل خصوصی: -100XXXX</div>
                     </div>
                 </div>
                 
-                <div class="field">
-                    <label><?= icon('link', 13) ?> لینک جوین (برای دکمه کاربر در ربات)</label>
-                    <input type="url" name="linkjoin" class="input" placeholder="https://t.me/MyChannel یا https://t.me/joinchat/..." required dir="ltr">
-                    <div class="field-hint" style="margin-top: 4px;">این لینک مستقیم روی دکمه «عضویت در کانال» برای کاربران در ربات قرار می‌گیرد.</div>
+                <div class="field" style="gap: 8px;">
+                    <label style="font-size: 0.83rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                        <?= icon('link', 14) ?> لینک جوین <small style="color: var(--mute); font-weight: 400;">(برای دکمه کاربر در ربات)</small>
+                    </label>
+                    <input type="url" name="linkjoin" class="input" placeholder="https://t.me/MyChannel یا https://t.me/joinchat/..." required dir="ltr" style="padding: 11px 14px; font-size: 0.88rem;">
+                    <div class="field-hint" style="margin-top: 2px; font-size: 0.74rem;">این لینک مستقیم روی دکمه «عضویت در کانال» برای کاربران در ربات قرار می‌گیرد.</div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%; padding: 12px; font-weight: 700; margin-top: 6px;">
+                <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%; padding: 12px; font-weight: 700; margin-top: 8px; font-size: 0.88rem;">
                     <?= icon('plus', 16) ?> افزودن کانال به سیستم
                 </button>
             </form>
@@ -297,18 +305,22 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
 
     <!-- Strictness Setting Card -->
-    <div class="card">
-        <div class="card-head" style="padding: 16px 22px;">
-            <div class="card-title"><?= icon('shield', 16) ?> تنظیم سخت‌گیری اعتبارسنجی عضویت</div>
+    <div class="card" style="border: 1px solid var(--bd); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <div class="card-head" style="padding: 20px 24px; border-bottom: 1px solid var(--hl); background: transparent;">
+            <div class="card-title" style="font-size: 1rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px;">
+                <?= icon('shield', 18) ?> تنظیم سخت‌گیری اعتبارسنجی عضویت
+            </div>
         </div>
-        <div class="card-body" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between; height: calc(100% - 57px);">
-            <form method="POST" action="settings_channels.php" style="display: flex; flex-direction: column; gap: 18px; height: 100%;">
+        <div class="card-body" style="padding: 28px 24px 24px; display: flex; flex-direction: column; justify-content: space-between; min-height: 280px;">
+            <form method="POST" action="settings_channels.php" style="display: flex; flex-direction: column; gap: 20px; height: 100%;">
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="save_settings">
                 
-                <div class="field">
-                    <label><?= icon('clock', 13) ?> فرکانس بررسی مجدد عضویت کاربران</label>
-                    <select name="channel_cache_ttl" class="select">
+                <div class="field" style="gap: 8px;">
+                    <label style="font-size: 0.83rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                        <?= icon('clock', 14) ?> فرکانس بررسی مجدد عضویت کاربران
+                    </label>
+                    <select name="channel_cache_ttl" class="select" style="padding: 11px 14px; font-size: 0.88rem;">
                         <option value="0" <?= $current_ttl === 0 ? 'selected' : '' ?>>🔥 بررسی زنده در هر کلیک (سختگیرانه‌ترین - ضد دور زدن ۱۰۰٪)</option>
                         <option value="60" <?= $current_ttl === 60 ? 'selected' : '' ?>>⚡ هر ۱ دقیقه یکبار</option>
                         <option value="300" <?= $current_ttl === 300 ? 'selected' : '' ?>>✅ هر ۵ دقیقه یکبار (پیش‌فرض پیشنهادی)</option>
@@ -316,17 +328,17 @@ include __DIR__ . '/inc/layout_head.php';
                         <option value="3600" <?= $current_ttl === 3600 ? 'selected' : '' ?>>⏳ هر ۱ ساعت یکبار</option>
                         <option value="86400" <?= $current_ttl === 86400 ? 'selected' : '' ?>>📅 هر ۲۴ ساعت یکبار</option>
                     </select>
-                    <div class="field-hint" style="margin-top: 8px; line-height: 1.6; color: var(--mute);">
+                    <div class="field-hint" style="margin-top: 6px; line-height: 1.6; color: var(--mute); font-size: 0.74rem;">
                         در حالت «بررسی زنده (۰s)»، اگر کاربر از کانالی لفت بدهد، در کلیک بعدی فوراً شناسایی و تا زمان عضویت مجدد مسدود می‌شود.
                     </div>
                 </div>
 
-                <div class="notice notice-ok" style="margin-bottom: 0; padding: 10px 14px; font-size: 0.78rem; border-radius: 8px;">
-                    <?= icon('check-circle', 14) ?> ربات باید حتماً در کانال‌ها ادمین باشد تا استعلام دقیق انجام شود.
+                <div class="notice notice-ok" style="margin-bottom: 0; padding: 12px 16px; font-size: 0.78rem; border-radius: 8px; display: flex; align-items: center; gap: 8px;">
+                    <?= icon('check-circle', 16) ?> <span>ربات باید حتماً در تمامی کانال‌های ثبت‌شده ادمین باشد تا استعلام دقیق انجام پذیرد.</span>
                 </div>
                 
-                <button type="submit" class="btn btn-ghost" style="justify-content: center; width: 100%; padding: 12px; font-weight: 700; margin-top: auto;">
-                    <?= icon('check', 14) ?> ذخیره تنظیمات سخت‌گیری
+                <button type="submit" class="btn btn-ghost" style="justify-content: center; width: 100%; padding: 12px; font-weight: 700; margin-top: auto; font-size: 0.88rem;">
+                    <?= icon('check', 16) ?> ذخیره تنظیمات سخت‌گیری
                 </button>
             </form>
         </div>
