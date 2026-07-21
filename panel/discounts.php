@@ -116,7 +116,7 @@ try {
     $logs = db_fetchAll($pdo, "
         SELECT g.*, u.username, u.namecustom 
         FROM Giftcodeconsumed g
-        LEFT JOIN user u ON u.id = g.id_user
+        LEFT JOIN user u ON u.id COLLATE utf8mb4_unicode_ci = g.id_user COLLATE utf8mb4_unicode_ci
         ORDER BY g.id DESC LIMIT 500
     ");
 
@@ -253,14 +253,14 @@ function getTimeBadge($timeStr) {
     </div>
 
     <!-- TABS -->
-    <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;">
-        <a href="?tab=gifts" style="padding: 10px 15px; border-bottom: 2px solid <?= $currentTab === 'gifts' ? 'var(--primary)' : 'transparent' ?>; color: <?= $currentTab === 'gifts' ? 'var(--primary)' : 'var(--text-muted)' ?>; font-weight: 600;">
-            کدهای هدیه (کیف پول)
+    <div style="display: flex; gap: 0.5rem; background: var(--bg-secondary, #f8f9fa); padding: 0.5rem; border-radius: 8px; margin-bottom: 1.5rem; align-items: center;">
+        <a href="?tab=gifts" style="padding: 10px 20px; border-radius: 6px; text-decoration: none; transition: all 0.2s; font-weight: 600; <?= $currentTab === 'gifts' ? 'background: var(--primary, #0d6efd); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);' : 'color: var(--text-main, #495057);' ?>">
+            <?= icon('gift', 14) ?> کدهای هدیه (کیف پول)
         </a>
-        <a href="?tab=discounts" style="padding: 10px 15px; border-bottom: 2px solid <?= $currentTab === 'discounts' ? 'var(--primary)' : 'transparent' ?>; color: <?= $currentTab === 'discounts' ? 'var(--primary)' : 'var(--text-muted)' ?>; font-weight: 600;">
-            کدهای تخفیف (سرویس)
+        <a href="?tab=discounts" style="padding: 10px 20px; border-radius: 6px; text-decoration: none; transition: all 0.2s; font-weight: 600; <?= $currentTab === 'discounts' ? 'background: var(--primary, #0d6efd); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);' : 'color: var(--text-main, #495057);' ?>">
+            <?= icon('percent', 14) ?> کدهای تخفیف (سرویس)
         </a>
-        <a href="?tab=logs" style="padding: 10px 15px; border-bottom: 2px solid <?= $currentTab === 'logs' ? 'var(--primary)' : 'transparent' ?>; color: <?= $currentTab === 'logs' ? 'var(--primary)' : 'var(--text-muted)' ?>; font-weight: 600; margin-right: auto;">
+        <a href="?tab=logs" style="padding: 10px 20px; border-radius: 6px; text-decoration: none; transition: all 0.2s; font-weight: 600; margin-right: auto; <?= $currentTab === 'logs' ? 'background: var(--primary, #0d6efd); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);' : 'color: var(--text-main, #495057);' ?>">
             <?= icon('activity', 14) ?> لاگ استفاده
         </a>
     </div>
