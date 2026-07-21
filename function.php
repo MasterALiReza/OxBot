@@ -652,6 +652,26 @@ function StatusPayment($paymentid)
     curl_close($curl);
     return $response;
 }
+function sanitizeTelegramJoinUrl($url, $defaultLink = '') {
+    $url = trim($url);
+    if (empty($url)) {
+        $url = trim($defaultLink);
+    }
+    if (empty($url)) return '';
+    
+    // If it's a Telegram @username
+    if (str_starts_with($url, '@')) {
+        return 'https://t.me/' . ltrim($url, '@');
+    }
+    
+    // If missing http:// or https:// scheme (e.g. t.me/... or telegram.me/...)
+    if (!str_starts_with($url, 'http://') && !str_starts_with($url, 'https://')) {
+        return 'https://' . ltrim($url, '/');
+    }
+    
+    return $url;
+}
+
 function channel(array $id_channel)
 {
     global $from_id, $pdo, $admin_ids;
@@ -662,7 +682,17 @@ function channel(array $id_channel)
             'user_id' => $from_id
         ]);
         if ($response['ok']) {
-            if (!in_array($response['result']['status'], ['member', 'creator', 'administrator'])) {
+            $status = $response['result']['status'] ?? '';
+            $is_member = $response['result']['is_member'] ?? null;
+            
+            // A user is considered in the chat if status is member, creator, administrator,
+            // or restricted with is_member == true (Telegram groups with restricted permissions)
+            $is_joined = in_array($status, ['member', 'creator', 'administrator']);
+            if (!$is_joined && $status === 'restricted' && ($is_member === true || $is_member === null)) {
+                $is_joined = true;
+            }
+            
+            if (!$is_joined) {
                 $channel_link[] = $channel;
             }
         } else {

@@ -408,14 +408,15 @@ if ($needs_channel_check) {
             ];
             foreach ($channels as $channel) {
                 $channelremark = select("channels", "*", 'link', $channel, "select");
-                if ($channelremark['remark'] == null)
+                if (empty($channelremark) || empty($channelremark['remark']))
                     continue;
-                if ($channelremark['linkjoin'] == null)
+                $joinUrl = sanitizeTelegramJoinUrl($channelremark['linkjoin'] ?? '', $channelremark['link'] ?? '');
+                if (empty($joinUrl))
                     continue;
                 $keyboardchannel['inline_keyboard'][] = [
                     [
                         'text' => "{$channelremark['remark']}",
-                        'url' => $channelremark['linkjoin']
+                        'url' => $joinUrl
                     ],
                 ];
             }
@@ -436,14 +437,15 @@ if ($needs_channel_check) {
             ];
             foreach ($channels as $channel) {
                 $channelremark = select("channels", "*", 'link', $channel, "select");
-                if ($channelremark['remark'] == null)
+                if (empty($channelremark) || empty($channelremark['remark']))
                     continue;
-                if ($channelremark['linkjoin'] == null)
+                $joinUrl = sanitizeTelegramJoinUrl($channelremark['linkjoin'] ?? '', $channelremark['link'] ?? '');
+                if (empty($joinUrl))
                     continue;
                 $keyboardchannel['inline_keyboard'][] = [
                     [
                         'text' => "{$channelremark['remark']}",
-                        'url' => $channelremark['linkjoin']
+                        'url' => $joinUrl
                     ],
                 ];
             }

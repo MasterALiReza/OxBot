@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
         $remark = trim($_POST['remark'] ?? '');
         $link = normalizeChannelId($_POST['link'] ?? '');
-        $linkjoin = trim($_POST['linkjoin'] ?? '');
+        $linkjoin = sanitizeTelegramJoinUrl($_POST['linkjoin'] ?? '', $link);
         
         if (empty($remark) || empty($link) || empty($linkjoin)) {
             $error = 'تمامی فیلدها الزامی هستند.';
@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $old_link = normalizeChannelId($_POST['old_link'] ?? '');
         $remark = trim($_POST['remark'] ?? '');
         $link = normalizeChannelId($_POST['link'] ?? '');
-        $linkjoin = trim($_POST['linkjoin'] ?? '');
+        $linkjoin = sanitizeTelegramJoinUrl($_POST['linkjoin'] ?? '', $link);
         
         if (empty($old_link) || empty($remark) || empty($link) || empty($linkjoin)) {
             $error = 'تمامی فیلدها الزامی هستند.';
