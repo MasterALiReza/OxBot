@@ -138,6 +138,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'خطا در ویرایش کانال: ' . $e->getMessage();
             }
         }
+    } elseif ($action === 'save_settings') {
+        $ttl = intval($_POST['channel_cache_ttl'] ?? 300);
+        try {
+            db_query($pdo, "UPDATE setting SET channel_cache_ttl = ?", [$ttl]);
+            updateChannelChangeTime($pdo);
+            $success = 'تنظیمات سخت‌گیری عضویت با موفقیت ذخیره شد.';
+        } catch (Exception $e) {
+            try {
+                db_query($pdo, "ALTER TABLE setting ADD COLUMN channel_cache_ttl VARCHAR(100) DEFAULT '300'");
+                db_query($pdo, "UPDATE setting SET channel_cache_ttl = ?", [$ttl]);
+                updateChannelChangeTime($pdo);
+                $success = 'تنظیمات سخت‌گیری عضویت با موفقیت ذخیره شد.';
+            } catch (Exception $e2) {
+                $error = 'خطا در ذخیره تنظیمات: ' . $e2->getMessage();
+            }
+        }
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($action === 'delete') {
@@ -161,6 +177,13 @@ try {
 } catch (Exception $e) {
     // If table doesn't exist
 }
+
+$setting = [];
+try {
+    $setting = db_fetch($pdo, "SELECT * FROM setting LIMIT 1") ?: [];
+} catch (Exception $e) {}
+
+$current_ttl = intval($setting['channel_cache_ttl'] ?? 300);
 
 $pageTitle = 'تنظیمات کانال‌های اجباری';
 $activeNav = 'settings_channels';
@@ -188,8 +211,8 @@ include __DIR__ . '/inc/layout_head.php';
 <?php endif; ?>
 
 <div class="profile-grid fade-up" style="margin-top: 20px;">
-    <!-- Add Channel Card -->
-    <div>
+    <!-- Add Channel Card & Strictness Settings Card -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
         <div class="card">
             <div class="card-head">
                 <div class="card-title"><?= icon('plus', 16) ?> افزودن کانال جدید</div>
@@ -216,6 +239,36 @@ include __DIR__ . '/inc/layout_head.php';
                     
                     <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%;">
                         <?= icon('plus', 16) ?> افزودن کانال
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Strictness Setting Card -->
+        <div class="card">
+            <div class="card-head">
+                <div class="card-title"><?= icon('shield', 16) ?> تنظیم سخت‌گیری اعتبارسنجی عضویت</div>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="settings_channels.php" style="display: flex; flex-direction: column; gap: 15px;">
+                    <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="action" value="save_settings">
+                    
+                    <div class="field">
+                        <label>فرکانس بررسی مجدد عضویت کاربران</label>
+                        <select name="channel_cache_ttl" class="select">
+                            <option value="0" <?= $current_ttl === 0 ? 'selected' : '' ?>>🔥 بررسی زنده در هر کلیک (سختگیرانه‌ترین)</option>
+                            <option value="60" <?= $current_ttl === 60 ? 'selected' : '' ?>>⚡ هر ۱ دقیقه یکبار</option>
+                            <option value="300" <?= $current_ttl === 300 ? 'selected' : '' ?>>✅ هر ۵ دقیقه یکبار (پیش‌فرض پیشنهادی)</option>
+                            <option value="1800" <?= $current_ttl === 1800 ? 'selected' : '' ?>>⏱ هر ۳۰ دقیقه یکبار</option>
+                            <option value="3600" <?= $current_ttl === 3600 ? 'selected' : '' ?>>⏳ هر ۱ ساعت یکبار</option>
+                            <option value="86400" <?= $current_ttl === 86400 ? 'selected' : '' ?>>📅 هر ۲۴ ساعت یکبار</option>
+                        </select>
+                        <div class="field-hint">در حالت بررسی زنده (۰ ثانیه)، اگر کاربر از کانالی لفت بدهد، در کلیک بعدی فوراً شناسایی و مسدود می‌شود.</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-ghost" style="justify-content: center; width: 100%;">
+                        <?= icon('check', 14) ?> ذخیره تنظیمات سخت‌گیری
                     </button>
                 </form>
             </div>
