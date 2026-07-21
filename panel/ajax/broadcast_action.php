@@ -216,7 +216,8 @@ try {
             $setting_row = db_fetch($pdo, "SELECT last_channel_update FROM setting LIMIT 1");
             $latest_channel_update = isset($setting_row['last_channel_update']) ? intval($setting_row['last_channel_update']) : 0;
         } catch (Exception $e) {}
-        $where[] = "joinchannel != 'active' AND (joinchannel = '0' OR joinchannel IS NULL OR CAST(joinchannel AS UNSIGNED) < $latest_channel_update OR (" . time() . " - CAST(joinchannel AS UNSIGNED)) >= 86400)";
+        $time = time();
+        $where[] = "(joinchannel IS NULL OR joinchannel NOT REGEXP '^[0-9]+$' OR CAST(joinchannel AS UNSIGNED) < $latest_channel_update OR ($time - CAST(joinchannel AS UNSIGNED)) >= 86400)";
     }
 
     $sql = "SELECT id FROM user";

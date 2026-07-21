@@ -379,14 +379,11 @@ if ($setting['Bot_Status'] == "botstatusoff" && !in_array($from_id, $admin_ids))
 }
 #-----------/start------------#
 $needs_channel_check = true;
-if ($user['joinchannel'] === 'active') {
+$last_check = (is_numeric($user['joinchannel'])) ? intval($user['joinchannel']) : 0;
+$latest_channel_update = isset($setting['last_channel_update']) ? intval($setting['last_channel_update']) : 0;
+
+if ($last_check > 0 && $last_check > $latest_channel_update && (time() - $last_check) < 86400) {
     $needs_channel_check = false;
-} else {
-    $last_check = intval($user['joinchannel'] ?? 0);
-    $latest_channel_update = isset($setting['last_channel_update']) ? intval($setting['last_channel_update']) : 0;
-    if ($last_check > $latest_channel_update && (time() - $last_check) < 86400) {
-        $needs_channel_check = false;
-    }
 }
 
 if ($needs_channel_check) {

@@ -21,6 +21,13 @@ function isBotAdminInChat($chat_id) {
     return false;
 }
 
+function ensureTableUtf8mb4($table) {
+    global $pdo;
+    try {
+        db_query($pdo, "ALTER TABLE `$table` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    } catch (Exception $e) {}
+}
+
 function updateChannelChangeTime($pdo) {
     try {
         db_query($pdo, "UPDATE setting SET last_channel_update = ?", [time()]);
@@ -230,7 +237,7 @@ include __DIR__ . '/inc/layout_head.php';
                                             </button>
                                             <a href="settings_channels.php?action=delete&channel_link=<?= urlencode($ch['link']) ?>&_csrf=<?= csrf_token() ?>" 
                                                class="btn btn-sm btn-no btn-icon" title="حذف" 
-                                               data-confirm="آیا از حذف کانال «<?= htmlspecialchars($ch['remark']) ?>» اطمینان دارید؟">
+                                               onclick="return confirm('آیا از حذف کانال «<?= htmlspecialchars($ch['remark'], ENT_QUOTES) ?>» اطمینان دارید؟');">
                                                 <?= icon('trash', 14) ?>
                                             </a>
                                         </div>
