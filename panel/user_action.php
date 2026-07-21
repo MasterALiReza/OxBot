@@ -83,7 +83,8 @@ switch ($action) {
 
     case 'verify_channel':
         $current = $user['joinchannel'] ?? '0';
-        $new = ($current === '1') ? '0' : '1';
+        $is_active = (is_numeric($current) && intval($current) > 0);
+        $new = $is_active ? '0' : (string)time();
         db_query($pdo, "UPDATE user SET joinchannel = ? WHERE id = ?", [$new, $id]);
         flash('success', 'وضعیت جوین اجباری تغییر کرد.');
         break;

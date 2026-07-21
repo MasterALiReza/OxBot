@@ -9340,11 +9340,11 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
 } elseif ((preg_match('/confirmchannel-(\w+)/', $datain, $dataget))) {
     $iduser = $dataget[1];
     $userdata = select("user", "*", "id", $iduser, "select");
-    if ($userdata['joinchannel'] == "active") {
+    if (is_numeric($userdata['joinchannel']) && intval($userdata['joinchannel']) > 0) {
         sendmessage($from_id, $textbotlang['Admin']['adminphp']['btn_user_confirm'], null, 'HTML');
         return;
     }
-    update("user", "joinchannel", "active", "id", $iduser);
+    update("user", "joinchannel", time(), "id", $iduser);
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['msg_channel_join_user_bot'], $keyboardadmin, 'HTML');
 } elseif ((preg_match('/zerobalance-(\w+)/', $datain, $dataget))) {
     $iduser = $dataget[1];

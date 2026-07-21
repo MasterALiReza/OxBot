@@ -512,7 +512,7 @@ switch ($data['actions'] ?? '') {
         if (!isset($data['chat_id']) || empty($data['chat_id'])) {
             sendJsonResponse(false, "user-id empty", [], 500);
         }
-        update("user", "joinchannel", "active", "id", $data['chat_id']);
+        update("user", "joinchannel", time(), "id", $data['chat_id']);
         sendJsonResponse(true, "Successful");
         break;
     case 'cron_notif':
