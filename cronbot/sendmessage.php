@@ -242,9 +242,25 @@ if (isset($info['btnmessage']) && $info['btnmessage'] !== "none") {
 
 $start_time = time();
 $processed_in_batch = 0;
-$max_batch_size = 250;
-$max_execution_duration = 45; // Max 45 seconds per invocation
+$max_batch_size = 1000;
+$max_execution_duration = 50; // Max 50 seconds per invocation
 $html_error_notified = false;
+
+// Prepare forwardlink parameters if needed
+$from_chat_id = '';
+$message_id = '';
+if (isset($info['type']) && $info['type'] == "forwardlink") {
+    $link = $info['message'] ?? '';
+    if (preg_match('/t\.me\/c\/(\d+)\/(\d+)/', $link, $matches)) {
+        $from_chat_id = '-100' . $matches[1];
+        $message_id = $matches[2];
+    } elseif (preg_match('/t\.me\/([a-zA-Z0-9_]+)\/(\d+)/', $link, $matches)) {
+        $from_chat_id = '@' . $matches[1];
+        $message_id = $matches[2];
+    }
+}
+
+$mini_batch_size = 15; // Process 15 users concurrently per multi-cURL batch
 
 while (!empty($userid) && $processed_in_batch < $max_batch_size) {
     if (time() - $start_time >= $max_execution_duration) {
@@ -259,33 +275,80 @@ while (!empty($userid) && $processed_in_batch < $max_batch_size) {
         return;
     }
 
-    $iduser = broadcast_user_id(array_shift($userid));
-    $processed_in_batch++;
+    $batchStart = microtime(true);
+    $current_chunk = [];
 
-    if ($iduser === null || $iduser === '') {
-        if ($processed_in_batch % 10 === 0) {
-            file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    // Extract next mini-batch of users
+    while (count($current_chunk) < $mini_batch_size && !empty($userid)) {
+        $raw_entry = array_shift($userid);
+        $iduser = broadcast_user_id($raw_entry);
+        if ($iduser !== null && $iduser !== '') {
+            $current_chunk[] = $iduser;
         }
+    }
+
+    if (empty($current_chunk)) {
+        file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
         continue;
     }
 
-    $meesage = null;
+    // Build multi requests for current mini-batch
+    $requests = [];
+    foreach ($current_chunk as $iduser) {
+        if ($info['type'] == "unpinmessage") {
+            $requests[$iduser] = [
+                'method' => 'unpinAllChatMessages',
+                'datas' => ['chat_id' => $iduser]
+            ];
+        } elseif ($info['type'] == "sendmessage" || $info['type'] == "xdaynotmessage") {
+            $params = [
+                'chat_id' => $iduser,
+                'text' => $info['message'],
+                'parse_mode' => 'HTML'
+            ];
+            if ($custom_keyboard) {
+                $params['reply_markup'] = $custom_keyboard;
+            }
+            $requests[$iduser] = ['method' => 'sendMessage', 'datas' => $params];
+        } elseif ($info['type'] == "forwardmessage") {
+            $requests[$iduser] = [
+                'method' => 'forwardMessage',
+                'datas' => [
+                    'from_chat_id' => $info['id_admin'],
+                    'message_id' => $info['message'],
+                    'chat_id' => $iduser
+                ]
+            ];
+        } elseif ($info['type'] == "forwardlink" && $from_chat_id && $message_id) {
+            $copy_params = [
+                'chat_id' => $iduser,
+                'from_chat_id' => $from_chat_id,
+                'message_id' => $message_id
+            ];
+            if ($custom_keyboard) {
+                $copy_params['reply_markup'] = $custom_keyboard;
+            }
+            $requests[$iduser] = ['method' => 'copyMessage', 'datas' => $copy_params];
+        }
+    }
 
-    if ($info['type'] == "unpinmessage") {
-        unpinmessage($iduser);
-    } elseif ($info['type'] == "sendmessage" || $info['type'] == "xdaynotmessage") {
-        $meesage = sendmessage($iduser, $info['message'], $custom_keyboard, 'HTML');
+    // Execute mini-batch in parallel
+    $responses = telegram_multi($requests);
+    $processed_in_batch += count($current_chunk);
 
+    // Process responses for rate-limit 429, blocked users, pinmessage, and errors
+    $rate_limit_retry = 0;
+    foreach ($responses as $iduser => $meesage) {
         if (isset($meesage['ok']) && !$meesage['ok']) {
             $desc = $meesage['description'] ?? '';
 
-            // Handle Telegram Rate Limit (HTTP 429)
+            // Handle Rate Limit HTTP 429
             if (strpos($desc, 'Too Many Requests') !== false || (isset($meesage['error_code']) && $meesage['error_code'] == 429)) {
                 $retry = 5;
                 if (isset($meesage['parameters']['retry_after'])) {
                     $retry = intval($meesage['parameters']['retry_after']);
                 }
-                sleep(min($retry, 10));
+                $rate_limit_retry = max($rate_limit_retry, min($retry, 10));
             }
 
             // Handle invalid HTML formatting error
@@ -298,69 +361,42 @@ while (!empty($userid) && $processed_in_batch < $max_batch_size) {
 
             // Handle blocked user
             if (strpos($desc, 'Forbidden: bot was blocked by the user') !== false) {
-                $invoicecount = select("invoice", "*", "id_user", $iduser, "count");
-                $userinfo = select("user", "Balance", "id", $iduser, "select");
-                if ($invoicecount == 0 && isset($userinfo['Balance']) && $userinfo['Balance'] == 0) {
-                    $stmt = $pdo->prepare("DELETE FROM user WHERE id = ?");
-                    $stmt->execute([$iduser]);
-                }
+                try {
+                    $invoicecount = select("invoice", "*", "id_user", $iduser, "count");
+                    $userinfo = select("user", "Balance", "id", $iduser, "select");
+                    if ($invoicecount == 0 && isset($userinfo['Balance']) && $userinfo['Balance'] == 0) {
+                        $stmt = $pdo->prepare("DELETE FROM user WHERE id = ?");
+                        $stmt->execute([$iduser]);
+                    }
+                } catch (Throwable $ignored) {}
             }
         }
 
+        // Pin message if requested
         if (isset($meesage['ok']) && $meesage['ok'] && (isset($info['pingmessage']) && $info['pingmessage'] == "yes")) {
-            pinmessage($iduser, $meesage['result']['message_id']);
-        }
-    } elseif ($info['type'] == "forwardmessage") {
-        $meesage = forwardMessage($info['id_admin'], $info['message'], $iduser);
-        if (isset($meesage['ok']) && $meesage['ok'] && (isset($info['pingmessage']) && $info['pingmessage'] == "yes")) {
-            pinmessage($iduser, $meesage['result']['message_id']);
-        }
-    } elseif ($info['type'] == "forwardlink") {
-        $link = $info['message'];
-        $from_chat_id = '';
-        $message_id = '';
-
-        if (preg_match('/t\.me\/c\/(\d+)\/(\d+)/', $link, $matches)) {
-            $from_chat_id = '-100' . $matches[1];
-            $message_id = $matches[2];
-        } elseif (preg_match('/t\.me\/([a-zA-Z0-9_]+)\/(\d+)/', $link, $matches)) {
-            $from_chat_id = '@' . $matches[1];
-            $message_id = $matches[2];
-        }
-
-        if ($from_chat_id && $message_id) {
-            $copy_params = [
-                'chat_id' => $iduser,
-                'from_chat_id' => $from_chat_id,
-                'message_id' => $message_id
-            ];
-            if ($custom_keyboard) {
-                $copy_params['reply_markup'] = $custom_keyboard;
-            }
-            $meesage = telegram('copyMessage', $copy_params);
-
-            if (isset($meesage['ok']) && !$meesage['ok'] && strpos($meesage['description'] ?? '', 'Forbidden: bot was blocked by the user') !== false) {
-                $invoicecount = select("invoice", "*", "id_user", $iduser, "count");
-                $userinfo = select("user", "Balance", "id", $iduser, "select");
-                if ($invoicecount == 0 && isset($userinfo['Balance']) && $userinfo['Balance'] == 0) {
-                    $stmt = $pdo->prepare("DELETE FROM user WHERE id = ?");
-                    $stmt->execute([$iduser]);
-                }
-            }
-
-            if (isset($meesage['ok']) && $meesage['ok'] && (isset($info['pingmessage']) && $info['pingmessage'] == "yes")) {
+            if (isset($meesage['result']['message_id'])) {
                 pinmessage($iduser, $meesage['result']['message_id']);
             }
         }
     }
 
-    // Save progress to disk every 10 processed users to protect state against crashes/timeouts
-    if ($processed_in_batch % 10 === 0) {
-        file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
-    }
+    // Save remaining users to disk after every mini-batch
+    file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
 
-    $sleepDuration = (isset($info['pingmessage']) && $info['pingmessage'] == "yes") ? 65000 : 35000;
-    usleep($sleepDuration);
+    // If 429 rate limit hit, sleep for retry_after
+    if ($rate_limit_retry > 0) {
+        sleep($rate_limit_retry);
+    } else {
+        // Enforce safe 25 msgs/sec rate limit pacing
+        $batch_duration = microtime(true) - $batchStart;
+        $target_duration = count($current_chunk) / 25.0; // Target seconds for 25 msg/sec
+        if ($batch_duration < $target_duration) {
+            $sleep_us = (int)(($target_duration - $batch_duration) * 1000000);
+            if ($sleep_us > 0) {
+                usleep($sleep_us);
+            }
+        }
+    }
 }
 
 // Save remaining users to disk at batch completion
@@ -384,3 +420,10 @@ if (empty($userid)) {
 
 flock($lockFp, LOCK_UN);
 fclose($lockFp);
+
+// Auto-trigger next invocation immediately if users remain
+if (!empty($userid) && !broadcast_cancel_requested($cancelFile)) {
+    if (function_exists('trigger_broadcast_async')) {
+        trigger_broadcast_async();
+    }
+}

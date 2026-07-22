@@ -68,6 +68,96 @@ function telegram($method, $datas = [], $token = null)
 
     return $decodedResponse;
 }
+
+/**
+ * Executes multiple Telegram API calls concurrently using cURL Multi.
+ *
+ * @param array $requests Array of requests: [['method' => 'sendMessage', 'datas' => [...]], ...]
+ * @param string|null $token
+ * @return array Responses indexed by original request keys
+ */
+function telegram_multi(array $requests, $token = null): array
+{
+    global $APIKEY;
+    if (empty($requests)) {
+        return [];
+    }
+
+    $token = $token === null ? $APIKEY : $token;
+    $baseUrl = "https://api.telegram.org/bot" . $token . "/";
+
+    $mh = curl_multi_init();
+    $handles = [];
+    $results = [];
+
+    foreach ($requests as $key => $req) {
+        $method = $req['method'] ?? 'sendMessage';
+        $datas = $req['datas'] ?? [];
+
+        if (isset($datas['message_thread_id']) && intval($datas['message_thread_id']) <= 0) {
+            unset($datas['message_thread_id']);
+        }
+
+        $ch = curl_init($baseUrl . $method);
+        if ($ch === false) {
+            continue;
+        }
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $datas);
+
+        curl_multi_add_handle($mh, $ch);
+        $handles[$key] = $ch;
+    }
+
+    if (empty($handles)) {
+        curl_multi_close($mh);
+        return [];
+    }
+
+    $active = null;
+    do {
+        $mrc = curl_multi_exec($mh, $active);
+    } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+
+    while ($active && $mrc == CURLM_OK) {
+        if (curl_multi_select($mh, 0.05) == -1) {
+            usleep(1000);
+        }
+        do {
+            $mrc = curl_multi_exec($mh, $active);
+        } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+    }
+
+    foreach ($handles as $key => $ch) {
+        $rawResponse = curl_multi_getcontent($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($rawResponse === false || $rawResponse === '') {
+            $results[$key] = [
+                'ok' => false,
+                'error_code' => $httpCode,
+                'description' => curl_error($ch) ?: 'cURL multi request failed.'
+            ];
+        } else {
+            $decoded = json_decode($rawResponse, true);
+            $results[$key] = is_array($decoded) ? $decoded : [
+                'ok' => false,
+                'error_code' => $httpCode,
+                'description' => 'Invalid JSON response from Telegram.'
+            ];
+        }
+
+        curl_multi_remove_handle($mh, $ch);
+        curl_close($ch);
+    }
+
+    curl_multi_close($mh);
+    return $results;
+}
+
 function sendmessage($chat_id,$text,$keyboard = null,$parse_mode = null,$bot_token = null){
     if(intval($chat_id) == 0)return ['ok' => false];
     return telegram('sendmessage',[
