@@ -699,6 +699,12 @@ $categories = array_values(array_unique(array_filter(array_column($products, 'ca
                         </td>
                         <td data-label="زمان ارسال" dir="ltr" style="text-align:center;"><?= jdate('Y/m/d H:i', $history['created_at']) ?></td>
                         <td data-label="عملیات" style="text-align:center;">
+                            <?php if(in_array($history['status'], ['pending', 'in_progress', 'cancelling'])): ?>
+                                <form method="post" action="ajax/broadcast_cancel.php" hx-boost="false" style="display:inline-block; margin-left: 5px;">
+                                    <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                                    <button type="submit" class="btn btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid #e74c3c; transition: all 0.2s;" onmouseover="this.style.background='#e74c3c'; this.style.color='#fff';" onmouseout="this.style.background='rgba(231, 76, 60, 0.1)'; this.style.color='#e74c3c';">لغو عملیات</button>
+                                </form>
+                            <?php endif; ?>
                             <button type="button" class="btn btn-sm reuse-btn" data-history="<?= htmlspecialchars(json_encode($history), ENT_QUOTES, 'UTF-8') ?>" onclick="bcReuseBroadcast(this)" style="padding: 4px 10px; font-size: 0.8rem; background: var(--sf3); border: 1px solid var(--bd);">استفاده مجدد</button>
                         </td>
                     </tr>
