@@ -1458,6 +1458,7 @@ elseif ($datain == "systemsms") {
         $msg_type = "text";
         $content = $userdata['message'];
         $audience = "ارسال به: $typeusermessage (نماینده: $agent)";
+        ensure_broadcast_history_schema($pdo);
         $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, created_at, status) VALUES (?, ?, ?, ?, 'pending', ?)")
             ->execute([$from_id, $msg_type, $content, $audience, time()]);
         $history_id = $pdo->lastInsertId();
@@ -1517,6 +1518,7 @@ elseif ($datain == "systemsms") {
         $msg_type = $typeservice == 'forwardlink' ? 'forwardlink' : 'text';
         $content = $userdata['message'];
         $audience = "ارسال به: $typeusermessage (نماینده: $agent)";
+        ensure_broadcast_history_schema($pdo);
         $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, created_at, status) VALUES (?, ?, ?, ?, 'pending', ?)")
             ->execute([$from_id, $msg_type, $content, $audience, time()]);
         $history_id = $pdo->lastInsertId();
@@ -1586,6 +1588,7 @@ elseif ($datain == "systemsms") {
         $msg_type = "xdaynotmessage";
         $content = $userdata['message'];
         $audience = "ارسال به: غیرفعال با $userdata[daynoyuse] روز عدم استفاده";
+        ensure_broadcast_history_schema($pdo);
         $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, created_at, status) VALUES (?, ?, ?, ?, 'pending', ?)")
             ->execute([$from_id, $msg_type, $content, $audience, time()]);
         $history_id = $pdo->lastInsertId();

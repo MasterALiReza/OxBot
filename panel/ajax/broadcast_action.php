@@ -18,40 +18,6 @@ try {
         echo '<div class="alert alert-' . htmlspecialchars($type, ENT_QUOTES, 'UTF-8') . '">' . $message . '</div>';
     }
 
-    function ensure_broadcast_history_schema(PDO $pdo): void
-    {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS broadcast_history (
-            id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            admin_id VARCHAR(200) NULL,
-            message_type VARCHAR(50) NOT NULL,
-            content TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-            target_audience VARCHAR(100) NOT NULL,
-            status VARCHAR(50) NOT NULL,
-            created_at VARCHAR(50) NOT NULL,
-            pin_message TINYINT(1) DEFAULT 0,
-            button_type VARCHAR(50) DEFAULT NULL,
-            button_text VARCHAR(100) DEFAULT NULL,
-            button_data TEXT DEFAULT NULL
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
-
-        try {
-            $pdo->exec("ALTER TABLE broadcast_history MODIFY COLUMN button_data TEXT");
-        } catch (PDOException $e) {}
-
-        $columns = $pdo->query("SHOW COLUMNS FROM broadcast_history")->fetchAll(PDO::FETCH_COLUMN);
-        $addColumn = function (string $name, string $definition) use ($pdo, $columns): void {
-            if (!in_array($name, $columns, true)) {
-                $pdo->exec("ALTER TABLE broadcast_history ADD COLUMN {$definition}");
-            }
-        };
-
-        $addColumn('admin_id', 'admin_id VARCHAR(200) NULL AFTER id');
-        $addColumn('pin_message', 'pin_message TINYINT(1) DEFAULT 0');
-        $addColumn('button_type', 'button_type VARCHAR(50) DEFAULT NULL');
-        $addColumn('button_text', 'button_text VARCHAR(100) DEFAULT NULL');
-        $addColumn('button_data', 'button_data VARCHAR(255) DEFAULT NULL');
-    }
-
     if (is_file($cancel_path) && !is_file($info_path) && !is_file($users_path)) {
         $cancel_age = time() - (int) @filemtime($cancel_path);
         if ($cancel_age < 30) {
