@@ -1675,6 +1675,33 @@ function activecron()
 
     addCronIfNotExists($cronCommands);
 }
+
+function trigger_broadcast_async(): void
+{
+    global $domainhosts;
+
+    // 1. Try background CLI php if exec function is available
+    $sendmessage_script = __DIR__ . '/cronbot/sendmessage.php';
+    if (file_exists($sendmessage_script) && function_exists('exec')) {
+        @exec("php " . escapeshellarg($sendmessage_script) . " > /dev/null 2>&1 &");
+    }
+
+    // 2. Try fast async cURL HTTP call
+    if (!empty($domainhosts)) {
+        $url = "https://{$domainhosts}/cronbot/sendmessage.php";
+        $ch = curl_init($url);
+        if ($ch !== false) {
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            @curl_exec($ch);
+            @curl_close($ch);
+        }
+    }
+}
+
 function createInvoice($amount)
 {
     global $from_id, $domainhosts;

@@ -62,9 +62,24 @@ try {
     }
 
     if (is_file($info_path) || is_file($users_path)) {
-        broadcast_feedback('warn', 'یک عملیات ارسال در حال اجراست. ابتدا باید آن را لغو کنید یا تا پایان آن منتظر بمانید.');
-        exit;
+        $info_mtime = is_file($info_path) ? (int) @filemtime($info_path) : 0;
+        $users_mtime = is_file($users_path) ? (int) @filemtime($users_path) : 0;
+        $max_mtime = max($info_mtime, $users_mtime);
+
+        // If lock file is older than 15 minutes (900s), automatically release lock
+        if ($max_mtime > 0 && (time() - $max_mtime > 900)) {
+            @unlink($info_path);
+            @unlink($users_path);
+            @unlink($cancel_path);
+            try {
+                $pdo->exec("UPDATE broadcast_history SET status = 'cancelled' WHERE status IN ('in_progress', 'pending')");
+            } catch (Throwable $ignored) {}
+        } else {
+            broadcast_feedback('warn', 'یک عملیات ارسال در حال اجراست. ابتدا باید آن را لغو کنید یا تا پایان آن منتظر بمانید.');
+            exit;
+        }
     }
+
 
     $type = $_POST['type'] ?? 'sendmessage';
     $btnmessage = $_POST['btnmessage'] ?? 'none';
@@ -290,6 +305,7 @@ try {
         $button_data,
     ]);
     $history_id = $pdo->lastInsertId();
+    $info['history_id'] = $history_id;
 
     $users_json = json_encode($formatted_users, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $info_json = json_encode($info, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -306,7 +322,14 @@ try {
     }
     $created_info_file = true;
 
+    // Immediately trigger background execution of sendmessage.php
+    require_once __DIR__ . '/../../function.php';
+    if (function_exists('trigger_broadcast_async')) {
+        trigger_broadcast_async();
+    }
+
     broadcast_feedback('success', 'عملیات با موفقیت تنظیم شد و در پس‌زمینه ارسال خواهد شد. ' . count($formatted_users) . ' کاربر هدف‌گذاری شدند.');
+
     echo '<script>setTimeout(() => window.location.reload(), 2500);</script>';
 } catch (\Throwable $e) {
     if (isset($history_id) && $history_id) {

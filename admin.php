@@ -1458,8 +1458,22 @@ elseif ($datain == "systemsms") {
         $msg_type = "text";
         $content = $userdata['message'];
         $audience = "ارسال به: $typeusermessage (نماینده: $agent)";
-        $pdo->prepare("INSERT INTO broadcast_history (message_type, content, target_audience, created_at, status) VALUES (?, ?, ?, ?, 'in_progress')")
-            ->execute([$msg_type, $content, $audience, time()]);
+        $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, created_at, status) VALUES (?, ?, ?, ?, 'pending', ?)")
+            ->execute([$from_id, $msg_type, $content, $audience, time()]);
+        $history_id = $pdo->lastInsertId();
+
+        $data = json_encode(array(
+            "id_admin" => $from_id,
+            'type' => "sendmessage",
+            "id_message" => $message_id['result']['message_id'],
+            "message" => $userdata['message'],
+            "pingmessage" => $userdata['typepinmessage'],
+            "btnmessage" => $userdata['btntypemessage'],
+            "history_id" => $history_id
+        ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        file_put_contents("cronbot/users.json", $userslist, LOCK_EX);
+        file_put_contents('cronbot/info', $data, LOCK_EX);
+        trigger_broadcast_async();
     } elseif ($typeservice == "forwardmessage" || $typeservice == "forwardlink") {
         if ($agent == "all") {
             if ($typeusermessage == "all") {
@@ -1499,21 +1513,25 @@ elseif ($datain == "systemsms") {
             }
         }
         $message_id = Editmessagetext($from_id, $message_id, $textbotlang['Admin']['adminphp']['ok_1'], $cancelmessage);
+
+        $msg_type = $typeservice == 'forwardlink' ? 'forwardlink' : 'text';
+        $content = $userdata['message'];
+        $audience = "ارسال به: $typeusermessage (نماینده: $agent)";
+        $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, created_at, status) VALUES (?, ?, ?, ?, 'pending', ?)")
+            ->execute([$from_id, $msg_type, $content, $audience, time()]);
+        $history_id = $pdo->lastInsertId();
+
         $data = json_encode(array(
             "id_admin" => $from_id,
             'type' => $typeservice,
             "id_message" => $message_id['result']['message_id'],
             "message" => $userdata['message'],
             "pingmessage" => $userdata['typepinmessage'],
-        ));
-        file_put_contents("cronbot/users.json", $userslist);
-        file_put_contents('cronbot/info', $data);
-
-        $msg_type = $typeservice == 'forwardlink' ? 'forwardlink' : 'text';
-        $content = $userdata['message'];
-        $audience = "ارسال به: $typeusermessage (نماینده: $agent)";
-        $pdo->prepare("INSERT INTO broadcast_history (message_type, content, target_audience, created_at, status) VALUES (?, ?, ?, ?, 'in_progress')")
-            ->execute([$msg_type, $content, $audience, time()]);
+            "history_id" => $history_id
+        ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        file_put_contents("cronbot/users.json", $userslist, LOCK_EX);
+        file_put_contents('cronbot/info', $data, LOCK_EX);
+        trigger_broadcast_async();
     } elseif ($typeservice == "xdaynotmessage") {
         $timedaystamp = intval($userdata['daynoyuse']) * 86400;
         $timenouser = time() - $timedaystamp;
@@ -1564,23 +1582,49 @@ elseif ($datain == "systemsms") {
             }
         }
         $message_id = Editmessagetext($from_id, $message_id, $textbotlang['Admin']['adminphp']['ok_1'], $cancelmessage);
+
+        $msg_type = "xdaynotmessage";
+        $content = $userdata['message'];
+        $audience = "ارسال به: غیرفعال با $userdata[daynoyuse] روز عدم استفاده";
+        $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, created_at, status) VALUES (?, ?, ?, ?, 'pending', ?)")
+            ->execute([$from_id, $msg_type, $content, $audience, time()]);
+        $history_id = $pdo->lastInsertId();
+
         $data = json_encode(array(
             "id_admin" => $from_id,
             'type' => "xdaynotmessage",
             "id_message" => $message_id['result']['message_id'],
             "message" => $userdata['message'],
             "pingmessage" => $userdata['typepinmessage'],
-            "btnmessage" => $userdata['btntypemessage']
-        ));
-        file_put_contents("cronbot/users.json", $userslist);
-        file_put_contents('cronbot/info', $data);
+            "btnmessage" => $userdata['btntypemessage'],
+            "history_id" => $history_id
+        ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        file_put_contents("cronbot/users.json", $userslist, LOCK_EX);
+        file_put_contents('cronbot/info', $data, LOCK_EX);
+        trigger_broadcast_async();
     }
 } elseif ($datain == "cancel_sendmessage") {
-    file_put_contents('users.json', json_encode(array()));
-    unlink('cronbot/users.json');
-    unlink('cronbot/info');
-    deletemessage($from_id, $message_id);
-    sendmessage($from_id, $textbotlang['Admin']['adminphp']['btn_message_2'], null, 'HTML');
+    $lockFile = 'cronbot/sendmessage.lock';
+    $lockFp = @fopen($lockFile, 'w+');
+    $lockAcquired = false;
+    if ($lockFp && flock($lockFp, LOCK_EX | LOCK_NB)) {
+        $lockAcquired = true;
+    }
+    
+    if ($lockAcquired) {
+        @unlink('cronbot/users.json');
+        @unlink('cronbot/info');
+        @unlink('cronbot/cancel_broadcast');
+        flock($lockFp, LOCK_UN);
+        fclose($lockFp);
+        $pdo->query("UPDATE broadcast_history SET status = 'cancelled' WHERE status IN ('in_progress', 'pending', 'cancelling')");
+        deletemessage($from_id, $message_id);
+        sendmessage($from_id, $textbotlang['Admin']['adminphp']['btn_message_2'], null, 'HTML');
+    } else {
+        file_put_contents('cronbot/cancel_broadcast', json_encode(['requested_at' => time()]), LOCK_EX);
+        $pdo->query("UPDATE broadcast_history SET status = 'cancelling' WHERE status IN ('in_progress', 'pending')");
+        sendmessage($from_id, "درخواست لغو ثبت شد. سیستم در حال متوقف کردن فرآیند ارسال است. در صورت توقف به شما اطلاع داده خواهد شد.", null, 'HTML');
+    }
 }
 elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     $iduser = $dataget[1];
