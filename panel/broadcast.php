@@ -4,6 +4,7 @@ require_once '../jdf.php';
 require_auth();
 
 $title = 'ارسال پیام همگانی';
+require 'inc/layout_head.php';
 
 // Self-healing check: Sync DB status with disk lock
 $cron_dir = __DIR__ . '/../cronbot';
