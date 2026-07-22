@@ -4,7 +4,29 @@ require_once '../jdf.php';
 require_auth();
 
 $title = 'ارسال پیام همگانی';
-require 'inc/layout_head.php';
+
+// Self-healing check: Sync DB status with disk lock
+$cron_dir = __DIR__ . '/../cronbot';
+$info_path = $cron_dir . '/info';
+$users_path = $cron_dir . '/users.json';
+$lock_path = $cron_dir . '/sendmessage.lock';
+
+$lockFp = @fopen($lock_path, 'w+');
+$is_locked = false;
+if ($lockFp) {
+    if (!flock($lockFp, LOCK_EX | LOCK_NB)) {
+        $is_locked = true;
+    } else {
+        flock($lockFp, LOCK_UN);
+        fclose($lockFp);
+    }
+}
+
+if (!$is_locked && !is_file($info_path) && !is_file($users_path)) {
+    try {
+        $pdo->exec("UPDATE broadcast_history SET status = 'cancelled' WHERE status IN ('in_progress', 'pending', 'cancelling')");
+    } catch (Throwable $e) {}
+}
 
 // Fetch Broadcast History
 $history_stmt = $pdo->prepare("SELECT * FROM broadcast_history ORDER BY id DESC LIMIT 10");
