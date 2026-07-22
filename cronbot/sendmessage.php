@@ -241,6 +241,7 @@ if (isset($info['btnmessage']) && $info['btnmessage'] !== "none") {
 }
 
 $start_time = time();
+$last_save_time = microtime(true);
 $processed_in_batch = 0;
 $max_batch_size = 1000;
 $max_execution_duration = 50; // Max 50 seconds per invocation
@@ -278,9 +279,9 @@ while (!empty($userid) && $processed_in_batch < $max_batch_size) {
     $batchStart = microtime(true);
     $current_chunk = [];
 
-    // Extract next mini-batch of users
-    while (count($current_chunk) < $mini_batch_size && !empty($userid)) {
-        $raw_entry = array_shift($userid);
+    // Extract next mini-batch of users efficiently (O(N) once per chunk instead of O(N^2))
+    $raw_entries = array_splice($userid, 0, $mini_batch_size);
+    foreach ($raw_entries as $raw_entry) {
         $iduser = broadcast_user_id($raw_entry);
         if ($iduser !== null && $iduser !== '') {
             $current_chunk[] = $iduser;
@@ -288,7 +289,10 @@ while (!empty($userid) && $processed_in_batch < $max_batch_size) {
     }
 
     if (empty($current_chunk)) {
-        file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
+        if (microtime(true) - $last_save_time >= 2.5 || empty($userid)) {
+            file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
+            $last_save_time = microtime(true);
+        }
         continue;
     }
 
@@ -380,8 +384,11 @@ while (!empty($userid) && $processed_in_batch < $max_batch_size) {
         }
     }
 
-    // Save remaining users to disk after every mini-batch
-    file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    // Save remaining users to disk only every 2.5 seconds to reduce Disk I/O bottleneck
+    if (microtime(true) - $last_save_time >= 2.5 || empty($userid)) {
+        file_put_contents($usersFile, json_encode($userid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
+        $last_save_time = microtime(true);
+    }
 
     // If 429 rate limit hit, sleep for retry_after
     if ($rate_limit_retry > 0) {
