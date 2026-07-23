@@ -102,9 +102,13 @@ $schema = [
                 ['name' => 'pay_maxbalancezarinpal', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalancezarinpal'] ?? ''],
                 ['name' => 'pay_chashbackzarinpal', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackzarinpal'] ?? '0'],
             ],
+            'تنظیمات نرخ دلار و ارز' => [
+                ['name' => 'pay_custom_dollar_rate', 'label' => 'نرخ دستی دلار (تومان - 0 = محاسبه خودکار از API)', 'type' => 'number', 'val' => $pay_settings['custom_dollar_rate'] ?? '0'],
+            ],
             'درگاه NowPayment' => [
                 ['name' => 'pay_statusnowpayment', 'label' => 'وضعیت NowPayment', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $pay_settings['statusnowpayment'] ?? '0'],
                 ['name' => 'pay_marchent_tronseller', 'label' => 'API Key (NowPayment)', 'type' => 'text', 'val' => $pay_settings['marchent_tronseller'] ?? ''],
+                ['name' => 'pay_nowpayment_ipn_secret', 'label' => 'IPN Secret Key (تأیید امضای پرداخت)', 'type' => 'text', 'val' => $pay_settings['nowpayment_ipn_secret'] ?? ''],
                 ['name' => 'pay_minbalancenowpayment', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalancenowpayment'] ?? ''],
                 ['name' => 'pay_maxbalancenowpayment', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalancenowpayment'] ?? ''],
                 ['name' => 'pay_cashbacknowpayment', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['cashbacknowpayment'] ?? '0'],
@@ -252,7 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $decoded['f'] = $val;
                 db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [json_encode($decoded), 'maxbalance']);
             } else {
-                db_query($pdo, "UPDATE PaySetting SET ValuePay = ? WHERE NamePay = ?", [$val, $field]);
+                db_query($pdo, "INSERT INTO PaySetting (NamePay, ValuePay) VALUES (?, ?) ON DUPLICATE KEY UPDATE ValuePay = ?", [$field, $val, $val]);
             }
         } elseif(strpos($key, 'shop_chashbackextend_agent_') === 0) {
             $field = substr($key, 27);

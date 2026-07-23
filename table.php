@@ -804,6 +804,8 @@ try {
         ['cashbacknowpayment', '0'],
         ['statusstar', '0'],
         ['statusnowpayment', '0'],
+        ['nowpayment_ipn_secret', ''],
+        ['custom_dollar_rate', '0'],
         ['Exception_auto_cart', '{}'],
         ['marchent_floypay', '0'],
     ];

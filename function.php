@@ -4,6 +4,14 @@ require 'config.php';
 require 'vendor/autoload.php';
 ini_set('error_log', 'error_log');
 
+// Gateway DB field constants (alias mapping to prevent confusion)
+if (!defined('PAY_NOWPAYMENT_API_KEY')) {
+    define('PAY_NOWPAYMENT_API_KEY', 'marchent_tronseller');
+    define('PAY_NOWPAYMENT_IPN_SECRET', 'nowpayment_ipn_secret');
+    define('PAY_PLISIO_API_KEY', 'apinowpayment');
+    define('PAY_CUSTOM_DOLLAR_RATE', 'custom_dollar_rate');
+}
+
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
@@ -523,60 +531,121 @@ function generateUUID()
 }
 function rate_arze()
 {
+    // 1. Check for manual rate override in PaySetting
+    $custom_rate = getPaySettingValue('custom_dollar_rate', '0');
+    if (is_numeric($custom_rate) && intval($custom_rate) > 0) {
+        $usd_rate = intval($custom_rate);
+        $tron_price = 0.12;
+        return [
+            'USD' => $usd_rate,
+            'TRX' => intval($tron_price * $usd_rate)
+        ];
+    }
+
+    // 2. Check 5-minute file cache
+    $cache_file = __DIR__ . '/rate_cache.json';
+    $cache_ttl = 300; // 5 minutes
+    if (file_exists($cache_file)) {
+        $cache_data = @json_decode(file_get_contents($cache_file), true);
+        if (is_array($cache_data) && isset($cache_data['time'], $cache_data['USD'], $cache_data['TRX'])) {
+            if ((time() - $cache_data['time']) < $cache_ttl) {
+                return [
+                    'USD' => intval($cache_data['USD']),
+                    'TRX' => intval($cache_data['TRX'])
+                ];
+            }
+        }
+    }
+
     $arze_rate = [];
-    $requests_tron = @json_decode(file_get_contents('https://api.diadata.org/v1/assetQuotation/Tron/0x0000000000000000000000000000000000000000'), true);
-    
-    // Default fallback rate to prevent crashes
-    $requestsusd = 60000;
-    
-    // First try AbanTether API
-    $abantether = @json_decode(file_get_contents('https://abantether.com/api/v1/coins/'), true);
+    $requestsusd = 0;
     $found = false;
+
+    // Timeout context for file_get_contents
+    $ctx = stream_context_create([
+        'http' => [
+            'timeout' => 5,
+            'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
+        ]
+    ]);
+
+    // 3. Try AbanTether API
+    $abantether_raw = @file_get_contents('https://abantether.com/api/v1/coins/', false, $ctx);
+    $abantether = $abantether_raw ? @json_decode($abantether_raw, true) : null;
     if (is_array($abantether)) {
-        foreach($abantether as $coin) {
+        foreach ($abantether as $coin) {
             if (isset($coin['symbol']) && $coin['symbol'] === 'USDT') {
-                $requestsusd = intval($coin['priceSell']);
-                $found = true;
+                $candidate = intval($coin['priceSell']);
+                // Range sanity check: 30,000 to 3,000,000 Toman
+                if ($candidate >= 30000 && $candidate <= 3000000) {
+                    $requestsusd = $candidate;
+                    $found = true;
+                }
                 break;
             }
         }
     }
-    
-    // Fallback to Nobitex if AbanTether fails
+
+    // 4. Fallback to Nobitex if AbanTether fails
     if (!$found) {
-        $nobitex = @json_decode(file_get_contents('https://api.nobitex.ir/v2/orderbook/USDTIRT'), true);
+        $nobitex_raw = @file_get_contents('https://api.nobitex.ir/v2/orderbook/USDTIRT', false, $ctx);
+        $nobitex = $nobitex_raw ? @json_decode($nobitex_raw, true) : null;
         if (isset($nobitex['lastTradePrice'])) {
-            $requestsusd = intval($nobitex['lastTradePrice']) / 10;
-            $found = true;
-        }
-    }
-    
-    // Old bon-bast logic as final fallback
-    if (!$found) {
-        $context = stream_context_create([
-            'http' => [
-                'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
-            ]
-        ]);
-        $html_read = @file_get_contents("https://www.bon-bast.com/", false, $context);
-        if ($html_read) {
-            preg_match('/<span>\s*([\d,]+)\s*<\/span>/', $html_read, $matches);
-            if (!empty($matches[1])) {
-                $requestsusd = str_replace(',', '', $matches[1]);
+            $candidate = intval($nobitex['lastTradePrice']) / 10;
+            if ($candidate >= 30000 && $candidate <= 3000000) {
+                $requestsusd = $candidate;
+                $found = true;
             }
         }
     }
-    
-    $arze_rate['USD'] = intval($requestsusd);
-    if ($arze_rate['USD'] <= 0) {
-        $arze_rate['USD'] = 60000;
+
+    // 5. Fallback to Bon-bast if both failed
+    if (!$found) {
+        $html_read = @file_get_contents("https://www.bon-bast.com/", false, $ctx);
+        if ($html_read) {
+            if (preg_match('/<td id="usd1">\s*([\d,]+)\s*<\/td>/i', $html_read, $matches) ||
+                preg_match('/<span>\s*([\d,]+)\s*<\/span>/i', $html_read, $matches)) {
+                $candidate = intval(str_replace(',', '', $matches[1]));
+                if ($candidate >= 30000 && $candidate <= 3000000) {
+                    $requestsusd = $candidate;
+                    $found = true;
+                }
+            }
+        }
     }
-    
-    $tron_price = isset($requests_tron['Price']) ? $requests_tron['Price'] : 0.12; // fallback to 0.12$
+
+    // 6. Use previous cache if available as fallback before defaulting to 60000
+    if (!$found && file_exists($cache_file)) {
+        $old_cache = @json_decode(file_get_contents($cache_file), true);
+        if (is_array($old_cache) && isset($old_cache['USD']) && $old_cache['USD'] > 0) {
+            $requestsusd = intval($old_cache['USD']);
+            $found = true;
+        }
+    }
+
+    if (!$found || $requestsusd <= 0) {
+        $requestsusd = 60000;
+    }
+
+    $arze_rate['USD'] = intval($requestsusd);
+
+    // Fetch Tron price
+    $requests_tron_raw = @file_get_contents('https://api.diadata.org/v1/assetQuotation/Tron/0x0000000000000000000000000000000000000000', false, $ctx);
+    $requests_tron = $requests_tron_raw ? @json_decode($requests_tron_raw, true) : null;
+    $tron_price = isset($requests_tron['Price']) ? floatval($requests_tron['Price']) : 0.12;
+    if ($tron_price <= 0) $tron_price = 0.12;
+
     $arze_rate['TRX'] = intval($tron_price * $arze_rate['USD']);
     if ($arze_rate['TRX'] <= 0) {
         $arze_rate['TRX'] = intval(0.12 * $arze_rate['USD']);
     }
+
+    // Save to cache file
+    @file_put_contents($cache_file, json_encode([
+        'time' => time(),
+        'USD' => $arze_rate['USD'],
+        'TRX' => $arze_rate['TRX']
+    ]));
 
     return $arze_rate;
 }
@@ -635,11 +704,13 @@ function StatusPayment($paymentid)
     $apinowpayments = select("PaySetting", "*", "NamePay", "marchent_tronseller", "select")['ValuePay'];
     $curl = curl_init();
     curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://api.nowpayments.io/v1/payment/' . $paymentid,
+        CURLOPT_URL => 'https://api.nowpayments.io/v1/payment/' . urlencode($paymentid),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_SSL_VERIFYPEER => 1,
+        CURLOPT_SSL_VERIFYHOST => 2,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'GET',
@@ -650,7 +721,7 @@ function StatusPayment($paymentid)
     $response = curl_exec($curl);
     $response = json_decode($response, true);
     curl_close($curl);
-    return $response;
+    return is_array($response) ? $response : [];
 }
 function sanitizeTelegramJoinUrl($url, $defaultLink = '') {
     $url = trim($url);
@@ -1349,9 +1420,11 @@ function plisio($order_id, $price)
     $url .= '&api_key=' . urlencode($api_key);
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = json_decode(curl_exec($ch), true);
-    return $response['data'];
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $exec = curl_exec($ch);
     curl_close($ch);
+    $response = json_decode($exec, true);
+    return $response['data'] ?? null;
 }
 function checkConnection($address, $port)
 {

@@ -5877,13 +5877,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $randomString = bin2hex(random_bytes(5));
         $invoice = "{$user['Processing_value_tow']}|{$user['Processing_value_one']}";
         $pay = nowPayments('invoice', $usdprice, $randomString, "order");
-        $stmt = $connect->prepare("INSERT INTO Payment_report (id_user,id_order,time,price,payment_Status,Payment_Method,id_invoice,dec_not_confirmed) VALUES (?,?,?,?,?,?,?,?)");
-        $payment_Status = "Unpaid";
-        $Payment_Method = "nowpayment";
-        $stmt->bind_param("ssssssss", $from_id, $randomString, $dateacc, $user['Processing_value'], $payment_Status, $Payment_Method, $invoice, $pay['id']);
-        $stmt->execute();
         if (!isset($pay['id'])) {
-            $text_error = json_encode($pay);
+            $text_error = is_array($pay) ? json_encode($pay) : (string)$pay;
             sendmessage($from_id, $textbotlang['users']['Balance']['errorLinkPayment'], $keyboard, 'HTML');
             step('home', $from_id);
             $ErrorsLinkPayment = sprintf($textbotlang['hardcoded']['cryptoPaymentLinkErrorAdmin2'], $text_error, $from_id, $username);
@@ -5897,6 +5892,11 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             }
             return;
         }
+        $stmt = $connect->prepare("INSERT INTO Payment_report (id_user,id_order,time,price,payment_Status,Payment_Method,id_invoice,dec_not_confirmed) VALUES (?,?,?,?,?,?,?,?)");
+        $payment_Status = "Unpaid";
+        $Payment_Method = "nowpayment";
+        $stmt->bind_param("ssssssss", $from_id, $randomString, $dateacc, $user['Processing_value'], $payment_Status, $Payment_Method, $invoice, $pay['id']);
+        $stmt->execute();
         $paymentkeyboard = json_encode([
             'inline_keyboard' => [
                 [
@@ -6057,9 +6057,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         updatePaymentMessageId($message_id, $randomString);
     } elseif ($datain == "iranpay3") {
         $dateacc = date('Y/m/d');
-        $query = "SELECT SUM(price) as price FROM Payment_report WHERE  Payment_Method = 'Currency Rial 1' AND  time LIKE '%$dateacc%'";
+        $query = "SELECT SUM(price) as price FROM Payment_report WHERE Payment_Method = 'Currency Rial 1' AND time LIKE :dateacc";
         $stmt = $pdo->prepare($query);
-        $stmt->execute();
+        $stmt->execute([':dateacc' => '%' . $dateacc . '%']);
         $sumpayment = $stmt->fetch(PDO::FETCH_ASSOC);
         if (intval($sumpayment['price']) > 1000000) {
             sendmessage($from_id, $textbotlang['hardcoded']['paymentQueueBusyNotice'], null, 'HTML');
@@ -6190,14 +6190,13 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $message_id = sendmessage($from_id, $textnowpayments, $paymentkeyboard, 'HTML');
         updatePaymentMessageId($message_id, $randomString);
     } elseif ($datain == "startelegrams") {
-        $rates = rate_arze(['USD', 'Ton']);
+        $rates = rate_arze();
         if ($rates === null) {
             sendmessage($from_id, $textbotlang['users']['Balance']['errorLinkPayment'], $keyboard, 'HTML');
             step('home', $from_id);
             return;
         }
         $usd = $rates['USD'];
-        $ton = $rates['Ton'];
         $usdprice = round($user['Processing_value'] / $usd, 2);
         $starAmount = $usd * 0.016;
         $starAmount = intval($user['Processing_value'] / $starAmount);

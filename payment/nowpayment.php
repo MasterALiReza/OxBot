@@ -11,7 +11,30 @@ $ManagePanel = new ManagePanel();
 $setting = select("setting", "*");
 $paymentreports = select("topicid", "idreport", "report", "paymentreport", "select")['idreport'];
 $textbotlang = languagechange('../text.json');
-$data = json_decode(file_get_contents("php://input"), true);
+
+// ───────────────────────────────────────────────────
+// Security: Verify NOWPayments IPN Signature (HMAC-SHA512)
+// Without this check, anyone can forge a webhook and get free balance.
+// ───────────────────────────────────────────────────
+$raw_body = file_get_contents("php://input");
+$ipn_secret = getPaySettingValue('nowpayment_ipn_secret', '');
+
+if (!empty($ipn_secret)) {
+    $sig_header = $_SERVER['HTTP_X_NOWPAYMENTS_SIG'] ?? '';
+    if (empty($sig_header)) {
+        error_log('[NOWPayments IPN] Missing x-nowpayments-sig header from IP: ' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+        http_response_code(401);
+        exit('Unauthorized: Missing signature');
+    }
+    $expected_sig = hash_hmac('sha512', $raw_body, $ipn_secret);
+    if (!hash_equals($expected_sig, strtolower($sig_header))) {
+        error_log('[NOWPayments IPN] Invalid signature from IP: ' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+        http_response_code(401);
+        exit('Unauthorized: Invalid signature');
+    }
+}
+
+$data = json_decode($raw_body, true);
 if (isset($data['payment_status']) && $data['payment_status'] == "finished") {
     $pay = StatusPayment($data['payment_id']);
     if ($pay['payment_status'] != "finished")

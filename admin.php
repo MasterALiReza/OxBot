@@ -4271,6 +4271,14 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     sendmessage($from_id, $textbotlang['Admin']['SettingnowPayment']['saveApi'], $keyboardadmin, 'HTML');
     update("PaySetting", "ValuePay", $text, "NamePay", "marchent_tronseller");
     step('home', $from_id);
+} elseif ($text == "IPN SECRET NOWPAYMENT") {
+    $PaySetting = select("PaySetting", "ValuePay", "NamePay", "nowpayment_ipn_secret")['ValuePay'];
+    sendmessage($from_id, "لطفاً IPN Secret Key درگاه NOWPayments را ارسال کنید:\n\nمقدار فعلی: <code>$PaySetting</code>", $backadmin, 'HTML');
+    step('nowpayment_ipn_secret', $from_id);
+} elseif ($user['step'] == "nowpayment_ipn_secret") {
+    sendmessage($from_id, "✅ IPN Secret با موفقیت ذخیره شد.", $keyboardadmin, 'HTML');
+    update("PaySetting", "ValuePay", $text, "NamePay", "nowpayment_ipn_secret");
+    step('home', $from_id);
 } elseif ($datain == "aqayepardakhtsetting" && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $aqayepardakht, 'HTML');
 } elseif ($datain == "zarinpalsetting" && $adminrulecheck['rule'] == "administrator") {
