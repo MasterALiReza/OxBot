@@ -1430,37 +1430,55 @@ function update_bot() {
         rm -rf "$TEMP_DIR"
         exit 1
     fi
-    # Backup config file
+    # Backup config file safely before touching anything
     CONFIG_PATH="$BOT_DIR/config.php"
     TEMP_CONFIG="/root/mirzapro_config_backup.php"
     if [ -f "$CONFIG_PATH" ]; then
         cp "$CONFIG_PATH" "$TEMP_CONFIG" || {
-            echo -e "\e[91mConfig file backup failed!\033[0m"
+            echo -e "\e[91mConfig file backup failed! Aborting update.\033[0m"
+            rm -rf "$TEMP_DIR"
             exit 1
         }
     else
         echo -e "\e[93mWarning: config.php not found. Proceeding without backup.\033[0m"
     fi
-    # Remove old version
-    sudo rm -rf "$BOT_DIR" || {
-        echo -e "\e[91mFailed to remove old bot files!\033[0m"
-        exit 1
-    }
-    # Move new files
-    sudo mkdir -p "$BOT_DIR"
+
+    # --- Task 1: Stop Apache to prevent webhook processes from locking files ---
+    echo -e "\e[33mPausing Apache for safe file sync...\033[0m"
+    sudo systemctl stop apache2 2>/dev/null || true
+
+    # --- Task 2: Safe in-place sync — clear CONTENTS of $BOT_DIR, keep the dir itself ---
+    # We never delete $BOT_DIR itself; rm -rf on it fails when Apache/PHP locks a file inside.
+    echo -e "\e[33mDeploying updated bot files...\033[0m"
+    sudo find "$BOT_DIR" -mindepth 1 \
+        ! -name 'config.php' \
+        -exec rm -rf {} + 2>/dev/null || true
+
+    # --- Task 3: Copy new files — with full recovery block on failure ---
     sudo cp -a "$EXTRACTED_DIR"/. "$BOT_DIR/" || {
-        echo -e "\e[91mFile transfer failed!\033[0m"
+        echo -e "\e[91mFile transfer failed! Attempting recovery...\033[0m"
+        # Restore config so bot isn't left without credentials
+        if [ -f "$TEMP_CONFIG" ]; then
+            sudo cp "$TEMP_CONFIG" "$CONFIG_PATH" 2>/dev/null || true
+        fi
+        # Task 4 (recovery path): Always bring Apache back up
+        sudo systemctl start apache2 2>/dev/null || true
+        rm -rf "$TEMP_DIR"
         exit 1
     }
-    # Restore config file
+
+    # --- Task 5: Restore config.php using cp (not mv) — backup survives if cp fails ---
     if [ -f "$TEMP_CONFIG" ]; then
-        sudo mv "$TEMP_CONFIG" "$CONFIG_PATH" || {
-            echo -e "\e[91mConfig file restore failed!\033[0m"
-            exit 1
+        sudo cp "$TEMP_CONFIG" "$CONFIG_PATH" || {
+            echo -e "\e[91mConfig file restore failed! Backup kept at: $TEMP_CONFIG\033[0m"
         }
+        rm -f "$TEMP_CONFIG"
         # Sanitize domainhosts to remove /mirzaprobotconfig from older versions
-        sudo sed -i 's|/mirzaprobotconfig||g' "$CONFIG_PATH"
+        sudo sed -i 's|/mirzaprobotconfig||g' "$CONFIG_PATH" 2>/dev/null || true
     fi
+
+    # --- Task 4: Bring Apache back up after successful sync ---
+    sudo systemctl start apache2 2>/dev/null || true
     # Copy the new install.sh to /root/ to ensure script self-update works next time
     if [ -f "$BOT_DIR/install.sh" ]; then
         sudo cp "$BOT_DIR/install.sh" /root/install.sh
