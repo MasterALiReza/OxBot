@@ -1781,6 +1781,28 @@ include __DIR__ . '/inc/layout_head.php';
             });
     }
 
+    function submitEditVolume(e, form, invoiceId) {
+        e.preventDefault();
+        var fd = new FormData(form);
+        var resBox = document.getElementById('edit-vol-msg-' + encodeURIComponent(invoiceId));
+        if (!resBox) return;
+        resBox.style.display = 'block';
+        resBox.innerHTML = '<span style="color:var(--mute);">در حال ثبت تغییرات...</span>';
+        fetch('ajax/edit_volume.php', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(d => {
+                if (d.ok) {
+                    resBox.innerHTML = '<span style="color:#22c55e;">' + d.msg + '</span>';
+                    setTimeout(function(){ manageService(invoiceId); }, 1200);
+                } else {
+                    resBox.innerHTML = '<span style="color:#f43f5e;">' + (d.msg || 'خطا در ویرایش حجم') + '</span>';
+                }
+            })
+            .catch(err => {
+                resBox.innerHTML = '<span style="color:#f43f5e;">خطا در ارتباط با سرور</span>';
+            });
+    }
+
     function updateProductList() {
         const panelSelect = document.getElementById('orderPanelSelect');
         const productSelect = document.getElementById('orderProductSelect');

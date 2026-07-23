@@ -559,26 +559,7 @@ try {
             <div style="font-weight: 600; font-size: 0.9em; margin-bottom: 10px; color: #a855f7; display: flex; align-items: center; gap: 6px;">
                 <?= icon('database', 14) ?> ویرایش حجم سرویس
             </div>
-            <form id="form-edit-vol-<?= urlencode($id_invoice) ?>" onsubmit="
-                event.preventDefault();
-                var fd = new FormData(this);
-                var resBox = document.getElementById('edit-vol-msg-<?= urlencode($id_invoice) ?>');
-                resBox.style.display = 'block';
-                resBox.innerHTML = '<span style=\"color:var(--mute);\">در حال ثبت تغییرات...</span>';
-                fetch('ajax/edit_volume.php', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.ok) {
-                        resBox.innerHTML = '<span style=\"color:#22c55e;\">' + d.msg + '</span>';
-                        setTimeout(function(){ manageService('<?= $id_invoice ?>'); }, 1200);
-                    } else {
-                        resBox.innerHTML = '<span style=\"color:#f43f5e;\">' + (d.msg || 'خطا در ویرایش حجم') + '</span>';
-                    }
-                })
-                .catch(err => {
-                    resBox.innerHTML = '<span style=\"color:#f43f5e;\">خطا در ارتباط با سرور</span>';
-                });
-            ">
+            <form id="form-edit-vol-<?= urlencode($id_invoice) ?>" onsubmit="submitEditVolume(event, this, '<?= htmlspecialchars($id_invoice, ENT_QUOTES) ?>')">
                 <input type="hidden" name="_csrf" value="<?= $csrf ?>">
                 <input type="hidden" name="id_user" value="<?= $id_user ?>">
                 <input type="hidden" name="id_invoice" value="<?= htmlspecialchars($id_invoice) ?>">
