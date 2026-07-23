@@ -1445,6 +1445,13 @@
     .price-inputs-row .input {
         text-align: right !important;
     }
+    .price-inputs-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+    .price-item-block {
+        padding: 12px 10px !important;
+    }
 }
 
 /* Responsive Dash Grid 2 (wraps to 1 column on smaller desktops/tablets) */

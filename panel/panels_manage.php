@@ -116,18 +116,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $changeloc = trim($_POST['changeloc'] ?? 'offchangeloc');
     $subvip = trim($_POST['subvip'] ?? 'offsubvip');
     
-    $mainvolume = json_encode(['f' => $_POST['mainvolume_f'] ?? "1", 'n' => $_POST['mainvolume_n'] ?? "1", 'n2' => $_POST['mainvolume_n2'] ?? "1"]);
-    $maxvolume = json_encode(['f' => $_POST['maxvolume_f'] ?? "1000", 'n' => $_POST['maxvolume_n'] ?? "1000", 'n2' => $_POST['maxvolume_n2'] ?? "1000"]);
-    $maintime = json_encode(['f' => $_POST['maintime_f'] ?? "1", 'n' => $_POST['maintime_n'] ?? "1", 'n2' => $_POST['maintime_n2'] ?? "1"]);
-    $maxtime = json_encode(['f' => $_POST['maxtime_f'] ?? "365", 'n' => $_POST['maxtime_n'] ?? "365", 'n2' => $_POST['maxtime_n2'] ?? "365"]);
-    $customvolume = json_encode(['f' => $_POST['customvolume_f'] ?? "0", 'n' => $_POST['customvolume_n'] ?? "0", 'n2' => $_POST['customvolume_n2'] ?? "0"]);
+    $sanitizeTierInput = function($key, $default = "0") {
+        $f = trim($_POST[$key . '_f'] ?? '');
+        $n = trim($_POST[$key . '_n'] ?? '');
+        $n2 = trim($_POST[$key . '_n2'] ?? '');
+        return json_encode([
+            'f' => ($f !== '' && is_numeric($f)) ? $f : $default,
+            'n' => ($n !== '' && is_numeric($n)) ? $n : $default,
+            'n2' => ($n2 !== '' && is_numeric($n2)) ? $n2 : $default
+        ]);
+    };
     
-    $priceextravolume = json_encode(['f' => $_POST['priceextravolume_f'] ?? "4000", 'n' => $_POST['priceextravolume_n'] ?? "4000", 'n2' => $_POST['priceextravolume_n2'] ?? "4000"]);
-    $pricecustomvolume = json_encode(['f' => $_POST['pricecustomvolume_f'] ?? "4000", 'n' => $_POST['pricecustomvolume_n'] ?? "4000", 'n2' => $_POST['pricecustomvolume_n2'] ?? "4000"]);
-    $pricecustomtime = json_encode(['f' => $_POST['pricecustomtime_f'] ?? "4000", 'n' => $_POST['pricecustomtime_n'] ?? "4000", 'n2' => $_POST['pricecustomtime_n2'] ?? "4000"]);
-    $priceextratime = json_encode(['f' => $_POST['priceextratime_f'] ?? "4000", 'n' => $_POST['priceextratime_n'] ?? "4000", 'n2' => $_POST['priceextratime_n2'] ?? "4000"]);
+    $mainvolume = $sanitizeTierInput('mainvolume', "1");
+    $maxvolume = $sanitizeTierInput('maxvolume', "1000");
+    $maintime = $sanitizeTierInput('maintime', "1");
+    $maxtime = $sanitizeTierInput('maxtime', "365");
+    $customvolume = $sanitizeTierInput('customvolume', "0");
+    
+    $priceextravolume = $sanitizeTierInput('priceextravolume', "4000");
+    $pricecustomvolume = $sanitizeTierInput('pricecustomvolume', "4000");
+    $pricecustomtime = $sanitizeTierInput('pricecustomtime', "4000");
+    $priceextratime = $sanitizeTierInput('priceextratime', "4000");
     
     $priceChangeloc = trim($_POST['priceChangeloc'] ?? '0');
+    if (!is_numeric($priceChangeloc)) $priceChangeloc = '0';
     
     $panel_category_id = trim($_POST['panel_category_id'] ?? '');
     if ($panel_category_id === '') $panel_category_id = null;
@@ -341,6 +353,7 @@ include __DIR__ . '/inc/layout_head.php';
                             'mainvolume' => $p['mainvolume'], 'maxvolume' => $p['maxvolume'],
                             'maintime' => $p['maintime'], 'maxtime' => $p['maxtime'], 'customvolume' => $p['customvolume'],
                             'priceextravolume' => $p['priceextravolume'], 'pricecustomvolume' => $p['pricecustomvolume'],
+                            'pricecustomtime' => $p['pricecustomtime'],
                             'priceextratime' => $p['priceextratime'],
                             'priceChangeloc' => $p['priceChangeloc'],
                             'panel_category_id' => $p['panel_category_id'],
@@ -411,21 +424,21 @@ include __DIR__ . '/inc/layout_head.php';
             </button>
         </div>
         
-        <div class="tabs-nav-wrapper" style="padding:0 20px 15px; border-bottom:1px solid var(--bd);">
+        <div class="tabs-nav-wrapper" style="padding:0 20px 15px; border-bottom:1px solid var(--bd); position:relative;">
             <div class="tabs-nav" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;">
-                <button type="button" class="tab-btn active" onclick="switchTab('tab-general')" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
+                <button type="button" class="tab-btn active" onclick="switchTab('tab-general', this)" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
                     <?= icon('settings', 16) ?> اصلی
                 </button>
-                <button type="button" class="tab-btn" onclick="switchTab('tab-inbounds')" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
+                <button type="button" class="tab-btn" onclick="switchTab('tab-inbounds', this)" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
                     <?= icon('link', 16) ?> اینباند
                 </button>
-                <button type="button" class="tab-btn" onclick="switchTab('tab-users')" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
+                <button type="button" class="tab-btn" onclick="switchTab('tab-users', this)" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
                     <?= icon('users', 16) ?> کاربران
                 </button>
-                <button type="button" class="tab-btn" onclick="switchTab('tab-tests')" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
+                <button type="button" class="tab-btn" onclick="switchTab('tab-tests', this)" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
                     <?= icon('clock', 16) ?> تست و تمدید
                 </button>
-                <button type="button" class="tab-btn" onclick="switchTab('tab-prices')" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
+                <button type="button" class="tab-btn" onclick="switchTab('tab-prices', this)" style="border-radius:10px;padding:8px 16px;white-space:nowrap;transition:all 0.3s;font-weight:600;display:flex;align-items:center;gap:6px;">
                     <?= icon('credit-card', 16) ?> قیمت‌ها
                 </button>
             </div>
@@ -687,44 +700,123 @@ include __DIR__ . '/inc/layout_head.php';
 
                 <!-- TAB 5: PRICES & LIMITS -->
                 <div id="tab-prices" class="tab-content">
-                    <p style="font-size:12px;color:var(--ts);margin-top:0;margin-bottom:15px">تمامی محدودیت‌ها و قیمت‌ها برای هر سه سطح فروشنده قابل شخصی‌سازی است.</p>
-                    
-                    <?php 
-                    $priceFields = [
-                        ['id'=>'mainvolume', 'label'=>'حجم اصلی (GB)'],
-                        ['id'=>'maxvolume', 'label'=>'حداکثر حجم مجاز (GB)'],
-                        ['id'=>'maintime', 'label'=>'زمان اصلی (روز)'],
-                        ['id'=>'maxtime', 'label'=>'حداکثر زمان مجاز (روز)'],
-                        ['id'=>'customvolume', 'label'=>'حجم دلخواه مجاز (1 یا 0)'],
-                        ['id'=>'priceextravolume', 'label'=>'قیمت حجم اضافه (تومان)'],
-                        ['id'=>'pricecustomvolume', 'label'=>'قیمت حجم دلخواه (تومان)'],
-                        ['id'=>'pricecustomtime', 'label'=>'قیمت زمان دلخواه (تومان)'],
-                        ['id'=>'priceextratime', 'label'=>'قیمت زمان اضافه (تومان)']
-                    ];
-                    
-                    foreach($priceFields as $pf): ?>
-                        <div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:15px">
-                            <label style="display:block;margin-bottom:8px;font-weight:600;font-size:13px;color:var(--text)"><?= $pf['label'] ?></label>
-                            <div class="price-inputs-row">
-                                <div style="flex:1">
-                                    <small style="color:var(--ts)">عادی (f)</small>
-                                    <input type="text" name="<?= $pf['id'] ?>_f" id="<?= $pf['id'] ?>_f" class="input" style="direction:ltr;text-align:center">
+                    <div class="prices-tab-intro" style="background:var(--bg-sec); border:1px solid var(--bd); border-radius:12px; padding:12px 16px; margin-bottom:20px; display:flex; align-items:center; gap:10px;">
+                        <div class="icon-glow" style="color:var(--ac); background:rgba(var(--ac-rgb, 59,130,246),0.12); padding:8px; border-radius:10px; flex-shrink:0;">
+                            <?= icon('credit-card', 18) ?>
+                        </div>
+                        <div>
+                            <div style="font-weight:700; font-size:0.9rem; color:var(--fg); margin-bottom:2px;">تنظیمات قیمت و محدودیت‌های پنل</div>
+                            <div style="font-size:0.8rem; color:var(--ts);">تمام مقادیر برای ۳ سطح فروشنده (عادی، نماینده درصددهی و عمده) قابل شخصی‌سازی است. روی علامت <b>!</b> نگه دارید تا راهنمای هر بخش را ببینید.</div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP 1: LIMITS & VOLUMES -->
+                    <div class="price-category-card">
+                        <div class="price-category-header">
+                            <span class="price-category-icon">📦</span>
+                            <span class="price-category-title">محدودیت‌ها و حجم / زمان اولیه</span>
+                        </div>
+                        <div class="price-fields-container">
+                            <?php 
+                            $limitFields = [
+                                ['id'=>'mainvolume', 'label'=>'حجم اصلی', 'unit'=>'GB', 'tooltip'=>'حجم اولیه و پیش‌فرض هنگام ساخت سرویس جدید در این پنل.'],
+                                ['id'=>'maxvolume', 'label'=>'حداکثر حجم مجاز', 'unit'=>'GB', 'tooltip'=>'حداکثر حجمی که نمایندگان این سطح مجاز هستند برای کاربر تعیین کنند.'],
+                                ['id'=>'maintime', 'label'=>'زمان اصلی', 'unit'=>'روز', 'tooltip'=>'مدت زمان اولیه و پیش‌فرض سرویس جدید به روز.'],
+                                ['id'=>'maxtime', 'label'=>'حداکثر زمان مجاز', 'unit'=>'روز', 'tooltip'=>'حداکثر تعداد روزی که نمایندگان این سطح مجازند سرویس بسازند.'],
+                                ['id'=>'customvolume', 'label'=>'حجم دلخواه مجاز', 'unit'=>'1 یا 0', 'tooltip'=>'عدد 1 یعنی نماینده اجازه وارد کردن حجم دلخواه دارد، عدد 0 یعنی خیر.']
+                            ];
+                            foreach($limitFields as $pf): ?>
+                                <div class="price-item-block">
+                                    <div class="price-item-header">
+                                        <div class="price-item-label-wrap">
+                                            <span class="price-item-label"><?= $pf['label'] ?></span>
+                                            <span class="price-item-unit">(<?= $pf['unit'] ?>)</span>
+                                        </div>
+                                        <div class="custom-tooltip-wrapper">
+                                            <button type="button" class="tooltip-trigger-btn" aria-label="راهنما">!</button>
+                                            <div class="custom-tooltip-box"><?= $pf['tooltip'] ?></div>
+                                        </div>
+                                    </div>
+                                    <div class="price-inputs-grid">
+                                        <div class="tier-input-box">
+                                            <label for="<?= $pf['id'] ?>_f" class="tier-tag tier-f">عادی (f)</label>
+                                            <input type="text" name="<?= $pf['id'] ?>_f" id="<?= $pf['id'] ?>_f" class="input price-input" placeholder="0">
+                                        </div>
+                                        <div class="tier-input-box">
+                                            <label for="<?= $pf['id'] ?>_n" class="tier-tag tier-n">درصددهی (n)</label>
+                                            <input type="text" name="<?= $pf['id'] ?>_n" id="<?= $pf['id'] ?>_n" class="input price-input" placeholder="0">
+                                        </div>
+                                        <div class="tier-input-box">
+                                            <label for="<?= $pf['id'] ?>_n2" class="tier-tag tier-n2">عمده (n2)</label>
+                                            <input type="text" name="<?= $pf['id'] ?>_n2" id="<?= $pf['id'] ?>_n2" class="input price-input" placeholder="0">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div style="flex:1">
-                                    <small style="color:var(--ts)">درصددهی (n)</small>
-                                    <input type="text" name="<?= $pf['id'] ?>_n" id="<?= $pf['id'] ?>_n" class="input" style="direction:ltr;text-align:center">
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <!-- GROUP 2: PRICING RATES -->
+                    <div class="price-category-card" style="margin-top:20px;">
+                        <div class="price-category-header">
+                            <span class="price-category-icon">💰</span>
+                            <span class="price-category-title">تعرفه‌ها و قیمت‌گذاری</span>
+                        </div>
+                        <div class="price-fields-container">
+                            <?php 
+                            $pricingFields = [
+                                ['id'=>'priceextravolume', 'label'=>'قیمت حجم اضافه', 'unit'=>'تومان / GB', 'tooltip'=>'قیمت هر گیگابایت حجم اضافی که کاربر یا نماینده هنگام تمدید یا افزایش حجم خریداری می‌کند.'],
+                                ['id'=>'pricecustomvolume', 'label'=>'قیمت حجم دلخواه', 'unit'=>'تومان / GB', 'tooltip'=>'قیمت محاسبه هر گیگابایت حجم در سرویس‌های حجم دلخواه.'],
+                                ['id'=>'pricecustomtime', 'label'=>'قیمت زمان دلخواه', 'unit'=>'تومان / روز', 'tooltip'=>'قیمت محاسبه هر روز زمان در سفارشات زمان دلخواه.'],
+                                ['id'=>'priceextratime', 'label'=>'قیمت زمان اضافه', 'unit'=>'تومان / روز', 'tooltip'=>'قیمت هر روز زمان اضافه شده در تمدید یا افزایش زمان سرویس.']
+                            ];
+                            foreach($pricingFields as $pf): ?>
+                                <div class="price-item-block">
+                                    <div class="price-item-header">
+                                        <div class="price-item-label-wrap">
+                                            <span class="price-item-label"><?= $pf['label'] ?></span>
+                                            <span class="price-item-unit">(<?= $pf['unit'] ?>)</span>
+                                        </div>
+                                        <div class="custom-tooltip-wrapper">
+                                            <button type="button" class="tooltip-trigger-btn" aria-label="راهنما">!</button>
+                                            <div class="custom-tooltip-box"><?= $pf['tooltip'] ?></div>
+                                        </div>
+                                    </div>
+                                    <div class="price-inputs-grid">
+                                        <div class="tier-input-box">
+                                            <label for="<?= $pf['id'] ?>_f" class="tier-tag tier-f">عادی (f)</label>
+                                            <input type="text" name="<?= $pf['id'] ?>_f" id="<?= $pf['id'] ?>_f" class="input price-input" placeholder="0">
+                                        </div>
+                                        <div class="tier-input-box">
+                                            <label for="<?= $pf['id'] ?>_n" class="tier-tag tier-n">درصددهی (n)</label>
+                                            <input type="text" name="<?= $pf['id'] ?>_n" id="<?= $pf['id'] ?>_n" class="input price-input" placeholder="0">
+                                        </div>
+                                        <div class="tier-input-box">
+                                            <label for="<?= $pf['id'] ?>_n2" class="tier-tag tier-n2">عمده (n2)</label>
+                                            <input type="text" name="<?= $pf['id'] ?>_n2" id="<?= $pf['id'] ?>_n2" class="input price-input" placeholder="0">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div style="flex:1">
-                                    <small style="color:var(--ts)">عمده (n2)</small>
-                                    <input type="text" name="<?= $pf['id'] ?>_n2" id="<?= $pf['id'] ?>_n2" class="input" style="direction:ltr;text-align:center">
+                            <?php endforeach; ?>
+
+                            <!-- GLOBAL PRICE FIELD: CHANGE LOCATION -->
+                            <div class="price-item-block global-price-block">
+                                <div class="price-item-header">
+                                    <div class="price-item-label-wrap">
+                                        <span class="price-item-label">قیمت تغییر لوکیشن</span>
+                                        <span class="price-item-unit">(تومان - سراسری)</span>
+                                    </div>
+                                    <div class="custom-tooltip-wrapper">
+                                        <button type="button" class="tooltip-trigger-btn" aria-label="راهنما">!</button>
+                                        <div class="custom-tooltip-box">هزینه ثابت انتقال یا تغییر لوکیشن سرویس کاربر به این پنل (برای همه نمایندگان یکسان است).</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top:8px;">
+                                    <input type="text" name="priceChangeloc" id="panelPriceChangeloc" class="input price-input" placeholder="0" style="direction:ltr; text-align:center; max-width:250px;">
                                 </div>
                             </div>
+
                         </div>
-                    <?php endforeach; ?>
-                    
-                    <div class="field-group">
-                        <label>قیمت تغییر لوکیشن (تومان - سراسری)</label>
-                        <input type="text" name="priceChangeloc" id="panelPriceChangeloc" class="input" placeholder="0" style="direction:ltr;text-align:center">
                     </div>
                 </div>
 
@@ -894,17 +986,243 @@ include __DIR__ . '/inc/layout_head.php';
     .inbound-card-footer {
         font-size: 10px;
     }
+/* Modern Prices Tab & Tooltip Styling */
+.price-category-card {
+    background: var(--bg-sec);
+    border: 1px solid var(--bd);
+    border-radius: 14px;
+    padding: 16px;
+    transition: all 0.3s ease;
+}
+.price-category-card:hover {
+    border-color: var(--bds);
+}
+.price-category-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border-bottom: 1px dashed var(--bd);
+}
+.price-category-icon {
+    font-size: 1.2rem;
+}
+.price-category-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--fg);
+}
+.price-fields-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.price-item-block {
+    background: var(--bg);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.price-item-block:hover {
+    border-color: rgba(var(--ac-rgb, 59,130,246), 0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+.price-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.price-item-label-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.price-item-label {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--fg);
+}
+.price-item-unit {
+    font-size: 0.75rem;
+    color: var(--ts);
+    direction: ltr;
+}
+
+/* Tooltip System with '!' Trigger Button */
+.custom-tooltip-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+.tooltip-trigger-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ac);
+    background: rgba(var(--ac-rgb, 59,130,246), 0.1);
+    color: var(--ac);
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+    line-height: 1;
+    user-select: none;
+}
+.tooltip-trigger-btn:hover,
+.tooltip-trigger-btn:focus {
+    background: var(--ac);
+    color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(var(--ac-rgb, 59,130,246), 0.4);
+}
+.custom-tooltip-box {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: max-content;
+    max-width: 240px;
+    text-align: right;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 100;
+    white-space: normal;
+}
+.custom-tooltip-box::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1e293b;
+}
+.custom-tooltip-wrapper:hover .custom-tooltip-box,
+.custom-tooltip-wrapper:focus-within .custom-tooltip-box,
+.custom-tooltip-wrapper.active .custom-tooltip-box {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Tier Inputs Grid */
+.price-inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+.tier-input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.tier-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+}
+.tier-f {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.tier-n {
+    background: rgba(168, 85, 247, 0.12);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+}
+.tier-n2 {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.price-input {
+    direction: ltr;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 8px !important;
+}
+
+@media (max-width: 600px) {
+    .price-inputs-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    .tier-input-box {
+        flex-direction: row;
+        align-items: center;
+    }
+    .tier-tag {
+        min-width: 90px;
+        text-align: center;
+        padding: 8px 6px;
+    }
+    .price-input {
+        flex: 1;
+        text-align: right;
+        padding-right: 12px;
+    }
+    .custom-tooltip-box {
+        max-width: 200px;
+        font-size: 0.75rem;
+    }
 }
 </style>
 
 <script>
-function switchTab(tabId) {
+function switchTab(tabId, btnTarget = null) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     
-    document.getElementById(tabId).classList.add('active');
-    event.currentTarget.classList.add('active');
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+    
+    if (btnTarget) {
+        btnTarget.classList.add('active');
+    } else {
+        const btn = document.querySelector(`.tab-btn[onclick*="${tabId}"]`);
+        if (btn) btn.classList.add('active');
+    }
 }
+
+// Mobile tap handler for tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.tooltip-trigger-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const wrapper = this.closest('.custom-tooltip-wrapper');
+            const isActive = wrapper.classList.contains('active');
+            document.querySelectorAll('.custom-tooltip-wrapper').forEach(w => w.classList.remove('active'));
+            if (!isActive) wrapper.classList.add('active');
+        });
+    });
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.custom-tooltip-wrapper').forEach(w => w.classList.remove('active'));
+    });
+});
 
 function togglePasswordEdit() {
     const cb = document.getElementById('changePasswordToggle');

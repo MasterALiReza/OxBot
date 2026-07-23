@@ -5950,8 +5950,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $stmt->bind_param("sssssss", $from_id, $randomString, $dateacc, $user['Processing_value'], $payment_Status, $Payment_Method, $invoice);
         $stmt->execute();
         $pay = createInvoiceiranpay1($user['Processing_value'], $randomString);
-        if ($pay['status'] != "100") {
-            $text_error = $pay['message'];
+        if (!isset($pay['id'])) {
+            $text_error = isset($pay['message']) ? $pay['message'] : (isset($pay['error']) ? $pay['error'] : 'Unknown Error');
             sendmessage($from_id, $textbotlang['users']['Balance']['errorLinkPayment'], $keyboard, 'HTML');
             step('home', $from_id);
             $ErrorsLinkPayment = sprintf($textbotlang['hardcoded']['paymentLinkErrorAdmin'], $text_error, $from_id, $Payment_Method, $username);
@@ -5965,16 +5965,33 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             }
             return;
         }
-        update("Payment_report", "dec_not_confirmed", $pay['Authority'], "id_order", $randomString);
+        
+        $payment_url = '';
+        if (isset($pay['paymentLinks']) && is_array($pay['paymentLinks'])) {
+            foreach ($pay['paymentLinks'] as $link) {
+                if ($link['type'] == 'TELEGRAM_WEBAPP') {
+                    $payment_url = $link['url'];
+                    break;
+                } elseif ($link['type'] == 'WEBSITE') {
+                    $payment_url = $link['url'];
+                }
+            }
+        }
+        if (empty($payment_url) && !empty($pay['paymentLinks'])) {
+            $payment_url = $pay['paymentLinks'][0]['url'];
+        }
+
+        update("Payment_report", "dec_not_confirmed", $pay['id'], "id_order", $randomString);
         $paymentkeyboard = json_encode([
             'inline_keyboard' => [
                 [
-                    ['text' => $textbotlang['keyboard']['payment'], 'url' => $pay['payment_url_bot']]
+                    ['text' => $textbotlang['keyboard']['payment'], 'url' => $payment_url]
                 ]
             ]
         ]);
         $pricetoman = number_format($user['Processing_value'], 0);
-        $textnowpayments = sprintf($textbotlang['hardcoded']['transactionCreated'], $randomString, $pricetoman);
+        $USD = number_format($usd);
+        $textnowpayments = sprintf($textbotlang['hardcoded']['cryptoPaymentInstruction2'], $randomString, $pricetoman, $USD);
         $gethelp = select("PaySetting", "ValuePay", "NamePay", "helpiranpay1", "select")['ValuePay'];
         if ($gethelp != 2) {
             $data = json_decode($gethelp, true);

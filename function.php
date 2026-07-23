@@ -1837,14 +1837,20 @@ function createInvoiceiranpay1($amount, $id_invoice)
     $PaySetting = select("PaySetting", "*", "NamePay", "marchent_floypay", "select")['ValuePay'];
     $curl = curl_init();
     $amount = intval($amount);
+    
+    // SwapWallet 'resid' requires amount with number and unit, and ttl
     $data = [
-        "ApiKey" => $PaySetting,
-        "Hash_id" => $id_invoice,
-        "Amount" => $amount . "0",
-        "CallbackURL" => "https://$domainhosts/payment/iranpay1.php"
+        "amount" => [
+            "number" => (string)$amount,
+            "unit" => "IRT"
+        ],
+        "ttl" => 3600,
+        "orderId" => (string)$id_invoice,
+        // The webhook URL isn't explicitly shown in the spec for resid, but we pass it anyway or configure it on the panel.
     ];
+
     curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://tetra98.com/api/create_order",
+        CURLOPT_URL => "https://swapwallet.app/api/v1/application/resid",
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
@@ -1854,6 +1860,7 @@ function createInvoiceiranpay1($amount, $id_invoice)
         CURLOPT_CUSTOMREQUEST => 'POST',
         CURLOPT_POSTFIELDS => json_encode($data),
         CURLOPT_HTTPHEADER => array(
+            'Authorization: Bearer ' . trim(str_ireplace('Bearer ', '', $PaySetting)),
             'accept: application/json',
             'Content-Type: application/json'
         ),
