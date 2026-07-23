@@ -7218,6 +7218,23 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             ':type' => $type,
         ]);
         $requestAgentInserted = true;
+        
+        // Add to invoice table so it shows in web panel purchases
+        $id_invoice = rand(1000000, 9999999);
+        $stmt_inv = $pdo->prepare("INSERT INTO invoice (id_user, id_invoice, username, time_sell, Service_location, name_product, price_product, Volume, Service_time, Status, notifctions) VALUES (:id_user, :id_invoice, :username, :time_sell, :service_location, :name_product, :price_product, :volume, :service_time, :status, :notifctions)");
+        $stmt_inv->execute([
+            ':id_user' => $from_id,
+            ':id_invoice' => $id_invoice,
+            ':username' => $username,
+            ':time_sell' => time(),
+            ':service_location' => "None",
+            ':name_product' => "درخواست نمایندگی",
+            ':price_product' => $setting['agentreqprice'],
+            ':volume' => 0,
+            ':service_time' => 0,
+            ':status' => "active",
+            ':notifctions' => "{}"
+        ]);
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), 'Incorrect string value') !== false) {
             $tableConverted = ensureTableUtf8mb4('Requestagent');

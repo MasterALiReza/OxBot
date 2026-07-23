@@ -7133,6 +7133,10 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     $stmt_log = $connect->prepare("INSERT INTO Payment_report (id_user,id_order,time,price,payment_Status,Payment_Method,id_invoice) VALUES (?,?,?,?,?,?,?)");
     $stmt_log->bind_param("sssssss", $id_user, $id_order, $time, $setting['agentreqprice'], $payment_Status, $Payment_Method, $id_invoice);
     $stmt_log->execute();
+    
+    // Update invoice status to removed
+    update("invoice", "Status", "removebyadmin", "id_user", $id_user . "' AND name_product = 'درخواست نمایندگی' AND Status = 'active");
+    
     $keyboardreject = json_encode([
         'inline_keyboard' => [
             [['text' => $textbotlang['keyboard']['requestRejected'], 'callback_data' => "reject"]],
