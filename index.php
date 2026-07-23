@@ -5795,12 +5795,12 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             sendmessage($from_id, $textbotlang['users']['Balance']['nowpayments'], null, 'HTML');
             return;
         }
-        $mainbalanceplisio = select("PaySetting", "ValuePay", "NamePay", "minbalanceplisio", "select")['ValuePay'];
-        $maxbalanceplisio = select("PaySetting", "ValuePay", "NamePay", "maxbalanceplisio", "select")['ValuePay'];
-        if ($user['Processing_value'] < $mainbalanceplisio || $user['Processing_value'] > $maxbalanceplisio) {
-            $mainbalanceplisio = number_format($mainbalanceplisio);
-            $maxbalanceplisio = number_format($maxbalanceplisio);
-            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRangePlisio'], ['{mainbalanceplisio}' => $mainbalanceplisio, '{maxbalanceplisio}' => $maxbalanceplisio]), null, 'HTML');
+        $mainbalance = select("PaySetting", "ValuePay", "NamePay", "minbalanceplisio", "select")['ValuePay'];
+        $maxbalance = select("PaySetting", "ValuePay", "NamePay", "maxbalanceplisio", "select")['ValuePay'];
+        if ($user['Processing_value'] < $mainbalance || $user['Processing_value'] > $maxbalance) {
+            $mainbalance = number_format($mainbalance);
+            $maxbalance = number_format($maxbalance);
+            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRange'], ['{mainbalance}' => $mainbalance, '{maxbalance}' => $maxbalance]), null, 'HTML');
             return;
         }
         deletemessage($from_id, $message_id);
@@ -5863,12 +5863,12 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $usd = $rates['USD'];
         $trxprice = $user['Processing_value'] / $trx;
         $usdprice = $user['Processing_value'] / $usd;
-        $mainbalanceplisio = select("PaySetting", "ValuePay", "NamePay", "minbalancenowpayment", "select")['ValuePay'];
-        $maxbalanceplisio = select("PaySetting", "ValuePay", "NamePay", "maxbalancenowpayment", "select")['ValuePay'];
-        if ($user['Processing_value'] < $mainbalanceplisio || $user['Processing_value'] > $maxbalanceplisio) {
-            $mainbalanceplisio = number_format($mainbalanceplisio);
-            $maxbalanceplisio = number_format($maxbalanceplisio);
-            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRangePlisio'], ['{mainbalanceplisio}' => $mainbalanceplisio, '{maxbalanceplisio}' => $maxbalanceplisio]), null, 'HTML');
+        $mainbalance = select("PaySetting", "ValuePay", "NamePay", "minbalancenowpayment", "select")['ValuePay'];
+        $maxbalance = select("PaySetting", "ValuePay", "NamePay", "maxbalancenowpayment", "select")['ValuePay'];
+        if ($user['Processing_value'] < $mainbalance || $user['Processing_value'] > $maxbalance) {
+            $mainbalance = number_format($mainbalance);
+            $maxbalance = number_format($maxbalance);
+            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRange'], ['{mainbalance}' => $mainbalance, '{maxbalance}' => $maxbalance]), null, 'HTML');
             return;
         }
         deletemessage($from_id, $message_id);
@@ -5931,12 +5931,12 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $usd = $rates['USD'];
         $trxprice = round($user['Processing_value'] / $trx, 2);
         $usdprice = $user['Processing_value'] / $usd;
-        $mainbalanceplisio = select("PaySetting", "ValuePay", "NamePay", "minbalanceiranpay1", "select")['ValuePay'];
-        $maxbalanceplisio = select("PaySetting", "ValuePay", "NamePay", "maxbalanceiranpay1", "select")['ValuePay'];
-        if ($user['Processing_value'] < $mainbalanceplisio || $user['Processing_value'] > $maxbalanceplisio) {
-            $mainbalanceplisio = number_format($mainbalanceplisio);
-            $maxbalanceplisio = number_format($maxbalanceplisio);
-            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRangePlisio'], ['{mainbalanceplisio}' => $mainbalanceplisio, '{maxbalanceplisio}' => $maxbalanceplisio]), null, 'HTML');
+        $mainbalance = select("PaySetting", "ValuePay", "NamePay", "minbalanceiranpay1", "select")['ValuePay'];
+        $maxbalance = select("PaySetting", "ValuePay", "NamePay", "maxbalanceiranpay1", "select")['ValuePay'];
+        if ($user['Processing_value'] < $mainbalance || $user['Processing_value'] > $maxbalance) {
+            $mainbalance = number_format($mainbalance);
+            $maxbalance = number_format($maxbalance);
+            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRange'], ['{mainbalance}' => $mainbalance, '{maxbalance}' => $maxbalance]), null, 'HTML');
             return;
         }
         deletemessage($from_id, $message_id);
@@ -5999,12 +5999,12 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $usd = $rates['USD'];
         $trxprice = $user['Processing_value'] / $trx;
         $usdprice = $user['Processing_value'] / $usd;
-        $mainbalanceplisio = select("PaySetting", "ValuePay", "NamePay", "minbalanceiranpay2", "select")['ValuePay'];
-        $maxbalanceplisio = select("PaySetting", "ValuePay", "NamePay", "maxbalanceiranpay2", "select")['ValuePay'];
-        if ($user['Processing_value'] < $mainbalanceplisio || $user['Processing_value'] > $maxbalanceplisio) {
-            $mainbalanceplisio = number_format($mainbalanceplisio);
-            $maxbalanceplisio = number_format($maxbalanceplisio);
-            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRangePlisio'], ['{mainbalanceplisio}' => $mainbalanceplisio, '{maxbalanceplisio}' => $maxbalanceplisio]), null, 'HTML');
+        $mainbalance = select("PaySetting", "ValuePay", "NamePay", "minbalanceiranpay2", "select")['ValuePay'];
+        $maxbalance = select("PaySetting", "ValuePay", "NamePay", "maxbalanceiranpay2", "select")['ValuePay'];
+        if ($user['Processing_value'] < $mainbalance || $user['Processing_value'] > $maxbalance) {
+            $mainbalance = number_format($mainbalance);
+            $maxbalance = number_format($maxbalance);
+            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRange'], ['{mainbalance}' => $mainbalance, '{maxbalance}' => $maxbalance]), null, 'HTML');
             return;
         }
         deletemessage($from_id, $message_id);
@@ -6075,12 +6075,12 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $usd = $rates['USD'];
         $trxprice = $user['Processing_value'] / $trx;
         $usdprice = $user['Processing_value'] / $usd;
-        $mainbalanceplisio = select("PaySetting", "ValuePay", "NamePay", "minbalanceiranpay", "select")['ValuePay'];
-        $maxbalanceplisio = select("PaySetting", "ValuePay", "NamePay", "maxbalanceiranpay", "select")['ValuePay'];
-        if ($user['Processing_value'] < $mainbalanceplisio || $user['Processing_value'] > $maxbalanceplisio) {
-            $mainbalanceplisio = number_format($mainbalanceplisio);
-            $maxbalanceplisio = number_format($maxbalanceplisio);
-            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRangePlisio'], ['{mainbalanceplisio}' => $mainbalanceplisio, '{maxbalanceplisio}' => $maxbalanceplisio]), null, 'HTML');
+        $mainbalance = select("PaySetting", "ValuePay", "NamePay", "minbalanceiranpay", "select")['ValuePay'];
+        $maxbalance = select("PaySetting", "ValuePay", "NamePay", "maxbalanceiranpay", "select")['ValuePay'];
+        if ($user['Processing_value'] < $mainbalance || $user['Processing_value'] > $maxbalance) {
+            $mainbalance = number_format($mainbalance);
+            $maxbalance = number_format($maxbalance);
+            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRange'], ['{mainbalance}' => $mainbalance, '{maxbalance}' => $maxbalance]), null, 'HTML');
             return;
         }
         deletemessage($from_id, $message_id);
@@ -6148,12 +6148,12 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             sendmessage($from_id, $textbotlang['users']['Balance']['changeto'], null, 'HTML');
             return;
         }
-        $mainbalancedigitaltron = select("PaySetting", "ValuePay", "NamePay", "minbalancedigitaltron", "select")['ValuePay'];
-        $maxbalancedigitaltron = select("PaySetting", "ValuePay", "NamePay", "maxbalancedigitaltron", "select")['ValuePay'];
-        if ($user['Processing_value'] < $mainbalancedigitaltron || $user['Processing_value'] > $maxbalancedigitaltron) {
-            $mainbalanceplisio = number_format($mainbalancedigitaltron);
-            $maxbalanceplisio = number_format($maxbalancedigitaltron);
-            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRangePlisio'], ['{mainbalanceplisio}' => $mainbalanceplisio, '{maxbalanceplisio}' => $maxbalanceplisio]), null, 'HTML');
+        $mainbalance = select("PaySetting", "ValuePay", "NamePay", "minbalancedigitaltron", "select")['ValuePay'];
+        $maxbalance = select("PaySetting", "ValuePay", "NamePay", "maxbalancedigitaltron", "select")['ValuePay'];
+        if ($user['Processing_value'] < $mainbalance || $user['Processing_value'] > $maxbalance) {
+            $mainbalance = number_format($mainbalance);
+            $maxbalance = number_format($maxbalance);
+            sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['depositAmountRange'], ['{mainbalance}' => $mainbalance, '{maxbalance}' => $maxbalance]), null, 'HTML');
             return;
         }
         deletemessage($from_id, $message_id);
