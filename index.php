@@ -7182,42 +7182,101 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     }
     step("getagentrequest", $from_id);
 } elseif ($user['step'] == "getagentrequest" && $text) {
-    if ($user['Balance'] < $setting['agentreqprice']) {
+    // Step 1: Check existing requests to prevent parallel submissions
+    $countagentrequest = select("Requestagent", "*", "id", $from_id, "count");
+    if ($countagentrequest != 0) {
+        sendmessage($from_id, $textbotlang['users']['agent']['requestreport'], null, 'html');
+        step("home", $from_id);
+        return;
+    }
+
+    // Step 2: Atomic balance check & deduction
+    $stmt = $pdo->prepare("UPDATE user SET Balance = Balance - :amount WHERE id = :id AND Balance >= :amount");
+    $stmt->execute([':amount' => $setting['agentreqprice'], ':id' => $from_id]);
+    if ($stmt->rowCount() == 0) {
         $priceagent = number_format($setting['agentreqprice']);
         sendmessage($from_id, sprintf($textbotlang['users']['agent']['insufficientbalanceagent'], $priceagent), $keyboard, 'HTML');
         step("home", $from_id);
         return;
     }
-    $balancelow = $user['Balance'] - $setting['agentreqprice'];
-    update("user", "Balance", $balancelow, "id", $from_id);
     
-    $id_order = rand(1000000, 9999999);
-    $time = time();
-    $payment_Status = "paid";
-    $Payment_Method = "agent request";
-    $id_invoice = "None";
-    $stmt_log = $connect->prepare("INSERT INTO Payment_report (id_user,id_order,time,price,payment_Status,Payment_Method,id_invoice) VALUES (?,?,?,?,?,?,?)");
-    $stmt_log->bind_param("sssssss", $from_id, $id_order, $time, $setting['agentreqprice'], $payment_Status, $Payment_Method, $id_invoice);
-    $stmt_log->execute();
-
-    sendmessage($from_id, $textbotlang['users']['agent']['endrequest'], $keyboard, 'html');
     step("home", $from_id);
-    $stmt = $pdo->prepare("INSERT INTO Requestagent (id, username, time, Description, status, type) VALUES (:id, :username, :time, :description, :status, :type)");
-    $status = "waiting";
-    $type = "None";
-    $current_time = time();
-    $description = $text;
-    $requestAgentInserted = false;
+
     try {
-        $stmt->execute([
-            ':id' => $from_id,
-            ':username' => $username,
-            ':time' => $current_time,
-            ':description' => $description,
-            ':status' => $status,
-            ':type' => $type,
-        ]);
-        $requestAgentInserted = true;
+        $status = "waiting";
+        $type = "None";
+        $current_time = time();
+        $description = $text;
+        
+        $stmt = $pdo->prepare("INSERT INTO Requestagent (id, username, time, Description, status, type) VALUES (:id, :username, :time, :description, :status, :type)");
+        $requestAgentInserted = false;
+        try {
+            $stmt->execute([
+                ':id' => $from_id,
+                ':username' => $username,
+                ':time' => $current_time,
+                ':description' => $description,
+                ':status' => $status,
+                ':type' => $type,
+            ]);
+            $requestAgentInserted = true;
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000 || (isset($e->errorInfo[1]) && $e->errorInfo[1] == 1062)) {
+                 $pdo->prepare("UPDATE user SET Balance = Balance + :amount WHERE id = :id")->execute([':amount' => $setting['agentreqprice'], ':id' => $from_id]);
+                 sendmessage($from_id, $textbotlang['users']['agent']['requestreport'], null, 'html');
+                 return;
+            }
+            if (strpos($e->getMessage(), 'Incorrect string value') !== false) {
+                $tableConverted = ensureTableUtf8mb4('Requestagent');
+                if ($tableConverted) {
+                    try {
+                        $stmt->execute([
+                            ':id' => $from_id,
+                            ':username' => $username,
+                            ':time' => $current_time,
+                            ':description' => $description,
+                            ':status' => $status,
+                            ':type' => $type,
+                        ]);
+                        $requestAgentInserted = true;
+                    } catch (PDOException $retryException) {
+                        error_log('Retry after charset conversion failed: ' . $retryException->getMessage());
+                    }
+                }
+
+                if (!$requestAgentInserted) {
+                    $sanitisedDescription = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $description);
+                    if ($sanitisedDescription !== $description) {
+                        $stmt->execute([
+                            ':id' => $from_id,
+                            ':username' => $username,
+                            ':time' => $current_time,
+                            ':description' => $sanitisedDescription,
+                            ':status' => $status,
+                            ':type' => $type,
+                        ]);
+                        $requestAgentInserted = true;
+                    } else {
+                        throw $e;
+                    }
+                }
+            } else {
+                throw $e;
+            }
+        }
+
+        if (!$requestAgentInserted) {
+            throw new RuntimeException('Failed to persist agent request description.');
+        }
+
+        $id_order = rand(1000000, 9999999);
+        $time = time();
+        $payment_Status = "paid";
+        $Payment_Method = "agent request";
+        $id_invoice = "None";
+        $stmt_log = $connect->prepare("INSERT INTO Payment_report (id_user,id_order,time,price,payment_Status,Payment_Method,id_invoice) VALUES (?,?,?,?,?,?,?)");
+        $stmt_log->bind_param("sssssss", $from_id, $id_order, $time, $setting['agentreqprice'], $payment_Status, $Payment_Method, $id_invoice);
+        $stmt_log->execute();
         
         // Add to invoice table so it shows in web panel purchases
         $id_invoice = rand(1000000, 9999999);
@@ -7235,48 +7294,11 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             ':status' => "active",
             ':notifctions' => "{}"
         ]);
-    } catch (PDOException $e) {
-        if (strpos($e->getMessage(), 'Incorrect string value') !== false) {
-            $tableConverted = ensureTableUtf8mb4('Requestagent');
-            if ($tableConverted) {
-                try {
-                    $stmt->execute([
-                        ':id' => $from_id,
-                        ':username' => $username,
-                        ':time' => $current_time,
-                        ':description' => $description,
-                        ':status' => $status,
-                        ':type' => $type,
-                    ]);
-                    $requestAgentInserted = true;
-                } catch (PDOException $retryException) {
-                    error_log('Retry after charset conversion failed: ' . $retryException->getMessage());
-                }
-            }
 
-            if (!$requestAgentInserted) {
-                $sanitisedDescription = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $description);
-                if ($sanitisedDescription !== $description) {
-                    $stmt->execute([
-                        ':id' => $from_id,
-                        ':username' => $username,
-                        ':time' => $current_time,
-                        ':description' => $sanitisedDescription,
-                        ':status' => $status,
-                        ':type' => $type,
-                    ]);
-                    $requestAgentInserted = true;
-                } else {
-                    throw $e;
-                }
-            }
-        } else {
-            throw $e;
-        }
-    }
-
-    if (!$requestAgentInserted) {
-        throw new RuntimeException('Failed to persist agent request description.');
+        sendmessage($from_id, $textbotlang['users']['agent']['endrequest'], $keyboard, 'html');
+    } catch (Exception $e) {
+        $pdo->prepare("UPDATE user SET Balance = Balance + :amount WHERE id = :id")->execute([':amount' => $setting['agentreqprice'], ':id' => $from_id]);
+        throw $e;
     }
     $textrequestagent = sprintf($textbotlang['users']['agent']['agentRequest'], $from_id, $username, $first_name, $text);
     $keyboardmanage = json_encode([
