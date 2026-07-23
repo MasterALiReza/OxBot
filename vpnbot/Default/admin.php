@@ -492,6 +492,19 @@ if ($text == "📞 تنظیم نام کاربری پشتیبانی") {
 
     require_once __DIR__ . '/../../panels.php';
     $ManagePanel = new ManagePanel();
+
+    $currentData = $ManagePanel->DataUser($invoice_row['Service_location'], $invoice_row['username']);
+    $old_gb = 'نامشخص (تغییر مطلق)';
+    $rem_days = 'نامشخص';
+    if (isset($currentData['data_limit'])) {
+        $old_gb = ($currentData['data_limit'] == 0) ? 'نامحدود' : number_format($currentData['data_limit'] / pow(1024, 3), 1) . ' گیگابایت';
+    }
+    if (isset($currentData['expire'])) {
+        $rem = intval(($currentData['expire'] - time()) / 86400);
+        $rem_days = $rem > 0 ? $rem . ' روز' : 'منقضی شده';
+        if ($currentData['expire'] == 0) $rem_days = 'نامحدود';
+    }
+
     $res = $ManagePanel->SetVolumeAbsolute($invoice_row['username'], $invoice_row['Service_location'], $new_gb);
 
     if (isset($res['status']) && $res['status'] === false) {
@@ -509,10 +522,11 @@ if ($text == "📞 تنظیم نام کاربری پشتیبانی") {
     }
 
     $gb_display = $new_gb == 0 ? 'نامحدود' : "{$new_gb} گیگابایت";
+    $total_gb_str = $gb_display;
 
-    // Notify User
-    $user_msg = "🛡 <b>تغییر حجم سرویس</b>\n\n✏️ مدیریت حجم سرویس شما را ویرایش کرد.\n📦 حجم جدید: <b>{$gb_display}</b>\n🔑 نام سرویس: <code>{$invoice_row['username']}</code>";
-    sendmessage($target_id, $user_msg, null, 'HTML');
+    if (function_exists('send_admin_edit_notification')) {
+        send_admin_edit_notification($target_id, $invoice_row, 'volume', $old_gb, $gb_display, $total_gb_str, $rem_days);
+    }
 
     // Notify Admin
     sendmessage($from_id, "✅ <b>حجم سرویس با موفقیت تغییر یافت.</b>\n\n👤 کاربر: <code>{$target_id}</code>\n🔑 نام سرویس: <code>{$invoice_row['username']}</code>\n📦 حجم جدید: <b>{$gb_display}</b>", $keyboardadmin, 'HTML');
@@ -606,6 +620,24 @@ if ($text == "📞 تنظیم نام کاربری پشتیبانی") {
 
     require_once __DIR__ . '/../../panels.php';
     $ManagePanel = new ManagePanel();
+
+    $currentData = $ManagePanel->DataUser($invoice_row['Service_location'], $invoice_row['username']);
+    $old_days = 'نامشخص (تغییر مطلق)';
+    $rem_gb = 'نامشخص';
+    if (isset($currentData['expire'])) {
+        $current_expire = time() - $currentData['expire'] > 0 ? time() : $currentData['expire'];
+        $c_days = $current_expire > 0 ? ($current_expire - time()) / 86400 : 0;
+        if ($c_days < 0) $c_days = 0;
+        $old_days = ($currentData['expire'] == 0) ? 'نامحدود' : floor($c_days) . ' روز';
+    }
+    if (isset($currentData['data_limit']) && $currentData['data_limit'] > 0) {
+        $used = $currentData['used_traffic'] ?? 0;
+        $rem = max(0, $currentData['data_limit'] - $used);
+        $rem_gb = number_format($rem / pow(1024, 3), 1) . ' گیگابایت';
+    } elseif (isset($currentData['data_limit']) && $currentData['data_limit'] == 0) {
+        $rem_gb = 'نامحدود';
+    }
+
     $res = $ManagePanel->SetTimeAbsolute($invoice_row['username'], $invoice_row['Service_location'], $new_days);
 
     if (isset($res['status']) && $res['status'] === false) {
@@ -623,10 +655,11 @@ if ($text == "📞 تنظیم نام کاربری پشتیبانی") {
     }
 
     $days_display = $new_days == 0 ? 'نامحدود' : "{$new_days} روز";
+    $total_days_str = $days_display;
 
-    // Notify User
-    $user_msg = "🛡 <b>تغییر زمان سرویس</b>\n\n✏️ مدیریت زمان سرویس شما را ویرایش کرد.\n⏳ زمان جدید: <b>{$days_display}</b>\n🔑 نام سرویس: <code>{$invoice_row['username']}</code>";
-    sendmessage($target_id, $user_msg, null, 'HTML');
+    if (function_exists('send_admin_edit_notification')) {
+        send_admin_edit_notification($target_id, $invoice_row, 'time', $old_days, $days_display, $rem_gb, $total_days_str);
+    }
 
     // Notify Admin
     sendmessage($from_id, "✅ <b>زمان سرویس با موفقیت تغییر یافت.</b>\n\n👤 کاربر: <code>{$target_id}</code>\n🔑 نام سرویس: <code>{$invoice_row['username']}</code>\n⏳ زمان جدید: <b>{$days_display}</b>", $keyboardadmin, 'HTML');

@@ -2612,3 +2612,75 @@ if (!function_exists('ensure_broadcast_history_schema')) {
         $addColumn('button_data', 'button_data VARCHAR(255) DEFAULT NULL');
     }
 }
+
+function send_admin_edit_notification($target_id, $invoice_row, $edit_type, $old_val, $new_val, $total_gb, $remaining_days) {
+    global $pdo;
+    require_once __DIR__ . '/panels.php';
+    $ManagePanel = new ManagePanel();
+    
+    // Get panel type and config
+    $currentData = $ManagePanel->DataUser($invoice_row['Service_location'], $invoice_row['username']);
+    $config_str = '';
+    
+    if (!isset($currentData['status']) || $currentData['status'] === 'Unsuccessful') {
+        // Fallback to text if we can't get config
+    } else {
+        $config_str = $currentData['subscription_url'] ?? ($currentData['links'][0] ?? '');
+    }
+
+    $Get_Data_Panel = select("marzban_panel", "*", "name_panel", $invoice_row['Service_location'], "select");
+    $panel_type = $Get_Data_Panel['type'] ?? 'نامشخص';
+
+    $edit_name = ($edit_type === 'volume' ? 'حجم' : 'زمان');
+    $user_msg = "🛡 <b>تغییر {$edit_name} سرویس</b>\n\n";
+    $user_msg .= "✏️ مدیریت {$edit_name} سرویس شما را ویرایش کرد.\n\n";
+    
+    $user_msg .= "💡 <b>اطلاعات سرویس:</b>\n";
+    $user_msg .= "👤 نام سرویس: <code>{$invoice_row['username']}</code>\n";
+    $user_msg .= "🖥 نام سرور: <code>{$invoice_row['Service_location']}</code>\n";
+
+    if ($edit_type === 'volume') {
+        $user_msg .= "\n📊 <b>تغییرات حجم:</b>\n";
+        $user_msg .= "🔸 حجم قبلی: <b>{$old_val}</b>\n";
+        $user_msg .= "🔹 حجم فعلی: <b>{$new_val}</b>\n";
+    } else {
+        $user_msg .= "\n⏳ <b>تغییرات زمان:</b>\n";
+        $user_msg .= "🔸 زمان قبلی: <b>{$old_val}</b>\n";
+        $user_msg .= "🔹 زمان فعلی: <b>{$new_val}</b>\n";
+    }
+
+    $user_msg .= "\n📌 <b>وضعیت نهایی سرویس:</b>\n";
+    $user_msg .= "📦 حجم کل سرویس: <b>{$total_gb}</b>\n";
+    $user_msg .= "⏳ زمان باقی‌مانده: <b>{$remaining_days}</b>\n";
+
+    if (function_exists('telegram')) {
+        if (!empty($config_str) && $panel_type == "WGDashboard") {
+            $urlimage = "{$invoice_row['username']}.conf";
+            file_put_contents($urlimage, $config_str);
+            telegram('senddocument', [
+                'chat_id' => $target_id,
+                'document' => new CURLFile($urlimage),
+                'caption' => $user_msg,
+                'parse_mode' => "HTML",
+            ]);
+            unlink($urlimage);
+        } elseif (!empty($config_str)) {
+            $urlimage = "{$target_id}_" . rand(1000, 9999) . ".png";
+            $qrCode = createqrcode($config_str);
+            file_put_contents($urlimage, $qrCode->getString());
+            telegram('sendphoto', [
+                'chat_id' => $target_id,
+                'photo' => new CURLFile($urlimage),
+                'caption' => $user_msg,
+                'parse_mode' => "HTML",
+            ]);
+            unlink($urlimage);
+        } else {
+            telegram('sendMessage', [
+                'chat_id'    => $target_id,
+                'text'       => $user_msg,
+                'parse_mode' => 'HTML'
+            ]);
+        }
+    }
+}

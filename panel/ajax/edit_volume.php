@@ -73,17 +73,28 @@ try {
 
     // Send Telegram Notification to user
     $display_gb = $target_gb == 0 ? 'نامحدود' : number_format($target_gb, 1) . ' گیگابایت';
-    $msg = "🛡 <b>تغییر حجم سرویس</b>\n\n"
-         . "✏️ مدیریت حجم سرویس شما را ویرایش کرد.\n"
-         . "📦 حجم جدید: <b>" . $display_gb . "</b>\n"
-         . "🔑 شناسه سرویس: <code>" . htmlspecialchars($invoice['username']) . "</code>";
-
-    if (function_exists('telegram')) {
-        telegram('sendMessage', [
-            'chat_id'    => $id_user,
-            'text'       => $msg,
-            'parse_mode' => 'HTML'
-        ]);
+    $old_gb_display = ($mode === 'add') ? number_format($current_gb, 1) . ' گیگابایت' : 'نامشخص';
+    if ($mode !== 'add') {
+        $old_gb_display = 'نامشخص (تغییر مطلق)';
+    }
+    
+    // We get total gb directly from the target
+    $total_gb_str = $display_gb;
+    
+    // Remaining days? We can fetch it if we don't have it, but $currentData has it if $mode was 'add'
+    if (!isset($currentData)) {
+        $currentData = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
+    }
+    $rem_days = 'نامشخص';
+    if (isset($currentData['expire']) && $currentData['expire'] > 0) {
+        $rem = intval(($currentData['expire'] - time()) / 86400);
+        $rem_days = $rem > 0 ? $rem . ' روز' : 'منقضی شده';
+    } elseif (isset($currentData['expire']) && $currentData['expire'] == 0) {
+        $rem_days = 'نامحدود';
+    }
+    
+    if (function_exists('send_admin_edit_notification')) {
+        send_admin_edit_notification($id_user, $invoice, 'volume', $old_gb_display, $display_gb, $total_gb_str, $rem_days);
     }
 
     echo json_encode([

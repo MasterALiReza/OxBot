@@ -75,17 +75,28 @@ try {
 
     // Send Telegram Notification to user
     $display_days = $target_days == 0 ? 'نامحدود' : floor($target_days) . ' روز';
-    $msg = "⏳ <b>تغییر زمان سرویس</b>\n\n"
-         . "✏️ مدیریت زمان سرویس شما را ویرایش کرد.\n"
-         . "⏰ زمان جدید: <b>" . $display_days . "</b>\n"
-         . "🔑 شناسه سرویس: <code>" . htmlspecialchars($invoice['username']) . "</code>";
+    $old_days_display = ($mode === 'add') ? floor($current_days) . ' روز' : 'نامشخص';
+    if ($mode !== 'add') {
+        $old_days_display = 'نامشخص (تغییر مطلق)';
+    }
 
-    if (function_exists('telegram')) {
-        telegram('sendMessage', [
-            'chat_id'    => $id_user,
-            'text'       => $msg,
-            'parse_mode' => 'HTML'
-        ]);
+    $total_days_str = $display_days;
+
+    if (!isset($currentData)) {
+        $currentData = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
+    }
+    
+    $rem_gb = 'نامشخص';
+    if (isset($currentData['data_limit']) && $currentData['data_limit'] > 0) {
+        $used = $currentData['used_traffic'] ?? 0;
+        $rem = max(0, $currentData['data_limit'] - $used);
+        $rem_gb = number_format($rem / pow(1024, 3), 1) . ' گیگابایت';
+    } elseif (isset($currentData['data_limit']) && $currentData['data_limit'] == 0) {
+        $rem_gb = 'نامحدود';
+    }
+
+    if (function_exists('send_admin_edit_notification')) {
+        send_admin_edit_notification($id_user, $invoice, 'time', $old_days_display, $display_days, $rem_gb, $total_days_str);
     }
 
     echo json_encode([
