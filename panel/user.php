@@ -941,7 +941,8 @@ include __DIR__ . '/inc/layout_head.php';
                                                         'extend_user_by_admin' => 'تمدید سرویس (توسط مدیر)',
                                                         'extra_user_by_admin' => 'افزایش حجم (توسط مدیر)',
                                                         'extra_time_user_by_admin' => 'افزایش زمان (توسط مدیر)',
-                                                        'set_volume_by_admin' => 'تنظیم دستی حجم (توسط مدیر)'
+                                                        'set_volume_by_admin' => 'تنظیم دستی حجم (توسط مدیر)',
+                                                        'set_time_by_admin' => 'تنظیم دستی زمان (توسط مدیر)'
                                                     ];
                                                     foreach ($inv_logs as $lg): 
                                                         $lg_type = $actionMap[$lg['type']] ?? $lg['type'];
@@ -1796,6 +1797,28 @@ include __DIR__ . '/inc/layout_head.php';
                     setTimeout(function(){ manageService(invoiceId); }, 1200);
                 } else {
                     resBox.innerHTML = '<span style="color:#f43f5e;">' + (d.msg || 'خطا در ویرایش حجم') + '</span>';
+                }
+            })
+            .catch(err => {
+                resBox.innerHTML = '<span style="color:#f43f5e;">خطا در ارتباط با سرور</span>';
+            });
+    }
+
+    function submitEditTime(e, form, invoiceId) {
+        e.preventDefault();
+        var fd = new FormData(form);
+        var resBox = document.getElementById('edit-time-msg-' + encodeURIComponent(invoiceId));
+        if (!resBox) return;
+        resBox.style.display = 'block';
+        resBox.innerHTML = '<span style="color:var(--mute);">در حال ثبت تغییرات...</span>';
+        fetch('ajax/edit_time.php', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(d => {
+                if (d.ok) {
+                    resBox.innerHTML = '<span style="color:#22c55e;">' + d.msg + '</span>';
+                    setTimeout(function(){ manageService(invoiceId); }, 1200);
+                } else {
+                    resBox.innerHTML = '<span style="color:#f43f5e;">' + (d.msg || 'خطا در ویرایش زمان') + '</span>';
                 }
             })
             .catch(err => {

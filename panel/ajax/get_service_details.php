@@ -279,8 +279,13 @@ try {
         gap: 10px;
         margin-top: 8px;
     }
+    @media (max-width: 480px) {
+        .btn-grid {
+            grid-template-columns: 1fr;
+        }
+    }
     .btn-grid-full {
-        grid-column: span 2;
+        grid-column: 1 / -1;
     }
     .btn-sm-action {
         padding: 11px 16px;
@@ -564,26 +569,65 @@ try {
                 <input type="hidden" name="id_user" value="<?= $id_user ?>">
                 <input type="hidden" name="id_invoice" value="<?= htmlspecialchars($id_invoice) ?>">
 
-                <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 140px;">
-                        <label style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 4px;">حجم (گیگابایت) — ۰ = نامحدود</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end;">
+                    <div>
+                        <label style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 6px;">حجم (گیگابایت) — ۰ = نامحدود</label>
                         <input type="number" name="new_gb" min="0" max="999" step="0.1" placeholder="مثال: 50" required
                                style="width: 100%; border: 1px solid var(--bd); border-radius: 8px; padding: 8px 12px; background: var(--sf2); color: var(--text); font-size: 0.9em;">
                     </div>
-                    <div style="flex: 1; min-width: 140px;">
-                        <label style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 4px;">نوع عملیات</label>
+                    <div>
+                        <label style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 6px;">نوع عملیات</label>
                         <select name="mode" style="width: 100%; border: 1px solid var(--bd); border-radius: 8px; padding: 8px 12px; background: var(--sf2); color: var(--text); font-size: 0.9em;">
                             <option value="absolute">تنظیم دقیق حجم کل (جایگزین)</option>
                             <option value="add">افزودن به حجم فعلی (اضافه‌شدن)</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #a855f7; border-color: #a855f7; color: #fff;">
-                        ثبت تغییر حجم
-                    </button>
+                    <div>
+                        <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #a855f7; border-color: #a855f7; color: #fff; width: 100%; height: 38px; font-size: 0.9em; border-radius: 8px; cursor: pointer;">
+                            ثبت تغییر حجم
+                        </button>
+                    </div>
                 </div>
                 <div id="edit-vol-msg-<?= urlencode($id_invoice) ?>" style="margin-top: 10px; font-size: 0.85em; display: none;"></div>
             </form>
         </div>
+
+        <!-- Edit Time (Manual) -->
+        <button type="button" class="btn-sm-action" style="background:rgba(234, 179, 8, 0.15); color:#eab308; border: 1px solid #eab308; cursor:pointer;" 
+                onclick="var el = document.getElementById('edit-time-box-<?= urlencode($id_invoice) ?>'); el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';">
+           <?= icon('clock', 13) ?> ویرایش دستی زمان
+        </button>
+
+        <div id="edit-time-box-<?= urlencode($id_invoice) ?>" style="display:none; grid-column: 1 / -1; background: var(--sf); border: 1px solid rgba(234, 179, 8, 0.4); border-radius: 12px; padding: 16px; margin-top: 6px;">
+            <div style="font-weight: 600; font-size: 0.9em; margin-bottom: 10px; color: #eab308; display: flex; align-items: center; gap: 6px;">
+                <?= icon('clock', 14) ?> ویرایش زمان سرویس
+            </div>
+            <form id="form-edit-time-<?= urlencode($id_invoice) ?>" onsubmit="submitEditTime(event, this, '<?= htmlspecialchars($id_invoice, ENT_QUOTES) ?>')">
+                <input type="hidden" name="_csrf" value="<?= $csrf ?>">
+                <input type="hidden" name="id_user" value="<?= $id_user ?>">
+                <input type="hidden" name="id_invoice" value="<?= htmlspecialchars($id_invoice) ?>">
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end;">
+                    <div>
+                        <label style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 6px;">زمان (روز) — ۰ = نامحدود</label>
+                        <input type="number" name="new_days" min="0" max="9999" step="1" placeholder="مثال: 30" required
+                               style="width: 100%; border: 1px solid var(--bd); border-radius: 8px; padding: 8px 12px; background: var(--sf2); color: var(--text); font-size: 0.9em;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 6px;">نوع عملیات</label>
+                        <select name="mode" style="width: 100%; border: 1px solid var(--bd); border-radius: 8px; padding: 8px 12px; background: var(--sf2); color: var(--text); font-size: 0.9em;">
+                            <option value="absolute">تنظیم دقیق زمان کل (جایگزین)</option>
+                            <option value="add">افزودن به زمان فعلی (اضافه‌شدن)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #eab308; border-color: #eab308; color: #fff; width: 100%; flex: initial;">
+                        ثبت تغییر زمان
+                    </button>
+                </div>
+                <div id="edit-time-msg-<?= urlencode($id_invoice) ?>" style="margin-top: 10px; font-size: 0.85em; display: none;"></div>
+            </form>
+        </div>
+
 
         <!-- Remove Service (No Refund) -->
         <a href="user_action.php?action=removeservice&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 

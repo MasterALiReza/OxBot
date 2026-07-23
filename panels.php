@@ -2473,6 +2473,153 @@ class ManagePanel
         
         return array('status' => true, 'data' => $result);
     }
+    function SetTimeAbsolute($username_account, $name_panel, $new_limit_days)
+    {
+        $panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
+        if ($panel == false) {
+            $panel = select("marzban_panel", "*", "code_panel", $name_panel, "select");
+        }
+        $invoice = select("invoice", "*", "username", $username_account, "select");
+        if ($panel == false) {
+            return array(
+                'status' => false,
+                'msg' => 'panel not found'
+            );
+        }
+
+        $new_limit_timestamp = $new_limit_days == 0 ? 0 : time() + ((float)$new_limit_days * 86400);
+        $inbound_id = isset($panel['inboundid']) ? $panel['inboundid'] : 1;
+        $inbounds = is_string($panel['inbounds']) ? json_decode($panel['inbounds']) : "{}";
+
+        if ($panel['type'] == "marzban") {
+            $data = array(
+                'expire' => $new_limit_timestamp,
+                'inbounds' => $inbounds,
+            );
+            if ($invoice != false && !empty($invoice['uuid'])) {
+                $data['proxies'] = json_decode($invoice['uuid'], true);
+            }
+        } elseif ($panel['type'] == "marzneshin") {
+            $data = array(
+                'expire_date' => $new_limit_timestamp,
+                'expire_strategy' => "fixed_date",
+            );
+        } elseif ($panel['type'] == "MHSanaei-3.2") {
+            return MHSanaei_router(__FUNCTION__, func_get_args());
+        } elseif ($panel['type'] == "x-ui_single") {
+            $data = array(
+                'settings' => json_encode(
+                    array(
+                        'clients' => array(
+                            array(
+                                "expiryTime" => $new_limit_timestamp * 1000,
+                            )
+                        ),
+                    )
+                ),
+            );
+        } elseif ($panel['type'] == "alireza_single") {
+            $data = array(
+                'id' => intval($inbound_id),
+                'settings' => json_encode(
+                    array(
+                        'clients' => array(
+                            array(
+                                "expiryTime" => $new_limit_timestamp * 1000,
+                            )
+                        ),
+                    )
+                ),
+            );
+        } elseif ($panel['type'] == "hiddify") {
+            $datauser = getdatauser($username_account, $panel['name_panel']);
+            $data = array(
+                "current_usage_GB" => isset($datauser['current_usage_GB']) ? $datauser['current_usage_GB'] : 0,
+                "usage_limit_GB" => isset($datauser['usage_limit_GB']) ? $datauser['usage_limit_GB'] : 0,
+                "package_days" => (float)$new_limit_days,
+                "start_date" => null
+            );
+        } elseif ($panel['type'] == "WGDashboard") {
+            allowAccessPeers($panel['name_panel'], $username_account);
+            $datauser = get_userwg($username_account, $panel['name_panel']);
+            if (empty($datauser) || !isset($datauser['id'])) {
+                return array('status' => false, 'msg' => 'WireGuard user not found');
+            }
+            $count = 0;
+            if (isset($datauser['jobs']) && is_array($datauser['jobs'])) {
+                foreach ($datauser['jobs'] as $jobsvolume) {
+                    if (isset($jobsvolume['Field']) && $jobsvolume['Field'] == "date") {
+                        break;
+                    }
+                    $count += 1;
+                }
+                if (isset($datauser['jobs'][$count])) {
+                    $datam = array(
+                        "Job" => $datauser['jobs'][$count],
+                    );
+                    deletejob($panel['name_panel'], $datam);
+                }
+            }
+            $log = setjob($panel['name_panel'], "date", date('Y-m-d H:i:s', $new_limit_timestamp), $datauser['id']);
+            
+            if (!isset($log['status']) || $log['status'] != 200) {
+                return array(
+                    'status' => false,
+                    'msg' => 'خطا در ارتباط با پنل WGDashboard'
+                );
+            }
+            
+            if ($invoice != false) {
+                $notif_value = json_decode($invoice['notifctions'], true);
+                $notifctions = json_encode(array(
+                    'volume' => is_array($notif_value) && isset($notif_value['volume']) ? $notif_value['volume'] : false,
+                    'time' => false,
+                ));
+                update("invoice", "notifctions", $notifctions, 'id_invoice', $invoice['id_invoice']);
+                update("invoice", 'uuid', null, "username", $username_account);
+                update("invoice", 'Status', "active", "username", $username_account);
+                update("invoice", 'Service_time', $new_limit_days, "username", $username_account);
+            }
+            
+            return array(
+                'status' => true,
+                'data' => $log
+            );
+        } elseif ($panel['type'] == "s_ui") {
+            $data = array(
+                "expiry" => $new_limit_timestamp,
+            );
+        } else {
+            $data = array(
+                "expire" => $new_limit_timestamp,
+            );
+        }
+
+        $result = $this->Modifyuser($username_account, $panel['name_panel'], $data);
+        if (isset($result['status']) && $result['status'] === false) {
+            return array(
+                'status' => false,
+                'msg' => isset($result['msg']) ? $result['msg'] : 'Error modifying user'
+            );
+        }
+        
+        if ($invoice != false) {
+            $notif_value = json_decode($invoice['notifctions'], true);
+            $notifctions = json_encode(array(
+                'volume' => is_array($notif_value) && isset($notif_value['volume']) ? $notif_value['volume'] : false,
+                'time' => false,
+            ));
+            update("invoice", "notifctions", $notifctions, 'id_invoice', $invoice['id_invoice']);
+            if ($panel['type'] != "WGDashboard") {
+                update("invoice", 'user_info', null, "username", $username_account);
+            }
+            update("invoice", 'uuid', null, "username", $username_account);
+            update("invoice", 'Status', "active", "username", $username_account);
+            update("invoice", 'Service_time', $new_limit_days, "username", $username_account);
+        }
+        
+        return array('status' => true, 'data' => $result);
+    }
     function extra_time($username_account, $code_panel, $limit_time_new)
     {
         $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");

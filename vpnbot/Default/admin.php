@@ -305,6 +305,7 @@ if ($text == "📞 تنظیم نام کاربری پشتیبانی") {
             ],
             [
                 ['text' => "🗂 ویرایش حجم سرویس", 'callback_data' => 'editvolume_' . $id_user],
+                ['text' => "⏳ ویرایش زمان سرویس", 'callback_data' => 'edittime_' . $id_user],
             ],
         ]
     ]);
@@ -515,6 +516,120 @@ if ($text == "📞 تنظیم نام کاربری پشتیبانی") {
 
     // Notify Admin
     sendmessage($from_id, "✅ <b>حجم سرویس با موفقیت تغییر یافت.</b>\n\n👤 کاربر: <code>{$target_id}</code>\n🔑 نام سرویس: <code>{$invoice_row['username']}</code>\n📦 حجم جدید: <b>{$gb_display}</b>", $keyboardadmin, 'HTML');
+
+} elseif (preg_match('/edittime_(\w+)/', $datain, $dataget)) {
+    $target_id = $dataget[1];
+    $stmt = $pdo->prepare("SELECT id_invoice, username, Service_location, Volume FROM invoice WHERE id_user = ? AND (Status = 'active' OR Status = 'sendedwarn' OR Status = 'send_on_hold') LIMIT 15");
+    $stmt->execute([$target_id]);
+    $invoices_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($invoices_list)) {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => "این کاربر هیچ سرویس فعالی ندارد.",
+            'show_alert' => true,
+        ]);
+        return;
+    }
+
+    $svc_kbd = ['inline_keyboard' => []];
+    foreach ($invoices_list as $inv_item) {
+        $svc_kbd['inline_keyboard'][] = [
+            ['text' => "🔑 {$inv_item['username']} | {$inv_item['Service_location']}", 'callback_data' => "selectsvc_time_{$target_id}_{$inv_item['id_invoice']}"]
+        ];
+    }
+    $svc_kbd['inline_keyboard'][] = [
+        ['text' => "🔙 بازگشت به منوی ادمین", 'callback_data' => "admin"]
+    ];
+
+    sendmessage($from_id, "📌 لطفاً سرویسی که قصد ویرایش زمان آن را دارید انتخاب کنید:", json_encode($svc_kbd), 'HTML');
+} elseif (preg_match('/selectsvc_time_(\w+)_([a-zA-Z0-9_-]+)/', $datain, $dataget)) {
+    $target_id = $dataget[1];
+    $id_invoice = $dataget[2];
+    savedata("clear", "pending_invoice", $id_invoice);
+    savedata("add", "pending_user", $target_id);
+    step('admin_get_time_value', $from_id);
+    sendmessage($from_id, "⏳ لطفاً زمان جدید کل سرویس را به <b>روز</b> ارسال کنید.\n\n⚪ عدد <b>0</b> به معنای نامحدود است.\n✏️ مثال: <code>30</code> یا <code>60</code>", $backadmin, 'HTML');
+} elseif ($user['step'] == "admin_get_time_value") {
+    $input_val = eng_num(trim($text));
+    if (!is_numeric($input_val) || intval($input_val) < 0 || intval($input_val) > 9999) {
+        sendmessage($from_id, "❌ مقدار وارد شده معتبر نیست. لطفا یک عدد وارد کنید.", $backadmin, 'HTML');
+        return;
+    }
+    $new_days = intval($input_val);
+    $userdata = json_decode($user['Processing_value'], true);
+    $id_invoice = isset($userdata['pending_invoice']) ? $userdata['pending_invoice'] : '';
+    $target_id = isset($userdata['pending_user']) ? $userdata['pending_user'] : '';
+
+    if (empty($id_invoice) || empty($target_id)) {
+        sendmessage($from_id, "❌ خطا در اطلاعات نشست. لطفاً دوباره تلاش کنید.", $keyboardadmin, 'HTML');
+        step('home', $from_id);
+        return;
+    }
+
+    $days_text = $new_days == 0 ? 'نامحدود' : "{$new_days} روز";
+    $confirm_kbd = json_encode([
+        'inline_keyboard' => [
+            [
+                ['text' => "✅ تأیید و اعمال تغییر", 'callback_data' => "confirmsettime_{$target_id}_{$id_invoice}_{$new_days}"],
+            ],
+            [
+                ['text' => "❌ انصراف", 'callback_data' => "admin"],
+            ]
+        ]
+    ]);
+
+    sendmessage($from_id, "⚠️ <b>تأیید نهایی تغییر زمان</b>\n\n🆔 شناسه فاکتور: <code>{$id_invoice}</code>\n👤 آیدی کاربر: <code>{$target_id}</code>\n⏳ زمان جدید: <b>{$days_text}</b>\n\nآیا از ثبت این تغییر مطمئن هستید؟", $confirm_kbd, 'HTML');
+    step('home', $from_id);
+} elseif (preg_match('/confirmsettime_(\w+)_([a-zA-Z0-9_-]+)_([\d]+)/', $datain, $dataget)) {
+    $target_id = $dataget[1];
+    $id_invoice = $dataget[2];
+    $new_days = intval($dataget[3]);
+
+    if ($new_days < 0 || $new_days > 9999) {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => "مقدار نامعتبر است.",
+            'show_alert' => true,
+        ]);
+        return;
+    }
+
+    $inv_stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_invoice = ? AND id_user = ?");
+    $inv_stmt->execute([$id_invoice, $target_id]);
+    $invoice_row = $inv_stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$invoice_row) {
+        sendmessage($from_id, "❌ فاکتور یا سرویس مورد نظر یافت نشد.", $keyboardadmin, 'HTML');
+        return;
+    }
+
+    require_once __DIR__ . '/../../panels.php';
+    $ManagePanel = new ManagePanel();
+    $res = $ManagePanel->SetTimeAbsolute($invoice_row['username'], $invoice_row['Service_location'], $new_days);
+
+    if (isset($res['status']) && $res['status'] === false) {
+        $err_msg = !empty($res['msg']) ? (is_string($res['msg']) ? $res['msg'] : json_encode($res['msg'])) : "خطای سرور";
+        sendmessage($from_id, "❌ خطا در ویرایش زمان سرویس در پنل: " . htmlspecialchars($err_msg), $keyboardadmin, 'HTML');
+        return;
+    }
+
+    // Insert Log
+    try {
+        $log_stmt = $pdo->prepare("INSERT INTO service_other (id_user, username, value, type, time, price, output) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $log_stmt->execute([$target_id, $invoice_row['username'], $new_days . ' Days (bot)', 'set_time_by_admin', date('Y-m-d H:i:s'), 0, json_encode($res)]);
+    } catch (Exception $e) {
+        error_log("Bot settime log error: " . $e->getMessage());
+    }
+
+    $days_display = $new_days == 0 ? 'نامحدود' : "{$new_days} روز";
+
+    // Notify User
+    $user_msg = "🛡 <b>تغییر زمان سرویس</b>\n\n✏️ مدیریت زمان سرویس شما را ویرایش کرد.\n⏳ زمان جدید: <b>{$days_display}</b>\n🔑 نام سرویس: <code>{$invoice_row['username']}</code>";
+    sendmessage($target_id, $user_msg, null, 'HTML');
+
+    // Notify Admin
+    sendmessage($from_id, "✅ <b>زمان سرویس با موفقیت تغییر یافت.</b>\n\n👤 کاربر: <code>{$target_id}</code>\n🔑 نام سرویس: <code>{$invoice_row['username']}</code>\n⏳ زمان جدید: <b>{$days_display}</b>", $keyboardadmin, 'HTML');
 
 } elseif ($text == "📊 آمار ربات") {
     $statistics = select("user", "*", "bottype", $ApiToken, "count");
