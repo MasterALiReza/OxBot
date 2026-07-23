@@ -7182,8 +7182,24 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     }
     step("getagentrequest", $from_id);
 } elseif ($user['step'] == "getagentrequest" && $text) {
+    if ($user['Balance'] < $setting['agentreqprice']) {
+        $priceagent = number_format($setting['agentreqprice']);
+        sendmessage($from_id, sprintf($textbotlang['users']['agent']['insufficientbalanceagent'], $priceagent), $keyboard, 'HTML');
+        step("home", $from_id);
+        return;
+    }
     $balancelow = $user['Balance'] - $setting['agentreqprice'];
     update("user", "Balance", $balancelow, "id", $from_id);
+    
+    $id_order = rand(1000000, 9999999);
+    $time = time();
+    $payment_Status = "paid";
+    $Payment_Method = "agent request";
+    $id_invoice = "None";
+    $stmt_log = $connect->prepare("INSERT INTO Payment_report (id_user,id_order,time,price,payment_Status,Payment_Method,id_invoice) VALUES (?,?,?,?,?,?,?)");
+    $stmt_log->bind_param("sssssss", $from_id, $id_order, $time, $setting['agentreqprice'], $payment_Status, $Payment_Method, $id_invoice);
+    $stmt_log->execute();
+
     sendmessage($from_id, $textbotlang['users']['agent']['endrequest'], $keyboard, 'html');
     step("home", $from_id);
     $stmt = $pdo->prepare("INSERT INTO Requestagent (id, username, time, Description, status, type) VALUES (:id, :username, :time, :description, :status, :type)");

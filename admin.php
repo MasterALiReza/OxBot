@@ -4026,6 +4026,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             [['text' => $textbotlang['keyboard']['deactivateAccount'], 'callback_data' => "disableconfig-" . $id_user], ['text' => $textbotlang['keyboard']['activateAccount'], 'callback_data' => "activeconfig-" . $id_user]],
             [['text' => $textbotlang['keyboard']['verifyChannelMembership'], 'callback_data' => "confirmchannel-" . $id_user], ['text' => $textbotlang['keyboard']['zeroBalance'], 'callback_data' => "zerobalance-" . $id_user]],
             [['text' => $textbotlang['keyboard']['cronMessageStatus'], 'callback_data' => "statuscronuser-" . $id_user]],
+            [['text' => 'لاگ درخواست های نمایندگی', 'callback_data' => "agentreqlogs_" . $id_user]],
         ]
     ];
     if ($user['agent'] == "n2")
@@ -7110,10 +7111,6 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
 } elseif (preg_match('/rejectrequesta_(\w+)/', $datain, $datagetr)) {
     $id_user = $datagetr[1];
     $request_agent = select("Requestagent", "*", "id", $id_user, "select");
-    update("Requestagent", "status", "reject", "id", $id_user);
-    $userinfo = select("user", "*", "id", $id_user, "select");
-    $Balancenew = $userinfo['Balance'] + intval($setting['agentreqprice']);
-    update("user", "Balance", $Balancenew, "id", $id_user);
     if ($request_agent['status'] == "reject" || $request_agent['status'] == "accept") {
         telegram('answerCallbackQuery', array(
             'callback_query_id' => $callback_query_id,
@@ -7123,6 +7120,19 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
         ));
         return;
     }
+    update("Requestagent", "status", "reject", "id", $id_user);
+    $userinfo = select("user", "*", "id", $id_user, "select");
+    $Balancenew = $userinfo['Balance'] + intval($setting['agentreqprice']);
+    update("user", "Balance", $Balancenew, "id", $id_user);
+    
+    $id_order = rand(1000000, 9999999);
+    $time = time();
+    $payment_Status = "paid";
+    $Payment_Method = "refund agent request";
+    $id_invoice = "None";
+    $stmt_log = $connect->prepare("INSERT INTO Payment_report (id_user,id_order,time,price,payment_Status,Payment_Method,id_invoice) VALUES (?,?,?,?,?,?,?)");
+    $stmt_log->bind_param("sssssss", $id_user, $id_order, $time, $setting['agentreqprice'], $payment_Status, $Payment_Method, $id_invoice);
+    $stmt_log->execute();
     $keyboardreject = json_encode([
         'inline_keyboard' => [
             [['text' => $textbotlang['keyboard']['requestRejected'], 'callback_data' => "reject"]],
@@ -11403,6 +11413,35 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
         update("user", "status_cron", "0", "id", $id_user);
         sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_user_enable_disable'], null, 'HTML');
     }
+} elseif (preg_match('/agentreqlogs_(.*)/', $datain, $dataget)) {
+    $id_user = $dataget[1];
+    $logs = select("Payment_report", "*", "id_user", $id_user, "fetchAll");
+    $agent_logs = [];
+    foreach ($logs as $log) {
+        if ($log['Payment_Method'] == 'agent request' || $log['Payment_Method'] == 'refund agent request') {
+            $agent_logs[] = $log;
+        }
+    }
+    
+    if (empty($agent_logs)) {
+        telegram('answerCallbackQuery', array(
+            'callback_query_id' => $callback_query_id,
+            'text' => "لاگی برای این کاربر یافت نشد.",
+            'show_alert' => true,
+            'cache_time' => 5,
+        ));
+        return;
+    }
+    
+    $text = "لاگ های درخواست نمایندگی برای کاربر $id_user:\n\n";
+    foreach ($agent_logs as $log) {
+        $status = $log['Payment_Method'] == 'agent request' ? "کسر وجه (ثبت درخواست)" : "بازگشت وجه (رد درخواست)";
+        $time = date('Y-m-d H:i:s', $log['time']);
+        $price = number_format($log['price']);
+        $text .= "وضعیت: $status\nمبلغ: $price تومان\nزمان: $time\n-----------------\n";
+    }
+    
+    sendmessage($from_id, $text, null, 'HTML');
 } elseif ($text == $textbotlang['keyboard']['manageCategory']) {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_Category_manage, 'HTML');
 } elseif ($text == $textbotlang['keyboard']['backToShopMenu']) {
