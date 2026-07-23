@@ -499,8 +499,8 @@ include __DIR__ . '/inc/layout_head.php';
                             <select name="agent" id="panelAgent" class="input">
                                 <option value="all">همه</option>
                                 <option value="f">فقط فروشنده عادی</option>
-                                <option value="n">فقط نماینده (درصددهی)</option>
-                                <option value="n2">فقط نماینده (درصددهی عمده)</option>
+                                <option value="n">فقط نماینده</option>
+                                <option value="n2">فقط نماینده پیشرفته</option>
                             </select>
                         </div>
                         <div class="field-group">
@@ -706,7 +706,7 @@ include __DIR__ . '/inc/layout_head.php';
                         </div>
                         <div>
                             <div style="font-weight:700; font-size:0.95rem; color:var(--fg); margin-bottom:2px;">تنظیمات قیمت و محدودیت‌های پنل</div>
-                            <div style="font-size:0.82rem; color:var(--ts);">تمام مقادیر برای ۳ سطح فروشنده (عادی، نماینده درصددهی و عمده) قابل شخصی‌سازی است. روی علامت <b>!</b> نگه دارید یا تپ کنید تا راهنما را ببینید.</div>
+                            <div style="font-size:0.82rem; color:var(--ts);">تمام مقادیر برای ۳ سطح فروشنده (عادی، نماینده و نماینده پیشرفته) قابل شخصی‌سازی است. روی علامت <b>!</b> نگه دارید یا تپ کنید تا راهنما را ببینید.</div>
                         </div>
                     </div>
 
@@ -724,10 +724,10 @@ include __DIR__ . '/inc/layout_head.php';
                                     <span class="tier-tag tier-f">عادی (f)</span>
                                 </div>
                                 <div class="price-matrix-th-tier">
-                                    <span class="tier-tag tier-n">درصددهی (n)</span>
+                                    <span class="tier-tag tier-n">نماینده (n)</span>
                                 </div>
                                 <div class="price-matrix-th-tier">
-                                    <span class="tier-tag tier-n2">عمده (n2)</span>
+                                    <span class="tier-tag tier-n2">نماینده پیشرفته (n2)</span>
                                 </div>
                             </div>
 
@@ -753,11 +753,11 @@ include __DIR__ . '/inc/layout_head.php';
                                         <input type="text" name="<?= $pf['id'] ?>_f" id="<?= $pf['id'] ?>_f" class="input price-input input-tier-f" placeholder="0">
                                     </div>
                                     <div class="price-matrix-td-input">
-                                        <span class="mobile-tier-label tier-n">درصددهی (n)</span>
+                                        <span class="mobile-tier-label tier-n">نماینده (n)</span>
                                         <input type="text" name="<?= $pf['id'] ?>_n" id="<?= $pf['id'] ?>_n" class="input price-input input-tier-n" placeholder="0">
                                     </div>
                                     <div class="price-matrix-td-input">
-                                        <span class="mobile-tier-label tier-n2">عمده (n2)</span>
+                                        <span class="mobile-tier-label tier-n2">نماینده پیشرفته (n2)</span>
                                         <input type="text" name="<?= $pf['id'] ?>_n2" id="<?= $pf['id'] ?>_n2" class="input price-input input-tier-n2" placeholder="0">
                                     </div>
                                 </div>
@@ -779,10 +779,10 @@ include __DIR__ . '/inc/layout_head.php';
                                     <span class="tier-tag tier-f">عادی (f)</span>
                                 </div>
                                 <div class="price-matrix-th-tier">
-                                    <span class="tier-tag tier-n">درصددهی (n)</span>
+                                    <span class="tier-tag tier-n">نماینده (n)</span>
                                 </div>
                                 <div class="price-matrix-th-tier">
-                                    <span class="tier-tag tier-n2">عمده (n2)</span>
+                                    <span class="tier-tag tier-n2">نماینده پیشرفته (n2)</span>
                                 </div>
                             </div>
 
@@ -807,11 +807,11 @@ include __DIR__ . '/inc/layout_head.php';
                                         <input type="text" name="<?= $pf['id'] ?>_f" id="<?= $pf['id'] ?>_f" class="input price-input input-tier-f" placeholder="0">
                                     </div>
                                     <div class="price-matrix-td-input">
-                                        <span class="mobile-tier-label tier-n">درصددهی (n)</span>
+                                        <span class="mobile-tier-label tier-n">نماینده (n)</span>
                                         <input type="text" name="<?= $pf['id'] ?>_n" id="<?= $pf['id'] ?>_n" class="input price-input input-tier-n" placeholder="0">
                                     </div>
                                     <div class="price-matrix-td-input">
-                                        <span class="mobile-tier-label tier-n2">عمده (n2)</span>
+                                        <span class="mobile-tier-label tier-n2">نماینده پیشرفته (n2)</span>
                                         <input type="text" name="<?= $pf['id'] ?>_n2" id="<?= $pf['id'] ?>_n2" class="input price-input input-tier-n2" placeholder="0">
                                     </div>
                                 </div>
