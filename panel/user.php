@@ -940,7 +940,8 @@ include __DIR__ . '/inc/layout_head.php';
                                                         'extends_not_user' => 'تمدید (جایزه)',
                                                         'extend_user_by_admin' => 'تمدید سرویس (توسط مدیر)',
                                                         'extra_user_by_admin' => 'افزایش حجم (توسط مدیر)',
-                                                        'extra_time_user_by_admin' => 'افزایش زمان (توسط مدیر)'
+                                                        'extra_time_user_by_admin' => 'افزایش زمان (توسط مدیر)',
+                                                        'set_volume_by_admin' => 'تنظیم دستی حجم (توسط مدیر)'
                                                     ];
                                                     foreach ($inv_logs as $lg): 
                                                         $lg_type = $actionMap[$lg['type']] ?? $lg['type'];

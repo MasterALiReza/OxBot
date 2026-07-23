@@ -549,6 +549,61 @@ try {
            <?= icon('plus', 13) ?> تمدید سرویس
         </a>
 
+        <!-- Edit Volume (Manual) -->
+        <button type="button" class="btn-sm-action" style="background:rgba(168, 85, 247, 0.15); color:#a855f7; border: 1px solid #a855f7; cursor:pointer;" 
+                onclick="var el = document.getElementById('edit-vol-box-<?= urlencode($id_invoice) ?>'); el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';">
+           <?= icon('database', 13) ?> ویرایش دستی حجم
+        </button>
+
+        <div id="edit-vol-box-<?= urlencode($id_invoice) ?>" style="display:none; grid-column: 1 / -1; background: var(--sf); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 12px; padding: 16px; margin-top: 6px;">
+            <div style="font-weight: 600; font-size: 0.9em; margin-bottom: 10px; color: #a855f7; display: flex; align-items: center; gap: 6px;">
+                <?= icon('database', 14) ?> ویرایش حجم سرویس
+            </div>
+            <form id="form-edit-vol-<?= urlencode($id_invoice) ?>" onsubmit="
+                event.preventDefault();
+                var fd = new FormData(this);
+                var resBox = document.getElementById('edit-vol-msg-<?= urlencode($id_invoice) ?>');
+                resBox.style.display = 'block';
+                resBox.innerHTML = '<span style=\"color:var(--mute);\">در حال ثبت تغییرات...</span>';
+                fetch('ajax/edit_volume.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.ok) {
+                        resBox.innerHTML = '<span style=\"color:#22c55e;\">' + d.msg + '</span>';
+                        setTimeout(function(){ manageService('<?= $id_invoice ?>'); }, 1200);
+                    } else {
+                        resBox.innerHTML = '<span style=\"color:#f43f5e;\">' + (d.msg || 'خطا در ویرایش حجم') + '</span>';
+                    }
+                })
+                .catch(err => {
+                    resBox.innerHTML = '<span style=\"color:#f43f5e;\">خطا در ارتباط با سرور</span>';
+                });
+            ">
+                <input type="hidden" name="_csrf" value="<?= $csrf ?>">
+                <input type="hidden" name="id_user" value="<?= $id_user ?>">
+                <input type="hidden" name="id_invoice" value="<?= htmlspecialchars($id_invoice) ?>">
+
+                <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 140px;">
+                        <label style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 4px;">حجم (گیگابایت) — ۰ = نامحدود</label>
+                        <input type="number" name="new_gb" min="0" max="999" step="0.1" placeholder="مثال: 50" required
+                               style="width: 100%; border: 1px solid var(--bd); border-radius: 8px; padding: 8px 12px; background: var(--sf2); color: var(--text); font-size: 0.9em;">
+                    </div>
+                    <div style="flex: 1; min-width: 140px;">
+                        <label style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 4px;">نوع عملیات</label>
+                        <select name="mode" style="width: 100%; border: 1px solid var(--bd); border-radius: 8px; padding: 8px 12px; background: var(--sf2); color: var(--text); font-size: 0.9em;">
+                            <option value="absolute">تنظیم دقیق حجم کل (جایگزین)</option>
+                            <option value="add">افزودن به حجم فعلی (اضافه‌شدن)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #a855f7; border-color: #a855f7; color: #fff;">
+                        ثبت تغییر حجم
+                    </button>
+                </div>
+                <div id="edit-vol-msg-<?= urlencode($id_invoice) ?>" style="margin-top: 10px; font-size: 0.85em; display: none;"></div>
+            </form>
+        </div>
+
         <!-- Remove Service (No Refund) -->
         <a href="user_action.php?action=removeservice&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
            class="btn-sm-action" style="background:rgba(244, 63, 94, 0.15); color:#f43f5e; border: 1px solid #f43f5e; text-decoration:none;" 

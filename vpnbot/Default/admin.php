@@ -303,6 +303,9 @@ if ($text == "📞 تنظیم نام کاربری پشتیبانی") {
                 ['text' => "افزایش موجودی", 'callback_data' => 'addbalanceuser_' . $text],
                 ['text' => "کم کردن موجودی", 'callback_data' => 'lowbalanceuser_' . $text],
             ],
+            [
+                ['text' => "🗂 ویرایش حجم سرویس", 'callback_data' => 'editvolume_' . $id_user],
+            ],
         ]
     ]);
     $userbalance = number_format(json_decode(file_get_contents("data/$id_user/$id_user.json"), true)['Balance']);
@@ -399,6 +402,120 @@ if ($text == "📞 تنظیم نام کاربری پشتیبانی") {
     step('home', $from_id);
     $statistics = select("user", "*", "bottype", $ApiToken, "count");
     $Balance_user_afters = number_format(select("user", "*", "id", $user['Processing_value'], "select")['Balance']);
+} elseif (preg_match('/editvolume_(\w+)/', $datain, $dataget)) {
+    $target_id = $dataget[1];
+    $stmt = $pdo->prepare("SELECT id_invoice, username, Service_location, Volume FROM invoice WHERE id_user = ? AND (Status = 'active' OR Status = 'sendedwarn' OR Status = 'send_on_hold') LIMIT 15");
+    $stmt->execute([$target_id]);
+    $invoices_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($invoices_list)) {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => "این کاربر هیچ سرویس فعالی ندارد.",
+            'show_alert' => true,
+        ]);
+        return;
+    }
+
+    $svc_kbd = ['inline_keyboard' => []];
+    foreach ($invoices_list as $inv_item) {
+        $svc_kbd['inline_keyboard'][] = [
+            ['text' => "🔑 {$inv_item['username']} | {$inv_item['Service_location']}", 'callback_data' => "selectsvc_{$target_id}_{$inv_item['id_invoice']}"]
+        ];
+    }
+    $svc_kbd['inline_keyboard'][] = [
+        ['text' => "🔙 بازگشت به منوی ادمین", 'callback_data' => "admin"]
+    ];
+
+    sendmessage($from_id, "📌 لطفاً سرویسی که قصد ویرایش حجم آن را دارید انتخاب کنید:", json_encode($svc_kbd), 'HTML');
+} elseif (preg_match('/selectsvc_(\w+)_([a-zA-Z0-9_-]+)/', $datain, $dataget)) {
+    $target_id = $dataget[1];
+    $id_invoice = $dataget[2];
+    savedata("clear", "pending_invoice", $id_invoice);
+    savedata("add", "pending_user", $target_id);
+    step('admin_get_volume_value', $from_id);
+    sendmessage($from_id, "📦 لطفاً حجم جدید کل سرویس را به <b>گیگابایت</b> ارسال کنید.\n\n⚪ عدد <b>0</b> به معنای نامحدود است.\n✏️ مثال: <code>50</code> یا <code>100</code>", $backadmin, 'HTML');
+} elseif ($user['step'] == "admin_get_volume_value") {
+    $input_val = eng_num(trim($text));
+    if (!is_numeric($input_val) || floatval($input_val) < 0 || floatval($input_val) > 999) {
+        sendmessage($from_id, "❌ مقدار وارد شده معتبر نیست. لطفا یک عدد بین ۰ تا ۹۹۹ وارد کنید.", $backadmin, 'HTML');
+        return;
+    }
+    $new_gb = floatval($input_val);
+    $userdata = json_decode($user['Processing_value'], true);
+    $id_invoice = isset($userdata['pending_invoice']) ? $userdata['pending_invoice'] : '';
+    $target_id = isset($userdata['pending_user']) ? $userdata['pending_user'] : '';
+
+    if (empty($id_invoice) || empty($target_id)) {
+        sendmessage($from_id, "❌ خطا در اطلاعات نشست. لطفاً دوباره تلاش کنید.", $keyboardadmin, 'HTML');
+        step('home', $from_id);
+        return;
+    }
+
+    $gb_text = $new_gb == 0 ? 'نامحدود' : "{$new_gb} گیگابایت";
+    $confirm_kbd = json_encode([
+        'inline_keyboard' => [
+            [
+                ['text' => "✅ تأیید و اعمال تغییر", 'callback_data' => "confirmsetvol_{$target_id}_{$id_invoice}_{$new_gb}"],
+            ],
+            [
+                ['text' => "❌ انصراف", 'callback_data' => "admin"],
+            ]
+        ]
+    ]);
+
+    sendmessage($from_id, "⚠️ <b>تأیید نهایی تغییر حجم</b>\n\n🆔 شناسه فاکتور: <code>{$id_invoice}</code>\n👤 آیدی کاربر: <code>{$target_id}</code>\n📦 حجم جدید: <b>{$gb_text}</b>\n\nآیا از ثبت این تغییر مطمئن هستید؟", $confirm_kbd, 'HTML');
+    step('home', $from_id);
+} elseif (preg_match('/confirmsetvol_(\w+)_([a-zA-Z0-9_-]+)_([\d.]+)/', $datain, $dataget)) {
+    $target_id = $dataget[1];
+    $id_invoice = $dataget[2];
+    $new_gb = floatval($dataget[3]);
+
+    if ($new_gb < 0 || $new_gb > 999) {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => "مقدار نامعتبر است.",
+            'show_alert' => true,
+        ]);
+        return;
+    }
+
+    $inv_stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_invoice = ? AND id_user = ?");
+    $inv_stmt->execute([$id_invoice, $target_id]);
+    $invoice_row = $inv_stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$invoice_row) {
+        sendmessage($from_id, "❌ فاکتور یا سرویس مورد نظر یافت نشد.", $keyboardadmin, 'HTML');
+        return;
+    }
+
+    require_once __DIR__ . '/../../panels.php';
+    $ManagePanel = new ManagePanel();
+    $res = $ManagePanel->SetVolumeAbsolute($invoice_row['username'], $invoice_row['Service_location'], $new_gb);
+
+    if (isset($res['status']) && $res['status'] === false) {
+        $err_msg = !empty($res['msg']) ? (is_string($res['msg']) ? $res['msg'] : json_encode($res['msg'])) : "خطای سرور";
+        sendmessage($from_id, "❌ خطا در ویرایش حجم سرویس در پنل: " . htmlspecialchars($err_msg), $keyboardadmin, 'HTML');
+        return;
+    }
+
+    // Insert Log
+    try {
+        $log_stmt = $pdo->prepare("INSERT INTO service_other (id_user, username, value, type, time, price, output) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $log_stmt->execute([$target_id, $invoice_row['username'], $new_gb . ' GB (bot)', 'set_volume_by_admin', date('Y-m-d H:i:s'), 0, json_encode($res)]);
+    } catch (Exception $e) {
+        error_log("Bot setvolume log error: " . $e->getMessage());
+    }
+
+    $gb_display = $new_gb == 0 ? 'نامحدود' : "{$new_gb} گیگابایت";
+
+    // Notify User
+    $user_msg = "🛡 <b>تغییر حجم سرویس</b>\n\n✏️ مدیریت حجم سرویس شما را ویرایش کرد.\n📦 حجم جدید: <b>{$gb_display}</b>\n🔑 نام سرویس: <code>{$invoice_row['username']}</code>";
+    sendmessage($target_id, $user_msg, null, 'HTML');
+
+    // Notify Admin
+    sendmessage($from_id, "✅ <b>حجم سرویس با موفقیت تغییر یافت.</b>\n\n👤 کاربر: <code>{$target_id}</code>\n🔑 نام سرویس: <code>{$invoice_row['username']}</code>\n📦 حجم جدید: <b>{$gb_display}</b>", $keyboardadmin, 'HTML');
+
 } elseif ($text == "📊 آمار ربات") {
     $statistics = select("user", "*", "bottype", $ApiToken, "count");
     $stmt2 = $pdo->prepare("SELECT COUNT( DISTINCT id_user) as count FROM `invoice` WHERE name_product = 'سرویس تست' AND  bottype = '$ApiToken'");

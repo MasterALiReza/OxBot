@@ -54,7 +54,8 @@ $typeMap = [
   'transfertouser' => $textbotlang['panel']['serviceTransferOrderLabel'] ?? 'انتقال سرویس',
   'extend_user_by_admin' => 'تمدید سرویس (توسط مدیر)',
   'extra_user_by_admin' => 'افزایش حجم (توسط مدیر)',
-  'extra_time_user_by_admin' => 'افزایش زمان (توسط مدیر)'
+  'extra_time_user_by_admin' => 'افزایش زمان (توسط مدیر)',
+  'set_volume_by_admin' => 'تنظیم دستی حجم (توسط مدیر)'
 ];
 
 $pageTitle = $textbotlang['panel']['servicesHeading'];
