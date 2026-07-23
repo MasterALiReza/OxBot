@@ -68,38 +68,34 @@ try {
             json_encode($res)
         ]);
     } catch (Exception $e) {
-        error_log("Failed to insert service_other log: " . $e->getMessage());
+        // Ignore log errors
     }
 
-    // Send Telegram Notification to user
-    $display_gb = $target_gb == 0 ? 'نامحدود' : number_format($target_gb, 1) . ' گیگابایت';
-    $old_gb_display = ($mode === 'add') ? number_format($current_gb, 1) . ' گیگابایت' : 'نامشخص';
-    if ($mode !== 'add') {
-        $old_gb_display = 'نامشخص (تغییر مطلق)';
+    $old_gb = 'نامشخص';
+    if (isset($currentData['data_limit'])) {
+        $old_gb = ($currentData['data_limit'] == 0) ? 'نامحدود' : number_format($currentData['data_limit'] / pow(1024, 3), 1) . ' گیگابایت';
+    } elseif (isset($currentData['Volume'])) {
+        $old_gb = $currentData['Volume'] == 0 ? 'نامحدود' : $currentData['Volume'] . ' گیگابایت';
     }
-    
-    // We get total gb directly from the target
-    $total_gb_str = $display_gb;
-    
-    // Remaining days? We can fetch it if we don't have it, but $currentData has it if $mode was 'add'
-    if (!isset($currentData)) {
-        $currentData = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
-    }
+
+    $gb_display = $new_gb_in == 0 ? 'نامحدود' : "{$new_gb_in} گیگابایت";
+    $total_gb_str = $target_gb == 0 ? 'نامحدود' : "{$target_gb} گیگابایت";
+    $mode_display = ($mode === 'add') ? 'افزوده شده' : 'جایگزین';
+
     $rem_days = 'نامشخص';
-    if (isset($currentData['expire']) && $currentData['expire'] > 0) {
+    if (isset($currentData['expire'])) {
         $rem = intval(($currentData['expire'] - time()) / 86400);
         $rem_days = $rem > 0 ? $rem . ' روز' : 'منقضی شده';
-    } elseif (isset($currentData['expire']) && $currentData['expire'] == 0) {
-        $rem_days = 'نامحدود';
+        if ($currentData['expire'] == 0) $rem_days = 'نامحدود';
     }
-    
+
     if (function_exists('send_admin_edit_notification')) {
-        send_admin_edit_notification($id_user, $invoice, 'volume', $old_gb_display, $display_gb, $total_gb_str, $rem_days);
+        send_admin_edit_notification($id_user, $invoice, 'volume', $old_gb, $gb_display, $total_gb_str, $rem_days, $mode_display);
     }
 
     echo json_encode([
         'ok' => true, 
-        'msg' => '✅ حجم سرویس با موفقیت به ' . $display_gb . ' تغییر یافت.',
+        'msg' => '✅ حجم سرویس با موفقیت به ' . $total_gb_str . ' تغییر یافت.',
         'new_gb' => $target_gb
     ], JSON_UNESCAPED_UNICODE);
 

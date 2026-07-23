@@ -2613,7 +2613,7 @@ if (!function_exists('ensure_broadcast_history_schema')) {
     }
 }
 
-function send_admin_edit_notification($target_id, $invoice_row, $edit_type, $old_val, $new_val, $total_gb, $remaining_days) {
+function send_admin_edit_notification($target_id, $invoice_row, $edit_type, $old_val, $new_val, $total_gb, $remaining_days, $mode_display = 'جایگزین') {
     global $pdo;
     require_once __DIR__ . '/panels.php';
     $ManagePanel = new ManagePanel();
@@ -2640,11 +2640,11 @@ function send_admin_edit_notification($target_id, $invoice_row, $edit_type, $old
     $user_msg .= "🖥 نام سرور: <code>{$invoice_row['Service_location']}</code>\n";
 
     if ($edit_type === 'volume') {
-        $user_msg .= "\n📊 <b>تغییرات حجم:</b>\n";
+        $user_msg .= "\n📊 <b>تغییرات حجم:</b> (بصورت {$mode_display})\n";
         $user_msg .= "🔸 حجم قبلی: <b>{$old_val}</b>\n";
         $user_msg .= "🔹 حجم فعلی: <b>{$new_val}</b>\n";
     } else {
-        $user_msg .= "\n⏳ <b>تغییرات زمان:</b>\n";
+        $user_msg .= "\n⏳ <b>تغییرات زمان:</b> (بصورت {$mode_display})\n";
         $user_msg .= "🔸 زمان قبلی: <b>{$old_val}</b>\n";
         $user_msg .= "🔹 زمان فعلی: <b>{$new_val}</b>\n";
     }

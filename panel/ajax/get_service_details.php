@@ -579,7 +579,7 @@ try {
                         <label style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 6px;">نوع عملیات</label>
                         <select name="mode" style="width: 100%; border: 1px solid var(--bd); border-radius: 8px; padding: 8px 12px; background: var(--sf2); color: var(--text); font-size: 0.9em;">
                             <option value="absolute">تنظیم دقیق حجم کل (جایگزین)</option>
-                            <option value="add">افزودن به حجم فعلی (اضافه‌شدن)</option>
+                            <option value="add" selected>افزودن به حجم فعلی (اضافه‌شدن)</option>
                         </select>
                     </div>
                     <div>
@@ -617,7 +617,7 @@ try {
                         <label style="font-size: 0.8em; color: var(--mute); display: block; margin-bottom: 6px;">نوع عملیات</label>
                         <select name="mode" style="width: 100%; border: 1px solid var(--bd); border-radius: 8px; padding: 8px 12px; background: var(--sf2); color: var(--text); font-size: 0.9em;">
                             <option value="absolute">تنظیم دقیق زمان کل (جایگزین)</option>
-                            <option value="add">افزودن به زمان فعلی (اضافه‌شدن)</option>
+                            <option value="add" selected>افزودن به زمان فعلی (اضافه‌شدن)</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary" style="padding: 8px 16px; background: #eab308; border-color: #eab308; color: #fff; width: 100%; flex: initial;">

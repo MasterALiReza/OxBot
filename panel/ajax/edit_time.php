@@ -74,17 +74,21 @@ try {
     }
 
     // Send Telegram Notification to user
-    $display_days = $target_days == 0 ? 'نامحدود' : floor($target_days) . ' روز';
-    $old_days_display = ($mode === 'add') ? floor($current_days) . ' روز' : 'نامشخص';
-    if ($mode !== 'add') {
-        $old_days_display = 'نامشخص (تغییر مطلق)';
-    }
-
-    $total_days_str = $display_days;
-
     if (!isset($currentData)) {
         $currentData = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
     }
+
+    $old_days = 'نامشخص';
+    if (isset($currentData['expire'])) {
+        $current_expire = time() - $currentData['expire'] > 0 ? time() : $currentData['expire'];
+        $c_days = $current_expire > 0 ? ($current_expire - time()) / 86400 : 0;
+        if ($c_days < 0) $c_days = 0;
+        $old_days = ($currentData['expire'] == 0) ? 'نامحدود' : floor($c_days) . ' روز';
+    }
+
+    $display_days = $target_days == 0 ? 'نامحدود' : floor($target_days) . ' روز';
+    $total_days_str = $display_days;
+    $mode_display = ($mode === 'add') ? 'افزوده شده' : 'جایگزین';
     
     $rem_gb = 'نامشخص';
     if (isset($currentData['data_limit']) && $currentData['data_limit'] > 0) {
@@ -96,7 +100,7 @@ try {
     }
 
     if (function_exists('send_admin_edit_notification')) {
-        send_admin_edit_notification($id_user, $invoice, 'time', $old_days_display, $display_days, $rem_gb, $total_days_str);
+        send_admin_edit_notification($id_user, $invoice, 'time', $old_days, $display_days, $rem_gb, $total_days_str, $mode_display);
     }
 
     echo json_encode([
